@@ -1,0 +1,292 @@
+---
+// Frontend-only "Ask AI" chat widget: a floating launcher button and a
+// slide-up modal with a message list + input. This is UI only — there is
+// no backend wired up. The submit handler echoes a placeholder assistant
+// reply so the interaction is visible. To make it real, replace the body
+// of `sendMessage()` in the inline script with a fetch to the NeuralSeek
+// `/api/*` proxy (browser-safe embedcode, never the admin key).
+---
+
+<div class="ns-chat" data-ns-chat>
+	<!-- Launcher -->
+	<button type="button" class="ns-chat__launcher" data-ns-open aria-label="Ask AI">
+		<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+		</svg>
+		<span>Ask AI</span>
+	</button>
+
+	<!-- Modal -->
+	<div class="ns-chat__modal" data-ns-modal hidden role="dialog" aria-modal="true" aria-label="Ask AI">
+		<header class="ns-chat__header">
+			<div class="ns-chat__title">
+				<span class="ns-chat__dot"></span>
+				Ask AI
+			</div>
+			<button type="button" class="ns-chat__close" data-ns-close aria-label="Close">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+				</svg>
+			</button>
+		</header>
+
+		<div class="ns-chat__log" data-ns-log>
+			<div class="ns-chat__msg ns-chat__msg--bot">
+				Hi! Ask me anything about the docs.
+			</div>
+		</div>
+
+		<form class="ns-chat__form" data-ns-form>
+			<input
+				type="text"
+				class="ns-chat__input"
+				data-ns-input
+				placeholder="Ask a question…"
+				autocomplete="off"
+				aria-label="Your question"
+			/>
+			<button type="submit" class="ns-chat__send" aria-label="Send">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+				</svg>
+			</button>
+		</form>
+	</div>
+</div>
+
+<style>
+	.ns-chat {
+		--ns-chat-w: 380px;
+		--ns-chat-h: 560px;
+	}
+
+	/* Launcher button */
+	.ns-chat__launcher {
+		position: fixed;
+		right: 1.5rem;
+		bottom: 1.5rem;
+		z-index: 100;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.7rem 1.1rem;
+		border: none;
+		border-radius: 999px;
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+		font-size: var(--sl-text-sm);
+		font-weight: 600;
+		cursor: pointer;
+		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+	.ns-chat__launcher:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+	}
+	.ns-chat[data-open] .ns-chat__launcher {
+		display: none;
+	}
+
+	/* Modal */
+	.ns-chat__modal {
+		position: fixed;
+		right: 1.5rem;
+		bottom: 1.5rem;
+		z-index: 101;
+		display: flex;
+		flex-direction: column;
+		width: min(var(--ns-chat-w), calc(100vw - 2rem));
+		height: min(var(--ns-chat-h), calc(100vh - 2rem));
+		background: var(--sl-color-bg);
+		border: 1px solid var(--sl-color-hairline);
+		border-radius: 14px;
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+		overflow: hidden;
+		animation: ns-chat-in 0.18s ease;
+	}
+	@keyframes ns-chat-in {
+		from { opacity: 0; transform: translateY(12px); }
+		to   { opacity: 1; transform: translateY(0); }
+	}
+
+	.ns-chat__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.9rem 1rem;
+		border-bottom: 1px solid var(--sl-color-hairline);
+		background: var(--sl-color-bg-nav);
+	}
+	.ns-chat__title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-weight: 600;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-white);
+	}
+	.ns-chat__dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--sl-color-text-accent);
+	}
+	.ns-chat__close {
+		display: inline-flex;
+		padding: 0.25rem;
+		border: none;
+		background: transparent;
+		color: var(--sl-color-gray-2);
+		cursor: pointer;
+		border-radius: 6px;
+	}
+	.ns-chat__close:hover {
+		color: var(--sl-color-white);
+		background: var(--sl-color-gray-6);
+	}
+
+	/* Message log */
+	.ns-chat__log {
+		flex: 1;
+		overflow-y: auto;
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.ns-chat__msg {
+		max-width: 85%;
+		padding: 0.6rem 0.8rem;
+		border-radius: 12px;
+		font-size: var(--sl-text-sm);
+		line-height: 1.5;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+	}
+	.ns-chat__msg--bot {
+		align-self: flex-start;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-white);
+		border-bottom-left-radius: 4px;
+	}
+	.ns-chat__msg--user {
+		align-self: flex-end;
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+		border-bottom-right-radius: 4px;
+	}
+	.ns-chat__msg--typing {
+		color: var(--sl-color-gray-3);
+		font-style: italic;
+	}
+
+	/* Input */
+	.ns-chat__form {
+		display: flex;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		border-top: 1px solid var(--sl-color-hairline);
+	}
+	.ns-chat__input {
+		flex: 1;
+		padding: 0.6rem 0.8rem;
+		border: 1px solid var(--sl-color-hairline);
+		border-radius: 8px;
+		background: var(--sl-color-bg);
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-sm);
+	}
+	.ns-chat__input:focus {
+		outline: none;
+		border-color: var(--sl-color-text-accent);
+	}
+	.ns-chat__send {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		border: none;
+		border-radius: 8px;
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+		cursor: pointer;
+	}
+	.ns-chat__send:hover {
+		opacity: 0.9;
+	}
+
+	@media (max-width: 30rem) {
+		.ns-chat__modal {
+			right: 1rem;
+			bottom: 1rem;
+		}
+		.ns-chat__launcher {
+			right: 1rem;
+			bottom: 1rem;
+		}
+	}
+</style>
+
+<script>
+	function initChat() {
+		const root = document.querySelector('[data-ns-chat]');
+		if (!root || root.hasAttribute('data-ns-init')) return;
+		root.setAttribute('data-ns-init', '');
+
+		const modal = root.querySelector('[data-ns-modal]') as HTMLElement;
+		const log = root.querySelector('[data-ns-log]') as HTMLElement;
+		const form = root.querySelector('[data-ns-form]') as HTMLFormElement;
+		const input = root.querySelector('[data-ns-input]') as HTMLInputElement;
+
+		const open = () => {
+			modal.hidden = false;
+			root.setAttribute('data-open', '');
+			input.focus();
+		};
+		const close = () => {
+			modal.hidden = true;
+			root.removeAttribute('data-open');
+		};
+
+		root.querySelector('[data-ns-open]')?.addEventListener('click', open);
+		root.querySelector('[data-ns-close]')?.addEventListener('click', close);
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && !modal.hidden) close();
+		});
+
+		function addMessage(text: string, who: 'user' | 'bot', extraClass = '') {
+			const el = document.createElement('div');
+			el.className = `ns-chat__msg ns-chat__msg--${who} ${extraClass}`.trim();
+			el.textContent = text;
+			log.appendChild(el);
+			log.scrollTop = log.scrollHeight;
+			return el;
+		}
+
+		// Frontend-only stub. Replace this with a fetch to the NeuralSeek
+		// `/api/*` proxy to wire up real answers.
+		async function sendMessage(question: string) {
+			const typing = addMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
+			await new Promise((r) => setTimeout(r, 600));
+			typing.remove();
+			addMessage(
+				'This is a frontend-only demo. Connect me to a backend to get real answers.',
+				'bot'
+			);
+		}
+
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const q = input.value.trim();
+			if (!q) return;
+			addMessage(q, 'user');
+			input.value = '';
+			sendMessage(q);
+		});
+	}
+
+	// Run on first load and on Starlight's client-side view transitions.
+	initChat();
+	document.addEventListener('astro:page-load', initChat);
+</script>

@@ -1,0 +1,149 @@
+/* ============================================================
+   NeuralDocs branding (NeuralSeek brand v2.1)
+   Unlayered rules win over the `starlight` and `obsidian` layers.
+   ============================================================ */
+
+/* --- Fonts: self-hosted via @fontsource --- */
+@import '@fontsource/open-sans/400.css';
+@import '@fontsource/open-sans/600.css';
+@import '@fontsource/open-sans/700.css';
+@import '@fontsource/open-sans/800.css';
+@import '@fontsource/open-sans/400-italic.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+/* ============================================================
+   Brand tokens
+   ============================================================ */
+:root {
+	--ns-cyan: #1fb6ff;
+	--ns-trust-blue: #2d5bff;
+	--ns-indigo: #5b2dff;
+	--ns-magenta: #a24bff;
+	--ns-soft-blue: #7babff;
+	--ns-regal-purple: #301e4c;
+
+	/* Surfaces */
+	--ns-surface: #2a2638;
+	--ns-surface-2: #1f1c28;
+	--ns-surface-elev: #332f42;
+	--ns-nav-black: #0b0a0f;
+
+	/* Fonts */
+	--sl-font: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+	--sl-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* --- Header wordmark: a touch smaller than the theme default --- */
+.site-title img {
+	height: 2.1rem !important;
+}
+
+/* --- Principal colors → Starlight accent scale (Trust Blue governs) ---
+   Scales must be declared per-theme (matching Starlight's own specificity)
+   and INVERTED: in dark, `-high` is the lightest shade; in light, `-high`
+   is the darkest (used for text/links). */
+:root[data-theme='dark'] {
+	--sl-color-bg: #131316;
+	--sl-color-bg-inline-code: var(--ns-surface-2);
+	--sl-color-accent-low: #182a66;
+	--sl-color-accent: #2d5bff;
+	--sl-color-accent-high: #b9c7ff;
+}
+:root[data-theme='light'] {
+	--sl-color-bg: hsl(0 0% 94%);
+	--sl-color-accent-low: #dbe1fb;
+	--sl-color-accent: #2f4fd6;
+	--sl-color-accent-high: #17297f;
+}
+
+/* ============================================================
+   Gradient canvas — SPLASH / HERO PAGES ONLY
+   Matches the original theme: the rolling-glow gradient appears on
+   splash/hero pages (which have no sidebar); documentation pages
+   stay on the flat brand background. Scoped via [data-has-hero],
+   which Starlight sets on <html> only for hero pages.
+   ============================================================ */
+:root[data-has-hero] {
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+:root[data-has-hero][data-theme='dark'] {
+	background-color: #131316 !important;
+	background-image:
+		radial-gradient(65% 55% at 8% 2%, rgba(91, 45, 255, 0.42) 0%, transparent 58%),
+		radial-gradient(55% 48% at 95% 0%, rgba(48, 30, 76, 0.95) 0%, transparent 55%),
+		radial-gradient(75% 65% at 92% 92%, rgba(91, 45, 255, 0.38) 0%, transparent 60%),
+		radial-gradient(60% 55% at 2% 98%, rgba(45, 91, 255, 0.30) 0%, transparent 58%),
+		radial-gradient(90% 80% at 50% 45%, rgba(48, 30, 76, 0.55) 0%, transparent 70%);
+}
+
+:root[data-has-hero][data-theme='light'] {
+	background-color: hsl(0 0% 94%) !important;
+	background-image:
+		radial-gradient(60% 50% at 8% 2%, rgba(45, 91, 255, 0.16) 0%, transparent 58%),
+		radial-gradient(65% 55% at 94% 96%, rgba(91, 45, 255, 0.14) 0%, transparent 60%),
+		radial-gradient(70% 60% at 96% 4%, rgba(31, 182, 255, 0.10) 0%, transparent 58%),
+		radial-gradient(90% 80% at 50% 50%, rgba(45, 91, 255, 0.05) 0%, transparent 72%);
+}
+
+/* On hero pages only, let the canvas show through the content containers. */
+:root[data-has-hero] :is(body, .page, .main-frame, .main-pane, main) {
+	background: transparent !important;
+}
+
+/* Hero pages: transparent, frosted navbar so the gradient + hero show
+   through it (matches the theme). Doc pages keep their solid nav so
+   scrolled content stays hidden behind it. */
+:root[data-has-hero] {
+	--sl-color-bg-nav: transparent;
+}
+:root[data-has-hero] header.header {
+	background: transparent !important;
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	border-bottom: none;
+}
+
+/* ============================================================
+   Page-title gradient
+   Dark: cyan → soft blue. Light: deeper trust-blue → indigo so it
+   stays legible on the near-white background.
+   ============================================================ */
+.sl-markdown-content h1:first-of-type,
+h1#_top,
+.content-panel h1,
+.hero h1 {
+	background: linear-gradient(90deg, var(--ns-cyan), var(--ns-soft-blue));
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	width: fit-content;
+}
+
+:root[data-theme='light'] :is(.sl-markdown-content h1:first-of-type, h1#_top, .content-panel h1, .hero h1) {
+	background-image: linear-gradient(90deg, var(--ns-trust-blue), var(--ns-indigo));
+	-webkit-background-clip: text;
+	background-clip: text;
+}
+
+/* ============================================================
+   Mobile logo: swap wide wordmark for the icon mark below 23em
+   (theme hides the wordmark there; show the "N" instead).
+   ============================================================ */
+@media (max-width: 23em) {
+	.mobile-header .title-wrapper {
+		display: flex !important;
+		align-items: center;
+	}
+	.mobile-header .title-wrapper .site-title img {
+		display: none;
+	}
+	.mobile-header .title-wrapper .site-title {
+		width: 1.75rem;
+		height: 1.75rem;
+		background: url('/favicon.png') left center / contain no-repeat;
+	}
+}

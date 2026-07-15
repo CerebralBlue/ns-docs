@@ -1,0 +1,31 @@
+---
+// Override: render Starlight's default social links (GitHub, etc.) and
+// append a NeuralSeek link that points to neuralseek.com. Because this
+// replaces the SocialIcons component, the NeuralSeek icon appears
+// everywhere the social icons render (desktop header + mobile sidebar).
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+import nsMark from '../assets/neuraldocs-icon.png';
+---
+
+<Default />
+<a href="https://neuralseek.com" rel="me" class="ns-social" aria-label="NeuralSeek">
+	<span class="sr-only">NeuralSeek</span>
+	<img src={nsMark.src} alt="" width="20" height="20" />
+</a>
+
+<style>
+	.ns-social {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.5em;
+		margin: -0.5em;
+	}
+	.ns-social:hover {
+		opacity: 0.66;
+	}
+	.ns-social img {
+		width: 1.25rem;
+		height: 1.25rem;
+		object-fit: contain;
+	}
+</style>

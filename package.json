@@ -1,0 +1,20 @@
+{
+  "name": "ns-docs",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.37.7",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/open-sans": "^5.2.7",
+    "astro": "^5.18.2",
+    "sharp": "^0.34.5",
+    "starlight-theme-obsidian": "^0.4.1"
+  }
+}

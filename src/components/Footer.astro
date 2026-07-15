@@ -1,0 +1,53 @@
+---
+// Override: keep Starlight's default footer (pagination, last-updated,
+// edit link) and add a branded NeuralSeek site footer beneath it.
+import Default from '@astrojs/starlight/components/Footer.astro';
+import ChatWidget from './ChatWidget.astro';
+---
+
+<Default />
+
+<ChatWidget />
+
+<footer class="ns-footer">
+	<div class="ns-footer-inner">
+		<p class="ns-copyright">© 2026 NeuralSeek. All rights reserved.</p>
+		<nav class="ns-footer-links">
+			<a href="https://neuralseek.com">NeuralSeek</a>
+			<a href="https://documentation.neuralseek.com">Documentation</a>
+			<a href="https://github.com/withastro/starlight">GitHub</a>
+		</nav>
+	</div>
+</footer>
+
+<style>
+	.ns-footer {
+		margin-top: 3rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--sl-color-hairline);
+	}
+	.ns-footer-inner {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem 1.5rem;
+		align-items: center;
+		justify-content: space-between;
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-3);
+	}
+	.ns-copyright {
+		margin: 0;
+	}
+	.ns-footer-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+	}
+	.ns-footer-links a {
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+	}
+	.ns-footer-links a:hover {
+		color: var(--sl-color-text-accent);
+	}
+</style>
