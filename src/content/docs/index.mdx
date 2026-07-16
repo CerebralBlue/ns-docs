@@ -1,40 +1,41 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
+title: NeuralSeek Documentation
+description: Official documentation for NeuralSeek — guides, reference, and how-tos.
 template: splash # Remove or comment out this line to display the site sidebar on this page.
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  tagline: Everything you need to build, configure, and ship with NeuralSeek.
   image:
-    file: ../../assets/neuraldocs-icon.png
+    # Raw <img> instead of `file:` on purpose: Starlight's Hero hardcodes
+    # width/height 400 with no srcset, so a `file:` hero is always emitted at
+    # 400px and looks soft once scaled up. Serving the 1200px asset directly
+    # lets the browser downsample and stay crisp on hi-DPI screens.
+    # alt is intentionally empty: the art is decorative, and a non-empty alt
+    # paints as text inside the reserved box while the image loads.
+    # NOTE: /ns-docs prefix = GitHub Pages base path; drop it when the custom
+    # domain lands (base becomes '/'). See AGENTS.md.
+    html: '<img src="/ns-docs/hero-folder-ns.webp" width="1200" height="1200" alt="" loading="eager" decoding="async" fetchpriority="high" />'
   actions:
-    - text: Example Guide
+    - text: Get started
       link: /guides/example/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+    - text: NeuralSeek.com
+      link: https://neuralseek.com
       icon: external
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+## Explore the docs
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+	<Card title="Guides" icon="open-book">
+		Task-based walkthroughs for building with NeuralSeek.
 	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
+	<Card title="Reference" icon="list-format">
+		Configuration options, API details, and mAIstro/NTL specifics.
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
-	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="Ask the docs" icon="comment">
+		Use the assistant in the corner to ask questions about the documentation.
 	</Card>
 </CardGrid>

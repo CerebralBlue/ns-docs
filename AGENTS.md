@@ -17,6 +17,21 @@ NeuralSeek documentation portal built on **Astro Starlight** with the
 - Package manager: **bun** (`bun run dev`, `bun run build`).
 - Fonts self-hosted via `@fontsource` (Open Sans + JetBrains Mono).
 
+## Deployment
+
+- **GitHub Pages**, repo `CerebralBlue/ns-docs`, public. Deployed by
+  `.github/workflows/deploy.yml` (Astro official action) on push to `main`.
+- Currently a **project page** at `https://cerebralblue.github.io/ns-docs`, so
+  `astro.config.mjs` sets `site: 'https://cerebralblue.github.io'` + `base: '/ns-docs'`.
+- **Base-path caveat:** Starlight/Astro auto-prefix internal links, assets, logos, the
+  favicon, and the site-graph sitemap with `/ns-docs`. But **hardcoded absolute paths to
+  `public/` assets are NOT auto-prefixed** — these were fixed by hand and must be reverted
+  when the custom domain lands (base → `/`):
+  - `src/content/docs/index.mdx` — hero `<img src="/ns-docs/hero-folder-ns.webp">`
+  - `src/styles/neuralseek.css` — mobile logo `url('/ns-docs/favicon.png')`
+- **Custom domain (Phase 4):** set `site: 'https://documentation.neuralseek.com'`, remove
+  `base`, drop the two `/ns-docs` asset prefixes above, and add a `public/CNAME` file.
+
 ## Development
 
 Start the dev server in background mode:

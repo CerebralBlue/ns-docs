@@ -8,24 +8,30 @@ import nsMark from '../assets/neuraldocs-icon.png';
 ---
 
 <Default />
-<a href="https://neuralseek.com" rel="me" class="ns-social" aria-label="NeuralSeek">
+<a href="https://neuralseek.com" rel="me" class="ns-social sl-flex">
 	<span class="sr-only">NeuralSeek</span>
-	<img src={nsMark.src} alt="" width="20" height="20" />
+	<span class="ns-mark" aria-hidden="true" style={`--ns-mark: url(${nsMark.src})`}></span>
 </a>
 
 <style>
+	/* Mirrors Starlight's own SocialIcons anchor rule so this link sizes,
+	   colors, and hovers identically to the icons it sits next to. */
 	.ns-social {
-		display: inline-flex;
-		align-items: center;
+		color: var(--sl-color-text-accent);
 		padding: 0.5em;
 		margin: -0.5em;
 	}
 	.ns-social:hover {
 		opacity: 0.66;
 	}
-	.ns-social img {
-		width: 1.25rem;
-		height: 1.25rem;
-		object-fit: contain;
+	/* The brand mark only ships as a gradient PNG. Mask it so just its alpha
+	   channel is used and the glyph paints in currentColor, matching the
+	   theme's monochrome SVG icons. 1em box = Starlight's Icon.astro sizing. */
+	.ns-mark {
+		width: 1em;
+		height: 1em;
+		background-color: currentColor;
+		-webkit-mask: var(--ns-mark) center / contain no-repeat;
+		mask: var(--ns-mark) center / contain no-repeat;
 	}
 </style>

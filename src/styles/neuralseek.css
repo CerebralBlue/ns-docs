@@ -144,6 +144,33 @@ h1#_top,
 	.mobile-header .title-wrapper .site-title {
 		width: 1.75rem;
 		height: 1.75rem;
-		background: url('/favicon.png') left center / contain no-repeat;
+		/* /ns-docs prefix = GitHub Pages base path; drop it when the custom
+		   domain lands (base becomes '/'). See AGENTS.md. */
+		background: url('/ns-docs/favicon.png') left center / contain no-repeat;
+	}
+}
+
+/* ============================================================
+   Hero image: the 3D art is served via `hero.image.html` (see
+   index.mdx) so it keeps its full 1200px resolution — Starlight's
+   own Hero would cap it at 400px. Sized a little larger than the
+   theme default (70%/20rem stacked, min(100%,25rem) side-by-side).
+   ============================================================ */
+.hero > img,
+.hero > .hero-html {
+	width: min(80%, 24rem);
+}
+
+/* image.html renders inside a flex wrapper, so size the inner <img> too. */
+.hero > .hero-html img {
+	width: 100%;
+	height: auto;
+	object-fit: contain;
+}
+
+@media (min-width: 50rem) {
+	.hero > img,
+	.hero > .hero-html {
+		width: min(100%, 28rem);
 	}
 }

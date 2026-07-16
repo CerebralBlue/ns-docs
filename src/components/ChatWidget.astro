@@ -1,32 +1,46 @@
 ---
-// Frontend-only "Ask AI" chat widget: a floating launcher button and a
-// slide-up modal with a message list + input. This is UI only — there is
-// no backend wired up. The submit handler echoes a placeholder assistant
-// reply so the interaction is visible. To make it real, replace the body
-// of `sendMessage()` in the inline script with a fetch to the NeuralSeek
+// Frontend-only "Ask AI" chat widget: a floating launcher button that toggles
+// a chat panel open/closed, with a message list + input. This is UI only —
+// there is no backend wired up. The submit handler echoes a placeholder reply
+// so the interaction is visible. To make it real, replace the body of
+// `sendMessage()` in the inline script with a fetch to the NeuralSeek
 // `/api/*` proxy (browser-safe embedcode, never the admin key).
+//
+// Icons come from Starlight's built-in set so they inherit currentColor and
+// stay crisp at any DPR — no image assets involved.
+import { Icon } from '@astrojs/starlight/components';
 ---
 
 <div class="ns-chat" data-ns-chat>
-	<!-- Launcher -->
-	<button type="button" class="ns-chat__launcher" data-ns-open aria-label="Ask AI">
-		<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-			<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-		</svg>
-		<span>Ask AI</span>
+	<!-- Launcher: stays put and toggles the panel. -->
+	<button
+		type="button"
+		class="ns-chat__launcher"
+		data-ns-toggle
+		aria-expanded="false"
+		aria-controls="ns-chat-panel"
+	>
+		<span class="ns-chat__ico ns-chat__ico--open"><Icon name="comment" size="1.25rem" /></span>
+		<span class="ns-chat__ico ns-chat__ico--close"><Icon name="close" size="1.25rem" /></span>
+		<span class="ns-chat__launcher-label" data-ns-label>Ask AI</span>
 	</button>
 
-	<!-- Modal -->
-	<div class="ns-chat__modal" data-ns-modal hidden role="dialog" aria-modal="true" aria-label="Ask AI">
+	<!-- Panel -->
+	<div
+		class="ns-chat__modal"
+		id="ns-chat-panel"
+		data-ns-modal
+		hidden
+		role="dialog"
+		aria-label="Ask AI"
+	>
 		<header class="ns-chat__header">
 			<div class="ns-chat__title">
 				<span class="ns-chat__dot"></span>
 				Ask AI
 			</div>
-			<button type="button" class="ns-chat__close" data-ns-close aria-label="Close">
-				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-				</svg>
+			<button type="button" class="ns-chat__close" data-ns-close aria-label="Close chat">
+				<Icon name="close" size="1.125rem" />
 			</button>
 		</header>
 
@@ -46,9 +60,7 @@
 				aria-label="Your question"
 			/>
 			<button type="submit" class="ns-chat__send" aria-label="Send">
-				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-				</svg>
+				<Icon name="right-arrow" size="1.125rem" />
 			</button>
 		</form>
 	</div>
@@ -58,6 +70,7 @@
 	.ns-chat {
 		--ns-chat-w: 380px;
 		--ns-chat-h: 560px;
+		--ns-chat-launcher-h: 2.75rem;
 	}
 
 	/* Launcher button */
@@ -84,26 +97,48 @@
 		transform: translateY(-2px);
 		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
 	}
-	.ns-chat[data-open] .ns-chat__launcher {
+	.ns-chat__launcher:focus-visible {
+		outline: 2px solid var(--sl-color-white);
+		outline-offset: 3px;
+	}
+
+	/* Icon swap: comment when closed, close when open. The launcher stays
+	   visible in both states so the same button toggles the panel shut. */
+	.ns-chat__ico {
+		display: inline-flex;
+		align-items: center;
+	}
+	.ns-chat__ico--close,
+	.ns-chat[data-open] .ns-chat__ico--open {
 		display: none;
+	}
+	.ns-chat[data-open] .ns-chat__ico--close {
+		display: inline-flex;
 	}
 
 	/* Modal */
 	.ns-chat__modal {
 		position: fixed;
 		right: 1.5rem;
-		bottom: 1.5rem;
+		/* sits above the launcher, which stays visible while open */
+		bottom: calc(1.5rem + var(--ns-chat-launcher-h) + 0.75rem);
 		z-index: 101;
 		display: flex;
 		flex-direction: column;
 		width: min(var(--ns-chat-w), calc(100vw - 2rem));
-		height: min(var(--ns-chat-h), calc(100vh - 2rem));
+		height: min(var(--ns-chat-h), calc(100vh - var(--ns-chat-launcher-h) - 4.5rem));
 		background: var(--sl-color-bg);
 		border: 1px solid var(--sl-color-hairline);
 		border-radius: 14px;
 		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 		overflow: hidden;
 		animation: ns-chat-in 0.18s ease;
+	}
+
+	/* `display: flex` above would otherwise beat the UA's [hidden] rule (author
+	   styles win at equal specificity), leaving the panel permanently open. */
+	.ns-chat__modal[hidden] {
+		display: none;
 	}
 	@keyframes ns-chat-in {
 		from { opacity: 0; transform: translateY(12px); }
@@ -219,7 +254,9 @@
 	@media (max-width: 30rem) {
 		.ns-chat__modal {
 			right: 1rem;
-			bottom: 1rem;
+			/* keep clear of the launcher on mobile too */
+			bottom: calc(1rem + var(--ns-chat-launcher-h) + 0.75rem);
+			height: min(var(--ns-chat-h), calc(100vh - var(--ns-chat-launcher-h) - 3.5rem));
 		}
 		.ns-chat__launcher {
 			right: 1rem;
@@ -238,21 +275,34 @@
 		const log = root.querySelector('[data-ns-log]') as HTMLElement;
 		const form = root.querySelector('[data-ns-form]') as HTMLFormElement;
 		const input = root.querySelector('[data-ns-input]') as HTMLInputElement;
+		const toggleBtn = root.querySelector('[data-ns-toggle]') as HTMLButtonElement;
+		const label = root.querySelector('[data-ns-label]') as HTMLElement;
 
-		const open = () => {
-			modal.hidden = false;
-			root.setAttribute('data-open', '');
-			input.focus();
-		};
-		const close = () => {
-			modal.hidden = true;
-			root.removeAttribute('data-open');
+		const isOpen = () => root.hasAttribute('data-open');
+
+		// restoreFocus: only when the user deliberately closed it (button/Esc).
+		// Clicking away must not yank focus back to the launcher.
+		const setOpen = (open: boolean, restoreFocus = true) => {
+			modal.hidden = !open;
+			root.toggleAttribute('data-open', open);
+			toggleBtn.setAttribute('aria-expanded', String(open));
+			toggleBtn.setAttribute('aria-label', open ? 'Close chat' : 'Ask AI');
+			label.textContent = open ? 'Close' : 'Ask AI';
+			if (open) input.focus();
+			else if (restoreFocus) toggleBtn.focus();
 		};
 
-		root.querySelector('[data-ns-open]')?.addEventListener('click', open);
-		root.querySelector('[data-ns-close]')?.addEventListener('click', close);
+		// The launcher is a toggle: same button opens and closes the panel.
+		toggleBtn.addEventListener('click', () => setOpen(!isOpen()));
+		root.querySelector('[data-ns-close]')?.addEventListener('click', () => setOpen(false));
+
 		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape' && !modal.hidden) close();
+			if (e.key === 'Escape' && isOpen()) setOpen(false);
+		});
+
+		// Click outside the widget closes it, without stealing focus.
+		document.addEventListener('click', (e) => {
+			if (isOpen() && !root.contains(e.target as Node)) setOpen(false, false);
 		});
 
 		function addMessage(text: string, who: 'user' | 'bot', extraClass = '') {

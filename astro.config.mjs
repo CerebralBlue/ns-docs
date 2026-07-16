@@ -5,10 +5,17 @@ import starlightThemeObsidian from 'starlight-theme-obsidian';
 
 // https://astro.build/config
 export default defineConfig({
+	// GitHub Pages project site. When the custom domain lands (Phase 4),
+	// set `site: 'https://documentation.neuralseek.com'` and remove `base`
+	// (then also drop the `/ns-docs` prefixes on public-asset refs — see AGENTS.md).
+	site: 'https://cerebralblue.github.io',
+	base: '/ns-docs',
 	integrations: [
 		starlight({
 			plugins: [starlightThemeObsidian()],
 			title: 'NeuralDocs',
+			description: 'Official documentation for NeuralSeek — guides, reference, and how-tos.',
+			lastUpdated: true,
 			logo: {
 				light: './src/assets/neuraldocs-logo-light.svg',
 				dark: './src/assets/neuraldocs-logo-dark.svg',
@@ -20,7 +27,7 @@ export default defineConfig({
 				SocialIcons: './src/components/SocialIcons.astro',
 				Footer: './src/components/Footer.astro',
 			},
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
+			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/CerebralBlue/ns-docs' }],
 			sidebar: [
 				{
 					label: 'Guides',
