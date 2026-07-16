@@ -1,0 +1,125 @@
+---
+title: Styleguide
+description: Internal kitchen-sink page exercising every component for brand verification.
+---
+
+import { Card, CardGrid, LinkCard, Aside, Tabs, TabItem, Steps, Badge, LinkButton, FileTree } from '@astrojs/starlight/components';
+
+This page exercises every major component so the NeuralSeek branding can be verified
+in both light and dark mode. It is an internal styleguide, not user-facing content.
+
+## Typography
+
+Body text uses **Open Sans**. This sentence has **bold**, _italic_, ~~strikethrough~~,
+an [internal link](/ns-docs/guides/example/), an [external link](https://neuralseek.com),
+and `inline code` in JetBrains Mono. Here is an identifier: `resultsCollectionId`.
+
+### Heading level 3
+
+#### Heading level 4
+
+> Blockquote: NeuralSeek turns your knowledge base into accurate, governed answers.
+> "Blue governs, purple creates."
+
+- Unordered list item one
+- Item two
+  - Nested item
+  - Nested item with `code`
+- Item three
+
+1. Ordered step one
+2. Ordered step two
+3. Ordered step three
+
+## Code blocks
+
+```js title="maistro-call.js"
+// JetBrains Mono on the code surface
+const res = await fetch('https://api.neuralseek.com/v1/instance/maistro', {
+  method: 'POST',
+  headers: { apikey: process.env.NS_KEY, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ agent: 'answer', params: [{ name: 'question', value: q }] }),
+});
+console.log(await res.json());
+```
+
+```bash frame="terminal"
+npm install -g @osuna0102/mcp
+mcpns -v
+```
+
+```json {2-3}
+{
+  "confidence": 92,
+  "answer": "Set resultsCollectionId to route retrieval.",
+  "sources": ["kb://neural-config/overview"]
+}
+```
+
+## Admonitions
+
+<Aside type="note">A note callout — general information.</Aside>
+<Aside type="tip">A tip callout — a helpful suggestion.</Aside>
+<Aside type="caution">A caution callout — proceed carefully.</Aside>
+<Aside type="danger">A danger callout — this can break things.</Aside>
+
+## Badges
+
+<Badge text="New" variant="note" /> <Badge text="Governance" variant="tip" />
+<Badge text="Beta" variant="caution" /> <Badge text="Deprecated" variant="danger" />
+
+## Buttons
+
+<LinkButton href="/ns-docs/guides/example/">Primary action</LinkButton>
+<LinkButton href="https://neuralseek.com" variant="secondary" icon="external">Secondary</LinkButton>
+<LinkButton href="/ns-docs/reference/example/" variant="minimal">Minimal</LinkButton>
+
+## Tabs
+
+<Tabs>
+  <TabItem label="npm">`npm i @osuna0102/mcp`</TabItem>
+  <TabItem label="pnpm">`pnpm add @osuna0102/mcp`</TabItem>
+  <TabItem label="bun">`bun add @osuna0102/mcp`</TabItem>
+</Tabs>
+
+## Steps
+
+<Steps>
+
+1. Configure `.neuralseekrc.json` in the project root.
+2. Run `mcpns -v` to confirm the active instance.
+3. Save an agent with `mcp_save_agent`.
+
+</Steps>
+
+## Cards
+
+<CardGrid>
+  <Card title="State" icon="star">Cyan accents for state.</Card>
+  <Card title="Governance" icon="approve-check">Trust-blue governs.</Card>
+  <Card title="Creation" icon="pencil">Indigo/magenta creates.</Card>
+  <Card title="Surfaces" icon="setting">Cards on Surface, calm and institutional.</Card>
+</CardGrid>
+
+<LinkCard title="Explore a guide" href="/ns-docs/guides/example/" description="A linked card to an internal page." />
+
+## File tree
+
+<FileTree>
+- src
+  - content/docs
+    - index.mdx
+    - styleguide.mdx
+  - styles
+    - neuralseek.css
+- astro.config.mjs
+</FileTree>
+
+## Table
+
+| Node | Plane | Auth | Notes |
+| --- | --- | --- | --- |
+| `/maistro` | Runtime | `apikey` | Agent execution |
+| `/seek` | Runtime | `apikey` | RAG Q&A |
+| `/consoleData` | Console | `apikey` + `Referer` | Server-side only |
+| `/upConfigure` | Console | `apikey` + `Referer` | Replaces by top-level key |

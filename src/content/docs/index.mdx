@@ -15,8 +15,11 @@ hero:
     # domain lands (base becomes '/'). See AGENTS.md.
     html: '<img src="/ns-docs/hero-folder-ns.webp" width="1200" height="1200" alt="" loading="eager" decoding="async" fetchpriority="high" />'
   actions:
+    # NOTE: Starlight does NOT auto-prefix the base path to hero action links
+    # (unlike nav/sidebar links). /ns-docs = GitHub Pages base; drop it when the
+    # custom domain lands (base → '/'). See AGENTS.md.
     - text: Get started
-      link: /guides/example/
+      link: /ns-docs/guides/example/
       icon: right-arrow
     - text: NeuralSeek.com
       link: https://neuralseek.com

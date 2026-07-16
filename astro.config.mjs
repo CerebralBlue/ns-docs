@@ -40,6 +40,8 @@ export default defineConfig({
 					label: 'Reference',
 					autogenerate: { directory: 'reference' },
 				},
+				// Internal — remove before public launch.
+				{ label: 'Styleguide', slug: 'styleguide' },
 			],
 		}),
 	],

@@ -174,3 +174,44 @@ h1#_top,
 		width: min(100%, 28rem);
 	}
 }
+
+/* ============================================================
+   Cards — brand treatment (6px radius, subtle border, inset top
+   highlight, hover lift). "Calm/institutional, not AI sparkle."
+   ============================================================ */
+.card,
+.sl-link-card {
+	border-radius: 6px;
+	transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.card:hover,
+.sl-link-card:hover {
+	transform: translateY(-4px);
+}
+:root[data-theme='dark'] .card,
+:root[data-theme='dark'] .sl-link-card {
+	background: var(--ns-surface);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+:root[data-theme='dark'] .card:hover,
+:root[data-theme='dark'] .sl-link-card:hover {
+	border-color: rgba(255, 255, 255, 0.22);
+}
+:root[data-theme='light'] .card,
+:root[data-theme='light'] .sl-link-card {
+	background: #ffffff;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+}
+:root[data-theme='light'] .card:hover,
+:root[data-theme='light'] .sl-link-card:hover {
+	border-color: rgba(45, 91, 255, 0.35);
+}
+
+/* ============================================================
+   Code blocks on brand Surface-2 (dark).
+   ============================================================ */
+:root[data-theme='dark'] .expressive-code {
+	--ec-codeBg: var(--ns-surface-2);
+	--ec-frm-edBg: var(--ns-surface-2);
+}
