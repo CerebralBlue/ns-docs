@@ -19,26 +19,40 @@ hero:
     # (unlike nav/sidebar links). /ns-docs = GitHub Pages base; drop it when the
     # custom domain lands (base → '/'). See AGENTS.md.
     - text: Get started
-      link: /ns-docs/guides/example/
+      link: /ns-docs/getting-started/quickstart-seek/
       icon: right-arrow
+    # TODO: secondary action becomes "Try the live demo" once the team picks
+    # the target (chat widget / labs / demo instance) — open question for RJ.
     - text: NeuralSeek.com
       link: https://neuralseek.com
       icon: external
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
 ## Explore the docs
 
 <CardGrid stagger>
-	<Card title="Guides" icon="open-book">
-		Task-based walkthroughs for building with NeuralSeek.
+	<Card title="Set up NeuralSeek" icon="rocket">
+		Deploy an instance and get your first grounded answer —
+		[start here](/ns-docs/getting-started/quickstart-seek/).
 	</Card>
-	<Card title="Reference" icon="list-format">
-		Configuration options, API details, and mAIstro/NTL specifics.
+	<Card title="Answer questions with Seek" icon="magnifier">
+		Tuning, virtual KBs, filters, caching, and curation —
+		[Seek documentation](/ns-docs/seek/overview/).
 	</Card>
-	<Card title="Ask the docs" icon="comment">
-		Use the assistant in the corner to ask questions about the documentation.
+	<Card title="Build agents with mAIstro" icon="puzzle">
+		Agent workflows and the full NTL node reference —
+		[mAIstro documentation](/ns-docs/maistro/overview/).
+	</Card>
+	<Card title="Connect your stack" icon="setting">
+		Knowledge bases, LLMs, virtual agents, and platform integrations —
+		[integrations](/ns-docs/knowledge/connect-a-kb/).
 	</Card>
 </CardGrid>
+
+## Ask the docs
+
+Use the **Ask AI** assistant in the corner to ask questions about NeuralSeek —
+it answers from this documentation and links you to the source page.
