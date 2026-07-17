@@ -1,49 +1,47 @@
-# Starlight Starter Kit: Basics
+# NeuralDocs
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+The NeuralSeek documentation portal, built with [Astro Starlight](https://starlight.astro.build)
+and the [`starlight-theme-obsidian`](https://github.com/fevol/starlight-theme-obsidian) theme,
+restyled to the NeuralSeek brand.
 
-```
-bun create astro@latest -- --template starlight
-```
+Live (preview): https://cerebralblue.github.io/ns-docs/
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Develop
 
-## 🚀 Project Structure
+Requires [Bun](https://bun.sh).
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```sh
+bun install
+bun run dev        # local dev server at http://localhost:4321/ns-docs
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+| Command           | Action                                          |
+| :---------------- | :---------------------------------------------- |
+| `bun run dev`     | Start the dev server                            |
+| `bun run build`   | Build the production site to `./dist/`          |
+| `bun run preview` | Preview the production build locally            |
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+> **Version pin:** this project stays on **Astro 5 / Starlight 0.37.7** on purpose — the theme's
+> site-graph engine does not yet support Astro 6/7. Don't upgrade those without checking the theme.
 
-Static assets, like favicons, can be placed in the `public/` directory.
+## Structure
 
-## 🧞 Commands
+```
+src/
+├─ content/docs/     Documentation pages (routes = file paths)
+├─ components/       Component overrides (SocialIcons, Footer, ChatWidget)
+├─ styles/           neuralseek.css — all brand overrides
+└─ assets/           Logos
+public/              favicon, hero art
+planning/            IA proposal + page template
+scripts/             migration map + generators
+```
 
-All commands are run from the root of the project, from a terminal:
+Add pages as `.md`/`.mdx` under `src/content/docs/`; register them in the sidebar in
+`astro.config.mjs`. See `CLAUDE.md` for branding, deployment, and base-path notes.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
-| `bun dev`             | Starts local dev server at `localhost:4321`      |
-| `bun build`           | Build your production site to `./dist/`          |
-| `bun preview`         | Preview your build locally, before deploying     |
-| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun astro -- --help` | Get help using the Astro CLI                     |
+## Deploy
 
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds with
+`withastro/action` and publishes to GitHub Pages. The site is served under the `/ns-docs`
+base path until a custom domain is attached.

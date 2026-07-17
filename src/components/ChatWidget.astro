@@ -7,22 +7,37 @@
 // `/api/*` proxy (browser-safe embedcode, never the admin key).
 //
 // Icons come from Starlight's built-in set so they inherit currentColor and
-// stay crisp at any DPR — no image assets involved.
+// stay crisp at any DPR — no image assets involved. The sparkle is a local
+// inline path (Starlight's set has no sparkle) and follows the same rules.
 import { Icon } from '@astrojs/starlight/components';
 ---
 
 <div class="ns-chat" data-ns-chat>
-	<!-- Launcher: stays put and toggles the panel. -->
+	<!-- Launcher: hides while the panel is open, and the panel takes over this
+	     exact spot. Icon-only, so the accessible name lives on aria-label and
+	     the sighted affordance is the hover/focus tooltip (::after). -->
 	<button
 		type="button"
 		class="ns-chat__launcher"
 		data-ns-toggle
 		aria-expanded="false"
 		aria-controls="ns-chat-panel"
+		aria-label="Ask AI"
 	>
-		<span class="ns-chat__ico ns-chat__ico--open"><Icon name="comment" size="1.25rem" /></span>
-		<span class="ns-chat__ico ns-chat__ico--close"><Icon name="close" size="1.25rem" /></span>
-		<span class="ns-chat__launcher-label" data-ns-label>Ask AI</span>
+		<svg
+			class="ns-chat__sparkle"
+			viewBox="0 0 24 24"
+			fill="currentColor"
+			aria-hidden="true"
+			focusable="false"
+		>
+			<path
+				d="M11 3.5l1.55 4.4a3.2 3.2 0 0 0 2.05 2.05L19 11.5l-4.4 1.55a3.2 3.2 0 0 0-2.05 2.05L11 19.5l-1.55-4.4a3.2 3.2 0 0 0-2.05-2.05L3 11.5l4.4-1.55A3.2 3.2 0 0 0 9.45 7.9L11 3.5z"
+			></path>
+			<path
+				d="M18.5 15l.6 1.7a1.3 1.3 0 0 0 .8.8l1.7.6-1.7.6a1.3 1.3 0 0 0-.8.8l-.6 1.7-.6-1.7a1.3 1.3 0 0 0-.8-.8L15.4 18.1l1.7-.6a1.3 1.3 0 0 0 .8-.8L18.5 15z"
+			></path>
+		</svg>
 	</button>
 
 	<!-- Panel -->
@@ -70,25 +85,27 @@ import { Icon } from '@astrojs/starlight/components';
 	.ns-chat {
 		--ns-chat-w: 380px;
 		--ns-chat-h: 560px;
-		--ns-chat-launcher-h: 2.75rem;
+		--ns-chat-launcher-size: 3.5rem;
+		--ns-chat-inset: 1.5rem;
 	}
 
-	/* Launcher button */
+	/* Launcher: round, icon-only. Shares the same corner inset as the panel,
+	   so the panel appears exactly where this button was. */
 	.ns-chat__launcher {
 		position: fixed;
-		right: 1.5rem;
-		bottom: 1.5rem;
+		right: var(--ns-chat-inset);
+		bottom: var(--ns-chat-inset);
 		z-index: 100;
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.7rem 1.1rem;
+		justify-content: center;
+		width: var(--ns-chat-launcher-size);
+		height: var(--ns-chat-launcher-size);
+		padding: 0;
 		border: none;
-		border-radius: 999px;
+		border-radius: 50%;
 		background: var(--sl-color-text-accent);
 		color: var(--sl-color-black);
-		font-size: var(--sl-text-sm);
-		font-weight: 600;
 		cursor: pointer;
 		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 		transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -101,37 +118,58 @@ import { Icon } from '@astrojs/starlight/components';
 		outline: 2px solid var(--sl-color-white);
 		outline-offset: 3px;
 	}
-
-	/* Icon swap: comment when closed, close when open. The launcher stays
-	   visible in both states so the same button toggles the panel shut. */
-	.ns-chat__ico {
-		display: inline-flex;
-		align-items: center;
-	}
-	.ns-chat__ico--close,
-	.ns-chat[data-open] .ns-chat__ico--open {
+	/* Open state: the panel occupies this corner, so the launcher steps aside.
+	   Focus is moved into the panel first — see setOpen() in the script. */
+	.ns-chat[data-open] .ns-chat__launcher {
 		display: none;
 	}
-	.ns-chat[data-open] .ns-chat__ico--close {
-		display: inline-flex;
+
+	.ns-chat__sparkle {
+		width: 1.5rem;
+		height: 1.5rem;
 	}
 
-	/* Modal */
+	/* Tooltip — the icon-only launcher's visible affordance. aria-label carries
+	   the same wording for screen readers, so this stays decorative. */
+	.ns-chat__launcher::after {
+		content: 'Ask AI';
+		position: absolute;
+		right: calc(100% + 0.65rem);
+		top: 50%;
+		translate: 0 -50%;
+		padding: 0.35rem 0.6rem;
+		border-radius: 6px;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-white);
+		border: 1px solid var(--sl-color-hairline);
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		white-space: nowrap;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.15s ease;
+	}
+	.ns-chat__launcher:hover::after,
+	.ns-chat__launcher:focus-visible::after {
+		opacity: 1;
+	}
+
+	/* Panel: pinned to the same corner the launcher occupies. */
 	.ns-chat__modal {
 		position: fixed;
-		right: 1.5rem;
-		/* sits above the launcher, which stays visible while open */
-		bottom: calc(1.5rem + var(--ns-chat-launcher-h) + 0.75rem);
+		right: var(--ns-chat-inset);
+		bottom: var(--ns-chat-inset);
 		z-index: 101;
 		display: flex;
 		flex-direction: column;
 		width: min(var(--ns-chat-w), calc(100vw - 2rem));
-		height: min(var(--ns-chat-h), calc(100vh - var(--ns-chat-launcher-h) - 4.5rem));
+		height: min(var(--ns-chat-h), calc(100vh - var(--ns-chat-inset) * 2));
 		background: var(--sl-color-bg);
 		border: 1px solid var(--sl-color-hairline);
 		border-radius: 14px;
 		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 		overflow: hidden;
+		transform-origin: bottom right;
 		animation: ns-chat-in 0.18s ease;
 	}
 
@@ -140,9 +178,21 @@ import { Icon } from '@astrojs/starlight/components';
 	.ns-chat__modal[hidden] {
 		display: none;
 	}
+	/* Grows out of the launcher's corner rather than sliding in from nowhere. */
 	@keyframes ns-chat-in {
-		from { opacity: 0; transform: translateY(12px); }
-		to   { opacity: 1; transform: translateY(0); }
+		from { opacity: 0; scale: 0.9; }
+		to   { opacity: 1; scale: 1; }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.ns-chat__modal {
+			animation: none;
+		}
+		.ns-chat__launcher {
+			transition: none;
+		}
+		.ns-chat__launcher:hover {
+			transform: none;
+		}
 	}
 
 	.ns-chat__header {
@@ -252,15 +302,8 @@ import { Icon } from '@astrojs/starlight/components';
 	}
 
 	@media (max-width: 30rem) {
-		.ns-chat__modal {
-			right: 1rem;
-			/* keep clear of the launcher on mobile too */
-			bottom: calc(1rem + var(--ns-chat-launcher-h) + 0.75rem);
-			height: min(var(--ns-chat-h), calc(100vh - var(--ns-chat-launcher-h) - 3.5rem));
-		}
-		.ns-chat__launcher {
-			right: 1rem;
-			bottom: 1rem;
+		.ns-chat {
+			--ns-chat-inset: 1rem;
 		}
 	}
 </style>
@@ -276,23 +319,27 @@ import { Icon } from '@astrojs/starlight/components';
 		const form = root.querySelector('[data-ns-form]') as HTMLFormElement;
 		const input = root.querySelector('[data-ns-input]') as HTMLInputElement;
 		const toggleBtn = root.querySelector('[data-ns-toggle]') as HTMLButtonElement;
-		const label = root.querySelector('[data-ns-label]') as HTMLElement;
 
 		const isOpen = () => root.hasAttribute('data-open');
 
 		// restoreFocus: only when the user deliberately closed it (button/Esc).
 		// Clicking away must not yank focus back to the launcher.
+		//
+		// Order matters here. Opening hides the launcher via [data-open] while it
+		// still holds focus, which would drop focus to <body>; moving focus into
+		// the input immediately after keeps the keyboard path intact. Closing
+		// un-hides the launcher before focusing it — .focus() is a no-op on a
+		// display:none element.
 		const setOpen = (open: boolean, restoreFocus = true) => {
 			modal.hidden = !open;
 			root.toggleAttribute('data-open', open);
 			toggleBtn.setAttribute('aria-expanded', String(open));
-			toggleBtn.setAttribute('aria-label', open ? 'Close chat' : 'Ask AI');
-			label.textContent = open ? 'Close' : 'Ask AI';
 			if (open) input.focus();
 			else if (restoreFocus) toggleBtn.focus();
 		};
 
-		// The launcher is a toggle: same button opens and closes the panel.
+		// The launcher only opens now — it's hidden while the panel is up, and
+		// the panel's own close button (and Esc) brings it back.
 		toggleBtn.addEventListener('click', () => setOpen(!isOpen()));
 		root.querySelector('[data-ns-close]')?.addEventListener('click', () => setOpen(false));
 

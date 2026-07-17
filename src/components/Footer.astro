@@ -1,11 +1,18 @@
 ---
 // Override: keep Starlight's default footer (pagination, last-updated,
 // edit link) and add a branded NeuralSeek site footer beneath it.
+//
+// Splash pages (the landing page) skip the default footer: pagination,
+// "Last updated" and the edit link are meaningless on a hero page, and the
+// theme puts a border-top on the bare `footer` selector, so rendering both
+// footers stacks two hairlines a few rem apart.
 import Default from '@astrojs/starlight/components/Footer.astro';
 import ChatWidget from './ChatWidget.astro';
+
+const isSplash = Astro.locals.starlightRoute.entry.data.template === 'splash';
 ---
 
-<Default />
+{!isSplash && <Default />}
 
 <ChatWidget />
 
@@ -14,7 +21,6 @@ import ChatWidget from './ChatWidget.astro';
 		<p class="ns-copyright">© 2026 NeuralSeek. All rights reserved.</p>
 		<nav class="ns-footer-links">
 			<a href="https://neuralseek.com">NeuralSeek</a>
-			<a href="https://documentation.neuralseek.com">Documentation</a>
 			<a href="https://github.com/CerebralBlue/ns-docs">GitHub</a>
 		</nav>
 	</div>

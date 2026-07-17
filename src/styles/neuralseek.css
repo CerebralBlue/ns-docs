@@ -188,6 +188,16 @@ h1#_top,
 .sl-link-card:hover {
 	transform: translateY(-4px);
 }
+/* CardGrid `stagger` pushes every 2nd card down 5rem with a transform, and the
+   hover lift above is the same property — unlayered, so it wins and would snap
+   a staggered card up to its unstaggered slot instead of lifting it. Re-apply
+   the offset so those cards lift the same 4px as the rest.
+   Matches CardGrid's own breakpoint: below 50rem there is no stagger. */
+@media (min-width: 50rem) {
+	.card-grid.stagger > .card:nth-child(2n):hover {
+		transform: translateY(calc(var(--stagger-height, 5rem) - 4px));
+	}
+}
 :root[data-theme='dark'] .card,
 :root[data-theme='dark'] .sl-link-card {
 	background: var(--ns-surface);
