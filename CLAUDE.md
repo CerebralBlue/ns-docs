@@ -28,10 +28,14 @@ documentation.neuralseek.com (Starlight was approved 2026-07-14).
   - `SocialIcons.astro` — appends a NeuralSeek link (renders everywhere social icons do).
   - `Footer.astro` — branded footer + mounts `ChatWidget`; skips Starlight's default footer
     on splash pages (pagination/edit-link are meaningless there and it double-borders).
-  - `ChatWidget.astro` — "Ask AI" launcher. **Frontend-only stub**; `sendMessage()` echoes a
-    placeholder. Wiring it to NeuralSeek is a later phase (instance
-    `neuralseek-documentation-website`, embedCode `2041675160`, `/seek` streaming). Any real
-    call goes through a server-side proxy — never put the admin API key in client code.
+  - `ChatWidget.astro` — "NeuralSeek Assistant" launcher / "Ask NeuralSeek" panel. `sendMessage()`
+    calls the `neuralseek-documentation-website` instance's `/seek` endpoint
+    (`stagingapi.neuralseek.com`) directly from the client, authenticated with an `embedcode`
+    header (`2041675160`). This is **not** the admin API key — embedCodes are scoped to only the
+    seek/mAIstro endpoints, so unlike the admin key they're meant to ship in public frontend
+    code; no server-side proxy needed. Chat history + a `sessionId`/`userId` pair persist in
+    `localStorage` (`ns-chat-v1` / `ns-session-id` / `ns-user-id`); the header's restart button
+    clears history and rotates `sessionId` only.
 - `src/assets/` — logos (`neuraldocs-logo-light/dark.svg` = wordmark, `neuraldocs-icon.png` = N mark).
 - `public/` — `favicon.png`, hero art.
 - `planning/` — IA proposal (`structure-sketch.md`) + page template.

@@ -1,15 +1,18 @@
 ---
-// Frontend-only "Ask AI" chat widget: a floating launcher button that toggles
-// a chat panel open/closed, with a message list + input. This is UI only —
-// there is no backend wired up. The submit handler echoes a placeholder reply
-// so the interaction is visible. To make it real, replace the body of
-// `sendMessage()` in the inline script with a fetch to the NeuralSeek
-// `/api/*` proxy (browser-safe embedcode, never the admin key).
+// NeuralSeek Assistant chat widget: a floating launcher button that toggles
+// a chat panel open/closed, with a message list + input. Questions are
+// answered by a direct client-side call to the `neuralseek-documentation-website`
+// instance's /seek endpoint, authenticated with an embedCode (not the admin API
+// key — embedCodes are scoped to only the seek/mAIstro endpoints, so they're
+// meant to ship in public frontend code, unlike the admin key).
 //
 // Icons come from Starlight's built-in set so they inherit currentColor and
-// stay crisp at any DPR — no image assets involved. The sparkle is a local
-// inline path (Starlight's set has no sparkle) and follows the same rules.
+// stay crisp at any DPR — no image assets involved. The chat bubble is a
+// local inline path (Starlight's set has no chat icon) and follows the same
+// rules. The panel logo is the actual N-mark PNG, same asset SocialIcons.astro
+// uses for the footer brand link.
 import { Icon } from '@astrojs/starlight/components';
+import nsIcon from '../assets/neuraldocs-icon.png';
 ---
 
 <div class="ns-chat" data-ns-chat>
@@ -22,20 +25,17 @@ import { Icon } from '@astrojs/starlight/components';
 		data-ns-toggle
 		aria-expanded="false"
 		aria-controls="ns-chat-panel"
-		aria-label="Ask AI"
+		aria-label="NeuralSeek Assistant"
 	>
 		<svg
-			class="ns-chat__sparkle"
+			class="ns-chat__icon"
 			viewBox="0 0 24 24"
 			fill="currentColor"
 			aria-hidden="true"
 			focusable="false"
 		>
 			<path
-				d="M11 3.5l1.55 4.4a3.2 3.2 0 0 0 2.05 2.05L19 11.5l-4.4 1.55a3.2 3.2 0 0 0-2.05 2.05L11 19.5l-1.55-4.4a3.2 3.2 0 0 0-2.05-2.05L3 11.5l4.4-1.55A3.2 3.2 0 0 0 9.45 7.9L11 3.5z"
-			></path>
-			<path
-				d="M18.5 15l.6 1.7a1.3 1.3 0 0 0 .8.8l1.7.6-1.7.6a1.3 1.3 0 0 0-.8.8l-.6 1.7-.6-1.7a1.3 1.3 0 0 0-.8-.8L15.4 18.1l1.7-.6a1.3 1.3 0 0 0 .8-.8L18.5 15z"
+				d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"
 			></path>
 		</svg>
 	</button>
@@ -47,21 +47,36 @@ import { Icon } from '@astrojs/starlight/components';
 		data-ns-modal
 		hidden
 		role="dialog"
-		aria-label="Ask AI"
+		aria-label="Ask NeuralSeek"
 	>
 		<header class="ns-chat__header">
 			<div class="ns-chat__title">
-				<span class="ns-chat__dot"></span>
-				Ask AI
+				<img src={nsIcon.src} alt="" class="ns-chat__logo" />
+				Ask NeuralSeek
 			</div>
-			<button type="button" class="ns-chat__close" data-ns-close aria-label="Close chat">
-				<Icon name="close" size="1.125rem" />
-			</button>
+			<div class="ns-chat__header-actions">
+				<button
+					type="button"
+					class="ns-chat__restart"
+					data-ns-restart
+					aria-label="Restart session"
+					title="Restart session"
+				>
+					<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+						<path
+							d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+						></path>
+					</svg>
+				</button>
+				<button type="button" class="ns-chat__close" data-ns-close aria-label="Close chat">
+					<Icon name="close" size="1.125rem" />
+				</button>
+			</div>
 		</header>
 
 		<div class="ns-chat__log" data-ns-log>
 			<div class="ns-chat__msg ns-chat__msg--bot">
-				Hi! Ask me anything about the docs.
+				Hi! Ask me anything about the documentation.
 			</div>
 		</div>
 
@@ -87,6 +102,12 @@ import { Icon } from '@astrojs/starlight/components';
 		--ns-chat-h: 560px;
 		--ns-chat-launcher-size: 3.5rem;
 		--ns-chat-inset: 1.5rem;
+
+		/* Widget-specific brand palette — distinct from the site's Trust Blue
+		   accent, per the Chat Widget brand spec. */
+		--ns-chat-primary: #3d91f0;
+		--ns-chat-secondary: #9d2ff9;
+		--ns-chat-accent: #000000;
 	}
 
 	/* Launcher: round, icon-only. Shares the same corner inset as the panel,
@@ -104,15 +125,15 @@ import { Icon } from '@astrojs/starlight/components';
 		padding: 0;
 		border: none;
 		border-radius: 50%;
-		background: var(--sl-color-text-accent);
-		color: var(--sl-color-black);
+		background: linear-gradient(135deg, var(--ns-chat-primary), var(--ns-chat-secondary));
+		color: var(--ns-chat-accent);
 		cursor: pointer;
 		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 		transition: transform 0.15s ease, box-shadow 0.15s ease;
 	}
 	.ns-chat__launcher:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 10px 28px rgba(157, 47, 249, 0.35);
 	}
 	.ns-chat__launcher:focus-visible {
 		outline: 2px solid var(--sl-color-white);
@@ -124,7 +145,7 @@ import { Icon } from '@astrojs/starlight/components';
 		display: none;
 	}
 
-	.ns-chat__sparkle {
+	.ns-chat__icon {
 		width: 1.5rem;
 		height: 1.5rem;
 	}
@@ -132,7 +153,7 @@ import { Icon } from '@astrojs/starlight/components';
 	/* Tooltip — the icon-only launcher's visible affordance. aria-label carries
 	   the same wording for screen readers, so this stays decorative. */
 	.ns-chat__launcher::after {
-		content: 'Ask AI';
+		content: 'NeuralSeek Assistant';
 		position: absolute;
 		right: calc(100% + 0.65rem);
 		top: 50%;
@@ -211,12 +232,21 @@ import { Icon } from '@astrojs/starlight/components';
 		font-size: var(--sl-text-sm);
 		color: var(--sl-color-white);
 	}
-	.ns-chat__dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--sl-color-text-accent);
+	.ns-chat__logo {
+		width: 20px;
+		height: 20px;
+		border-radius: 5px;
 	}
+	.ns-chat__header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.15rem;
+	}
+	.ns-chat__restart svg {
+		width: 1.05rem;
+		height: 1.05rem;
+	}
+	.ns-chat__restart,
 	.ns-chat__close {
 		display: inline-flex;
 		padding: 0.25rem;
@@ -226,9 +256,10 @@ import { Icon } from '@astrojs/starlight/components';
 		cursor: pointer;
 		border-radius: 6px;
 	}
+	.ns-chat__restart:hover,
 	.ns-chat__close:hover {
 		color: var(--sl-color-white);
-		background: var(--sl-color-gray-6);
+		background: color-mix(in srgb, var(--ns-chat-secondary) 35%, var(--sl-color-gray-6));
 	}
 
 	/* Message log */
@@ -257,8 +288,8 @@ import { Icon } from '@astrojs/starlight/components';
 	}
 	.ns-chat__msg--user {
 		align-self: flex-end;
-		background: var(--sl-color-text-accent);
-		color: var(--sl-color-black);
+		background: var(--ns-chat-primary);
+		color: var(--ns-chat-accent);
 		border-bottom-right-radius: 4px;
 	}
 	.ns-chat__msg--typing {
@@ -284,7 +315,7 @@ import { Icon } from '@astrojs/starlight/components';
 	}
 	.ns-chat__input:focus {
 		outline: none;
-		border-color: var(--sl-color-text-accent);
+		border-color: var(--ns-chat-primary);
 	}
 	.ns-chat__send {
 		display: inline-flex;
@@ -293,12 +324,13 @@ import { Icon } from '@astrojs/starlight/components';
 		width: 40px;
 		border: none;
 		border-radius: 8px;
-		background: var(--sl-color-text-accent);
-		color: var(--sl-color-black);
+		background: var(--ns-chat-primary);
+		color: var(--ns-chat-accent);
 		cursor: pointer;
+		transition: background 0.15s ease;
 	}
 	.ns-chat__send:hover {
-		opacity: 0.9;
+		background: var(--ns-chat-secondary);
 	}
 
 	@media (max-width: 30rem) {
@@ -309,6 +341,19 @@ import { Icon } from '@astrojs/starlight/components';
 </style>
 
 <script>
+	const STORAGE_KEY = 'ns-chat-v1';
+	const SESSION_KEY = 'ns-session-id';
+	const USER_KEY = 'ns-user-id';
+
+	const SEEK_URL = 'https://stagingapi.neuralseek.com/v1/neuralseek-documentation-website/seek';
+	const EMBED_CODE = '2041675160';
+
+	function uid() {
+		return crypto.randomUUID
+			? crypto.randomUUID()
+			: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+	}
+
 	function initChat() {
 		const root = document.querySelector('[data-ns-chat]');
 		if (!root || root.hasAttribute('data-ns-init')) return;
@@ -319,6 +364,74 @@ import { Icon } from '@astrojs/starlight/components';
 		const form = root.querySelector('[data-ns-form]') as HTMLFormElement;
 		const input = root.querySelector('[data-ns-input]') as HTMLInputElement;
 		const toggleBtn = root.querySelector('[data-ns-toggle]') as HTMLButtonElement;
+
+		// userId identifies this browser and survives a restart; sessionId
+		// identifies the current conversation and is reset by it. Neither is
+		// sent anywhere yet — both exist for the NeuralSeek `/seek` proxy, which
+		// needs a session id to keep conversational context.
+		let userId = localStorage.getItem(USER_KEY);
+		if (!userId) {
+			userId = uid();
+			localStorage.setItem(USER_KEY, userId);
+		}
+		let sessionId = localStorage.getItem(SESSION_KEY);
+		if (!sessionId) {
+			sessionId = uid();
+			localStorage.setItem(SESSION_KEY, sessionId);
+		}
+
+		let messages: { who: 'user' | 'bot'; text: string }[] = [];
+
+		// Astro scopes this component's <style> block by appending a build-hashed
+		// class (astro-xxxxxxxx) to every element in the static template; that's
+		// how these rules avoid the theme's cascade layers. Elements created here
+		// at runtime never get that class from the compiler, so scoped styles
+		// silently skip them unless we copy it over ourselves.
+		const scopeClass = Array.from(log.classList).find((c) => c.startsWith('astro-'));
+
+		function renderMessage(text: string, who: 'user' | 'bot', extraClass = '') {
+			const el = document.createElement('div');
+			el.className = `ns-chat__msg ns-chat__msg--${who} ${extraClass} ${scopeClass ?? ''}`.trim();
+			el.textContent = text;
+			log.appendChild(el);
+			log.scrollTop = log.scrollHeight;
+			return el;
+		}
+
+		function addMessage(text: string, who: 'user' | 'bot') {
+			const el = renderMessage(text, who);
+			messages.push({ who, text });
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+			return el;
+		}
+
+		// Hydrate from a previous visit. The greeting hardcoded in the markup
+		// only applies to a brand-new session — swap it for real history once
+		// there is any.
+		const saved = localStorage.getItem(STORAGE_KEY);
+		if (saved) {
+			try {
+				const parsed = JSON.parse(saved);
+				if (Array.isArray(parsed) && parsed.length) {
+					log.innerHTML = '';
+					for (const m of parsed) renderMessage(m.text, m.who);
+					messages = parsed;
+				}
+			} catch {
+				// Corrupt data — ignore and keep the default greeting.
+			}
+		}
+
+		// Wipes history and starts a fresh session: new sessionId, empty log,
+		// back to the default greeting. userId is untouched.
+		function resetChat() {
+			localStorage.removeItem(STORAGE_KEY);
+			messages = [];
+			sessionId = uid();
+			localStorage.setItem(SESSION_KEY, sessionId);
+			log.innerHTML = '';
+			renderMessage('Hi! Ask me anything about the documentation.', 'bot');
+		}
 
 		const isOpen = () => root.hasAttribute('data-open');
 
@@ -342,6 +455,7 @@ import { Icon } from '@astrojs/starlight/components';
 		// the panel's own close button (and Esc) brings it back.
 		toggleBtn.addEventListener('click', () => setOpen(!isOpen()));
 		root.querySelector('[data-ns-close]')?.addEventListener('click', () => setOpen(false));
+		root.querySelector('[data-ns-restart]')?.addEventListener('click', () => resetChat());
 
 		document.addEventListener('keydown', (e) => {
 			if (e.key === 'Escape' && isOpen()) setOpen(false);
@@ -352,25 +466,23 @@ import { Icon } from '@astrojs/starlight/components';
 			if (isOpen() && !root.contains(e.target as Node)) setOpen(false, false);
 		});
 
-		function addMessage(text: string, who: 'user' | 'bot', extraClass = '') {
-			const el = document.createElement('div');
-			el.className = `ns-chat__msg ns-chat__msg--${who} ${extraClass}`.trim();
-			el.textContent = text;
-			log.appendChild(el);
-			log.scrollTop = log.scrollHeight;
-			return el;
-		}
-
-		// Frontend-only stub. Replace this with a fetch to the NeuralSeek
-		// `/api/*` proxy to wire up real answers.
 		async function sendMessage(question: string) {
-			const typing = addMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
-			await new Promise((r) => setTimeout(r, 600));
-			typing.remove();
-			addMessage(
-				'This is a frontend-only demo. Connect me to a backend to get real answers.',
-				'bot'
-			);
+			const typing = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
+			try {
+				const res = await fetch(SEEK_URL, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', embedcode: EMBED_CODE },
+					body: JSON.stringify({ question, sessionId, userId }),
+				});
+				// Auth/rate-limit failures come back as a plain-text body, not JSON.
+				if (!res.ok) throw new Error(`Seek request failed (${res.status})`);
+				const data = await res.json();
+				typing.remove();
+				addMessage(data.answer || "Sorry, I couldn't find an answer for that.", 'bot');
+			} catch {
+				typing.remove();
+				addMessage('Something went wrong reaching NeuralSeek. Please try again in a moment.', 'bot');
+			}
 		}
 
 		form.addEventListener('submit', (e) => {
