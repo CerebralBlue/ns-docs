@@ -96,6 +96,11 @@ import { GREETING } from '../lib/ns-chat/constants';
 </div>
 
 <script>
+import type { ChatMessage, ChatRole } from "../lib/ns-chat/constants";
+import { NO_ANSWER, ERROR_MESSAGE } from "../lib/ns-chat/constants";
+import { askSeek, SeekError } from "../lib/ns-chat/seek-client";
+import { getSessionId, getUserId, saveHistory, clearHistory } from "../lib/ns-chat/session";
+
 	const STORAGE_KEY = 'ns-chat-v1';
 	const SESSION_KEY = 'ns-session-id';
 	const USER_KEY = 'ns-user-id';
@@ -172,7 +177,7 @@ import { GREETING } from '../lib/ns-chat/constants';
 			try {
 				const parsed = JSON.parse(saved);
 				if (Array.isArray(parsed) && parsed.length) {
-					log.innerHTML = '';
+					log!.innerHTML = '';
 					for (const m of parsed) renderMessage(m.text, m.who);
 					messages = parsed;
 				}
@@ -193,12 +198,12 @@ import { GREETING } from '../lib/ns-chat/constants';
 			messages = [];
 			sessionId = uid();
 			localStorage.setItem(SESSION_KEY, sessionId);
-			log.innerHTML = '';
+			log!.innerHTML = '';
 			renderMessage('Hi! Ask me anything about the documentation.', 'bot');
 			renderSuggestions();
 		}
 
-		const isOpen = () => root.hasAttribute('data-open');
+		const isOpen = () => root!.hasAttribute('data-open');
 
 		// restoreFocus: only when the user deliberately closed it (button/Esc).
 		// Clicking away must not yank focus back to the launcher.
@@ -210,7 +215,7 @@ import { GREETING } from '../lib/ns-chat/constants';
 		// display:none element.
 		function setOpen(open: boolean, restoreFocus = true) {
 			modal!.hidden = !open;
-			root.toggleAttribute('data-open', open);
+			root!.toggleAttribute('data-open', open);
 			toggleBtn!.setAttribute('aria-expanded', String(open));
 			if (open) input!.focus();
 			else if (restoreFocus) toggleBtn!.focus();
@@ -262,11 +267,11 @@ import { GREETING } from '../lib/ns-chat/constants';
 			// messages. Creating it fresh here and appending it as the log's last
 			// child is what puts it directly under the greeting instead of pinned
 			// near the input — it just stacks like any other log entry.
-			log.querySelector('[data-ns-suggestions]')?.remove();
+			log!.querySelector('[data-ns-suggestions]')?.remove();
 			const box = document.createElement('div');
 			box.className = `ns-chat__suggestions ${scopeClass ?? ''}`.trim();
 			box.dataset.nsSuggestions = '';
-			log.appendChild(box);
+			log!.appendChild(box);
 			for (const q of QUICK_QUESTIONS) {
 				const btn = document.createElement('button');
 				btn.type = 'button';
