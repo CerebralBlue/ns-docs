@@ -2,19 +2,38 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import remarkNsDirectives from './src/plugins/remark-ns-directives.mjs';
+import remarkBasePath from './src/plugins/remark-base-path.mjs';
+
+/**
+ * THE deployment prefix — single source of truth.
+ *
+ * Feeds Astro's own `base` AND remark-base-path, which prefixes every
+ * root-relative link written in page content. Content is therefore authored
+ * prefix-free (`/getting-started/quickstart-seek/`).
+ *
+ * CUSTOM-DOMAIN CUTOVER: set this to '' and `site` to
+ * 'https://documentation.neuralseek.com', then add public/CNAME. Two things
+ * the plugin cannot reach still need doing by hand — `hero.actions` links in
+ * index.mdx (YAML frontmatter takes no expressions) and any raw <a href> in an
+ * HTML block. Find them with:  grep -rn '"/ns-docs' src/content/
+ */
+const BASE = '/ns-docs';
 
 // https://astro.build/config
 export default defineConfig({
-	// GitHub Pages project site. When the custom domain lands (Phase 4),
-	// set `site: 'https://documentation.neuralseek.com'` and remove `base`
-	// (then also drop the `/ns-docs` prefixes on public-asset refs — see AGENTS.md).
+	// GitHub Pages project site.
 	site: 'https://cerebralblue.github.io',
-	base: '/ns-docs',
-	// Custom `:::ns-*` components for plain .md pages. Astro CONCATENATES this
-	// array with Starlight's own remark plugins (user entries first), so this
-	// runs before Starlight's asides and does not displace them.
+	base: BASE,
+	// Astro CONCATENATES this array with Starlight's own remark plugins (user
+	// entries first), so both run before Starlight's asides and neither
+	// displaces them.
+	//
+	// ORDER MATTERS between these two: remark-base-path must see the AUTHORED
+	// directive nodes so it can rewrite `href` attributes on `:::ns-card` /
+	// `::ns-button`. remark-ns-directives rewrites those nodes into paragraphs,
+	// after which the attributes are gone.
 	markdown: {
-		remarkPlugins: [remarkNsDirectives],
+		remarkPlugins: [[remarkBasePath, { base: BASE }], remarkNsDirectives],
 	},
 	integrations: [
 		starlight({

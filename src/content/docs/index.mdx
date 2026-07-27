@@ -13,9 +13,12 @@ hero:
   title: '<span class="ns-label ns-hero-eyebrow" aria-hidden="true" data-pagefind-ignore>Grounded AI platform</span><span class="ns-hero-title">NeuralSeek Documentation</span>'
   tagline: Grounded answers and AI agents over your own knowledge base — with a citation and a score on every response.
   actions:
-    # NOTE: Starlight does NOT auto-prefix the base path to hero action links
-    # (unlike nav/sidebar links). /ns-docs = GitHub Pages base; drop it when the
-    # custom domain lands (base → '/'). See CLAUDE.md.
+    # THE ONE PLACE THE BASE PATH IS STILL WRITTEN BY HAND.
+    # Everywhere else in this file, links are authored prefix-free and
+    # src/plugins/remark-base-path.mjs adds `/ns-docs` at build time. It cannot
+    # reach here: this is YAML frontmatter, which takes no expressions, and
+    # Starlight does not auto-prefix hero action links the way it does nav and
+    # sidebar links. Update it by hand at the custom-domain cutover.
     - text: Get started
       link: /ns-docs/getting-started/quickstart-seek/
       icon: right-arrow
@@ -44,15 +47,15 @@ hero:
 
 ::::ns-grid{cols=3}
 
-:::ns-card[Quickstart: Seek]{icon=rocket href="/ns-docs/getting-started/quickstart-seek/"}
+:::ns-card[Quickstart: Seek]{icon=rocket href="/getting-started/quickstart-seek/"}
 Your first grounded answer, in about 15 minutes.
 :::
 
-:::ns-card[Quickstart: mAIstro]{icon=puzzle href="/ns-docs/getting-started/quickstart-maistro/"}
+:::ns-card[Quickstart: mAIstro]{icon=puzzle href="/getting-started/quickstart-maistro/"}
 Build and run your first agent.
 :::
 
-:::ns-card[Connect a knowledge base]{icon=document href="/ns-docs/knowledge/connect-a-kb/"}
+:::ns-card[Connect a knowledge base]{icon=document href="/knowledge/connect-a-kb/"}
 Point NeuralSeek at your existing content.
 :::
 
@@ -74,61 +77,61 @@ Point NeuralSeek at your existing content.
 :::ns-card[Seek]
 Answers from your knowledge base.
 
-- [Overview](/ns-docs/seek/overview/)
-- [Tuning answers](/ns-docs/seek/tuning/)
-- [Virtual KB](/ns-docs/seek/virtual-kb/)
-- [Caching](/ns-docs/seek/caching/)
-- [Answer curation](/ns-docs/seek/curation/)
+- [Overview](/seek/overview/)
+- [Tuning answers](/seek/tuning/)
+- [Virtual KB](/seek/virtual-kb/)
+- [Caching](/seek/caching/)
+- [Answer curation](/seek/curation/)
 :::
 
 :::ns-card[mAIstro]
 Agents, workflows, and NTL.
 
-- [Overview](/ns-docs/maistro/overview/)
-- [Visual editor](/ns-docs/maistro/visual-editor/)
-- [NTL overview](/ns-docs/maistro/ntl-overview/)
-- [Control flow](/ns-docs/maistro/ntl/control-flow/)
-- [Multi-agent](/ns-docs/maistro/ntl/multi-agent/)
+- [Overview](/maistro/overview/)
+- [Visual editor](/maistro/visual-editor/)
+- [NTL overview](/maistro/ntl-overview/)
+- [Control flow](/maistro/ntl/control-flow/)
+- [Multi-agent](/maistro/ntl/multi-agent/)
 :::
 
 :::ns-card[Knowledge & Data]
 Connecting, loading, and cleaning your content.
 
-- [Connect a KB](/ns-docs/knowledge/connect-a-kb/)
-- [Supported knowledge bases](/ns-docs/knowledge/supported-knowledgebases/)
-- [Pinecone setup](/ns-docs/knowledge/pinecone/)
-- [Loading documents](/ns-docs/knowledge/load/)
-- [Table understanding](/ns-docs/knowledge/table-understanding/)
+- [Connect a KB](/knowledge/connect-a-kb/)
+- [Supported knowledge bases](/knowledge/supported-knowledgebases/)
+- [Pinecone setup](/knowledge/pinecone/)
+- [Loading documents](/knowledge/load/)
+- [Table understanding](/knowledge/table-understanding/)
 :::
 
 :::ns-card[Integrations]
 Connecting to your existing channels and tools.
 
-- [Virtual agents](/ns-docs/integrations/virtual-agents/)
-- [Training virtual agents](/ns-docs/integrations/training-virtual-agents/)
-- [watsonx Assistant streaming](/ns-docs/integrations/watsonx-assistant-streaming/)
-- [NICE CXone](/ns-docs/integrations/nice-cxone/)
-- [Chat SDK](/ns-docs/integrations/chat-sdk/)
+- [Virtual agents](/integrations/virtual-agents/)
+- [Training virtual agents](/integrations/training-virtual-agents/)
+- [watsonx Assistant streaming](/integrations/watsonx-assistant-streaming/)
+- [NICE CXone](/integrations/nice-cxone/)
+- [Chat SDK](/integrations/chat-sdk/)
 :::
 
 :::ns-card[Configuration]
 Models, languages, and instance settings.
 
-- [Overview](/ns-docs/configuration/overview/)
-- [Supported LLMs](/ns-docs/configuration/supported-llms/)
-- [Multi-LLM](/ns-docs/configuration/multi-llm/)
-- [Semantic model tuning](/ns-docs/configuration/semantic-model/)
-- [Backup & restore](/ns-docs/configuration/backup-restore/)
+- [Overview](/configuration/overview/)
+- [Supported LLMs](/configuration/supported-llms/)
+- [Multi-LLM](/configuration/multi-llm/)
+- [Semantic model tuning](/configuration/semantic-model/)
+- [Backup & restore](/configuration/backup-restore/)
 :::
 
 :::ns-card[Governance & Analytics]
 Auditing, privacy, and answer quality.
 
-- [Overview](/ns-docs/governance/overview/)
-- [PII detection](/ns-docs/governance/pii-detection/)
-- [Real-time logging](/ns-docs/governance/logging/)
-- [Data security & privacy](/ns-docs/governance/data-security/)
-- [Semantic analytics](/ns-docs/governance/semantic-analytics/)
+- [Overview](/governance/overview/)
+- [PII detection](/governance/pii-detection/)
+- [Real-time logging](/governance/logging/)
+- [Data security & privacy](/governance/data-security/)
+- [Semantic analytics](/governance/semantic-analytics/)
 :::
 
 ::::
@@ -143,12 +146,12 @@ Auditing, privacy, and answer quality.
 
 ::::ns-grid{cols=2}
 
-:::ns-card[SaaS]{icon=star href="/ns-docs/getting-started/deployment/"}
+:::ns-card[SaaS]{icon=star href="/getting-started/deployment/"}
 Available on IBM Cloud, Microsoft Azure, and AWS — all with the same feature
 set. Some plans are specific to a single hyperscaler.
 :::
 
-:::ns-card[On-premise & air-gapped]{icon=download href="/ns-docs/getting-started/deployment/"}
+:::ns-card[On-premise & air-gapped]{icon=download href="/getting-started/deployment/"}
 Run on any cloud or your own hardware, supporting HIPAA, govCloud, and FedRAMP
 requirements — it can run completely isolated from a network connection.
 :::

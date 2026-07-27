@@ -32,17 +32,17 @@ Cards on Surface, calm and institutional.
 
 ::::ns-grid{cols=2}
 
-:::ns-card[Quickstart: Seek]{icon=rocket href="/ns-docs/getting-started/quickstart-seek/"}
+:::ns-card[Quickstart: Seek]{icon=rocket href="/getting-started/quickstart-seek/"}
 Deploy an instance and get your first grounded answer.
 :::
 
-:::ns-card[NTL reference]{icon=open-book href="/ns-docs/maistro/ntl-overview/"}
+:::ns-card[NTL reference]{icon=open-book href="/maistro/ntl-overview/"}
 Every node, with syntax and worked examples.
 :::
 
 ::::
 
-::ns-button[Get started]{href="/ns-docs/getting-started/quickstart-seek/" icon=right-arrow}
+::ns-button[Get started]{href="/getting-started/quickstart-seek/" icon=right-arrow}
 
 Release status: :ns-label[beta] — inline mono label.
 
@@ -54,7 +54,7 @@ Nesting requires each level to use MORE colons than the one inside it, so a
 :::::ns-grid{cols=1}
 
 ::::ns-card[Rich body]{icon=document}
-Body copy with **bold**, `inline code`, and a [link](/ns-docs/seek/overview/).
+Body copy with **bold**, `inline code`, and a [link](/seek/overview/).
 
 :::note
 A Starlight aside nested inside a card.
@@ -86,3 +86,26 @@ No title at all — body-only, plus a warning.
 
 NTL syntax in prose must survive untouched: `{{ postgres | query }}` and
 << name: x, prompt: false >> and a bare {{ brace }}.
+
+## Base path (src/plugins/remark-base-path.mjs)
+
+Links are authored WITHOUT the `/ns-docs` deployment prefix; the plugin adds it
+at build time. Inspect the rendered `href`s — the first group must all gain the
+prefix, the second group must all come through untouched.
+
+Rewritten:
+
+- [root-relative link](/seek/overview/)
+- [root-relative, no trailing slash](/seek/tuning)
+- ::ns-button[directive href]{href="/getting-started/quickstart-seek/"}
+
+Left alone:
+
+- [external https](https://neuralseek.com)
+- [protocol-relative](//neuralseek.com/x)
+- [mailto](mailto:hi@neuralseek.com)
+- [in-page anchor](#base-path-srcpluginsremark-base-pathmjs)
+- [already-relative sibling](overview/)
+- [already prefixed by hand](/ns-docs/seek/overview/) — must NOT become
+  `/ns-docs/ns-docs/…`; the rewrite is idempotent so a stray hand-written
+  prefix still resolves.
