@@ -1,0 +1,277 @@
+
+	.ns-chat {
+		--ns-chat-w: 380px;
+		--ns-chat-h: 560px;
+		--ns-chat-launcher-size: 3.5rem;
+		--ns-chat-inset: 1.5rem;
+
+		/* Widget-specific brand palette — distinct from the site's Trust Blue
+		   accent, per the Chat Widget brand spec. */
+		--ns-chat-primary: #3d91f0;
+		--ns-chat-secondary: #9d2ff9;
+		--ns-chat-accent: #000000;
+	}
+
+	/* Launcher: round, icon-only. Shares the same corner inset as the panel,
+	   so the panel appears exactly where this button was. */
+	.ns-chat__launcher {
+		position: fixed;
+		right: var(--ns-chat-inset);
+		bottom: var(--ns-chat-inset);
+		z-index: 100;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--ns-chat-launcher-size);
+		height: var(--ns-chat-launcher-size);
+		padding: 0;
+		border: none;
+		border-radius: 50%;
+		background: linear-gradient(135deg, var(--ns-chat-primary), var(--ns-chat-secondary));
+		color: var(--ns-chat-accent);
+		cursor: pointer;
+		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+	.ns-chat__launcher:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 10px 28px rgba(157, 47, 249, 0.35);
+	}
+	.ns-chat__launcher:focus-visible {
+		outline: 2px solid var(--sl-color-white);
+		outline-offset: 3px;
+	}
+	/* Open state: the panel occupies this corner, so the launcher steps aside.
+	   Focus is moved into the panel first — see setOpen() in the script. */
+	.ns-chat[data-open] .ns-chat__launcher {
+		display: none;
+	}
+
+	.ns-chat__icon {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	/* Tooltip — the icon-only launcher's visible affordance. aria-label carries
+	   the same wording for screen readers, so this stays decorative. */
+	.ns-chat__launcher::after {
+		content: 'NeuralSeek Assistant';
+		position: absolute;
+		right: calc(100% + 0.65rem);
+		top: 50%;
+		translate: 0 -50%;
+		padding: 0.35rem 0.6rem;
+		border-radius: 6px;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-white);
+		border: 1px solid var(--sl-color-hairline);
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		white-space: nowrap;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.15s ease;
+	}
+	.ns-chat__launcher:hover::after,
+	.ns-chat__launcher:focus-visible::after {
+		opacity: 1;
+	}
+
+	/* Panel: pinned to the same corner the launcher occupies. */
+	.ns-chat__modal {
+		position: fixed;
+		right: var(--ns-chat-inset);
+		bottom: var(--ns-chat-inset);
+		z-index: 101;
+		display: flex;
+		flex-direction: column;
+		width: min(var(--ns-chat-w), calc(100vw - 2rem));
+		height: min(var(--ns-chat-h), calc(100vh - var(--ns-chat-inset) * 2));
+		background: linear-gradient(var(--sl-color-bg), var(--sl-color-bg)) 
+					padding-box, 
+					linear-gradient(135deg, var(--ns-chat-primary), var(--ns-chat-secondary)) 
+					border-box;
+		border: 1px solid transparent;
+		border-radius: 14px;
+		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+		overflow: hidden;
+		transform-origin: bottom right;
+		animation: ns-chat-in 0.18s ease;
+	}
+
+	/* `display: flex` above would otherwise beat the UA's [hidden] rule (author
+	   styles win at equal specificity), leaving the panel permanently open. */
+	.ns-chat__modal[hidden] {
+		display: none;
+	}
+	/* Grows out of the launcher's corner rather than sliding in from nowhere. */
+	@keyframes ns-chat-in {
+		from { opacity: 0; scale: 0.9; }
+		to   { opacity: 1; scale: 1; }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.ns-chat__modal {
+			animation: none;
+		}
+		.ns-chat__launcher {
+			transition: none;
+		}
+		.ns-chat__launcher:hover {
+			transform: none;
+		}
+	}
+
+	.ns-chat__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.9rem 1rem;
+		border-bottom: 1px solid var(--sl-color-hairline);
+		background: linear-gradient(90deg, var(--sl-color-bg-nav), 
+					color-mix(in srgb, var(--ns-chat-primary) 15%, 
+					var(--sl-color-bg-nav)));
+	}
+	.ns-chat__title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-weight: 600;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-white);
+	}
+	.ns-chat__logo {
+		width: 20px;
+		height: 20px;
+		border-radius: 5px;
+	}
+	.ns-chat__header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.15rem;
+	}
+	.ns-chat__restart svg {
+		width: 1.05rem;
+		height: 1.05rem;
+	}
+	.ns-chat__restart,
+	.ns-chat__close {
+		display: inline-flex;
+		padding: 0.25rem;
+		border: none;
+		background: transparent;
+		color: var(--sl-color-gray-2);
+		cursor: pointer;
+		border-radius: 6px;
+	}
+	.ns-chat__restart:hover,
+	.ns-chat__close:hover {
+		color: var(--sl-color-white);
+		background: color-mix(in srgb, var(--ns-chat-secondary) 35%, var(--sl-color-gray-6));
+	}
+
+	/* Message log */
+	.ns-chat__log {
+		flex: 1;
+		overflow-y: auto;
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.ns-chat__msg {
+		max-width: 85%;
+		padding: 0.6rem 0.8rem;
+		border-radius: 12px;
+		font-size: var(--sl-text-sm);
+		line-height: 1.5;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+	}
+	.ns-chat__msg--bot {
+		align-self: flex-start;
+		background: var(--sl-color-gray-5);
+		color: var(--sl-color-white);
+		border-bottom-left-radius: 4px;
+	}
+	.ns-chat__msg--user {
+		align-self: flex-end;
+		background: linear-gradient(135deg, var(--ns-chat-primary), var(--ns-chat-secondary));
+		color: var(--ns-chat-accent);
+		border-bottom-right-radius: 4px;
+	}
+	.ns-chat__msg--typing {
+		color: var(--sl-color-gray-3);
+		font-style: italic;
+	}
+
+	/* Input */
+	.ns-chat__form {
+		display: flex;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		border-top: 1px solid var(--sl-color-hairline);
+	}
+	/* Lives inside .ns-chat__log now (appended right after the greeting), so it
+	   inherits the log's own padding + gap instead of declaring its own —
+	   otherwise it'd double up the inset and misalign against the message
+	   bubbles above it. */
+	.ns-chat__suggestions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+	/* Same override .ns-chat__modal[hidden] needs above: author styles beat the
+	   UA's [hidden] rule at equal specificity, so `display: flex` would otherwise
+	   leave this visible even with the hidden attribute set. */
+	.ns-chat__suggestions[hidden] {
+		display: none;
+	}
+	.ns-chat__chip {
+		padding: 0.4rem 0.7rem;
+		border-radius: 999px;
+		border: 1px solid var(--sl-color-hairline);
+		background: transparent;
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-xs);
+		cursor: pointer;
+		transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+	}
+	.ns-chat__chip:hover {
+		background: linear-gradient(135deg, var(--ns-chat-primary), var(--ns-chat-secondary));
+		border-color: transparent;
+		color: var(--ns-chat-accent);
+	}
+	.ns-chat__input {
+		flex: 1;
+		padding: 0.6rem 0.8rem;
+		border: 1px solid var(--sl-color-hairline);
+		border-radius: 8px;
+		background: var(--sl-color-bg);
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-sm);
+	}
+	.ns-chat__input:focus {
+		outline: none;
+		border-color: var(--ns-chat-primary);
+	}
+	.ns-chat__send {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		border: none;
+		border-radius: 8px;
+		background: var(--ns-chat-primary);
+		color: var(--ns-chat-accent);
+		cursor: pointer;
+		transition: background 0.15s ease;
+	}
+	.ns-chat__send:hover {
+		background: var(--ns-chat-secondary);
+	}
+
+	@media (max-width: 30rem) {
+		.ns-chat {
+			--ns-chat-inset: 1rem;
+		}
+	}

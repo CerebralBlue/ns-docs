@@ -22,7 +22,7 @@ export default defineConfig({
 				replacesTitle: true,
 			},
 			favicon: '/favicon.png',
-			customCss: ['./src/styles/neuralseek.css'],
+			customCss: ['./src/styles/neuralseek.css', './src/styles/chatbot.css'],
 			components: {
 				SocialIcons: './src/components/SocialIcons.astro',
 				Footer: './src/components/Footer.astro',
