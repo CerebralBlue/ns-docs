@@ -13,6 +13,9 @@
 // uses for the footer brand link.
 import { Icon } from '@astrojs/starlight/components';
 import nsIcon from '../assets/neuraldocs-icon.png';
+// Same module the client script imports, so the greeting rendered here and the
+// one restored on restart cannot drift apart.
+import { GREETING } from '../lib/ns-chat/constants';
 ---
 
 <div class="ns-chat" data-ns-chat>
@@ -75,9 +78,7 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		</header>
 
 		<div class="ns-chat__log" data-ns-log>
-			<div class="ns-chat__msg ns-chat__msg--bot">
-				Hi! Ask me anything about the documentation.
-			</div>
+			<div class="ns-chat__msg ns-chat__msg--bot">{GREETING}</div>
 		</div>
 
 		<form class="ns-chat__form" data-ns-form>
@@ -341,46 +342,70 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 </style>
 
 <script>
-	const STORAGE_KEY = 'ns-chat-v1';
-	const SESSION_KEY = 'ns-session-id';
-	const USER_KEY = 'ns-user-id';
+	// Everything that is not DOM wiring lives in src/lib/ns-chat/:
+	//   constants.ts   — endpoint, embedCode, storage keys, user-facing strings
+	//   session.ts     — identity + history persistence (all localStorage access)
+	//   seek-client.ts — the /seek call, with timeout and typed errors
+	// This block is only the parts that need the document.
+	import {
+		ERROR_MESSAGE,
+		GREETING,
+		NO_ANSWER,
+		NS_CHAT_ASK_EVENT,
+		type ChatMessage,
+		type ChatRole,
+	} from '../lib/ns-chat/constants';
+	import { askSeek, SeekError } from '../lib/ns-chat/seek-client';
+	import {
+		clearHistory,
+		getSessionId,
+		getUserId,
+		loadHistory,
+		rotateSession,
+		saveHistory,
+	} from '../lib/ns-chat/session';
 
-	const SEEK_URL = 'https://stagingapi.neuralseek.com/v1/neuralseek-documentation-website/seek';
-	const EMBED_CODE = '2041675160';
+	/** The live widget, or null before the first init / after a bad render. */
+	let chat: ReturnType<typeof mountChat> | null = null;
 
-	function uid() {
-		return crypto.randomUUID
-			? crypto.randomUUID()
-			: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-	}
+	function mountChat(root: HTMLElement) {
+		// Reparent to <body> before anything else.
+		//
+		// The widget is rendered from Footer.astro, which Starlight puts INSIDE
+		// `.main-pane` — and `TwoColumnContent.astro` gives that element
+		// `isolation: isolate`, creating a stacking context. The launcher's
+		// `z-index: 100` is therefore scoped to `.main-pane` rather than the
+		// page, so the full-height `position: fixed` `.right-sidebar` (the TOC
+		// column, which is OUTSIDE .main-pane) paints over it and swallows the
+		// click. The launcher was unclickable on every doc page at >= 50rem.
+		// It worked on the splash page, which has no right sidebar — which is
+		// why this went unnoticed.
+		//
+		// A page-level fixed overlay does not belong in a content stacking
+		// context, so move it to <body>. Nothing else needs to change: the
+		// widget is `position: fixed` and its scoped styles are class-based, so
+		// they travel with it.
+		if (root.parentElement !== document.body) document.body.appendChild(root);
 
-	function initChat() {
-		const root = document.querySelector('[data-ns-chat]');
-		if (!root || root.hasAttribute('data-ns-init')) return;
-		root.setAttribute('data-ns-init', '');
+		const modal = root.querySelector<HTMLElement>('[data-ns-modal]');
+		const log = root.querySelector<HTMLElement>('[data-ns-log]');
+		const form = root.querySelector<HTMLFormElement>('[data-ns-form]');
+		const input = root.querySelector<HTMLInputElement>('[data-ns-input]');
+		const toggleBtn = root.querySelector<HTMLButtonElement>('[data-ns-toggle]');
 
-		const modal = root.querySelector('[data-ns-modal]') as HTMLElement;
-		const log = root.querySelector('[data-ns-log]') as HTMLElement;
-		const form = root.querySelector('[data-ns-form]') as HTMLFormElement;
-		const input = root.querySelector('[data-ns-input]') as HTMLInputElement;
-		const toggleBtn = root.querySelector('[data-ns-toggle]') as HTMLButtonElement;
-
-		// userId identifies this browser and survives a restart; sessionId
-		// identifies the current conversation and is reset by it. Neither is
-		// sent anywhere yet — both exist for the NeuralSeek `/seek` proxy, which
-		// needs a session id to keep conversational context.
-		let userId = localStorage.getItem(USER_KEY);
-		if (!userId) {
-			userId = uid();
-			localStorage.setItem(USER_KEY, userId);
+		// A renamed or removed data-hook used to throw a TypeError here and take
+		// the whole widget down silently. Fail loudly, once, and bail instead.
+		if (!modal || !log || !form || !input || !toggleBtn) {
+			console.error('[ns-chat] markup is missing a required data-ns-* hook; widget disabled');
+			return null;
 		}
-		let sessionId = localStorage.getItem(SESSION_KEY);
-		if (!sessionId) {
-			sessionId = uid();
-			localStorage.setItem(SESSION_KEY, sessionId);
-		}
 
-		let messages: { who: 'user' | 'bot'; text: string }[] = [];
+		let sessionId = getSessionId();
+		const userId = getUserId();
+		let messages: ChatMessage[] = [];
+		// One in-flight question at a time. Without this, N rapid submits create
+		// N "Thinking…" bubbles and N concurrent requests.
+		let pending: AbortController | null = null;
 
 		// Astro scopes this component's <style> block by appending a build-hashed
 		// class (astro-xxxxxxxx) to every element in the static template; that's
@@ -389,48 +414,40 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		// silently skip them unless we copy it over ourselves.
 		const scopeClass = Array.from(log.classList).find((c) => c.startsWith('astro-'));
 
-		function renderMessage(text: string, who: 'user' | 'bot', extraClass = '') {
+		function renderMessage(text: string, who: ChatRole, extraClass = '') {
 			const el = document.createElement('div');
 			el.className = `ns-chat__msg ns-chat__msg--${who} ${extraClass} ${scopeClass ?? ''}`.trim();
 			el.textContent = text;
-			log.appendChild(el);
-			log.scrollTop = log.scrollHeight;
+			log!.appendChild(el);
+			log!.scrollTop = log!.scrollHeight;
 			return el;
 		}
 
-		function addMessage(text: string, who: 'user' | 'bot') {
+		function addMessage(text: string, who: ChatRole) {
 			const el = renderMessage(text, who);
 			messages.push({ who, text });
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+			saveHistory(messages);
 			return el;
 		}
 
-		// Hydrate from a previous visit. The greeting hardcoded in the markup
-		// only applies to a brand-new session — swap it for real history once
-		// there is any.
-		const saved = localStorage.getItem(STORAGE_KEY);
-		if (saved) {
-			try {
-				const parsed = JSON.parse(saved);
-				if (Array.isArray(parsed) && parsed.length) {
-					log.innerHTML = '';
-					for (const m of parsed) renderMessage(m.text, m.who);
-					messages = parsed;
-				}
-			} catch {
-				// Corrupt data — ignore and keep the default greeting.
-			}
+		// Hydrate from a previous visit. The greeting in the markup only applies
+		// to a brand-new session — swap it for real history once there is any.
+		const saved = loadHistory();
+		if (saved.length) {
+			log.innerHTML = '';
+			for (const m of saved) renderMessage(m.text, m.who);
+			messages = saved;
 		}
 
-		// Wipes history and starts a fresh session: new sessionId, empty log,
-		// back to the default greeting. userId is untouched.
+		/** Wipe history, start a fresh conversation. userId is untouched. */
 		function resetChat() {
-			localStorage.removeItem(STORAGE_KEY);
+			pending?.abort();
+			pending = null;
+			clearHistory();
 			messages = [];
-			sessionId = uid();
-			localStorage.setItem(SESSION_KEY, sessionId);
-			log.innerHTML = '';
-			renderMessage('Hi! Ask me anything about the documentation.', 'bot');
+			sessionId = rotateSession();
+			log!.innerHTML = '';
+			renderMessage(GREETING, 'bot');
 		}
 
 		const isOpen = () => root.hasAttribute('data-open');
@@ -443,71 +460,43 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		// the input immediately after keeps the keyboard path intact. Closing
 		// un-hides the launcher before focusing it — .focus() is a no-op on a
 		// display:none element.
-		const setOpen = (open: boolean, restoreFocus = true) => {
-			modal.hidden = !open;
+		function setOpen(open: boolean, restoreFocus = true) {
+			modal!.hidden = !open;
 			root.toggleAttribute('data-open', open);
-			toggleBtn.setAttribute('aria-expanded', String(open));
-			if (open) input.focus();
-			else if (restoreFocus) toggleBtn.focus();
-		};
+			toggleBtn!.setAttribute('aria-expanded', String(open));
+			if (open) input!.focus();
+			else if (restoreFocus) toggleBtn!.focus();
+		}
+
+		async function sendMessage(question: string) {
+			if (pending) return;
+			const controller = new AbortController();
+			pending = controller;
+			const typing = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
+			try {
+				const answer = await askSeek({ question, sessionId, userId, signal: controller.signal });
+				typing.remove();
+				addMessage(answer || NO_ANSWER, 'bot');
+			} catch (err) {
+				typing.remove();
+				// Log the real cause — the user-facing string is deliberately
+				// generic, but a silent catch made this undiagnosable in the field.
+				if (err instanceof SeekError) {
+					console.error(`[ns-chat] /seek ${err.kind}`, err.status ?? '', err.message);
+				} else {
+					console.error('[ns-chat] unexpected failure', err);
+				}
+				addMessage(ERROR_MESSAGE, 'bot');
+			} finally {
+				if (pending === controller) pending = null;
+			}
+		}
 
 		// The launcher only opens now — it's hidden while the panel is up, and
 		// the panel's own close button (and Esc) brings it back.
 		toggleBtn.addEventListener('click', () => setOpen(!isOpen()));
 		root.querySelector('[data-ns-close]')?.addEventListener('click', () => setOpen(false));
 		root.querySelector('[data-ns-restart]')?.addEventListener('click', () => resetChat());
-
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape' && isOpen()) setOpen(false);
-		});
-
-		// Click outside the widget closes it, without stealing focus.
-		document.addEventListener('click', (e) => {
-			if (isOpen() && !root.contains(e.target as Node)) setOpen(false, false);
-		});
-
-		// Public entry point for in-page triggers — currently the landing page's
-		// hero prompt panel (see src/components/Hero.astro):
-		//
-		//   document.dispatchEvent(
-		//     new CustomEvent('ns-chat:ask', { detail: { question: '…' } })
-		//   );
-		//
-		// Omit `question` to just open the panel.
-		//
-		// IMPORTANT: the caller must call stopPropagation() on the originating
-		// click. Any trigger lives outside [data-ns-chat], so the outside-click
-		// handler above fires later in the SAME bubbling click and would close
-		// the panel again the instant this opens it.
-		//
-		// Registered inside initChat(), so the `data-ns-init` guard at the top
-		// keeps it from being added twice across view transitions.
-		document.addEventListener('ns-chat:ask', (e) => {
-			const question = (e as CustomEvent).detail?.question?.trim();
-			setOpen(true);
-			if (!question) return;
-			addMessage(question, 'user');
-			sendMessage(question);
-		});
-
-		async function sendMessage(question: string) {
-			const typing = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
-			try {
-				const res = await fetch(SEEK_URL, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json', embedcode: EMBED_CODE },
-					body: JSON.stringify({ question, sessionId, userId }),
-				});
-				// Auth/rate-limit failures come back as a plain-text body, not JSON.
-				if (!res.ok) throw new Error(`Seek request failed (${res.status})`);
-				const data = await res.json();
-				typing.remove();
-				addMessage(data.answer || "Sorry, I couldn't find an answer for that.", 'bot');
-			} catch {
-				typing.remove();
-				addMessage('Something went wrong reaching NeuralSeek. Please try again in a moment.', 'bot');
-			}
-		}
 
 		form.addEventListener('submit', (e) => {
 			e.preventDefault();
@@ -517,9 +506,55 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 			input.value = '';
 			sendMessage(q);
 		});
+
+		return { root, isOpen, setOpen, addMessage, sendMessage };
 	}
 
-	// Run on first load and on Starlight's client-side view transitions.
+	// ── document-level listeners ────────────────────────────────────────────
+	// Registered ONCE at module scope, not inside the mount. They used to live
+	// inside it behind a `data-ns-init` attribute guard — but that guard is on
+	// the ELEMENT, which a view transition replaces, while `document` persists.
+	// Every navigation would therefore add another set, each closing over a
+	// detached widget. Module scope makes duplication structurally impossible.
+	document.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape' && chat?.isOpen()) chat.setOpen(false);
+	});
+
+	// Click outside the widget closes it, without stealing focus.
+	document.addEventListener('click', (e) => {
+		if (chat?.isOpen() && !chat.root.contains(e.target as Node)) chat.setOpen(false, false);
+	});
+
+	// Public entry point for in-page triggers — currently the landing page's
+	// hero prompt panel (see src/components/Hero.astro). Omit `question` to just
+	// open the panel.
+	//
+	// IMPORTANT: the caller must call stopPropagation() on the originating
+	// click. Any trigger lives outside [data-ns-chat], so the outside-click
+	// handler above fires later in the SAME bubbling click and would close the
+	// panel again the instant this opens it.
+	document.addEventListener(NS_CHAT_ASK_EVENT, (e) => {
+		if (!chat) return;
+		const question = (e as CustomEvent).detail?.question?.trim();
+		chat.setOpen(true);
+		if (!question) return;
+		chat.addMessage(question, 'user');
+		chat.sendMessage(question);
+	});
+
+	/** Bind to whatever widget is currently in the document. */
+	function initChat() {
+		const root = document.querySelector<HTMLElement>('[data-ns-chat]');
+		// Same element as last time ⇒ already wired; re-binding would double up
+		// the element-level listeners.
+		if (!root || root === chat?.root) return;
+		chat = mountChat(root);
+	}
+
+	// Run on first load, and again after a view transition swaps the element.
+	// Starlight 0.37.7 does not mount <ClientRouter />, so `astro:page-load`
+	// currently fires once per full load — this is here so enabling view
+	// transitions later does not silently break the widget.
 	initChat();
 	document.addEventListener('astro:page-load', initChat);
 </script>

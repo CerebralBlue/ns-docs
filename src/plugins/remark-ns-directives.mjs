@@ -44,15 +44,19 @@
 
 import { visit } from 'unist-util-visit';
 import { fromHtml } from 'hast-util-from-html';
-import { nsIcons } from './ns-icons.mjs';
+import { nsIcons, nsIconNames } from './ns-icons.mjs';
 
-/** Directive names this plugin handles. */
-const HANDLED = new Set(['ns-grid', 'ns-card', 'ns-button', 'ns-label']);
-
-/** Column counts with a matching `.ns-grid--N` modifier class. */
+/**
+ * Column counts with a matching `.ns-grid--N` modifier class.
+ * Must stay in sync with the `.ns-grid--N` rules in
+ * src/styles/10-component-cards.css.
+ */
 const COLS = new Set(['1', '2', '3', '4']);
 
-/** Button variants mapped straight onto Starlight's own LinkButton classes. */
+/**
+ * Button variants mapped straight onto Starlight's own LinkButton classes.
+ * Styled in src/styles/11-component-buttons.css.
+ */
 const VARIANTS = new Set(['primary', 'secondary', 'minimal']);
 
 /**
@@ -71,10 +75,44 @@ function el(tagName, properties = {}, children = []) {
 	};
 }
 
-/** @param {any} file @param {string} message */
-function warn(file, message) {
-	const where = file && file.path ? ` (${file.path})` : '';
-	console.warn(`[ns-directives] ${message}${where}`);
+/**
+ * Build the reporter used by every builder.
+ *
+ * Does BOTH a `console.warn` and a `file.message()`, deliberately:
+ *
+ *   - VERIFIED (2026-07-27, Astro 5.18 + Starlight 0.37.7): Astro does NOT
+ *     print remark vfile messages, in dev OR in build. So `file.message()`
+ *     alone is completely silent — it is structured data for tooling, not
+ *     something a human ever sees. Re-test before removing the console call.
+ *   - `console.warn` is therefore still the only thing an author actually
+ *     reads. Unlike the previous version it now carries `file:line:column`,
+ *     so the message points at the mistake instead of just naming the page.
+ *
+ * POSITIONS ARE BODY-RELATIVE. Astro strips frontmatter before remark runs,
+ * so line 1 is the first line AFTER the closing `---`. Add the frontmatter
+ * length to match the editor's line numbers.
+ *
+ * `strict: true` escalates to `file.fail()`. VERIFIED behaviour: Starlight's
+ * docs-loader catches the throw per file, logs `[ERROR] Error rendering
+ * <file>`, and DROPS that page from the output — but the build still exits 0.
+ * So strict is a loud, page-dropping signal, NOT an exit-code gate; a CI job
+ * wanting to block on it must grep the build log for `[ns-directives]`.
+ *
+ * @param {any} file
+ * @param {boolean} strict
+ * @returns {(node: any, message: string) => void}
+ */
+function createReporter(file, strict) {
+	return (node, message) => {
+		const place = node && node.position;
+		const options = { place, ruleId: 'ns-directives', source: 'ns-docs' };
+		if (strict) file.fail(message, options);
+
+		const start = place && place.start;
+		const where = start ? `${file.path}:${start.line}:${start.column}` : file.path;
+		console.warn(`[ns-directives] ${where} — ${message}`);
+		file.message(message, options);
+	};
 }
 
 /**
@@ -89,14 +127,15 @@ function warn(file, message) {
  *
  * @param {unknown} name
  * @param {string} className
- * @param {any} file
+ * @param {any} node the directive node, for error positions
+ * @param {(node: any, message: string) => void} report
  */
-function iconNode(name, className, file) {
+function iconNode(name, className, node, report) {
 	if (typeof name !== 'string' || !name.trim()) return undefined;
 	const key = name.trim();
 	const source = nsIcons[key];
 	if (!source) {
-		warn(file, `unknown icon "${key}" — rendering without one. Known icons: ${Object.keys(nsIcons).join(', ')}`);
+		report(node, `unknown icon "${key}" — rendering without one. Known icons: ${nsIconNames.join(', ')}`);
 		return undefined;
 	}
 	// Wrap in <svg> so the fragment parses in the SVG namespace, then keep only
@@ -155,13 +194,65 @@ function str(attrs, key) {
 	return typeof v === 'string' && v.trim() ? v.trim() : undefined;
 }
 
-/** `::::ns-grid{cols=2}` → the lattice container. */
-function buildGrid(node) {
+/**
+ * Resolve a directive's label, whichever way it was written.
+ *
+ * There is one concept here — "the visible text of this directive" — and it
+ * previously had two independent implementations that also disagreed on the
+ * attribute name (`title=` for cards, `text=` for buttons). Both spellings are
+ * now accepted on both, and the mdast difference is handled in one place:
+ *
+ *   - CONTAINER directives put `[Label]` in a leading paragraph tagged
+ *     `data.directiveLabel`, which `takeLabel` removes so it cannot render
+ *     twice. What remains in `node.children` is the BODY.
+ *   - LEAF and TEXT directives have no wrapper paragraph — `[Label]` lands
+ *     directly in `node.children`, and there is no body.
+ *
+ * @param {any} node
+ * @param {any} attrs
+ * @returns {any[] | undefined} inline nodes for the label, or undefined
+ */
+function resolveLabel(node, attrs) {
+	const inline =
+		node.type === 'containerDirective'
+			? takeLabel(node)
+			: node.children.length
+				? node.children.slice()
+				: undefined;
+	if (inline) return inline;
+
+	const fallback = str(attrs, 'title') || str(attrs, 'text');
+	return fallback ? [{ type: 'text', value: fallback }] : undefined;
+}
+
+/**
+ * Append an optional icon. Written once because the
+ * "build it, push it only if it resolved" dance appeared three times.
+ *
+ * @param {any[]} target
+ * @param {unknown} name
+ * @param {string} className
+ * @param {any} node
+ * @param {(node: any, message: string) => void} report
+ */
+function pushIcon(target, name, className, node, report) {
+	const icon = iconNode(name, className, node, report);
+	if (icon) target.push(icon);
+}
+
+/**
+ * `::::ns-grid{cols=2}` → the lattice container.
+ * Styled by src/styles/10-component-cards.css.
+ */
+function buildGrid(node, report) {
 	const cols = str(node.attributes, 'cols');
 	const className = ['ns-grid'];
 	// A modifier class, never an inline `style` string: CSS custom properties
 	// in a style attribute do not round-trip reliably through hast-util-to-estree.
 	if (cols && COLS.has(cols)) className.push(`ns-grid--${cols}`);
+	else if (cols) {
+		report(node, `ns-grid has cols=${cols}; only ${[...COLS].join('/')} are supported — falling back to 2.`);
+	}
 	// `node.children` is reused BY REFERENCE, not cloned. unist-util-visit walks
 	// the original array, so reuse is what lets nested ns-cards still be visited
 	// and replaced after this grid node has been swapped in. Cloning here would
@@ -169,20 +260,21 @@ function buildGrid(node) {
 	return el('div', { className }, node.children);
 }
 
-/** `:::ns-card[Title]{icon= href=}` → one lattice cell. */
-function buildCard(node, file) {
+/**
+ * `:::ns-card[Title]{icon= href=}` → one lattice cell.
+ * Styled by src/styles/10-component-cards.css (base) and
+ * src/styles/13-component-treatments.css (per-section overrides).
+ */
+function buildCard(node, report) {
 	const attrs = node.attributes || {};
 	const href = str(attrs, 'href');
 
-	let titleChildren = takeLabel(node);
-	if (!titleChildren) {
-		const title = str(attrs, 'title');
-		if (title) titleChildren = [{ type: 'text', value: title }];
-	}
+	// NOTE resolveLabel must run BEFORE node.children is read as the body —
+	// for a container directive it shifts the label paragraph off the front.
+	const titleChildren = resolveLabel(node, attrs);
 
 	const head = [];
-	const icon = iconNode(attrs.icon, 'ns-card__icon', file);
-	if (icon) head.push(icon);
+	pushIcon(head, attrs.icon, 'ns-card__icon', node, report);
 
 	if (titleChildren) {
 		head.push(
@@ -191,13 +283,10 @@ function buildCard(node, file) {
 				: el('span', { className: ['ns-card__label'] }, titleChildren)
 		);
 	} else {
-		warn(file, 'ns-card has no title — add `[Title]` after the directive name, or a `title=` attribute.');
+		report(node, 'ns-card has no title — add `[Title]` after the directive name, or a `title=` attribute.');
 	}
 
-	if (href) {
-		const arrow = iconNode('right-arrow', 'ns-card__arrow', file);
-		if (arrow) head.push(arrow);
-	}
+	if (href) pushIcon(head, 'right-arrow', 'ns-card__arrow', node, report);
 
 	const children = [];
 	if (head.length) {
@@ -221,34 +310,29 @@ function buildCard(node, file) {
  *
  * Emits Starlight's own `sl-link-button` classes on purpose, so hero actions,
  * in-content `<LinkButton>` and this directive are all covered by one rule set
- * in neuralseek.css.
+ * in src/styles/11-component-buttons.css.
  */
-function buildButton(node, file) {
+function buildButton(node, report) {
 	const attrs = node.attributes || {};
 	const href = str(attrs, 'href');
 	if (!href) {
-		warn(file, 'ns-button has no `href` — skipped.');
+		report(node, 'ns-button has no `href` — skipped.');
 		return undefined;
 	}
+
 	const variant = str(attrs, 'variant');
+	if (variant && !VARIANTS.has(variant)) {
+		report(node, `ns-button has variant=${variant}; only ${[...VARIANTS].join('/')} exist — falling back to primary.`);
+	}
 	const className = ['sl-link-button', 'not-content', variant && VARIANTS.has(variant) ? variant : 'primary'];
 
-	// Leaf directive: `[Label]` lands directly in node.children, not in a
-	// `directiveLabel` paragraph (that form is container-directive only).
-	const text = str(attrs, 'text');
-	const label = node.children.length
-		? node.children.slice()
-		: text
-			? [{ type: 'text', value: text }]
-			: undefined;
-	if (!label) {
-		warn(file, 'ns-button has no label — add `[Label]` after the directive name.');
+	const children = resolveLabel(node, attrs);
+	if (!children) {
+		report(node, 'ns-button has no label — add `[Label]` after the directive name, or a `text=` attribute.');
 		return undefined;
 	}
 
-	const children = label;
-	const icon = iconNode(attrs.icon, 'ns-button__icon', file);
-	if (icon) children.push(icon);
+	pushIcon(children, attrs.icon, 'ns-button__icon', node, report);
 
 	// Wrapped in a block-level row on purpose. `.sl-link-button` is
 	// `display: inline-flex`, and a tall inline-level box overflows its line
@@ -258,57 +342,70 @@ function buildButton(node, file) {
 	return el('p', { className: ['ns-button-row'] }, [el('a', { className, href }, children)]);
 }
 
-/** `:ns-label[text]` → an inline mono micro-label. */
+/**
+ * `:ns-label[text]` → an inline mono micro-label.
+ * Styled by src/styles/05-label.css.
+ */
 function buildLabel(node) {
 	return el('span', { className: ['ns-label', 'ns-label--inline'] }, node.children);
 }
 
 /**
+ * The directive registry — the single source of truth for what exists.
+ *
+ * Replaces a 5-branch if/else plus a separate `HANDLED` set that had to be kept
+ * in sync with it by hand. The marker each directive requires is now DATA
+ * (`type`) rather than prose in an error message, so adding a directive means
+ * one entry here and one builder, and nothing else.
+ *
+ * `marker` is only ever shown to an author who got it wrong.
+ */
+const DIRECTIVES = {
+	'ns-grid': { type: 'containerDirective', marker: ':::: ', build: buildGrid },
+	'ns-card': { type: 'containerDirective', marker: '::: ', build: buildCard },
+	'ns-button': { type: 'leafDirective', marker: ':: ', build: buildButton },
+	'ns-label': { type: 'textDirective', marker: ': ', build: buildLabel },
+};
+
+const DIRECTIVE_TYPES = ['containerDirective', 'leafDirective', 'textDirective'];
+
+/**
+ * @param {{ strict?: boolean }} [options] `strict: true` turns every authoring
+ *   warning into a build failure. Intended for CI.
  * @returns {(tree: any, file: any) => void}
  */
-export default function remarkNsDirectives() {
+export default function remarkNsDirectives(options = {}) {
+	const strict = options.strict === true;
+
 	return function transformer(tree, file) {
 		// Parity with Starlight's own transformers, which skip virtual files.
 		if (!file || !file.path) return;
+		const report = createReporter(file, strict);
 
-		visit(tree, (node, index, parent) => {
-			if (
-				node.type !== 'containerDirective' &&
-				node.type !== 'leafDirective' &&
-				node.type !== 'textDirective'
-			) {
-				return;
-			}
+		visit(tree, DIRECTIVE_TYPES, (node, index, parent) => {
 			if (index === undefined || !parent) return;
 
 			const name = node.name;
 			if (!name || !name.startsWith('ns-')) return;
 
-			if (!HANDLED.has(name)) {
+			const spec = DIRECTIVES[name];
+			if (!spec) {
 				// Container directives are never restored to source text by
 				// Starlight, so a typo would otherwise render as a bare <div>
 				// with no clue why. Leaf/text typos self-heal via restoration.
-				warn(file, `unknown directive ":${name}" — known: ${[...HANDLED].join(', ')}`);
+				report(node, `unknown directive ":${name}" — known: ${Object.keys(DIRECTIVES).join(', ')}`);
 				return;
 			}
 
-			let replacement;
-			if (name === 'ns-grid' && node.type === 'containerDirective') {
-				replacement = buildGrid(node);
-			} else if (name === 'ns-card' && node.type === 'containerDirective') {
-				replacement = buildCard(node, file);
-			} else if (name === 'ns-button' && node.type === 'leafDirective') {
-				replacement = buildButton(node, file);
-			} else if (name === 'ns-label' && node.type === 'textDirective') {
-				replacement = buildLabel(node);
-			} else {
-				warn(
-					file,
-					`":${name}" used with the wrong marker. Use ":::" for ns-grid/ns-card, "::" for ns-button, ":" for ns-label.`
+			if (node.type !== spec.type) {
+				report(
+					node,
+					`":${name}" used with the wrong marker — it is a ${spec.type}, so write "${spec.marker.trim()}${name}".`
 				);
 				return;
 			}
 
+			const replacement = spec.build(node, report);
 			if (replacement) parent.children[index] = replacement;
 		});
 	};

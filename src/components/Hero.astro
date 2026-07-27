@@ -23,6 +23,7 @@
  * <Hero /> when it exists — so this file affects exactly one page.
  */
 import Default from '@astrojs/starlight/components/Hero.astro';
+import { nsIcons } from '../plugins/ns-icons.mjs';
 
 /**
  * The prompt, as alternating prose / code segments.
@@ -59,9 +60,15 @@ const promptText = prompt.map((s) => s.t ?? s.c).join('');
 			{/* Sits where the reference puts its copy button. This is the only
 			    control in the panel — it sends the prompt to the chat widget. */}
 			<button class="ns-prompt__send" type="button" data-ns-prompt-ask={promptText} aria-label="Ask NeuralSeek this question">
-				<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-					<path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/>
-				</svg>
+				{/* Same glyph the ns-* directives use — kept in one place. */}
+				<svg
+					aria-hidden="true"
+					viewBox="0 0 24 24"
+					width="16"
+					height="16"
+					fill="currentColor"
+					set:html={nsIcons['right-arrow']}
+				/>
 			</button>
 		</div>
 
@@ -72,20 +79,28 @@ const promptText = prompt.map((s) => s.t ?? s.c).join('');
 </div>
 
 <script>
+	// The event name is shared with ChatWidget.astro's listener; importing it
+	// keeps the two ends of this contract from drifting.
+	import { NS_CHAT_ASK_EVENT } from '../lib/ns-chat/constants';
+
 	function initHeroPrompt() {
 		const root = document.querySelector<HTMLElement>('[data-ns-prompt]');
 		if (!root || root.hasAttribute('data-ns-prompt-init')) return;
 		root.setAttribute('data-ns-prompt-init', '');
 
 		const askBtn = root.querySelector<HTMLButtonElement>('[data-ns-prompt-ask]');
+		if (!askBtn) {
+			console.warn('[ns-hero] prompt panel has no [data-ns-prompt-ask] button');
+			return;
+		}
 
-		askBtn?.addEventListener('click', (e) => {
+		askBtn.addEventListener('click', (e) => {
 			// The chat widget closes itself on any document click landing outside
 			// [data-ns-chat]. Without stopPropagation the panel would open and
 			// immediately close again on this very event.
 			e.stopPropagation();
 			document.dispatchEvent(
-				new CustomEvent('ns-chat:ask', { detail: { question: askBtn.dataset.nsPromptAsk } })
+				new CustomEvent(NS_CHAT_ASK_EVENT, { detail: { question: askBtn.dataset.nsPromptAsk } })
 			);
 		});
 	}

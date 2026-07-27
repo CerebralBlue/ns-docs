@@ -9,13 +9,28 @@
  * Safe to re-run: existing files whose map status is no longer "stub"
  * (auto/adopted) are never touched; stub files are re-written each run.
  *
- * Usage: bun scripts/gen-stubs.ts
+ * Usage: bun run stubs
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = new URL('..', import.meta.url).pathname;
-const map = JSON.parse(readFileSync(join(ROOT, 'scripts/migration-map.json'), 'utf8'));
+// fileURLToPath, not `.pathname` — the latter leaves percent-encoding in place,
+// so any directory with a space in it yields a path that does not exist.
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
+const MAP_PATH = join(ROOT, 'scripts/migration-map.json');
+
+let map: { sourceRoot: string; routes: Record<string, any> };
+try {
+	map = JSON.parse(readFileSync(MAP_PATH, 'utf8'));
+} catch (err) {
+	console.error(`Could not read the migration map at ${MAP_PATH}\n  ${String(err)}`);
+	process.exit(1);
+}
+if (!map.routes || typeof map.routes !== 'object') {
+	console.error(`${MAP_PATH} has no "routes" object — nothing to generate.`);
+	process.exit(1);
+}
 
 function sourceFrontmatter(relPath: string): { title?: string; description?: string } {
 	try {
