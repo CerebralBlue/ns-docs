@@ -11,7 +11,7 @@
 
 /* --- Header wordmark: a touch smaller than the Starlight default --- */
 .site-title img {
-	height: 2.1rem !important;
+	height: 2.1rem;
 }
 
 /* ============================================================

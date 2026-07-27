@@ -46,7 +46,7 @@
    stop would pass code review. Left as literals deliberately.
    ─────────────────────────────────────────────────────────────── */
 :root[data-has-hero][data-theme='dark'] {
-	background-color: var(--sl-color-bg) !important;
+	background-color: var(--sl-color-bg);
 	background-image:
 		radial-gradient(65% 55% at 8% 2%, rgba(91, 45, 255, 0.42) 0%, transparent 58%), /* indigo */
 		radial-gradient(55% 48% at 95% 0%, rgba(48, 30, 76, 0.95) 0%, transparent 55%), /* regal-purple */
@@ -56,7 +56,7 @@
 }
 
 :root[data-has-hero][data-theme='light'] {
-	background-color: var(--sl-color-bg) !important;
+	background-color: var(--sl-color-bg);
 	background-image:
 		radial-gradient(60% 50% at 8% 2%, rgba(45, 91, 255, 0.16) 0%, transparent 58%), /* trust-blue */
 		radial-gradient(65% 55% at 94% 96%, rgba(91, 45, 255, 0.14) 0%, transparent 60%), /* indigo */
@@ -66,13 +66,13 @@
 
 /* On hero pages only, let the canvas show through the content containers. */
 :root[data-has-hero] :is(body, .page, .main-frame, .main-pane, main) {
-	background: transparent !important;
+	background: transparent;
 }
 
 /* `--sl-color-bg-nav: transparent` is declared with the canvas block at
    the top of this file — see the ORDERING HAZARD note in the header. */
 :root[data-has-hero] header.header {
-	background: transparent !important;
+	background: transparent;
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
 	border-bottom: 1px solid var(--ns-hairline);
