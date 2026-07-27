@@ -27,7 +27,7 @@
 	--sl-color-bg: #131316;
 	--sl-color-bg-inline-code: var(--ns-surface-2);
 	--sl-color-accent-low: #182a66;
-	--sl-color-accent: #2d5bff;
+	--sl-color-accent: var(--ns-trust-blue);
 	--sl-color-accent-high: #b9c7ff;
 
 	--ns-hairline: rgba(255, 255, 255, 0.1);

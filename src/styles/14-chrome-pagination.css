@@ -5,7 +5,7 @@
 	border-radius: var(--ns-radius);
 	border-color: var(--ns-hairline);
 	box-shadow: none;
-	transition: border-color 0.15s ease;
+	transition: border-color var(--ns-transition);
 }
 .pagination-links a:hover {
 	border-color: var(--sl-color-accent);
@@ -15,7 +15,7 @@
 .pagination-links a > span {
 	font-family: var(--sl-font-mono);
 	font-size: var(--ns-label-size);
-	font-weight: 500;
+	font-weight: var(--ns-label-weight);
 	text-transform: uppercase;
 	letter-spacing: var(--ns-label-tracking);
 	color: var(--ns-label-color);

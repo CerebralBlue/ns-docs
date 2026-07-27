@@ -4,7 +4,7 @@
 .sl-markdown-content th {
 	font-family: var(--sl-font-mono);
 	font-size: var(--ns-label-size);
-	font-weight: 500;
+	font-weight: var(--ns-label-weight);
 	text-transform: uppercase;
 	letter-spacing: 0.1em;
 	color: var(--ns-label-color);

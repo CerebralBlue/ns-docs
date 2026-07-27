@@ -40,13 +40,31 @@
 
 	/* --- Structure: the "lines and sharp corners" system --- */
 	--ns-radius: 4px;
-	--ns-radius-lg: 6px;
+	/* Deliberately 1px tighter than --ns-radius, not a rounding error.
+	   Used on the two smallest chips on the site: the search shortcut
+	   `kbd` (03) and inline code inside the hero prompt (17). */
+	--ns-radius-sm: 3px;
+
+	/* Every hover/focus transition on the site. One duration, one
+	   easing — if it needs a second, name that one too rather than
+	   hand-typing a value at the call site. */
+	--ns-transition: 0.15s ease;
 
 	/* --- Mono micro-label: the signature of the corporate/dev look.
 	   Tiny uppercase JetBrains Mono with wide tracking. Used on sidebar
-	   group headings, the TOC heading, table headers, and `.ns-label`. --- */
+	   group headings, the TOC heading, table headers, and `.ns-label`.
+
+	   NOT unified into a single selector group ON PURPOSE. Its six call
+	   sites (05 labels, 09 table th, 11 buttons, 13 .ns-links, 14
+	   pagination, 15 aside titles) use THREE different tracking values —
+	   0.16em canonical, 0.1em on table headers, 0.12em on buttons — so a
+	   blanket merge would change rendering. And one selector group
+	   spanning five unrelated components would have to live in one file,
+	   defeating the module split. Token-ize the values; accept the
+	   repetition. --- */
 	--ns-label-size: 0.6875rem; /* 11px */
 	--ns-label-tracking: 0.16em;
+	--ns-label-weight: 500;
 
 	/* Fonts */
 	--sl-font: 'Open Sans', ui-sans-serif, system-ui, sans-serif;

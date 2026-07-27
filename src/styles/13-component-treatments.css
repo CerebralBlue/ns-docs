@@ -176,7 +176,7 @@
 	margin-bottom: 0.4rem;
 	font-family: var(--sl-font-mono);
 	font-size: var(--ns-label-size);
-	font-weight: 500;
+	font-weight: var(--ns-label-weight);
 	text-transform: uppercase;
 	letter-spacing: var(--ns-label-tracking);
 	color: var(--ns-label-color);

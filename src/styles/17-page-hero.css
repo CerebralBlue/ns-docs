@@ -153,7 +153,7 @@
 	background: transparent;
 	color: var(--ns-label-color);
 	cursor: pointer;
-	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+	transition: background-color var(--ns-transition), border-color var(--ns-transition), color var(--ns-transition);
 }
 .ns-prompt__send:hover {
 	border-color: var(--sl-color-accent);
@@ -161,7 +161,7 @@
 	color: #fff;
 }
 .ns-prompt__send svg {
-	transition: transform 0.15s ease;
+	transition: transform var(--ns-transition);
 }
 .ns-prompt__send:hover svg {
 	transform: translateX(1px);
@@ -179,7 +179,7 @@
 }
 .ns-prompt__prose code {
 	padding: 0.1em 0.35em;
-	border-radius: 3px;
+	border-radius: var(--ns-radius-sm);
 	background: var(--ns-surface-soft);
 	color: var(--ns-cyan);
 	font-family: var(--sl-font-mono);

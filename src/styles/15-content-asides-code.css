@@ -13,7 +13,7 @@
 .starlight-aside__title {
 	font-family: var(--sl-font-mono);
 	font-size: var(--ns-label-size);
-	font-weight: 500;
+	font-weight: var(--ns-label-weight);
 	text-transform: uppercase;
 	letter-spacing: var(--ns-label-tracking);
 }

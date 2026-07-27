@@ -18,29 +18,50 @@
    documentation pages stay flat. Hero pages have no sidebar, so the
    gradient and the doc chrome never share a screen.
    ============================================================ */
+/* Hero pages also get a transparent, frosted navbar so the gradient
+   shows through (the header rule itself is further down). Doc pages keep
+   a solid nav so scrolled content stays hidden behind it. Both carry a
+   hairline underneath. */
 :root[data-has-hero] {
 	background-attachment: fixed;
 	background-repeat: no-repeat;
 	background-size: cover;
+	--sl-color-bg-nav: transparent;
 }
 
+/* ── Why these are rgba literals and not var(--ns-*) ──────────────
+   Every stop below IS a brand token from 01-tokens.css, re-typed as
+   rgba because a gradient stop needs an alpha channel and the tokens
+   are opaque hex. The mapping is exact:
+
+       rgba(91, 45, 255, …)  = --ns-indigo        #5b2dff
+       rgba(48, 30, 76, …)   = --ns-regal-purple  #301e4c
+       rgba(45, 91, 255, …)  = --ns-trust-blue    #2d5bff
+       rgba(31, 182, 255, …) = --ns-cyan          #1fb6ff
+
+   So those four tokens are NOT dead — they are load-bearing here.
+   Converting these to `rgb(var(--ns-indigo-rgb) / 0.42)` triplets is
+   exact arithmetic and would work, but it is nine stops on the most
+   prominent surface on the site with no pixel test, and a transposed
+   stop would pass code review. Left as literals deliberately.
+   ─────────────────────────────────────────────────────────────── */
 :root[data-has-hero][data-theme='dark'] {
 	background-color: var(--sl-color-bg) !important;
 	background-image:
-		radial-gradient(65% 55% at 8% 2%, rgba(91, 45, 255, 0.42) 0%, transparent 58%),
-		radial-gradient(55% 48% at 95% 0%, rgba(48, 30, 76, 0.95) 0%, transparent 55%),
-		radial-gradient(75% 65% at 92% 92%, rgba(91, 45, 255, 0.38) 0%, transparent 60%),
-		radial-gradient(60% 55% at 2% 98%, rgba(45, 91, 255, 0.3) 0%, transparent 58%),
-		radial-gradient(90% 80% at 50% 45%, rgba(48, 30, 76, 0.55) 0%, transparent 70%);
+		radial-gradient(65% 55% at 8% 2%, rgba(91, 45, 255, 0.42) 0%, transparent 58%), /* indigo */
+		radial-gradient(55% 48% at 95% 0%, rgba(48, 30, 76, 0.95) 0%, transparent 55%), /* regal-purple */
+		radial-gradient(75% 65% at 92% 92%, rgba(91, 45, 255, 0.38) 0%, transparent 60%), /* indigo */
+		radial-gradient(60% 55% at 2% 98%, rgba(45, 91, 255, 0.3) 0%, transparent 58%), /* trust-blue */
+		radial-gradient(90% 80% at 50% 45%, rgba(48, 30, 76, 0.55) 0%, transparent 70%); /* regal-purple */
 }
 
 :root[data-has-hero][data-theme='light'] {
 	background-color: var(--sl-color-bg) !important;
 	background-image:
-		radial-gradient(60% 50% at 8% 2%, rgba(45, 91, 255, 0.16) 0%, transparent 58%),
-		radial-gradient(65% 55% at 94% 96%, rgba(91, 45, 255, 0.14) 0%, transparent 60%),
-		radial-gradient(70% 60% at 96% 4%, rgba(31, 182, 255, 0.1) 0%, transparent 58%),
-		radial-gradient(90% 80% at 50% 50%, rgba(45, 91, 255, 0.05) 0%, transparent 72%);
+		radial-gradient(60% 50% at 8% 2%, rgba(45, 91, 255, 0.16) 0%, transparent 58%), /* trust-blue */
+		radial-gradient(65% 55% at 94% 96%, rgba(91, 45, 255, 0.14) 0%, transparent 60%), /* indigo */
+		radial-gradient(70% 60% at 96% 4%, rgba(31, 182, 255, 0.1) 0%, transparent 58%), /* cyan */
+		radial-gradient(90% 80% at 50% 50%, rgba(45, 91, 255, 0.05) 0%, transparent 72%); /* trust-blue */
 }
 
 /* On hero pages only, let the canvas show through the content containers. */
@@ -48,12 +69,8 @@
 	background: transparent !important;
 }
 
-/* Hero pages: transparent, frosted navbar so the gradient shows through.
-   Doc pages keep a solid nav so scrolled content stays hidden behind it.
-   Both carry a hairline underneath. */
-:root[data-has-hero] {
-	--sl-color-bg-nav: transparent;
-}
+/* `--sl-color-bg-nav: transparent` is declared with the canvas block at
+   the top of this file — see the ORDERING HAZARD note in the header. */
 :root[data-has-hero] header.header {
 	background: transparent !important;
 	backdrop-filter: blur(8px);
