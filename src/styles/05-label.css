@@ -35,4 +35,3 @@ mobile-starlight-toc nav > button {
    `ns-label ns-label--inline`, so no author could produce the class.
    To bring it back, give the directive a `variant` attribute the way
    `::ns-button` already has one, then re-add the two rules. */
-

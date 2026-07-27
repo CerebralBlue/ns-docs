@@ -153,7 +153,10 @@
 	background: transparent;
 	color: var(--ns-label-color);
 	cursor: pointer;
-	transition: background-color var(--ns-transition), border-color var(--ns-transition), color var(--ns-transition);
+	transition:
+		background-color var(--ns-transition),
+		border-color var(--ns-transition),
+		color var(--ns-transition);
 }
 .ns-prompt__send:hover {
 	border-color: var(--sl-color-accent);
@@ -188,4 +191,3 @@
 :root[data-theme='light'] .ns-prompt__prose code {
 	color: var(--ns-trust-blue);
 }
-

@@ -151,7 +151,9 @@
 	width: 1rem;
 	height: 1rem;
 	color: var(--ns-label-color);
-	transition: color var(--ns-transition), transform var(--ns-transition);
+	transition:
+		color var(--ns-transition),
+		transform var(--ns-transition);
 }
 
 .ns-card__body,
@@ -192,9 +194,10 @@
 	border: 1px solid var(--ns-hairline);
 	background: var(--ns-surface-soft);
 	box-shadow: none;
-	transition: border-color var(--ns-transition), background-color var(--ns-transition);
+	transition:
+		border-color var(--ns-transition),
+		background-color var(--ns-transition);
 }
 .sl-link-card:hover {
 	border-color: var(--sl-color-accent);
 }
-

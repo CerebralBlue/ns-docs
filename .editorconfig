@@ -1,0 +1,16 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+
+[*.{json,jsonc,yml,yaml,md,mdx}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Markdown uses trailing double-space for a hard line break.
+trim_trailing_whitespace = false

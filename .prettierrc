@@ -1,0 +1,24 @@
+{
+  "useTabs": true,
+  "singleQuote": true,
+  "printWidth": 100,
+  "semi": true,
+  "trailingComma": "es5",
+  "plugins": ["prettier-plugin-astro"],
+  "overrides": [
+    {
+      "comment": "JSON and YAML are conventionally space-indented, and package.json / lockfiles are rewritten by tooling that assumes spaces.",
+      "files": ["*.json", "*.jsonc", "*.yml", "*.yaml"],
+      "options": { "useTabs": false, "tabWidth": 2 }
+    },
+    {
+      "comment": "Content is authored by humans and sometimes non-engineers; leave prose wrapping alone.",
+      "files": ["*.md", "*.mdx"],
+      "options": { "useTabs": false, "tabWidth": 2, "proseWrap": "preserve" }
+    },
+    {
+      "files": ["*.astro"],
+      "options": { "parser": "astro" }
+    }
+  ]
+}

@@ -34,7 +34,10 @@
 	text-transform: uppercase;
 	letter-spacing: 0.12em;
 	text-decoration: none;
-	transition: background-color var(--ns-transition), border-color var(--ns-transition), color var(--ns-transition);
+	transition:
+		background-color var(--ns-transition),
+		border-color var(--ns-transition),
+		color var(--ns-transition);
 }
 
 /* LinkButton hardcodes <Icon size="1.5rem">, which lands as an inline
@@ -76,4 +79,3 @@
 .sl-link-button.minimal:hover {
 	color: var(--sl-color-white);
 }
-
