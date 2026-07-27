@@ -22,18 +22,51 @@
 	font-size: var(--sl-text-sm);
 }
 
-/* Active page: a left accent bar rather than a filled pill — reads as a
-   marker in the margin instead of a heavy block of colour. */
+/* Active page: a hairline accent bar in the margin, nothing else.
+   Deliberately THREE signals, not four — the bar, the weight, and the text
+   colour. It previously also carried a gradient wash, which put a fifth
+   surface tint in a sidebar whose whole premise is that hairlines, not fills,
+   do the separating; and the bar was 2px, twice the width of every other rule
+   on the page. At 1px it matches the hairline system exactly and reads as a
+   marker rather than a highlight. */
 .sidebar-content a[aria-current='page'],
 .sidebar-content a[aria-current='page']:hover,
 .sidebar-content a[aria-current='page']:focus {
 	background-color: transparent;
+	background-image: none;
 	color: var(--sl-color-white);
 	font-weight: 600;
-	box-shadow: inset 2px 0 0 var(--sl-color-accent);
-	background-image: linear-gradient(90deg, var(--ns-surface-soft), transparent 60%);
+	/* Square, NOT var(--ns-radius). The bar is an inset box-shadow, so the
+	   anchor's 4px radius clips it — at 2px that was barely visible, but at 1px
+	   the curl becomes the dominant feature and the marker renders as a
+	   decorative "(" bracket instead of a rule. The radius is invisible here
+	   anyway now that the fill is gone; hover keeps it, where it has a
+	   background to round. */
+	border-radius: 0;
+	box-shadow: inset 1px 0 0 var(--sl-color-accent);
 }
 
 .sidebar-content ul ul li {
 	border-inline-start-color: var(--ns-hairline);
+}
+
+/* NESTED groups (a collapsible section sitting among page links, e.g.
+   "NTL Node Reference" inside mAIstro).
+
+   Starlight styles every group label with `.large` — 16px/600 in the strongest
+   text colour. On a TOP-LEVEL group that is fine, because 05-label.css
+   overrides it into the mono micro-label and the group heads its own section.
+   A nested group has no such override, so it inherited the raw `.large`
+   treatment and sat in the middle of a list of 14px/400 links at 16px/600 in
+   near-black — bigger and heavier than the page links it contains, which
+   inverted the hierarchy and read as misaligned.
+
+   It is now typographically identical to its sibling links, and the CARET is
+   the only thing marking it as expandable. That is the whole signal, and it is
+   why the caret is hidden on top-level groups (where a rule + tracking do the
+   job) but kept here. */
+.sidebar-content details details > summary .group-label > .large {
+	font-size: var(--sl-text-sm);
+	font-weight: 400;
+	color: var(--sl-color-gray-2);
 }

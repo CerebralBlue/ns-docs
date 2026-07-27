@@ -7,7 +7,14 @@ starlight-toc > nav > h2 {
 	border-bottom: 1px solid var(--ns-hairline);
 }
 
+/* Matched to the left sidebar's link scale, not Starlight's smaller default.
+   The two nav columns frame the same page, so a 13px right rail against a 14px
+   left one reads as the TOC being a lesser, secondary thing rather than the
+   peer it is. Line-height is set explicitly for the same reason: Starlight
+   ships 1.25 here against 1.4 in the sidebar, so matching only the font size
+   would leave the two columns on visibly different rhythms. */
 starlight-toc a {
 	border-radius: var(--ns-radius);
-	font-size: var(--sl-text-xs);
+	font-size: var(--sl-text-sm);
+	line-height: 1.4;
 }
