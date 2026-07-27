@@ -1,0 +1,213 @@
+/* ============================================================
+   [13] Section treatments — restyle the SAME card output per
+   landing-page section (`.ns-index`, `.ns-tiles`, `.ns-links`).
+
+   ⚠ ORDERING HAZARD — this file must stay AFTER 10.
+   Most pairs here out-specify the base lattice, so they would win
+   anywhere. But `.ns-grid > .ns-card` (in 10) and
+   `.ns-index .ns-card` (here) are BOTH specificity (0,2,0). Today
+   they set disjoint properties — 10 does border/radius/background/
+   box-shadow, this file does gap/padding — so the tie never
+   surfaces. Add a `box-shadow` to `.ns-index .ns-card` and
+   10 < 13 becomes load-bearing overnight.
+
+   Cards are emitted by src/plugins/remark-ns-directives.mjs;
+   the treatment wrapper classes are authored by hand in
+   src/content/docs/index.mdx.
+
+   Contains two `@media (min-width: 50rem)` — see the breakpoint
+   note in 01-tokens.css for why that literal cannot be a token.
+   ============================================================ */
+
+/* ============================================================
+   SECTION TREATMENTS
+   The design system is one thing; using it identically in every
+   section is another. These three wrappers restyle the SAME
+   `:::ns-card` output so no two consecutive sections look alike,
+   without changing how the page is authored.
+   ============================================================ */
+
+/* --- Index sheet --------------------------------------------
+   A contents page: every capability and every link visible at once,
+   in the full card lattice — framed on all four sides, with the
+   shared interior rules turning six cells into one ruled table.
+
+   Distinct from the `.ns-tiles` grid above (same 3 columns, same
+   frame) by density, not by chrome: no icons, no accent spotlight,
+   no min-height — five links per cell instead of one sentence.
+
+   This replaced a numbered-rows treatment (six full-width rows, a
+   CSS counter printing 01–06 in the gutter). Two reasons it went:
+   the counter implied a sequence through six PEER capabilities, and
+   full-width rows made the page's table of contents its tallest
+   section when it is the one that most wants to be scanned.
+   ------------------------------------------------------------ */
+/* The container frame, the radius and the shared interior rules all come
+   straight from the base `.ns-grid` lattice — this treatment changes what
+   is INSIDE the cells, not how they are ruled. */
+.ns-index .ns-grid {
+	margin-block: 2rem;
+}
+.ns-index .ns-card {
+	gap: 0.5rem;
+	padding: 1.5rem 1.25rem 1.75rem;
+}
+/* The group name leads — it is the thing being chosen between, so it
+   outranks its own description. (It briefly shipped as the 11px mono
+   micro-label, which made the heading smaller than the sentence under
+   it and inverted the hierarchy.) */
+.ns-index .ns-card__title {
+	font-size: var(--sl-text-lg);
+}
+/* An icon per cell would re-add the chrome this treatment drops, and
+   the tiles above already use icons for exactly that signal. */
+.ns-index .ns-card__icon {
+	display: none;
+}
+.ns-index .ns-card__body > p {
+	margin: 0;
+	color: var(--ns-label-color);
+}
+.ns-index .ns-card__body ul {
+	margin: 0.35rem 0 0;
+	padding-top: 0.85rem;
+}
+/* Links outrank the description: they are what the cell is for. */
+.ns-index .ns-card__body li > a {
+	color: var(--sl-color-gray-1);
+}
+
+@media (min-width: 50rem) {
+	/* Subgrid so the description/links hairline lands on the same
+	   baseline in all three columns. Without it each cell's rule sits
+	   wherever its own description happens to wrap, and three rules
+	   staggered by a few pixels inside a ruled table read as a bug.
+
+	   Each card spans three parent tracks (title / description /
+	   links) and `display: contents` promotes the body's <p> and <ul>
+	   into that grid — without the promotion the body is a single
+	   grid item and the two inner tracks cannot exist. Auto-placement
+	   is row-first, so six span-3 cards fill 3 columns then wrap.
+	   NOTE the row count is explicit — `repeat(2, …)` is three
+	   columns × two rows = SIX groups. Rows cannot auto-fill without
+	   a definite container height, so adding a seventh group means
+	   bumping this number too, or it lands in implicit tracks with
+	   nothing to subgrid onto. */
+	.ns-index .ns-grid {
+		grid-template-rows: repeat(2, auto auto 1fr);
+	}
+	.ns-index .ns-card {
+		grid-row: span 3;
+		display: grid;
+		grid-template-rows: subgrid;
+		row-gap: 0.5rem;
+		padding: 1.75rem 1.5rem 2rem;
+	}
+	.ns-index .ns-card__body {
+		display: contents;
+	}
+}
+
+/* --- Feature tiles ------------------------------------------
+   Taller, roomier cards with the arrow parked at the bottom
+   rather than inline with the title.
+   ------------------------------------------------------------ */
+.ns-tiles .ns-card {
+	position: relative;
+	gap: 0.6rem;
+	padding: 1.75rem 1.5rem;
+	min-height: 9rem;
+}
+.ns-tiles .ns-card__title {
+	font-size: var(--sl-text-lg);
+}
+.ns-tiles .ns-card__icon {
+	width: 1.5rem;
+	height: 1.5rem;
+}
+/* The arrow rides on the title row, pushed to the right edge by the base
+   `.ns-card__arrow { margin-inline-start: auto }` — it looked orphaned
+   parked on its own line at the bottom of the tile. */
+
+/* Spotlight: the first tile gets an accent wash so the eye has
+   somewhere to land. Opt-in via `.ns-tiles--spotlight`, because the
+   page uses `.ns-tiles` more than once and a second accent wash
+   spends the emphasis it exists to create. Targeted by position
+   because the `ns-card` directive takes no class attribute — reorder
+   the cards in index.mdx and the spotlight follows the first one. */
+.ns-tiles--spotlight .ns-grid > .ns-card:first-child {
+	background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+}
+.ns-tiles--spotlight .ns-grid > .ns-card:first-child:hover {
+	background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+}
+
+/* --- Resources: the page outro ------------------------------
+   An even 4-up strip under one hairline. It was a wrapping flex row,
+   which sized every item to its own text — so four links of very
+   different lengths ("labs.neuralseek.com" vs "YouTube channel")
+   landed at four arbitrary x-positions immediately below a hard-ruled
+   grid. The ragged edge was the whole problem; a grid puts the columns
+   back in agreement with the sections above.
+
+   The rule stays a single line at the top rather than a frame: this
+   is the page's quiet close, and it should not read as a fourth grid
+   competing with the three above it.
+   ------------------------------------------------------------ */
+.ns-links ul {
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1.75rem 1.5rem;
+	margin: 0;
+	padding-top: 1.75rem;
+	border-top: 1px solid var(--ns-hairline);
+}
+@media (min-width: 50rem) {
+	.ns-links ul {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+.ns-links li {
+	font-size: var(--sl-text-sm);
+}
+.ns-links strong {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: var(--ns-label-tracking);
+	color: var(--ns-label-color);
+}
+/* Text, not accent-blue: four blue phrases closing the page pulled
+   more attention than the sections they sit under. */
+.ns-links a {
+	color: var(--sl-color-white);
+	text-decoration: none;
+}
+.ns-links a:hover {
+	text-decoration: underline;
+	text-underline-offset: 0.25em;
+}
+
+/* Block row wrapping directive buttons, so consecutive `::ns-button`s sit
+   side by side and an inline-flex button cannot overflow into the next
+   paragraph. */
+.ns-button-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+/* Inline mono label from `:ns-label[…]`. */
+.ns-label--inline {
+	display: inline-block;
+	padding: 0.15em 0.45em;
+	border: 1px solid var(--ns-hairline-strong);
+	border-radius: var(--ns-radius);
+	vertical-align: baseline;
+}
+

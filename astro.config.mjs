@@ -27,7 +27,12 @@ export default defineConfig({
 				replacesTitle: true,
 			},
 			favicon: '/favicon.png',
-			customCss: ['./src/styles/neuralseek.css'],
+			// One entry on purpose. The design system is ~19 files under
+			// src/styles/, and their ORDER IS LOAD-BEARING (the CSS is unlayered,
+			// so equal-specificity conflicts resolve by source order). That order
+			// lives in src/styles/index.css, next to the CSS it orders — read its
+			// header before adding, moving, or renumbering a file.
+			customCss: ['./src/styles/index.css'],
 			components: {
 				SocialIcons: './src/components/SocialIcons.astro',
 				Footer: './src/components/Footer.astro',

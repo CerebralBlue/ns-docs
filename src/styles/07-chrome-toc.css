@@ -1,0 +1,14 @@
+/* ============================================================
+   Table of contents — minimal, rule-led
+   ============================================================ */
+starlight-toc > nav > h2 {
+	margin-bottom: 0.75rem;
+	padding-bottom: 0.6rem;
+	border-bottom: 1px solid var(--ns-hairline);
+}
+
+starlight-toc a {
+	border-radius: var(--ns-radius);
+	font-size: var(--sl-text-xs);
+}
+

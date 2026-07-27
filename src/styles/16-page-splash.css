@@ -1,0 +1,68 @@
+/* ============================================================
+   [16] Splash gradient canvas — landing page only.
+
+   ⚠ ORDERING HAZARD — this file must stay AFTER 04.
+   `--sl-color-bg-nav` is set to `transparent` here and to
+   `var(--sl-color-bg)` in 04-theme.css. Both selectors are
+   specificity (0,2,0) and both match on a splash page, so this
+   file only wins BY SOURCE ORDER. Renumber either file and the
+   frosted transparent navbar silently reverts to opaque.
+
+   `.content-panel:first-of-type` is also set in 08; that one is
+   resolved by specificity (0,4,0 here vs 0,2,0 there), not order.
+   ============================================================ */
+
+/* ============================================================
+   Gradient canvas — SPLASH / HERO PAGES ONLY
+   Starlight sets [data-has-hero] on <html> for hero pages only, so
+   documentation pages stay flat. Hero pages have no sidebar, so the
+   gradient and the doc chrome never share a screen.
+   ============================================================ */
+:root[data-has-hero] {
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+:root[data-has-hero][data-theme='dark'] {
+	background-color: var(--sl-color-bg) !important;
+	background-image:
+		radial-gradient(65% 55% at 8% 2%, rgba(91, 45, 255, 0.42) 0%, transparent 58%),
+		radial-gradient(55% 48% at 95% 0%, rgba(48, 30, 76, 0.95) 0%, transparent 55%),
+		radial-gradient(75% 65% at 92% 92%, rgba(91, 45, 255, 0.38) 0%, transparent 60%),
+		radial-gradient(60% 55% at 2% 98%, rgba(45, 91, 255, 0.3) 0%, transparent 58%),
+		radial-gradient(90% 80% at 50% 45%, rgba(48, 30, 76, 0.55) 0%, transparent 70%);
+}
+
+:root[data-has-hero][data-theme='light'] {
+	background-color: var(--sl-color-bg) !important;
+	background-image:
+		radial-gradient(60% 50% at 8% 2%, rgba(45, 91, 255, 0.16) 0%, transparent 58%),
+		radial-gradient(65% 55% at 94% 96%, rgba(91, 45, 255, 0.14) 0%, transparent 60%),
+		radial-gradient(70% 60% at 96% 4%, rgba(31, 182, 255, 0.1) 0%, transparent 58%),
+		radial-gradient(90% 80% at 50% 50%, rgba(45, 91, 255, 0.05) 0%, transparent 72%);
+}
+
+/* On hero pages only, let the canvas show through the content containers. */
+:root[data-has-hero] :is(body, .page, .main-frame, .main-pane, main) {
+	background: transparent !important;
+}
+
+/* Hero pages: transparent, frosted navbar so the gradient shows through.
+   Doc pages keep a solid nav so scrolled content stays hidden behind it.
+   Both carry a hairline underneath. */
+:root[data-has-hero] {
+	--sl-color-bg-nav: transparent;
+}
+:root[data-has-hero] header.header {
+	background: transparent !important;
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	border-bottom: 1px solid var(--ns-hairline);
+}
+
+/* Splash pages have no title rule to divide. */
+:root[data-has-hero] .content-panel:first-of-type {
+	border-bottom: 0;
+}
+

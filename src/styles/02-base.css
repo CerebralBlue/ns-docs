@@ -1,0 +1,9 @@
+/* Stop the page rubber-banding past its own top and bottom. The splash
+   gradient is `background-attachment: fixed`, so during an overscroll the
+   background stays put while the content slides — which reads as the page
+   still scrolling when there is nothing left to scroll to. `-y` only, so
+   horizontal scroll containers (wide tables, code blocks) are untouched. */
+html {
+	overscroll-behavior-y: none;
+}
+

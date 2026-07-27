@@ -1,0 +1,73 @@
+/* ============================================================
+   NeuralDocs — NeuralSeek brand v2.1
+   Phase A: token + CSS layer. Minimal / corporate-dev system —
+   hairline rules, sharp radii, mono micro-labels, flat surfaces.
+   Tokens are kept in sync with the NeuralSeek marketing site so
+   both properties share one design language.
+
+   Starlight ships its own rules inside `@layer starlight.*`.
+   Everything here is UNLAYERED ON PURPOSE, so it always wins.
+   ============================================================
+
+   THIS FILE IS THE ONLY ENTRY IN `customCss` (astro.config.mjs).
+
+   ORDER IS LOAD-BEARING. Precisely BECAUSE the stylesheet is
+   unlayered, equal-specificity conflicts are decided by SOURCE
+   ORDER — and this list IS that order.
+
+       ► If two rules that can match the same element have equal
+         specificity, the one in the HIGHER-NUMBERED file wins.
+
+   The numeric prefix is the cascade position; the name is the
+   taxonomy, chosen so it predicts what will break the file:
+
+       (unprefixed)  the foundation everything else reads
+       chrome-*      overrides Starlight's shell   → breaks on a Starlight upgrade
+       content-*     overrides markdown output     → breaks on a pipeline change
+       component-*   styles OUR directive output   → breaks on a remark-ns-directives.mjs change
+       page-*        `:root[data-has-hero]`-scoped → landing page only
+
+   So `ls src/styles/` prints the cascade. Do not renumber without
+   reading the ORDERING HAZARD notes in the affected file headers.
+
+   Vite inlines these at build time, so the shipped bundle is one
+   stylesheet in exactly this sequence. Comments cost nothing —
+   esbuild strips every one of them from the production CSS.
+   ============================================================ */
+
+/* MUST be first — CSS requires @import to precede all other rules. */
+@import './00-fonts.css';
+
+/* Foundation */
+@import './01-tokens.css';
+@import './02-base.css';
+
+/* Starlight chrome + the theme bridge */
+@import './03-chrome-header.css';
+@import './04-theme.css';
+@import './05-label.css';
+@import './06-chrome-sidebar.css';
+@import './07-chrome-toc.css';
+
+/* Markdown content */
+@import './08-content-typography.css';
+@import './09-content-tables.css';
+
+/* Components (the `ns-*` directive layer + Starlight's card/button components) */
+@import './10-component-cards.css';
+@import './11-component-buttons.css';
+@import './12-component-card-links.css';
+@import './13-component-treatments.css';
+
+/* Back to chrome + content — position is fixed by the original cascade,
+   not by taxonomy. See the ORDERING HAZARD note in 13. */
+@import './14-chrome-pagination.css';
+@import './15-content-asides-code.css';
+
+/* Landing page only */
+@import './16-page-splash.css';
+@import './17-page-hero.css';
+
+/* Legacy — targets `.mobile-header`, which does not exist in Starlight
+   0.37.7 and appears in zero built pages. Slated for deletion. */
+@import './18-legacy-mobile-logo.css';

@@ -1,0 +1,61 @@
+/* ============================================================
+   [04] Theme scales — the SEMANTIC token layer.
+
+   Primitives are in 01-tokens.css; everything here is
+   theme-conditional, which is why it is a separate file.
+
+   ⚠ ORDERING HAZARD — `--sl-color-bg-nav`
+   Declared here as `var(--sl-color-bg)`, and again in
+   16-page-splash.css as `transparent`. BOTH selectors are
+   specificity (0,2,0) and both match on a splash page, so the
+   winner is decided PURELY BY SOURCE ORDER: 04 < 16, so splash
+   wins. This is the one genuine order-decided conflict in the
+   whole stylesheet. Do not renumber 04 above 16.
+   ============================================================ */
+
+/* ============================================================
+   Theme scales
+   Accent scales MUST be declared per-theme (matching Starlight's own
+   specificity) and INVERTED: in dark, `-high` is the lightest shade;
+   in light, `-high` is the darkest (it is used for text and links).
+
+   `--sl-color-hairline*` is Starlight's border system — overriding it
+   here is what produces the thin-rule look across the whole chrome
+   (header underline, sidebar divider, nested sidebar guides, tables).
+   ============================================================ */
+:root[data-theme='dark'] {
+	--sl-color-bg: #131316;
+	--sl-color-bg-inline-code: var(--ns-surface-2);
+	--sl-color-accent-low: #182a66;
+	--sl-color-accent: #2d5bff;
+	--sl-color-accent-high: #b9c7ff;
+
+	--ns-hairline: rgba(255, 255, 255, 0.1);
+	--ns-hairline-strong: rgba(255, 255, 255, 0.18);
+	--ns-label-color: rgba(255, 255, 255, 0.45);
+	--ns-surface-soft: rgba(255, 255, 255, 0.03);
+}
+:root[data-theme='light'] {
+	--sl-color-bg: #fbfbfc;
+	--sl-color-accent-low: #dbe1fb;
+	--sl-color-accent: #2f4fd6;
+	--sl-color-accent-high: #17297f;
+
+	--ns-hairline: rgba(0, 0, 0, 0.1);
+	--ns-hairline-strong: rgba(0, 0, 0, 0.2);
+	--ns-label-color: rgba(0, 0, 0, 0.5);
+	--ns-surface-soft: rgba(0, 0, 0, 0.025);
+}
+
+/* Route every Starlight border through the hairline token, and flatten
+   the nav + sidebar onto the page canvas so the only thing separating
+   them is a 1px rule (Supabase/Palantir-style, no panel fills). */
+:root[data-theme='dark'],
+:root[data-theme='light'] {
+	--sl-color-hairline: var(--ns-hairline);
+	--sl-color-hairline-light: var(--ns-hairline);
+	--sl-color-hairline-shade: var(--ns-hairline);
+	--sl-color-bg-nav: var(--sl-color-bg);
+	--sl-color-bg-sidebar: var(--sl-color-bg);
+}
+

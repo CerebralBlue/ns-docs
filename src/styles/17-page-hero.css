@@ -1,0 +1,191 @@
+/* ============================================================
+   [17] Hero — landing page only.
+
+   Paired with src/components/Hero.astro, which WRAPS Starlight's
+   Hero rather than reimplementing it (the h1's id="_top" is the
+   SkipLink + TOC target). `.ns-prompt` is applied there but has no
+   rule here on purpose — `.ns-hero-panel` on the same element
+   carries the styling. It is a hook, not a gap.
+
+   Contains one `@media (min-width: 50rem)` — see the breakpoint
+   note in 01-tokens.css.
+   ============================================================ */
+
+/* ============================================================
+   Hero — split: copy left, live /seek call right.
+
+   Starlight's Hero is WRAPPED, not replaced (src/components/Hero.astro),
+   so `.hero` stays its own single-column grid and the split lives on our
+   `.ns-hero-split` wrapper. `.hero`'s padding-block is zeroed and
+   re-applied to the wrapper — otherwise the padding would pad only the
+   left column and the two columns would not centre against each other.
+   Starlight also centres the stack below 50rem, so alignment is forced
+   to `start` at every width.
+   ============================================================ */
+.hero {
+	grid-template-columns: minmax(0, 1fr);
+	padding-block: 0;
+}
+.hero .stack {
+	text-align: start;
+}
+.hero .copy {
+	align-items: flex-start;
+	gap: 1.25rem;
+}
+.hero .copy > * {
+	max-width: none;
+}
+.hero .actions {
+	justify-content: flex-start;
+}
+
+.ns-hero-split {
+	display: grid;
+	gap: 2.5rem;
+	padding-block: 2.5rem;
+}
+
+/* Starlight's own hero breakpoint. `minmax(0, …)` on BOTH tracks is
+   load-bearing: a grid track's default `min-width: auto` resolves to the
+   code block's min-content width, so one long line would blow past the
+   fr share and overflow the container. 6fr/5fr rather than Starlight's
+   7fr/4fr — on a splash page `--sl-content-width` is 67.5rem, where a
+   4fr track is only ~380px and too narrow for the JSON. */
+@media (min-width: 50rem) {
+	.ns-hero-split {
+		grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+		align-items: center;
+		gap: 3%;
+		padding-block: clamp(2.5rem, calc(1rem + 8vmin), 7rem);
+	}
+}
+
+/* The h1 carries the eyebrow AND the title (both shipped from
+   `hero.title` frontmatter, which Starlight renders with set:html). */
+.hero h1 {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.85rem;
+	width: auto;
+	background: none;
+	color: var(--sl-color-white);
+}
+.hero .ns-hero-eyebrow {
+	line-height: 1;
+}
+/* Solid, not a gradient — plain high-contrast type is what reads
+   corporate. `--sl-color-white` inverts per theme, so this single
+   declaration is correct in light mode too. */
+.hero .ns-hero-title {
+	max-width: 18ch;
+	letter-spacing: -0.03em;
+	color: var(--sl-color-white);
+}
+.hero .tagline {
+	max-width: 46ch;
+}
+
+/* ------------------------------------------------------------
+   The code panel.
+
+   ONE translucent surface for the whole panel, with Expressive Code
+   made fully transparent inside it. An opaque panel would punch a hole
+   in the :root[data-has-hero] gradient canvas — the same reason the
+   card lattice has no container background. `--ec-codeBg` is normally
+   the opaque --ns-surface-2, so it MUST be neutralised here.
+   ------------------------------------------------------------ */
+.ns-hero-panel {
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+	background: color-mix(in srgb, var(--ns-surface-2) 55%, transparent);
+	backdrop-filter: blur(14px) saturate(130%);
+	-webkit-backdrop-filter: blur(14px) saturate(130%);
+	/* clips Expressive Code's square corners to the panel radius */
+	overflow: clip;
+}
+:root[data-theme='light'] .ns-hero-panel {
+	background: color-mix(in srgb, #fff 70%, transparent);
+}
+
+/* ------------------------------------------------------------
+   The hero prompt — one pre-written question about NeuralSeek,
+   with a button that hands it to the ChatWidget via its
+   `ns-chat:ask` event. The docs answer it with NeuralSeek itself.
+   ------------------------------------------------------------ */
+.ns-prompt__tabs {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0 0.5rem 0 0.75rem;
+	border-bottom: 1px solid var(--ns-hairline);
+}
+/* A single label, not a real tab — the underline sits on an inset
+   shadow so it lands flush on the bar's own hairline rather than
+   drawing a second line beneath it. */
+.ns-prompt__tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin-inline-end: auto;
+	padding: 0.75rem 0.5rem;
+	box-shadow: inset 0 -1px 0 0 var(--sl-color-white);
+	color: var(--sl-color-white);
+	font-size: var(--sl-text-xs);
+}
+.ns-prompt__tab svg {
+	flex-shrink: 0;
+}
+
+/* The panel's only control — sits top-right in the bar, where the
+   reference puts its copy button. Sends the prompt to the chat widget. */
+.ns-prompt__send {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.85rem;
+	height: 1.85rem;
+	padding: 0;
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+	background: transparent;
+	color: var(--ns-label-color);
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.ns-prompt__send:hover {
+	border-color: var(--sl-color-accent);
+	background: var(--sl-color-accent);
+	color: #fff;
+}
+.ns-prompt__send svg {
+	transition: transform 0.15s ease;
+}
+.ns-prompt__send:hover svg {
+	transform: translateX(1px);
+}
+
+/* --- the prompt body --- */
+.ns-prompt__prose {
+	padding: 0.875rem;
+	font-size: var(--sl-text-sm);
+	line-height: 1.65;
+	color: var(--sl-color-gray-2);
+}
+.ns-prompt__prose p {
+	margin: 0;
+}
+.ns-prompt__prose code {
+	padding: 0.1em 0.35em;
+	border-radius: 3px;
+	background: var(--ns-surface-soft);
+	color: var(--ns-cyan);
+	font-family: var(--sl-font-mono);
+	font-size: 0.85em;
+}
+:root[data-theme='light'] .ns-prompt__prose code {
+	color: var(--ns-trust-blue);
+}
+

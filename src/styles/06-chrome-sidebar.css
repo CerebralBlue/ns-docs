@@ -1,0 +1,40 @@
+/* ============================================================
+   Sidebar — flat, rule-separated, mono group headings
+   ============================================================ */
+.sidebar-content .top-level > li + li {
+	margin-top: 1.5rem;
+	padding-top: 1.25rem;
+	border-top: 1px solid var(--ns-hairline);
+}
+
+.sidebar-content summary {
+	padding-bottom: 0.35rem;
+}
+
+/* Group headings are labels, not controls — hide the disclosure caret
+   and let the rule + tracking carry the hierarchy. */
+.sidebar-content .top-level > li > details > summary .caret {
+	display: none;
+}
+
+.sidebar-content a {
+	border-radius: var(--ns-radius);
+	font-size: var(--sl-text-sm);
+}
+
+/* Active page: a left accent bar rather than a filled pill — reads as a
+   marker in the margin instead of a heavy block of colour. */
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+	background-color: transparent;
+	color: var(--sl-color-white);
+	font-weight: 600;
+	box-shadow: inset 2px 0 0 var(--sl-color-accent);
+	background-image: linear-gradient(90deg, var(--ns-surface-soft), transparent 60%);
+}
+
+.sidebar-content ul ul li {
+	border-inline-start-color: var(--ns-hairline);
+}
+
