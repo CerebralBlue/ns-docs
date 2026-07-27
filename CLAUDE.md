@@ -112,7 +112,7 @@ the two stay in sync by construction. What creates the look:
 - `--ns-radius: 4px` — sharp corners everywhere (cards, code, buttons, pagination).
 - **The mono micro-label** — 11px uppercase JetBrains Mono at `0.16em` tracking. The
   signature element: sidebar group headings, TOC heading, table headers, aside titles,
-  pagination labels. Reusable as `.ns-label` (+ `.ns-label--accent`).
+  pagination labels. Reusable as `.ns-label`.
 - Nav and sidebar are flattened onto the page canvas (`--sl-color-bg-nav`/`-sidebar`), so a
   hairline is the only thing dividing them. Active sidebar item = 2px accent bar, not a pill.
 

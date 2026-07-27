@@ -29,10 +29,10 @@ mobile-starlight-toc nav > button {
 	color: var(--ns-label-color);
 }
 
-.ns-label--accent {
-	color: var(--ns-cyan);
-}
-:root[data-theme='light'] .ns-label--accent {
-	color: var(--ns-trust-blue);
-}
+/* `.ns-label--accent` lived here and was removed 2026-07-27: it was
+   UNREACHABLE, not merely unused. buildLabel() in
+   src/plugins/remark-ns-directives.mjs only ever emits
+   `ns-label ns-label--inline`, so no author could produce the class.
+   To bring it back, give the directive a `variant` attribute the way
+   `::ns-button` already has one, then re-add the two rules. */
 
