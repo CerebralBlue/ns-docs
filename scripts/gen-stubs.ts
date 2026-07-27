@@ -11,7 +11,7 @@
  *
  * Usage: bun run stubs
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -52,7 +52,8 @@ const actionNote: Record<string, string> = {
 	keep: 'Content will be converted from the existing documentation.',
 	rewrite: 'Content will be rewritten from the existing documentation with a capability focus.',
 	merge: 'Content will be merged from multiple existing pages.',
-	distill: 'Content will be distilled from the existing documentation (developer/admin scope only).',
+	distill:
+		'Content will be distilled from the existing documentation (developer/admin scope only).',
 	new: 'This page is brand new for the restructured docs.',
 };
 

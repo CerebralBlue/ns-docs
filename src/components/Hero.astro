@@ -39,7 +39,9 @@ const prompt: Array<{ t?: string; c?: string }> = [
 	{ c: 'KBscore' },
 	{ t: ' and a clickable citation on every response, what ' },
 	{ c: 'mAIstro' },
-	{ t: ' agents are for, and then walk me through setting up my first instance — connecting a KnowledgeBase, choosing an LLM, and getting my first grounded answer.' },
+	{
+		t: ' agents are for, and then walk me through setting up my first instance — connecting a KnowledgeBase, choosing an LLM, and getting my first grounded answer.',
+	},
 ];
 
 const promptText = prompt.map((s) => s.t ?? s.c).join('');
@@ -52,14 +54,23 @@ const promptText = prompt.map((s) => s.t ?? s.c).join('');
 		<div class="ns-prompt__tabs">
 			<span class="ns-prompt__tab" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-					<path d="M12 2.5 13.6 8 19 9.6 13.6 11.2 12 16.7 10.4 11.2 5 9.6 10.4 8 12 2.5Zm6.2 9.6.8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7ZM5.6 14l.7 2.2 2.2.7-2.2.7-.7 2.2-.7-2.2-2.2-.7 2.2-.7.7-2.2Z"/>
+					<path
+						d="M12 2.5 13.6 8 19 9.6 13.6 11.2 12 16.7 10.4 11.2 5 9.6 10.4 8 12 2.5Zm6.2 9.6.8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7ZM5.6 14l.7 2.2 2.2.7-2.2.7-.7 2.2-.7-2.2-2.2-.7 2.2-.7.7-2.2Z"
+					></path>
 				</svg>
 				<span>Ask AI</span>
 			</span>
 
-			{/* Sits where the reference puts its copy button. This is the only
-			    control in the panel — it sends the prompt to the chat widget. */}
-			<button class="ns-prompt__send" type="button" data-ns-prompt-ask={promptText} aria-label="Ask NeuralSeek this question">
+			{
+				/* Sits where the reference puts its copy button. This is the only
+			    control in the panel — it sends the prompt to the chat widget. */
+			}
+			<button
+				class="ns-prompt__send"
+				type="button"
+				data-ns-prompt-ask={promptText}
+				aria-label="Ask NeuralSeek this question"
+			>
 				{/* Same glyph the ns-* directives use — kept in one place. */}
 				<svg
 					aria-hidden="true"

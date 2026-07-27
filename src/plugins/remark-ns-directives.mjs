@@ -135,7 +135,10 @@ function iconNode(name, className, node, report) {
 	const key = name.trim();
 	const source = nsIcons[key];
 	if (!source) {
-		report(node, `unknown icon "${key}" — rendering without one. Known icons: ${nsIconNames.join(', ')}`);
+		report(
+			node,
+			`unknown icon "${key}" — rendering without one. Known icons: ${nsIconNames.join(', ')}`
+		);
 		return undefined;
 	}
 	// Wrap in <svg> so the fragment parses in the SVG namespace, then keep only
@@ -251,7 +254,10 @@ function buildGrid(node, report) {
 	// in a style attribute do not round-trip reliably through hast-util-to-estree.
 	if (cols && COLS.has(cols)) className.push(`ns-grid--${cols}`);
 	else if (cols) {
-		report(node, `ns-grid has cols=${cols}; only ${[...COLS].join('/')} are supported — falling back to 2.`);
+		report(
+			node,
+			`ns-grid has cols=${cols}; only ${[...COLS].join('/')} are supported — falling back to 2.`
+		);
 	}
 	// `node.children` is reused BY REFERENCE, not cloned. unist-util-visit walks
 	// the original array, so reuse is what lets nested ns-cards still be visited
@@ -283,7 +289,10 @@ function buildCard(node, report) {
 				: el('span', { className: ['ns-card__label'] }, titleChildren)
 		);
 	} else {
-		report(node, 'ns-card has no title — add `[Title]` after the directive name, or a `title=` attribute.');
+		report(
+			node,
+			'ns-card has no title — add `[Title]` after the directive name, or a `title=` attribute.'
+		);
 	}
 
 	if (href) pushIcon(head, 'right-arrow', 'ns-card__arrow', node, report);
@@ -322,13 +331,23 @@ function buildButton(node, report) {
 
 	const variant = str(attrs, 'variant');
 	if (variant && !VARIANTS.has(variant)) {
-		report(node, `ns-button has variant=${variant}; only ${[...VARIANTS].join('/')} exist — falling back to primary.`);
+		report(
+			node,
+			`ns-button has variant=${variant}; only ${[...VARIANTS].join('/')} exist — falling back to primary.`
+		);
 	}
-	const className = ['sl-link-button', 'not-content', variant && VARIANTS.has(variant) ? variant : 'primary'];
+	const className = [
+		'sl-link-button',
+		'not-content',
+		variant && VARIANTS.has(variant) ? variant : 'primary',
+	];
 
 	const children = resolveLabel(node, attrs);
 	if (!children) {
-		report(node, 'ns-button has no label — add `[Label]` after the directive name, or a `text=` attribute.');
+		report(
+			node,
+			'ns-button has no label — add `[Label]` after the directive name, or a `text=` attribute.'
+		);
 		return undefined;
 	}
 

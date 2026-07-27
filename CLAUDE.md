@@ -12,19 +12,29 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
 ## Stack & versions
 
 - **Astro 5.18** + **Starlight 0.37.7**. No third-party theme — the look is entirely
-  `src/styles/neuralseek.css`. The old "do not bump past Astro 5" pin came from
+  `src/styles/`. The old "do not bump past Astro 5" pin came from
   `starlight-theme-obsidian` → `starlight-site-graph` → deprecated `astro-integration-kit`;
   that theme was **dropped 2026-07-24**, so the pin no longer applies. An Astro 6/7 upgrade
   is now a normal upgrade (untested, but nothing structural blocks it).
 - Package manager: **bun** (`bun run dev`, `bun run build`).
 - Fonts self-hosted via `@fontsource` (Open Sans + JetBrains Mono).
+- **`bun run verify`** = `format:check` → `lint:css` → `check` → `build`. This is exactly what
+  CI runs (`.github/workflows/deploy.yml`, `lint` job, gating `build`); run it before pushing.
+  Individually: `bun run format` (Prettier), `bun run lint:css` (Stylelint), `bun run check`
+  (`astro check`), `bun run stubs` (regenerate stub pages).
+- **TypeScript is pinned to 6.x on purpose.** TS 7's native compiler does not expose the
+  programmatic API `astro check` needs, so bumping to 7 silently breaks type-checking.
 
 ## Layout
 
 - `src/content/docs/` — documentation pages. Routes = file paths.
-- `src/styles/neuralseek.css` — the entire design system (tokens, hairlines, markdown
-  typography, sidebar, TOC, cards, code, asides, gradient canvas, mobile logo). Rules are
-  **unlayered on purpose** so they win over Starlight's `@layer starlight.*` cascade layers.
+- `src/styles/` — the design system, split into ~18 numbered modules. Rules are **unlayered on
+  purpose** so they win over Starlight's `@layer starlight.*` cascade layers. See
+  "The stylesheet" below — read `src/styles/index.css` before touching any of it.
+- `src/lib/ns-chat/` — the chat widget's non-DOM logic, so it is readable and testable apart
+  from the component: `constants.ts` (endpoint, embedCode, storage keys, user-facing strings),
+  `session.ts` (identity + history persistence; all `localStorage` access), `seek-client.ts`
+  (the `/seek` call, with timeout and typed `SeekError`s).
 - `src/components/` — component overrides registered in `astro.config.mjs`:
   - `SocialIcons.astro` — appends a NeuralSeek link (renders everywhere social icons do).
   - `Footer.astro` — branded footer + mounts `ChatWidget`; skips Starlight's default footer
@@ -35,21 +45,25 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
     `@astrojs/starlight/constants`, which is **not** in the package `exports` map — a
     reimplementation would have to hardcode it. Only `index.mdx` has `hero:` frontmatter, so
     this affects one page.
-  - `ChatWidget.astro` — "NeuralSeek Assistant" launcher / "Ask NeuralSeek" panel. `sendMessage()`
-    calls the `neuralseek-documentation-website` instance's `/seek` endpoint
-    (`stagingapi.neuralseek.com`) directly from the client, authenticated with an `embedcode`
-    header (`2041675160`). This is **not** the admin API key — embedCodes are scoped to only the
-    seek/mAIstro endpoints, so unlike the admin key they're meant to ship in public frontend
-    code; no server-side proxy needed. Chat history + a `sessionId`/`userId` pair persist in
-    `localStorage` (`ns-chat-v1` / `ns-session-id` / `ns-user-id`); the header's restart button
-    clears history and rotates `sessionId` only.
+  - `ChatWidget.astro` — "NeuralSeek Assistant" launcher / "Ask NeuralSeek" panel. Only DOM
+    wiring lives here; everything else is in `src/lib/ns-chat/` (above). It calls the
+    `neuralseek-documentation-website` instance's `/seek` endpoint (`stagingapi.neuralseek.com`
+    — **staging on purpose** while pre-launch) with an `embedcode` header (`2041675160`). That
+    is **not** the admin API key — embedCodes are scoped to only the seek/mAIstro endpoints, so
+    unlike the admin key they're meant to ship in public frontend code; no proxy needed. Chat
+    history + a `sessionId`/`userId` pair persist in `localStorage` (`ns-chat-v1` /
+    `ns-session-id` / `ns-user-id`); the restart button clears history and rotates `sessionId`
+    only. **It reparents itself to `<body>` on mount** — see the stacking-context note below.
 - `src/assets/` — logos (`neuraldocs-logo-light/dark.svg` = wordmark, `neuraldocs-icon.png` = N mark).
 - `public/` — `favicon.png`, hero art.
 - `planning/` — IA proposal (`structure-sketch.md`) + page template.
 - `scripts/` — `migration-map.json` (old→new route map, drives stub/content generation) +
   `gen-stubs.ts`.
-- `src/plugins/` — `remark-ns-directives.mjs` (the `ns-*` component layer) + `ns-icons.mjs`
-  (vendored Starlight glyphs). Registered via `markdown.remarkPlugins` in `astro.config.mjs`.
+- `src/plugins/` — `remark-base-path.mjs` (prefixes root-relative links with `base`),
+  `remark-ns-directives.mjs` (the `ns-*` component layer), `ns-icons.mjs` (vendored Starlight
+  glyphs). The two remark plugins are registered via `markdown.remarkPlugins` in
+  `astro.config.mjs`, **in that order** — base-path must see the authored directive nodes
+  before ns-directives rewrites them into paragraphs.
 - `src/content/docs/styleguide.mdx` — internal component/branding kitchen-sink page; out of the
   sidebar but still routable.
 - `src/content/docs/directives-test.md` — `draft: true` regression page for the directives in
@@ -82,8 +96,20 @@ Inline status: :ns-label[beta]
 - Icons come from `src/plugins/ns-icons.mjs`. They are **copied verbatim** from Starlight, not
   imported: its `exports` map has no `./components/*` wildcard, so the specifier does not
   resolve. Add one by copying its value out of `@astrojs/starlight/components/Icons.ts`.
-- Typos never fail the build — they warn. A bad leaf/text directive comes back as literal text;
-  a bad container renders as a plain `<div>` with its content intact.
+- Adding a directive = one entry in the `DIRECTIVES` table in `remark-ns-directives.mjs` plus a
+  builder. The table holds the marker each directive requires (`containerDirective` /
+  `leafDirective` / `textDirective`), so the dispatch and the wrong-marker error come free.
+- `[Label]` and the `title=` / `text=` attributes are interchangeable on every directive —
+  one `resolveLabel()` handles the container and leaf/text forms.
+- Typos never fail the build — they warn, with `file:line:column`. A bad leaf/text directive
+  comes back as literal text; a bad container renders as a plain `<div>`, content intact.
+  **Line numbers are body-relative** (Astro strips frontmatter before remark), so add the
+  frontmatter length to match your editor. `remarkNsDirectives({ strict: true })` escalates
+  to `file.fail()` — verified: Starlight logs `[ERROR] Error rendering <file>` and drops that
+  page, but the build still exits 0, so it is a loud signal, not an exit-code gate.
+- **Astro does not print remark vfile messages at all** (verified on 5.18 / Starlight 0.37.7,
+  dev and build). That is why the plugin does `console.warn` _and_ `file.message()`. Re-test
+  before deleting the console call.
 - `scripts/gen-stubs.ts` **rewrites every `status: "stub"` file on each run** — never hand-add
   directives to a stub. Change the generator's body template, or flip the route's status in
   `scripts/migration-map.json` first.
@@ -101,7 +127,43 @@ Inline status: :ns-label[beta]
   trust-blue→indigo gradient is reserved for the splash hero. To bring gradient titles back,
   add the doc-title selectors to the `.hero h1` rule.
 
-## Design system (Phase A, 2026-07-24)
+## The stylesheet — `src/styles/` (split 2026-07-27)
+
+The design system was one 1200-line `neuralseek.css`. It is now ~18 numbered modules plus
+`src/styles/index.css`, which is **the only entry in `customCss`** and holds the `@import`
+list. Read its header before changing anything here.
+
+**The one rule that matters:** the CSS is unlayered on purpose (so it beats
+`@layer starlight.*`), which means equal-specificity conflicts are decided by **source
+order** — and the numbered `@import` list _is_ that order. If two rules that can match the
+same element have equal specificity, **the higher-numbered file wins.** Files carrying a
+real ordering hazard say so in their header (`04-theme` ↔ `16-page-splash` over
+`--sl-color-bg-nav` is the live one; `10-component-cards` ↔ `13-component-treatments` is a
+latent one).
+
+Numeric prefix = cascade position; the name says what breaks it — `chrome-*` on a Starlight
+upgrade, `content-*` on a markdown-pipeline change, `component-*` on a
+`remark-ns-directives.mjs` change, `page-*` is `:root[data-has-hero]`-scoped. So
+`ls src/styles/` prints the cascade.
+
+Two things that look like bugs and are not:
+
+- **Seven brand primitives have no `var()` consumer.** The palette is mirrored 1:1 from the
+  marketing site and kept whole deliberately; four of them are also live as hand-typed `rgba`
+  literals in the splash gradient (annotated in `16-page-splash.css`). Do not prune them.
+- **The mono-label recipe is repeated at six call sites and is not unified.** Three of them use
+  different tracking, so a blanket merge changes rendering — and one selector group spanning
+  five components would have to live in one file, defeating the split.
+
+**`50rem` is a magic number that cannot be a token.** `@media (min-width: var(--x))` is invalid
+CSS — media-feature values resolve before custom-property substitution. It is Starlight's own
+layout switch, repeated in `03`/`10`/`13`/`17`; `grep -rn "50rem" src/styles/` before changing it.
+
+There are **no `!important` declarations left**. All five were verified redundant with a
+computed-style probe (3 pages × 2 themes × 4 widths) — unlayered CSS already beats Starlight's
+layered rules. Add one only with the same evidence.
+
+### Design system (Phase A, 2026-07-24)
 
 Minimal corporate/dev look modelled on Supabase docs + the NeuralSeek marketing site.
 Brand tokens are **identical** to that site (`--brand-cyan`/`--trust-blue`/`--ink`/… ), so
@@ -117,18 +179,26 @@ the two stay in sync by construction. What creates the look:
   hairline is the only thing dividing them. Active sidebar item = 2px accent bar, not a pill.
 
 **Card lattice (Phase B).** Cards share 1px rules with zero gap, forming one connected grid.
-Interior lines are `box-shadow`s drawn *outside* each cell on its top + inline-start edges
+Interior lines are `box-shadow`s drawn _outside_ each cell on its top + inline-start edges
 only, so no two cells can draw the same line and double it; the container's `overflow: clip`
 erases the first row/column and leaves the container border as the only outer frame. A
 container background was rejected — the cells are translucent, so it would tint every cell
 interior and block the splash gradient. `.ns-grid`/`.ns-card` (directives) and
 `.card-grid`/`.card` (Starlight components) are styled **together** on purpose.
 
-Four Starlight behaviours worth remembering (all cost real debugging time):
+Starlight behaviours worth remembering (all cost real debugging time):
+
+- **`.main-pane` is a stacking context.** `TwoColumnContent.astro` sets `isolation: isolate`
+  on it. Anything rendered from `Footer.astro` (i.e. the ChatWidget) lives inside it, so a
+  `position: fixed; z-index: N` overlay is trapped there — and the full-height fixed
+  `.right-sidebar`, which is OUTSIDE `.main-pane`, paints over it. This made the chat launcher
+  unclickable on every doc page at ≥50rem while working fine on the splash page (no sidebar),
+  which is why it went unnoticed for a long time. The widget now reparents itself to `<body>`
+  on mount. **Any future page-level overlay must do the same.**
 
 - **Headings are wrapped.** Starlight puts `h2`–`h6` inside `.sl-heading-wrapper.level-hN`
   for anchor links, which makes the heading itself `display: inline`. A `border-top` on the
-  `<h2>` spans only the *text*, not the column — put section rules on the **wrapper**.
+  `<h2>` spans only the _text_, not the column — put section rules on the **wrapper**.
 - **`Card` tints icons by index.** Starlight cycles `--sl-card-border`/`--sl-card-bg` through
   orange/purple/green/red/blue on `nth-child(4n+…)`, giving a rainbow of icon chips. The chip
   is stripped entirely so the grid reads as one monochrome system.
@@ -187,14 +257,19 @@ Deployment & platforms (`.ns-tiles`, 2 cards) · Resources & community (`.ns-lin
 - Repo `CerebralBlue/ns-docs` (public). `.github/workflows/deploy.yml` builds with
   `withastro/action` on push to `main` → https://cerebralblue.github.io/ns-docs/
 - **Project page ⇒ base path.** `astro.config.mjs` sets `site: 'https://cerebralblue.github.io'`
-  + `base: '/ns-docs'`.
-- **Base-path caveat:** Starlight auto-prefixes nav/sidebar links, assets, the favicon, and the
-  sitemap. It does **NOT** prefix (fix these by hand):
-  - **hero action links** in `index.mdx` frontmatter
-  - **hardcoded absolute paths to `public/` assets** — hero `<img src="/ns-docs/...">`,
-    `url('/ns-docs/favicon.png')` in `neuralseek.css`
-- **Custom-domain cutover (later):** set `site: 'https://documentation.neuralseek.com'`, remove
-  `base`, drop every `/ns-docs` prefix above, add `public/CNAME`.
+  together with `base: '/ns-docs'`.
+- **Author links WITHOUT the prefix.** `src/plugins/remark-base-path.mjs` adds it at build time
+  to markdown links/images, `ns-*` directive `href`/`src`, and static MDX JSX `href`/`src`. So
+  write `[Quickstart](/getting-started/quickstart-seek/)`. The rewrite is idempotent, so a
+  stray hand-written prefix still resolves. `BASE` in `astro.config.mjs` is the single source
+  of truth and feeds both Astro's `base` and the plugin.
+- **The plugin cannot reach two things**, which stay hand-written:
+  - **hero action links** in `index.mdx` frontmatter — YAML takes no expressions
+  - raw `<a href>` inside an HTML block
+    Find them with `grep -rn '/ns-docs' src/content/` — currently exactly one hit, plus its
+    explanatory comment.
+- **Custom-domain cutover (later):** set `site: 'https://documentation.neuralseek.com'`, set
+  `BASE = ''`, fix the hero action link, add `public/CNAME`.
 
 ## Old docs (migration source)
 

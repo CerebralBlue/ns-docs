@@ -59,7 +59,9 @@ export default defineConfig({
 				// index.mdx has `hero:` frontmatter, so this is landing-page only.
 				Hero: './src/components/Hero.astro',
 			},
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/CerebralBlue/ns-docs' }],
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/CerebralBlue/ns-docs' },
+			],
 			// IA per planning/structure-sketch.md (v1 draft — team review pending).
 			sidebar: [
 				{
@@ -117,7 +119,10 @@ export default defineConfig({
 					items: [
 						{ label: 'Virtual agents', slug: 'integrations/virtual-agents' },
 						{ label: 'Training virtual agents', slug: 'integrations/training-virtual-agents' },
-						{ label: 'watsonx Assistant streaming', slug: 'integrations/watsonx-assistant-streaming' },
+						{
+							label: 'watsonx Assistant streaming',
+							slug: 'integrations/watsonx-assistant-streaming',
+						},
 						{ label: 'NICE CXone', slug: 'integrations/nice-cxone' },
 						{ label: 'Chat SDK', slug: 'integrations/chat-sdk' },
 						{ label: 'Implementing feedback', slug: 'integrations/feedback' },

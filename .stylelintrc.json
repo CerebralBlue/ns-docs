@@ -1,7 +1,10 @@
 {
   "comment": "Deliberately tiny. stylelint-config-standard out of the box produces hundreds of errors here and argues with the design system on principle (sharp radii, descending specificity, per-theme token scales). This set targets only the classes of bug this stylesheet has actually had.",
   "rules": {
-    "declaration-block-no-duplicate-properties": [true, { "ignore": ["consecutive-duplicates-with-different-values"] }],
+    "declaration-block-no-duplicate-properties": [
+      true,
+      { "ignore": ["consecutive-duplicates-with-different-values"] }
+    ],
     "declaration-block-no-duplicate-custom-properties": true,
     "no-duplicate-selectors": true,
     "no-duplicate-at-import-rules": true,
