@@ -14,7 +14,8 @@
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/open-sans": "^5.2.7",
     "astro": "^5.18.2",
+    "hast-util-from-html": "^2.0.3",
     "sharp": "^0.34.5",
-    "starlight-theme-obsidian": "^0.4.1"
+    "unist-util-visit": "^5.1.0"
   }
 }

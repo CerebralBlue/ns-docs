@@ -103,6 +103,54 @@ mcpns -v
 
 <LinkCard title="Explore a guide" href="/ns-docs/getting-started/quickstart-seek/" description="A linked card to an internal page." />
 
+## Cards (directives)
+
+The same four cards, authored with the `ns-*` remark directives instead of the
+Astro components above. These two sections must render **identically** — that is
+what makes this page the regression test for drift between the `.mdx` and `.md`
+pipelines, and between the two authoring surfaces. If the icons here are empty
+but the ones above are not, the SVG nodes are being dropped in MDX.
+
+::::ns-grid{cols=2}
+
+:::ns-card[State]{icon=star}
+Cyan accents for state.
+:::
+
+:::ns-card[Governance]{icon=approve-check}
+Trust-blue governs.
+:::
+
+:::ns-card[Creation]{icon=pencil}
+Indigo/magenta creates.
+:::
+
+:::ns-card[Surfaces]{icon=setting}
+Cards on Surface, calm and institutional.
+:::
+
+::::
+
+A linked card gets a hover arrow and a whole-cell click target:
+
+::::ns-grid{cols=2}
+
+:::ns-card[Quickstart: Seek]{icon=rocket href="/ns-docs/getting-started/quickstart-seek/"}
+Deploy an instance and get your first grounded answer.
+:::
+
+:::ns-card[NTL reference]{icon=open-book href="/ns-docs/maistro/ntl-overview/"}
+Every node, with syntax and worked examples.
+:::
+
+::::
+
+Directive buttons and an inline label — both available in plain `.md`:
+
+::ns-button[Get started]{href="/ns-docs/getting-started/quickstart-seek/" icon=right-arrow}
+
+Release status: :ns-label[beta] — inline mono label.
+
 ## File tree
 
 <FileTree>

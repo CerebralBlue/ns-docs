@@ -466,6 +466,30 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 			if (isOpen() && !root.contains(e.target as Node)) setOpen(false, false);
 		});
 
+		// Public entry point for in-page triggers — currently the landing page's
+		// hero prompt panel (see src/components/Hero.astro):
+		//
+		//   document.dispatchEvent(
+		//     new CustomEvent('ns-chat:ask', { detail: { question: '…' } })
+		//   );
+		//
+		// Omit `question` to just open the panel.
+		//
+		// IMPORTANT: the caller must call stopPropagation() on the originating
+		// click. Any trigger lives outside [data-ns-chat], so the outside-click
+		// handler above fires later in the SAME bubbling click and would close
+		// the panel again the instant this opens it.
+		//
+		// Registered inside initChat(), so the `data-ns-init` guard at the top
+		// keeps it from being added twice across view transitions.
+		document.addEventListener('ns-chat:ask', (e) => {
+			const question = (e as CustomEvent).detail?.question?.trim();
+			setOpen(true);
+			if (!question) return;
+			addMessage(question, 'user');
+			sendMessage(question);
+		});
+
 		async function sendMessage(question: string) {
 			const typing = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
 			try {

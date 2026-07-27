@@ -3,21 +3,19 @@ title: NeuralSeek Documentation
 description: Official documentation for NeuralSeek — guides, reference, and how-tos.
 template: splash # Remove or comment out this line to display the site sidebar on this page.
 hero:
-  tagline: Everything you need to build, configure, and ship with NeuralSeek.
-  image:
-    # Raw <img> instead of `file:` on purpose: Starlight's Hero hardcodes
-    # width/height 400 with no srcset, so a `file:` hero is always emitted at
-    # 400px and looks soft once scaled up. Serving the 1200px asset directly
-    # lets the browser downsample and stay crisp on hi-DPI screens.
-    # alt is intentionally empty: the art is decorative, and a non-empty alt
-    # paints as text inside the reserved box while the image loads.
-    # NOTE: /ns-docs prefix = GitHub Pages base path; drop it when the custom
-    # domain lands (base becomes '/'). See AGENTS.md.
-    html: '<img src="/ns-docs/hero-folder-ns.webp" width="1200" height="1200" alt="" loading="eager" decoding="async" fetchpriority="high" />'
+  # `hero.title` is rendered with set:html and only affects the <h1>, so the
+  # mono eyebrow ships from frontmatter and needs no Hero component override.
+  # The page <title> and SEO metadata still use the top-level `title` above.
+  # aria-hidden keeps the eyebrow out of the h1's accessible name;
+  # data-pagefind-ignore keeps it out of the search index.
+  #
+  # The prompt panel beside this copy comes from src/components/Hero.astro.
+  title: '<span class="ns-label ns-hero-eyebrow" aria-hidden="true" data-pagefind-ignore>Grounded AI platform</span><span class="ns-hero-title">NeuralSeek Documentation</span>'
+  tagline: Grounded answers and AI agents over your own knowledge base — with a citation and a score on every response.
   actions:
     # NOTE: Starlight does NOT auto-prefix the base path to hero action links
     # (unlike nav/sidebar links). /ns-docs = GitHub Pages base; drop it when the
-    # custom domain lands (base → '/'). See AGENTS.md.
+    # custom domain lands (base → '/'). See CLAUDE.md.
     - text: Get started
       link: /ns-docs/getting-started/quickstart-seek/
       icon: right-arrow
@@ -29,36 +27,147 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+{/* Authored with the ns-* directives rather than <Card>/<CardGrid> so this page
+    uses the same component syntax as the 81 plain-.md pages. Note the outer
+    container takes FOUR colons and the cards three — micromark closes a
+    container on the first matching run length, so equal markers would end the
+    grid at the first card. See src/plugins/remark-ns-directives.mjs.
 
-## Explore the docs
+    Each section is wrapped in a treatment class (.ns-tiles / .ns-index /
+    .ns-links) that restyles the SAME card output. See "SECTION TREATMENTS"
+    in src/styles/neuralseek.css. Only ONE .ns-tiles block should carry
+    --spotlight: the accent wash is the page's single "start here" signal. */}
 
-<CardGrid stagger>
-	<Card title="Set up NeuralSeek" icon="rocket">
-		Deploy an instance and get your first grounded answer —
-		[start here](/ns-docs/getting-started/quickstart-seek/).
-	</Card>
-	<Card title="Answer questions with Seek" icon="magnifier">
-		Tuning, virtual KBs, filters, caching, and curation —
-		[Seek documentation](/ns-docs/seek/overview/).
-	</Card>
-	<Card title="Build agents with mAIstro" icon="puzzle">
-		Agent workflows and the full NTL node reference —
-		[mAIstro documentation](/ns-docs/maistro/overview/).
-	</Card>
-	<Card title="Connect your stack" icon="setting">
-		Knowledge bases, LLMs, virtual agents, and platform integrations —
-		[integrations](/ns-docs/knowledge/connect-a-kb/).
-	</Card>
-</CardGrid>
+## Start here
 
-## Ask the docs
+<div class="ns-tiles ns-tiles--spotlight">
 
-These docs come with their own AI assistant — fitting, since answering questions
-over a knowledge base is exactly what NeuralSeek does.
+::::ns-grid{cols=3}
 
-Hit **Ask AI** in the corner and ask in plain language: _"How do I connect a
-Pinecone index?"_ or _"Which LLMs support multimodal input?"_ It reads across
-every page here and links you to the source so you can verify the answer —
-faster than scrolling the sidebar when you know what you want but not where it
-lives.
+:::ns-card[Quickstart: Seek]{icon=rocket href="/ns-docs/getting-started/quickstart-seek/"}
+Your first grounded answer, in about 15 minutes.
+:::
+
+:::ns-card[Quickstart: mAIstro]{icon=puzzle href="/ns-docs/getting-started/quickstart-maistro/"}
+Build and run your first agent.
+:::
+
+:::ns-card[Connect a knowledge base]{icon=document href="/ns-docs/knowledge/connect-a-kb/"}
+Point NeuralSeek at your existing content.
+:::
+
+::::
+
+</div>
+
+## Browse by capability
+
+{/* .ns-index renders these six cells as one ruled table inside the card
+    lattice, and aligns each cell's description/links rule across the row with
+    subgrid. Two constraints: keep every group to FIVE links — a ragged column
+    bottom shows here in a way it never did in the old full-width rows — and
+    keep it at SIX groups, since the subgrid row count is hardcoded to 3×2. */}
+<div class="ns-index">
+
+::::ns-grid{cols=3}
+
+:::ns-card[Seek]
+Answers from your knowledge base.
+
+- [Overview](/ns-docs/seek/overview/)
+- [Tuning answers](/ns-docs/seek/tuning/)
+- [Virtual KB](/ns-docs/seek/virtual-kb/)
+- [Caching](/ns-docs/seek/caching/)
+- [Answer curation](/ns-docs/seek/curation/)
+:::
+
+:::ns-card[mAIstro]
+Agents, workflows, and NTL.
+
+- [Overview](/ns-docs/maistro/overview/)
+- [Visual editor](/ns-docs/maistro/visual-editor/)
+- [NTL overview](/ns-docs/maistro/ntl-overview/)
+- [Control flow](/ns-docs/maistro/ntl/control-flow/)
+- [Multi-agent](/ns-docs/maistro/ntl/multi-agent/)
+:::
+
+:::ns-card[Knowledge & Data]
+Connecting, loading, and cleaning your content.
+
+- [Connect a KB](/ns-docs/knowledge/connect-a-kb/)
+- [Supported knowledge bases](/ns-docs/knowledge/supported-knowledgebases/)
+- [Pinecone setup](/ns-docs/knowledge/pinecone/)
+- [Loading documents](/ns-docs/knowledge/load/)
+- [Table understanding](/ns-docs/knowledge/table-understanding/)
+:::
+
+:::ns-card[Integrations]
+Connecting to your existing channels and tools.
+
+- [Virtual agents](/ns-docs/integrations/virtual-agents/)
+- [Training virtual agents](/ns-docs/integrations/training-virtual-agents/)
+- [watsonx Assistant streaming](/ns-docs/integrations/watsonx-assistant-streaming/)
+- [NICE CXone](/ns-docs/integrations/nice-cxone/)
+- [Chat SDK](/ns-docs/integrations/chat-sdk/)
+:::
+
+:::ns-card[Configuration]
+Models, languages, and instance settings.
+
+- [Overview](/ns-docs/configuration/overview/)
+- [Supported LLMs](/ns-docs/configuration/supported-llms/)
+- [Multi-LLM](/ns-docs/configuration/multi-llm/)
+- [Semantic model tuning](/ns-docs/configuration/semantic-model/)
+- [Backup & restore](/ns-docs/configuration/backup-restore/)
+:::
+
+:::ns-card[Governance & Analytics]
+Auditing, privacy, and answer quality.
+
+- [Overview](/ns-docs/governance/overview/)
+- [PII detection](/ns-docs/governance/pii-detection/)
+- [Real-time logging](/ns-docs/governance/logging/)
+- [Data security & privacy](/ns-docs/governance/data-security/)
+- [Semantic analytics](/ns-docs/governance/semantic-analytics/)
+:::
+
+::::
+
+</div>
+
+## Deployment & platforms
+
+{/* Same .ns-tiles treatment as "Start here", two cards wide — but WITHOUT
+    --spotlight, so the accent wash stays unique to the first section. */}
+<div class="ns-tiles">
+
+::::ns-grid{cols=2}
+
+:::ns-card[SaaS]{icon=star href="/ns-docs/getting-started/deployment/"}
+Available on IBM Cloud, Microsoft Azure, and AWS — all with the same feature
+set. Some plans are specific to a single hyperscaler.
+:::
+
+:::ns-card[On-premise & air-gapped]{icon=download href="/ns-docs/getting-started/deployment/"}
+Run on any cloud or your own hardware, supporting HIPAA, govCloud, and FedRAMP
+requirements — it can run completely isolated from a network connection.
+:::
+
+::::
+
+</div>
+
+## Resources & community
+
+<div class="ns-links">
+
+{/* Four even columns, so keep the link text parallel in KIND — short noun
+    phrases, not a mix of bare domains and verb phrases. The mono <strong>
+    carries the destination's identity; the link says what you get there. */}
+
+- **Labs** [Hands-on sandbox](https://labs.neuralseek.com)
+- **Academy** [Guided courses](https://academy.neuralseek.com)
+- **Video** [YouTube channel](https://www.youtube.com/@NeuralSeek)
+- **Demo** [Live walkthrough](https://neuralseek.com/demo)
+
+</div>

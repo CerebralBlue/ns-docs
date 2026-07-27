@@ -1,19 +1,27 @@
 /* ============================================================
-   NeuralDocs branding (NeuralSeek brand v2.1)
-   Unlayered rules win over the `starlight` and `obsidian` layers.
+   NeuralDocs — NeuralSeek brand v2.1
+   Phase A: token + CSS layer. Minimal / corporate-dev system —
+   hairline rules, sharp radii, mono micro-labels, flat surfaces.
+   Tokens are kept in sync with the NeuralSeek marketing site so
+   both properties share one design language.
+
+   Starlight ships its own rules inside `@layer starlight.*`.
+   Everything here is UNLAYERED ON PURPOSE, so it always wins.
    ============================================================ */
 
 /* --- Fonts: self-hosted via @fontsource --- */
 @import '@fontsource/open-sans/400.css';
+@import '@fontsource/open-sans/500.css';
 @import '@fontsource/open-sans/600.css';
 @import '@fontsource/open-sans/700.css';
 @import '@fontsource/open-sans/800.css';
 @import '@fontsource/open-sans/400-italic.css';
 @import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
 @import '@fontsource/jetbrains-mono/700.css';
 
 /* ============================================================
-   Brand tokens
+   Brand tokens — mirrored 1:1 from the marketing site
    ============================================================ */
 :root {
 	--ns-cyan: #1fb6ff;
@@ -29,40 +37,921 @@
 	--ns-surface-elev: #332f42;
 	--ns-nav-black: #0b0a0f;
 
+	/* --- Structure: the "lines and sharp corners" system --- */
+	--ns-radius: 4px;
+	--ns-radius-lg: 6px;
+
+	/* --- Mono micro-label: the signature of the corporate/dev look.
+	   Tiny uppercase JetBrains Mono with wide tracking. Used on sidebar
+	   group headings, the TOC heading, table headers, and `.ns-label`. --- */
+	--ns-label-size: 0.6875rem; /* 11px */
+	--ns-label-tracking: 0.16em;
+
 	/* Fonts */
 	--sl-font: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
 	--sl-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+	/* --- Type scale: tighter and more restrained than Starlight's
+	   default, which runs to 42px h1 / 35px h2 on desktop. --- */
+	--sl-text-h1: 2.25rem; /* 36px */
+	--sl-text-h2: 1.5rem; /* 24px */
+	--sl-text-h3: 1.1875rem; /* 19px */
+	--sl-text-h4: 1rem; /* 16px */
 }
 
-/* --- Header wordmark: a touch smaller than the theme default --- */
+/* Stop the page rubber-banding past its own top and bottom. The splash
+   gradient is `background-attachment: fixed`, so during an overscroll the
+   background stays put while the content slides — which reads as the page
+   still scrolling when there is nothing left to scroll to. `-y` only, so
+   horizontal scroll containers (wide tables, code blocks) are untouched. */
+html {
+	overscroll-behavior-y: none;
+}
+
+/* --- Header wordmark: a touch smaller than the Starlight default --- */
 .site-title img {
 	height: 2.1rem !important;
 }
 
-/* --- Principal colors → Starlight accent scale (Trust Blue governs) ---
-   Scales must be declared per-theme (matching Starlight's own specificity)
-   and INVERTED: in dark, `-high` is the lightest shade; in light, `-high`
-   is the darkest (used for text/links). */
+/* ============================================================
+   Navbar column grid — page-type independent.
+
+   Starlight sizes the header's first column from
+   `--sl-content-inline-start` (0 on splash, 18.75rem on doc pages) and
+   `--sl-content-width` (67.5rem vs 45rem), both set by Page.astro
+   keyed on `data-has-sidebar`. That makes the search box and the
+   right-hand icons jump ~7.8rem when navigating between the landing
+   page and any doc page. On splash the 2.1rem wordmark above also
+   beats the computed minimum, so the LOGO ends up setting the column
+   width rather than the layout.
+
+   Pin the first track instead, using only public tokens: column 2
+   then starts at exactly --sl-sidebar-width on every page type, flush
+   with the sidebar's vertical hairline. Both subtractions cancel the
+   header's own padding and grid gap, so this survives the 72rem
+   --sl-content-pad-x step.
+
+   Headroom: the track is 15.75-16.25rem against a ~10.2rem wordmark.
+   Revisit if the wordmark ever grows past ~15rem.
+   ============================================================ */
+@media (min-width: 50rem) {
+	.header {
+		grid-template-columns:
+			calc(var(--sl-sidebar-width) - var(--sl-nav-pad-x) - var(--sl-nav-gap))
+			1fr
+			auto;
+	}
+}
+
+/* ============================================================
+   Search — right-aligned, minimal.
+
+   Sits at the end of the middle column, immediately left of the
+   social/theme icons, so the whole right-hand cluster reads as one
+   group. `site-search` is `display: contents`, so the flex item being
+   aligned is the button itself.
+
+   Pared back from Starlight's default: a filled 22rem pill on
+   --sl-color-black becomes a 13.5rem hairline field on the page
+   canvas, with the shortcut hint as an outlined mono key rather than
+   a filled grey chip.
+   ============================================================ */
+.header div:has(> site-search) {
+	justify-content: flex-end;
+}
+
+@media (min-width: 50rem) {
+	.header button[data-open-modal] {
+		max-width: 13.5rem;
+		height: 2rem;
+		gap: 0.45rem;
+		padding-inline: 0.6rem 0.4rem;
+		border-radius: var(--ns-radius);
+		border-color: var(--ns-hairline);
+		background-color: transparent;
+		color: var(--ns-label-color);
+		font-size: var(--sl-text-xs);
+	}
+	.header button[data-open-modal]:hover {
+		border-color: var(--ns-hairline-strong);
+		background-color: var(--ns-surface-soft);
+		color: var(--sl-color-white);
+	}
+}
+
+/* Shortcut hint: outlined mono key, not a filled chip. */
+.header button[data-open-modal] > kbd {
+	padding-inline: 0.3rem;
+	border: 1px solid var(--ns-hairline);
+	border-radius: 3px;
+	background-color: transparent;
+	color: var(--ns-label-color);
+}
+.header button[data-open-modal] kbd {
+	font-family: var(--sl-font-mono);
+	font-size: 0.625rem;
+}
+
+.header button[data-open-modal] svg {
+	font-size: 0.95rem;
+}
+
+/* ============================================================
+   Theme scales
+   Accent scales MUST be declared per-theme (matching Starlight's own
+   specificity) and INVERTED: in dark, `-high` is the lightest shade;
+   in light, `-high` is the darkest (it is used for text and links).
+
+   `--sl-color-hairline*` is Starlight's border system — overriding it
+   here is what produces the thin-rule look across the whole chrome
+   (header underline, sidebar divider, nested sidebar guides, tables).
+   ============================================================ */
 :root[data-theme='dark'] {
 	--sl-color-bg: #131316;
 	--sl-color-bg-inline-code: var(--ns-surface-2);
 	--sl-color-accent-low: #182a66;
 	--sl-color-accent: #2d5bff;
 	--sl-color-accent-high: #b9c7ff;
+
+	--ns-hairline: rgba(255, 255, 255, 0.1);
+	--ns-hairline-strong: rgba(255, 255, 255, 0.18);
+	--ns-label-color: rgba(255, 255, 255, 0.45);
+	--ns-surface-soft: rgba(255, 255, 255, 0.03);
 }
 :root[data-theme='light'] {
-	--sl-color-bg: hsl(0 0% 94%);
+	--sl-color-bg: #fbfbfc;
 	--sl-color-accent-low: #dbe1fb;
 	--sl-color-accent: #2f4fd6;
 	--sl-color-accent-high: #17297f;
+
+	--ns-hairline: rgba(0, 0, 0, 0.1);
+	--ns-hairline-strong: rgba(0, 0, 0, 0.2);
+	--ns-label-color: rgba(0, 0, 0, 0.5);
+	--ns-surface-soft: rgba(0, 0, 0, 0.025);
+}
+
+/* Route every Starlight border through the hairline token, and flatten
+   the nav + sidebar onto the page canvas so the only thing separating
+   them is a 1px rule (Supabase/Palantir-style, no panel fills). */
+:root[data-theme='dark'],
+:root[data-theme='light'] {
+	--sl-color-hairline: var(--ns-hairline);
+	--sl-color-hairline-light: var(--ns-hairline);
+	--sl-color-hairline-shade: var(--ns-hairline);
+	--sl-color-bg-nav: var(--sl-color-bg);
+	--sl-color-bg-sidebar: var(--sl-color-bg);
+}
+
+/* ============================================================
+   Mono micro-label
+   `.ns-label` is the reusable public class — Phase B directives and
+   any future component should use it rather than redeclaring.
+   ============================================================ */
+.ns-label,
+.sidebar-content .top-level > li > details > summary .group-label > .large,
+starlight-toc > nav > h2,
+mobile-starlight-toc nav > button {
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: var(--ns-label-tracking);
+	color: var(--ns-label-color);
+}
+
+.ns-label--accent {
+	color: var(--ns-cyan);
+}
+:root[data-theme='light'] .ns-label--accent {
+	color: var(--ns-trust-blue);
+}
+
+/* ============================================================
+   Sidebar — flat, rule-separated, mono group headings
+   ============================================================ */
+.sidebar-content .top-level > li + li {
+	margin-top: 1.5rem;
+	padding-top: 1.25rem;
+	border-top: 1px solid var(--ns-hairline);
+}
+
+.sidebar-content summary {
+	padding-bottom: 0.35rem;
+}
+
+/* Group headings are labels, not controls — hide the disclosure caret
+   and let the rule + tracking carry the hierarchy. */
+.sidebar-content .top-level > li > details > summary .caret {
+	display: none;
+}
+
+.sidebar-content a {
+	border-radius: var(--ns-radius);
+	font-size: var(--sl-text-sm);
+}
+
+/* Active page: a left accent bar rather than a filled pill — reads as a
+   marker in the margin instead of a heavy block of colour. */
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+	background-color: transparent;
+	color: var(--sl-color-white);
+	font-weight: 600;
+	box-shadow: inset 2px 0 0 var(--sl-color-accent);
+	background-image: linear-gradient(90deg, var(--ns-surface-soft), transparent 60%);
+}
+
+.sidebar-content ul ul li {
+	border-inline-start-color: var(--ns-hairline);
+}
+
+/* ============================================================
+   Table of contents — minimal, rule-led
+   ============================================================ */
+starlight-toc > nav > h2 {
+	margin-bottom: 0.75rem;
+	padding-bottom: 0.6rem;
+	border-bottom: 1px solid var(--ns-hairline);
+}
+
+starlight-toc a {
+	border-radius: var(--ns-radius);
+	font-size: var(--sl-text-xs);
+}
+
+/* ============================================================
+   Markdown content
+   Sections are separated by hairline rules above every h2 — this is
+   the core of the "minimal with lines" reference aesthetic.
+   ============================================================ */
+.sl-markdown-content {
+	font-size: 0.9375rem; /* 15px — denser, closer to reference docs */
+}
+
+.sl-markdown-content :is(h2, h3, h4) {
+	letter-spacing: -0.015em;
+	font-weight: 600;
+}
+
+/* Starlight wraps headings in `.sl-heading-wrapper` to hang the anchor link
+   beside them, which makes the heading itself `display: inline` — a border-top
+   on the <h2> would only span the width of the text, not the column. The
+   section rule therefore goes on the wrapper. Both selectors are listed so the
+   treatment still applies if a heading ever renders unwrapped. */
+.sl-markdown-content :is(h2, .sl-heading-wrapper.level-h2) {
+	margin-top: 3.25rem;
+	padding-top: 1.75rem;
+	border-top: 1px solid var(--ns-hairline);
+}
+.sl-markdown-content .sl-heading-wrapper.level-h2 > h2 {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
+/* The first section sits directly under the page title, which already has a
+   rule beneath it — a second one immediately after reads as a double line. */
+.sl-markdown-content > :is(h2, .sl-heading-wrapper.level-h2):first-child {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
+.sl-markdown-content :is(h3, .sl-heading-wrapper.level-h3) {
+	margin-top: 2.25rem;
+}
+
+/* On the SPLASH page a heading is a label, not a section: every block
+   under it already carries its own visual treatment (tiles, the index
+   table, the link cluster), so the hairline is a second divider saying
+   what the treatment already said — and the anchor link beside it is
+   decoration, since nobody deep-links to a landing page heading.
+
+   Whitespace replaces the rule, so the top margin absorbs the padding
+   the border used to sit above. Scoped to `[data-has-hero]` (Starlight
+   sets it on <html> for hero pages) so DOC pages keep both: there the
+   rule IS the section structure and the anchor is how a reader shares
+   a heading. To drop anchors site-wide instead, set
+   `markdown: { headingLinks: false }` in astro.config.mjs. */
+:root[data-has-hero] .sl-markdown-content :is(h2, .sl-heading-wrapper.level-h2) {
+	/* Matches the old margin + padding total exactly, so dropping the rule
+	   makes the gap no tighter than it was — whitespace is now the only
+	   thing separating one section from the next and cannot be skimped. */
+	margin-top: 5rem;
+	padding-top: 0;
+	border-top: 0;
+}
+/* The scoped rule above out-specifies the generic first-child reset
+   (0,5,0 vs 0,4,0), so the first heading needs its own. */
+:root[data-has-hero] .sl-markdown-content > :is(h2, .sl-heading-wrapper.level-h2):first-child {
+	margin-top: 0;
+}
+:root[data-has-hero] .sl-markdown-content .sl-anchor-link {
+	display: none;
+}
+
+/* Standalone rules match the section rules. */
+.sl-markdown-content hr {
+	border: 0;
+	border-top: 1px solid var(--ns-hairline);
+	margin: 3rem 0;
+}
+
+.sl-markdown-content a:not(:where(.not-content *)) {
+	text-underline-offset: 0.25em;
+	text-decoration-thickness: 1px;
+}
+
+/* ============================================================
+   Page title — solid and crisp on doc pages.
+   The cyan→blue gradient is reserved for the splash hero, where it
+   reads as brand rather than decoration on every single page.
+   To restore gradient doc titles, add `.sl-markdown-content
+   h1:first-of-type, h1#_top, .content-panel h1` back to the hero
+   selector below.
+   ============================================================ */
+.content-panel h1#_top {
+	letter-spacing: -0.025em;
+	font-weight: 700;
+}
+
+/* Rule under the title block, separating it from the body. */
+.content-panel:first-of-type {
+	border-bottom: 1px solid var(--ns-hairline);
+}
+
+/* The hero title gradient lives with the rest of the hero rules further
+   down — it targets `.ns-hero-title`, not the h1, so the eyebrow above it
+   keeps its own colour. */
+
+/* ============================================================
+   Tables — hairline rules, mono uppercase headers, no fills
+   ============================================================ */
+.sl-markdown-content th {
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: var(--ns-label-color);
+	border-bottom: 1px solid var(--ns-hairline-strong);
+}
+
+.sl-markdown-content :is(td, th) {
+	border-color: var(--ns-hairline);
+	padding: 0.6rem 0.75rem;
+}
+
+/* ============================================================
+   Card lattice
+   Cells share 1px rules with ZERO gap, forming one connected grid.
+
+   Interior lines are box-shadows drawn OUTSIDE each cell's box, on the
+   top and inline-start edges only — so no two adjacent cells can ever
+   draw the same line and double it. The container clips at its padding
+   box, which erases the first row's and first column's shadows and
+   leaves the container border as the only outer frame. box-shadow
+   costs no layout, so cells stay flush and equal-height.
+
+   Rejected alternatives: `gap: 1px` + a container background tints
+   every translucent cell interior and blocks the splash gradient;
+   negative margins break equal-height; per-cell borders double against
+   the outer frame on row 1 / column 1.
+
+   `.ns-grid`/`.ns-card` come from the remark directives (see
+   src/plugins/remark-ns-directives.mjs) and `.card-grid`/`.card` are
+   Starlight's <CardGrid>/<Card>. They are styled together on purpose:
+   one design system, two authoring surfaces, so any .mdx page using
+   the components matches any .md page using the directives.
+   ============================================================ */
+.ns-grid,
+.card-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 0;
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+	/* `clip` not `hidden`: no scroll container, so focus rings survive. */
+	overflow: clip;
+	margin-block: 1.75rem;
+	background: none;
+	box-shadow: none;
+}
+
+@media (min-width: 50rem) {
+	.ns-grid,
+	.card-grid {
+		grid-template-columns: repeat(var(--ns-grid-cols, 2), minmax(0, 1fr));
+	}
+}
+.ns-grid--1 {
+	--ns-grid-cols: 1;
+}
+.ns-grid--2 {
+	--ns-grid-cols: 2;
+}
+.ns-grid--3 {
+	--ns-grid-cols: 3;
+}
+.ns-grid--4 {
+	--ns-grid-cols: 4;
+}
+
+/* Starlight's `stagger` translateY-s every 2nd card 5rem, which shears the
+   lattice. Neutralised so a stray attribute cannot break the grid. */
+.card-grid.stagger {
+	padding-bottom: 0;
+}
+.card-grid.stagger > * {
+	transform: none;
+}
+
+/* A standalone card outside a grid keeps its own frame. */
+.ns-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.9rem;
+	padding: 2rem;
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+	background: transparent;
+	box-shadow: none;
+	transition: background-color 0.15s ease;
+}
+
+/* Inside a grid: drop the frame, draw only the two interior lines. */
+.ns-grid > .ns-card,
+.card-grid > .card {
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow:
+		-1px 0 0 0 var(--ns-hairline),
+		0 -1px 0 0 var(--ns-hairline);
+}
+
+.ns-grid > *,
+.ns-card > * {
+	margin-top: 0;
+}
+
+.ns-card__title,
+.card .title {
+	display: flex;
+	align-items: center;
+	gap: 0.7rem;
+	margin: 0;
+	font-family: var(--sl-font);
+	font-size: var(--sl-text-base);
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	line-height: var(--sl-line-height-headings);
+	color: var(--sl-color-white);
+}
+
+/* Starlight tints each <Card>'s icon into a coloured chip, cycling
+   orange/purple/green/red/blue by `nth-child(4n+…)`. Strip the chip
+   entirely and hold the glyph at a neutral gray, so the icon reads as
+   quiet wayfinding rather than a second accent competing with links.
+   `--sl-color-gray-3` is a mid gray in BOTH themes (Starlight inverts
+   its gray scale per theme), so one declaration covers light and dark. */
+.ns-card__icon,
+.card .icon {
+	flex-shrink: 0;
+	width: 1.375rem;
+	height: 1.375rem;
+	border: 0;
+	background: none;
+	padding: 0;
+	color: var(--sl-color-gray-3);
+}
+
+.ns-card__label {
+	color: inherit;
+	text-decoration: none;
+}
+
+.ns-card__arrow {
+	flex-shrink: 0;
+	margin-inline-start: auto;
+	width: 1rem;
+	height: 1rem;
+	color: var(--ns-label-color);
+	transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.ns-card__body,
+.card .body {
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-2);
+}
+
+/* Whole-cell click target via a stretched pseudo-element. The card root
+   stays a <div> — wrapping it in an <a> would nest anchors, and the .md
+   pipeline's rehypeRaw parse5 round-trip would silently restructure them. */
+.ns-card--link {
+	position: relative;
+}
+.ns-card--link .ns-card__label::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+}
+/* Links inside the body must still win over the stretched overlay. */
+.ns-card__body a {
+	position: relative;
+	z-index: 1;
+}
+
+.ns-card--link:hover,
+.ns-card--link:focus-within {
+	background: var(--ns-surface-soft);
+}
+.ns-card--link:hover .ns-card__arrow {
+	color: var(--sl-color-white);
+	transform: translateX(2px);
+}
+
+/* LinkCard is a separate component and keeps its standalone treatment. */
+.sl-link-card {
+	border-radius: var(--ns-radius);
+	border: 1px solid var(--ns-hairline);
+	background: var(--ns-surface-soft);
+	box-shadow: none;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.sl-link-card:hover {
+	border-color: var(--sl-color-accent);
+}
+
+/* ============================================================
+   Buttons — sharp, mono uppercase label.
+   `.sl-link-button` is the ONE class behind hero actions (Hero.astro
+   renders <LinkButton>; there is no `.action` class in Starlight
+   0.37.7), in-content <LinkButton>, and the ::ns-button directive.
+   Starlight's own rules sit in @layer starlight.components, and
+   unlayered declarations beat a layer regardless of media query — so
+   these flat rules win at every breakpoint with no @media override.
+   ============================================================ */
+.sl-link-button {
+	border-radius: var(--ns-radius);
+	border: 1px solid transparent;
+	padding: 0.8125rem 1.375rem;
+	gap: 0.6em;
+	font-family: var(--sl-font-mono);
+	font-size: 0.75rem;
+	font-weight: 500;
+	line-height: 1;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	text-decoration: none;
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* LinkButton hardcodes <Icon size="1.5rem">, which lands as an inline
+   --sl-icon-size. Setting font-size directly beats the layered
+   `font-size: var(--sl-icon-size, 1em)` without needing !important. */
+.sl-link-button svg {
+	font-size: 1rem;
+}
+
+/* White on the accent, NOT Starlight's `--sl-color-black` — in dark theme
+   that token is near-black and fails contrast on the blue fill. */
+.sl-link-button.primary {
+	background: var(--sl-color-accent);
+	border-color: var(--sl-color-accent);
+	color: #fff;
+}
+.sl-link-button.primary:hover {
+	background: color-mix(in srgb, var(--sl-color-accent) 82%, #fff);
+	border-color: color-mix(in srgb, var(--sl-color-accent) 82%, #fff);
+	color: #fff;
+}
+
+.sl-link-button.secondary {
+	background: transparent;
+	border-color: var(--ns-hairline-strong);
+	color: var(--sl-color-white);
+}
+.sl-link-button.secondary:hover {
+	border-color: var(--sl-color-accent);
+	background: var(--ns-surface-soft);
+	color: var(--sl-color-white);
+}
+
+.sl-link-button.minimal {
+	padding-inline: 0;
+	border-color: transparent;
+	color: var(--ns-label-color);
+}
+.sl-link-button.minimal:hover {
+	color: var(--sl-color-white);
+}
+
+/* ============================================================
+   Link lists inside cards — the "browse by capability" pattern.
+   A card whose body is a list of page links rather than a sentence.
+   Denser than one-line cards, and the dominant pattern on Stripe's
+   and Vercel's docs landing pages.
+   ============================================================ */
+/* A hairline separates the card's one-line description from its links —
+   without it the description reads as the first list item. */
+.ns-card__body ul {
+	list-style: none;
+	margin: 0.9rem 0 0;
+	padding: 0.9rem 0 0;
+	border-top: 1px solid var(--ns-hairline);
+}
+.ns-card__body li + li {
+	margin-top: 0.45rem;
+}
+.ns-card__body li > a {
+	color: var(--sl-color-gray-2);
+	text-decoration: none;
+}
+.ns-card__body li > a:hover {
+	color: var(--sl-color-white);
+	text-decoration: underline;
+	text-underline-offset: 0.25em;
+}
+
+/* ============================================================
+   SECTION TREATMENTS
+   The design system is one thing; using it identically in every
+   section is another. These three wrappers restyle the SAME
+   `:::ns-card` output so no two consecutive sections look alike,
+   without changing how the page is authored.
+   ============================================================ */
+
+/* --- Index sheet --------------------------------------------
+   A contents page: every capability and every link visible at once,
+   in the full card lattice — framed on all four sides, with the
+   shared interior rules turning six cells into one ruled table.
+
+   Distinct from the `.ns-tiles` grid above (same 3 columns, same
+   frame) by density, not by chrome: no icons, no accent spotlight,
+   no min-height — five links per cell instead of one sentence.
+
+   This replaced a numbered-rows treatment (six full-width rows, a
+   CSS counter printing 01–06 in the gutter). Two reasons it went:
+   the counter implied a sequence through six PEER capabilities, and
+   full-width rows made the page's table of contents its tallest
+   section when it is the one that most wants to be scanned.
+   ------------------------------------------------------------ */
+/* The container frame, the radius and the shared interior rules all come
+   straight from the base `.ns-grid` lattice — this treatment changes what
+   is INSIDE the cells, not how they are ruled. */
+.ns-index .ns-grid {
+	margin-block: 2rem;
+}
+.ns-index .ns-card {
+	gap: 0.5rem;
+	padding: 1.5rem 1.25rem 1.75rem;
+}
+/* The group name leads — it is the thing being chosen between, so it
+   outranks its own description. (It briefly shipped as the 11px mono
+   micro-label, which made the heading smaller than the sentence under
+   it and inverted the hierarchy.) */
+.ns-index .ns-card__title {
+	font-size: var(--sl-text-lg);
+}
+/* An icon per cell would re-add the chrome this treatment drops, and
+   the tiles above already use icons for exactly that signal. */
+.ns-index .ns-card__icon {
+	display: none;
+}
+.ns-index .ns-card__body > p {
+	margin: 0;
+	color: var(--ns-label-color);
+}
+.ns-index .ns-card__body ul {
+	margin: 0.35rem 0 0;
+	padding-top: 0.85rem;
+}
+/* Links outrank the description: they are what the cell is for. */
+.ns-index .ns-card__body li > a {
+	color: var(--sl-color-gray-1);
+}
+
+@media (min-width: 50rem) {
+	/* Subgrid so the description/links hairline lands on the same
+	   baseline in all three columns. Without it each cell's rule sits
+	   wherever its own description happens to wrap, and three rules
+	   staggered by a few pixels inside a ruled table read as a bug.
+
+	   Each card spans three parent tracks (title / description /
+	   links) and `display: contents` promotes the body's <p> and <ul>
+	   into that grid — without the promotion the body is a single
+	   grid item and the two inner tracks cannot exist. Auto-placement
+	   is row-first, so six span-3 cards fill 3 columns then wrap.
+	   NOTE the row count is explicit — `repeat(2, …)` is three
+	   columns × two rows = SIX groups. Rows cannot auto-fill without
+	   a definite container height, so adding a seventh group means
+	   bumping this number too, or it lands in implicit tracks with
+	   nothing to subgrid onto. */
+	.ns-index .ns-grid {
+		grid-template-rows: repeat(2, auto auto 1fr);
+	}
+	.ns-index .ns-card {
+		grid-row: span 3;
+		display: grid;
+		grid-template-rows: subgrid;
+		row-gap: 0.5rem;
+		padding: 1.75rem 1.5rem 2rem;
+	}
+	.ns-index .ns-card__body {
+		display: contents;
+	}
+}
+
+/* --- Feature tiles ------------------------------------------
+   Taller, roomier cards with the arrow parked at the bottom
+   rather than inline with the title.
+   ------------------------------------------------------------ */
+.ns-tiles .ns-card {
+	position: relative;
+	gap: 0.6rem;
+	padding: 1.75rem 1.5rem;
+	min-height: 9rem;
+}
+.ns-tiles .ns-card__title {
+	font-size: var(--sl-text-lg);
+}
+.ns-tiles .ns-card__icon {
+	width: 1.5rem;
+	height: 1.5rem;
+}
+/* The arrow rides on the title row, pushed to the right edge by the base
+   `.ns-card__arrow { margin-inline-start: auto }` — it looked orphaned
+   parked on its own line at the bottom of the tile. */
+
+/* Spotlight: the first tile gets an accent wash so the eye has
+   somewhere to land. Opt-in via `.ns-tiles--spotlight`, because the
+   page uses `.ns-tiles` more than once and a second accent wash
+   spends the emphasis it exists to create. Targeted by position
+   because the `ns-card` directive takes no class attribute — reorder
+   the cards in index.mdx and the spotlight follows the first one. */
+.ns-tiles--spotlight .ns-grid > .ns-card:first-child {
+	background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+}
+.ns-tiles--spotlight .ns-grid > .ns-card:first-child:hover {
+	background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+}
+
+/* --- Resources: the page outro ------------------------------
+   An even 4-up strip under one hairline. It was a wrapping flex row,
+   which sized every item to its own text — so four links of very
+   different lengths ("labs.neuralseek.com" vs "YouTube channel")
+   landed at four arbitrary x-positions immediately below a hard-ruled
+   grid. The ragged edge was the whole problem; a grid puts the columns
+   back in agreement with the sections above.
+
+   The rule stays a single line at the top rather than a frame: this
+   is the page's quiet close, and it should not read as a fourth grid
+   competing with the three above it.
+   ------------------------------------------------------------ */
+.ns-links ul {
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1.75rem 1.5rem;
+	margin: 0;
+	padding-top: 1.75rem;
+	border-top: 1px solid var(--ns-hairline);
+}
+@media (min-width: 50rem) {
+	.ns-links ul {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+.ns-links li {
+	font-size: var(--sl-text-sm);
+}
+.ns-links strong {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: var(--ns-label-tracking);
+	color: var(--ns-label-color);
+}
+/* Text, not accent-blue: four blue phrases closing the page pulled
+   more attention than the sections they sit under. */
+.ns-links a {
+	color: var(--sl-color-white);
+	text-decoration: none;
+}
+.ns-links a:hover {
+	text-decoration: underline;
+	text-underline-offset: 0.25em;
+}
+
+/* Block row wrapping directive buttons, so consecutive `::ns-button`s sit
+   side by side and an inline-flex button cannot overflow into the next
+   paragraph. */
+.ns-button-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+/* Inline mono label from `:ns-label[…]`. */
+.ns-label--inline {
+	display: inline-block;
+	padding: 0.15em 0.45em;
+	border: 1px solid var(--ns-hairline-strong);
+	border-radius: var(--ns-radius);
+	vertical-align: baseline;
+}
+
+/* ============================================================
+   Pagination — same flat card treatment as everything else
+   ============================================================ */
+.pagination-links a {
+	border-radius: var(--ns-radius);
+	border-color: var(--ns-hairline);
+	box-shadow: none;
+	transition: border-color 0.15s ease;
+}
+.pagination-links a:hover {
+	border-color: var(--sl-color-accent);
+}
+/* "Previous"/"Next" is a bare text node inside the <span>, so the label
+   styling goes on the span and `.link-title` resets back to display type. */
+.pagination-links a > span {
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: var(--ns-label-tracking);
+	color: var(--ns-label-color);
+	line-height: 2;
+}
+.pagination-links .link-title {
+	display: inline-block;
+	font-family: var(--sl-font);
+	font-size: var(--sl-text-lg);
+	font-weight: 600;
+	text-transform: none;
+	letter-spacing: -0.01em;
+	color: var(--sl-color-white);
+	line-height: var(--sl-line-height-headings);
+}
+.pagination-links svg {
+	color: var(--ns-label-color);
+}
+
+/* ============================================================
+   Asides — flattened to a left accent rule on a near-flat surface
+   ============================================================ */
+.starlight-aside {
+	border-radius: 0;
+	border-inline-start-width: 2px;
+	border-block: 0;
+	border-inline-end: 0;
+	background: var(--ns-surface-soft);
+	padding: 1rem 1.25rem;
+}
+
+.starlight-aside__title {
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: var(--ns-label-tracking);
+}
+
+/* ============================================================
+   Code — sharp corners, hairline frame, brand surface in dark
+   ============================================================ */
+.expressive-code .frame {
+	--ec-brdRad: var(--ns-radius);
+}
+
+:root[data-theme='dark'] .expressive-code {
+	--ec-codeBg: var(--ns-surface-2);
+	--ec-frm-edBg: var(--ns-surface-2);
+	--ec-frm-trmBg: var(--ns-surface-2);
+	--ec-brdCol: var(--ns-hairline);
+}
+:root[data-theme='light'] .expressive-code {
+	--ec-brdCol: var(--ns-hairline);
+}
+
+.sl-markdown-content code:not(:where(.not-content *)) {
+	border-radius: var(--ns-radius);
+	font-size: 0.85em;
 }
 
 /* ============================================================
    Gradient canvas — SPLASH / HERO PAGES ONLY
-   Matches the original theme: the rolling-glow gradient appears on
-   splash/hero pages (which have no sidebar); documentation pages
-   stay on the flat brand background. Scoped via [data-has-hero],
-   which Starlight sets on <html> only for hero pages.
+   Starlight sets [data-has-hero] on <html> for hero pages only, so
+   documentation pages stay flat. Hero pages have no sidebar, so the
+   gradient and the doc chrome never share a screen.
    ============================================================ */
 :root[data-has-hero] {
 	background-attachment: fixed;
@@ -71,21 +960,21 @@
 }
 
 :root[data-has-hero][data-theme='dark'] {
-	background-color: #131316 !important;
+	background-color: var(--sl-color-bg) !important;
 	background-image:
 		radial-gradient(65% 55% at 8% 2%, rgba(91, 45, 255, 0.42) 0%, transparent 58%),
 		radial-gradient(55% 48% at 95% 0%, rgba(48, 30, 76, 0.95) 0%, transparent 55%),
 		radial-gradient(75% 65% at 92% 92%, rgba(91, 45, 255, 0.38) 0%, transparent 60%),
-		radial-gradient(60% 55% at 2% 98%, rgba(45, 91, 255, 0.30) 0%, transparent 58%),
+		radial-gradient(60% 55% at 2% 98%, rgba(45, 91, 255, 0.3) 0%, transparent 58%),
 		radial-gradient(90% 80% at 50% 45%, rgba(48, 30, 76, 0.55) 0%, transparent 70%);
 }
 
 :root[data-has-hero][data-theme='light'] {
-	background-color: hsl(0 0% 94%) !important;
+	background-color: var(--sl-color-bg) !important;
 	background-image:
 		radial-gradient(60% 50% at 8% 2%, rgba(45, 91, 255, 0.16) 0%, transparent 58%),
 		radial-gradient(65% 55% at 94% 96%, rgba(91, 45, 255, 0.14) 0%, transparent 60%),
-		radial-gradient(70% 60% at 96% 4%, rgba(31, 182, 255, 0.10) 0%, transparent 58%),
+		radial-gradient(70% 60% at 96% 4%, rgba(31, 182, 255, 0.1) 0%, transparent 58%),
 		radial-gradient(90% 80% at 50% 50%, rgba(45, 91, 255, 0.05) 0%, transparent 72%);
 }
 
@@ -94,9 +983,9 @@
 	background: transparent !important;
 }
 
-/* Hero pages: transparent, frosted navbar so the gradient + hero show
-   through it (matches the theme). Doc pages keep their solid nav so
-   scrolled content stays hidden behind it. */
+/* Hero pages: transparent, frosted navbar so the gradient shows through.
+   Doc pages keep a solid nav so scrolled content stays hidden behind it.
+   Both carry a hairline underneath. */
 :root[data-has-hero] {
 	--sl-color-bg-nav: transparent;
 }
@@ -104,34 +993,194 @@
 	background: transparent !important;
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
-	border-bottom: none;
+	border-bottom: 1px solid var(--ns-hairline);
+}
+
+/* Splash pages have no title rule to divide. */
+:root[data-has-hero] .content-panel:first-of-type {
+	border-bottom: 0;
 }
 
 /* ============================================================
-   Page-title gradient
-   Dark: cyan → soft blue. Light: deeper trust-blue → indigo so it
-   stays legible on the near-white background.
+   Hero — split: copy left, live /seek call right.
+
+   Starlight's Hero is WRAPPED, not replaced (src/components/Hero.astro),
+   so `.hero` stays its own single-column grid and the split lives on our
+   `.ns-hero-split` wrapper. `.hero`'s padding-block is zeroed and
+   re-applied to the wrapper — otherwise the padding would pad only the
+   left column and the two columns would not centre against each other.
+   Starlight also centres the stack below 50rem, so alignment is forced
+   to `start` at every width.
    ============================================================ */
-.sl-markdown-content h1:first-of-type,
-h1#_top,
-.content-panel h1,
-.hero h1 {
-	background: linear-gradient(90deg, var(--ns-cyan), var(--ns-soft-blue));
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	width: fit-content;
+.hero {
+	grid-template-columns: minmax(0, 1fr);
+	padding-block: 0;
+}
+.hero .stack {
+	text-align: start;
+}
+.hero .copy {
+	align-items: flex-start;
+	gap: 1.25rem;
+}
+.hero .copy > * {
+	max-width: none;
+}
+.hero .actions {
+	justify-content: flex-start;
 }
 
-:root[data-theme='light'] :is(.sl-markdown-content h1:first-of-type, h1#_top, .content-panel h1, .hero h1) {
-	background-image: linear-gradient(90deg, var(--ns-trust-blue), var(--ns-indigo));
-	-webkit-background-clip: text;
-	background-clip: text;
+.ns-hero-split {
+	display: grid;
+	gap: 2.5rem;
+	padding-block: 2.5rem;
+}
+
+/* Starlight's own hero breakpoint. `minmax(0, …)` on BOTH tracks is
+   load-bearing: a grid track's default `min-width: auto` resolves to the
+   code block's min-content width, so one long line would blow past the
+   fr share and overflow the container. 6fr/5fr rather than Starlight's
+   7fr/4fr — on a splash page `--sl-content-width` is 67.5rem, where a
+   4fr track is only ~380px and too narrow for the JSON. */
+@media (min-width: 50rem) {
+	.ns-hero-split {
+		grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+		align-items: center;
+		gap: 3%;
+		padding-block: clamp(2.5rem, calc(1rem + 8vmin), 7rem);
+	}
+}
+
+/* The h1 carries the eyebrow AND the title (both shipped from
+   `hero.title` frontmatter, which Starlight renders with set:html). */
+.hero h1 {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.85rem;
+	width: auto;
+	background: none;
+	color: var(--sl-color-white);
+}
+.hero .ns-hero-eyebrow {
+	line-height: 1;
+}
+/* Solid, not a gradient — plain high-contrast type is what reads
+   corporate. `--sl-color-white` inverts per theme, so this single
+   declaration is correct in light mode too. */
+.hero .ns-hero-title {
+	max-width: 18ch;
+	letter-spacing: -0.03em;
+	color: var(--sl-color-white);
+}
+.hero .tagline {
+	max-width: 46ch;
+}
+
+/* ------------------------------------------------------------
+   The code panel.
+
+   ONE translucent surface for the whole panel, with Expressive Code
+   made fully transparent inside it. An opaque panel would punch a hole
+   in the :root[data-has-hero] gradient canvas — the same reason the
+   card lattice has no container background. `--ec-codeBg` is normally
+   the opaque --ns-surface-2, so it MUST be neutralised here.
+   ------------------------------------------------------------ */
+.ns-hero-panel {
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+	background: color-mix(in srgb, var(--ns-surface-2) 55%, transparent);
+	backdrop-filter: blur(14px) saturate(130%);
+	-webkit-backdrop-filter: blur(14px) saturate(130%);
+	/* clips Expressive Code's square corners to the panel radius */
+	overflow: clip;
+}
+:root[data-theme='light'] .ns-hero-panel {
+	background: color-mix(in srgb, #fff 70%, transparent);
+}
+
+/* ------------------------------------------------------------
+   The hero prompt — one pre-written question about NeuralSeek,
+   with a button that hands it to the ChatWidget via its
+   `ns-chat:ask` event. The docs answer it with NeuralSeek itself.
+   ------------------------------------------------------------ */
+.ns-prompt__tabs {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0 0.5rem 0 0.75rem;
+	border-bottom: 1px solid var(--ns-hairline);
+}
+/* A single label, not a real tab — the underline sits on an inset
+   shadow so it lands flush on the bar's own hairline rather than
+   drawing a second line beneath it. */
+.ns-prompt__tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin-inline-end: auto;
+	padding: 0.75rem 0.5rem;
+	box-shadow: inset 0 -1px 0 0 var(--sl-color-white);
+	color: var(--sl-color-white);
+	font-size: var(--sl-text-xs);
+}
+.ns-prompt__tab svg {
+	flex-shrink: 0;
+}
+
+/* The panel's only control — sits top-right in the bar, where the
+   reference puts its copy button. Sends the prompt to the chat widget. */
+.ns-prompt__send {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.85rem;
+	height: 1.85rem;
+	padding: 0;
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+	background: transparent;
+	color: var(--ns-label-color);
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.ns-prompt__send:hover {
+	border-color: var(--sl-color-accent);
+	background: var(--sl-color-accent);
+	color: #fff;
+}
+.ns-prompt__send svg {
+	transition: transform 0.15s ease;
+}
+.ns-prompt__send:hover svg {
+	transform: translateX(1px);
+}
+
+/* --- the prompt body --- */
+.ns-prompt__prose {
+	padding: 0.875rem;
+	font-size: var(--sl-text-sm);
+	line-height: 1.65;
+	color: var(--sl-color-gray-2);
+}
+.ns-prompt__prose p {
+	margin: 0;
+}
+.ns-prompt__prose code {
+	padding: 0.1em 0.35em;
+	border-radius: 3px;
+	background: var(--ns-surface-soft);
+	color: var(--ns-cyan);
+	font-family: var(--sl-font-mono);
+	font-size: 0.85em;
+}
+:root[data-theme='light'] .ns-prompt__prose code {
+	color: var(--ns-trust-blue);
 }
 
 /* ============================================================
-   Mobile logo: swap wide wordmark for the icon mark below 23em
-   (theme hides the wordmark there; show the "N" instead).
+   Mobile logo: swap the wide wordmark for the icon mark below 23em.
    ============================================================ */
 @media (max-width: 23em) {
 	.mobile-header .title-wrapper {
@@ -145,83 +1194,7 @@ h1#_top,
 		width: 1.75rem;
 		height: 1.75rem;
 		/* /ns-docs prefix = GitHub Pages base path; drop it when the custom
-		   domain lands (base becomes '/'). See AGENTS.md. */
+		   domain lands (base becomes '/'). See CLAUDE.md. */
 		background: url('/ns-docs/favicon.png') left center / contain no-repeat;
 	}
-}
-
-/* ============================================================
-   Hero image: the 3D art is served via `hero.image.html` (see
-   index.mdx) so it keeps its full 1200px resolution — Starlight's
-   own Hero would cap it at 400px. Sized a little larger than the
-   theme default (70%/20rem stacked, min(100%,25rem) side-by-side).
-   ============================================================ */
-.hero > img,
-.hero > .hero-html {
-	width: min(80%, 24rem);
-}
-
-/* image.html renders inside a flex wrapper, so size the inner <img> too. */
-.hero > .hero-html img {
-	width: 100%;
-	height: auto;
-	object-fit: contain;
-}
-
-@media (min-width: 50rem) {
-	.hero > img,
-	.hero > .hero-html {
-		width: min(100%, 28rem);
-	}
-}
-
-/* ============================================================
-   Cards — brand treatment (6px radius, subtle border, inset top
-   highlight, hover lift). "Calm/institutional, not AI sparkle."
-   ============================================================ */
-.card,
-.sl-link-card {
-	border-radius: 6px;
-	transition: transform 0.15s ease, border-color 0.15s ease;
-}
-.card:hover,
-.sl-link-card:hover {
-	transform: translateY(-4px);
-}
-/* CardGrid `stagger` pushes every 2nd card down 5rem with a transform, and the
-   hover lift above is the same property — unlayered, so it wins and would snap
-   a staggered card up to its unstaggered slot instead of lifting it. Re-apply
-   the offset so those cards lift the same 4px as the rest.
-   Matches CardGrid's own breakpoint: below 50rem there is no stagger. */
-@media (min-width: 50rem) {
-	.card-grid.stagger > .card:nth-child(2n):hover {
-		transform: translateY(calc(var(--stagger-height, 5rem) - 4px));
-	}
-}
-:root[data-theme='dark'] .card,
-:root[data-theme='dark'] .sl-link-card {
-	background: var(--ns-surface);
-	border: 1px solid rgba(255, 255, 255, 0.12);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-:root[data-theme='dark'] .card:hover,
-:root[data-theme='dark'] .sl-link-card:hover {
-	border-color: rgba(255, 255, 255, 0.22);
-}
-:root[data-theme='light'] .card,
-:root[data-theme='light'] .sl-link-card {
-	background: #ffffff;
-	border: 1px solid rgba(0, 0, 0, 0.1);
-}
-:root[data-theme='light'] .card:hover,
-:root[data-theme='light'] .sl-link-card:hover {
-	border-color: rgba(45, 91, 255, 0.35);
-}
-
-/* ============================================================
-   Code blocks on brand Surface-2 (dark).
-   ============================================================ */
-:root[data-theme='dark'] .expressive-code {
-	--ec-codeBg: var(--ns-surface-2);
-	--ec-frm-edBg: var(--ns-surface-2);
 }

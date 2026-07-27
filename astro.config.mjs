@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import starlightThemeObsidian from 'starlight-theme-obsidian';
+import remarkNsDirectives from './src/plugins/remark-ns-directives.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -10,9 +10,14 @@ export default defineConfig({
 	// (then also drop the `/ns-docs` prefixes on public-asset refs — see AGENTS.md).
 	site: 'https://cerebralblue.github.io',
 	base: '/ns-docs',
+	// Custom `:::ns-*` components for plain .md pages. Astro CONCATENATES this
+	// array with Starlight's own remark plugins (user entries first), so this
+	// runs before Starlight's asides and does not displace them.
+	markdown: {
+		remarkPlugins: [remarkNsDirectives],
+	},
 	integrations: [
 		starlight({
-			plugins: [starlightThemeObsidian()],
 			title: 'NeuralDocs',
 			description: 'Official documentation for NeuralSeek — guides, reference, and how-tos.',
 			lastUpdated: true,
@@ -26,6 +31,9 @@ export default defineConfig({
 			components: {
 				SocialIcons: './src/components/SocialIcons.astro',
 				Footer: './src/components/Footer.astro',
+				// Wraps Starlight's Hero to add the split code panel. Only
+				// index.mdx has `hero:` frontmatter, so this is landing-page only.
+				Hero: './src/components/Hero.astro',
 			},
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/CerebralBlue/ns-docs' }],
 			// IA per planning/structure-sketch.md (v1 draft — team review pending).

@@ -1,8 +1,9 @@
 # NeuralDocs
 
 The NeuralSeek documentation portal, built with [Astro Starlight](https://starlight.astro.build)
-and the [`starlight-theme-obsidian`](https://github.com/fevol/starlight-theme-obsidian) theme,
-restyled to the NeuralSeek brand.
+and restyled to the NeuralSeek brand — a minimal, corporate/dev system of hairline rules,
+sharp corners, and monospace micro-labels, sharing its design tokens with the NeuralSeek
+marketing site.
 
 Live (preview): https://cerebralblue.github.io/ns-docs/
 
@@ -21,8 +22,8 @@ bun run dev        # local dev server at http://localhost:4321/ns-docs
 | `bun run build`   | Build the production site to `./dist/`          |
 | `bun run preview` | Preview the production build locally            |
 
-> **Version pin:** this project stays on **Astro 5 / Starlight 0.37.7** on purpose — the theme's
-> site-graph engine does not yet support Astro 6/7. Don't upgrade those without checking the theme.
+Currently on **Astro 5 / Starlight 0.37.7**. The old hard pin is gone — it came from
+`starlight-theme-obsidian`, which was dropped in favour of the in-house style layer.
 
 ## Structure
 
