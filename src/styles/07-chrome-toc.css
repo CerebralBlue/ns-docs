@@ -1,4 +1,58 @@
 /* ============================================================
+   [07] Table of contents — minimal, rule-led — AND the two-column
+   balance, because the right rail's width and the main pane's are
+   one calculation: they must add up to 100%.
+   ============================================================ */
+
+/* ── Two-column balance ──────────────────────────────────────────
+   Starlight splits ALL the leftover horizontal space in half and
+   gives one half to each column (TwoColumnContent.astro):
+
+       right rail = sidebarWidth + slack/2
+       main pane  = contentWidth + slack/2   (content pinned to its
+                                              RIGHT edge via
+                                              `--sl-content-margin-inline: auto 0`)
+
+   At 1920 that is slack = 600, so the rail becomes 600px while the
+   TOC text only fills ~268 of it — 300px of visibly empty rail at
+   the far right — and the content is shoved right, opening a
+   matching 276px hole between the sidebar and the first character
+   of the page. Symmetric in arithmetic, lopsided on screen.
+
+   Instead: cap the rail at the LEFT sidebar's width so the two
+   rails match, let the main pane take everything else, and re-centre
+   the content inside it. Because both rails are then
+   `--sl-sidebar-width`, centring in the main pane is also centring
+   in the viewport.
+
+   The `min()` is what keeps this safe below ~1320px, where the slack
+   is NEGATIVE and Starlight's formula correctly SHRINKS the rail. In
+   that range the original expression is the smaller of the two and
+   still wins, so narrow-desktop behaviour is untouched; the cap only
+   engages once there is real slack to absorb.
+   ──────────────────────────────────────────────────────────────── */
+@media (min-width: 72rem) {
+	.right-sidebar-container {
+		width: min(
+			var(--sl-sidebar-width),
+			calc(var(--sl-sidebar-width) + (100% - var(--sl-content-width) - var(--sl-sidebar-width)) / 2)
+		);
+	}
+
+	/* Matches the specificity Starlight uses for its own `width` on this
+	   element, and wins on being unlayered. `flex: 1` rather than a repeat of
+	   the calc above, so the pane and the rail cannot drift out of sync. */
+	:root[data-has-sidebar][data-has-toc] .main-pane {
+		width: auto;
+		flex: 1;
+		/* Starlight pins the content to this pane's right edge because that edge
+		   is where the TOC used to be. With the rail now a fixed width, centring
+		   is what actually puts the column in the middle of the screen. */
+		--sl-content-margin-inline: auto;
+	}
+}
+
+/* ============================================================
    Table of contents — minimal, rule-led
    ============================================================ */
 starlight-toc > nav > h2 {
