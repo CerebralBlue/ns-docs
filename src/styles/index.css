@@ -67,7 +67,3 @@
 /* Landing page only */
 @import './16-page-splash.css';
 @import './17-page-hero.css';
-
-/* Legacy — targets `.mobile-header`, which does not exist in Starlight
-   0.37.7 and appears in zero built pages. Slated for deletion. */
-@import './18-legacy-mobile-logo.css';
