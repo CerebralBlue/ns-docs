@@ -51,7 +51,7 @@ export default defineConfig({
 			// so equal-specificity conflicts resolve by source order). That order
 			// lives in src/styles/index.css, next to the CSS it orders — read its
 			// header before adding, moving, or renumbering a file.
-			customCss: ['./src/styles/index.css', './src/styles/chatbot.css'],
+			customCss: ['./src/styles/index.css', './src/styles/18-chatbot.css'],
 			components: {
 				SocialIcons: './src/components/SocialIcons.astro',
 				Footer: './src/components/Footer.astro',
