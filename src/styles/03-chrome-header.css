@@ -1,0 +1,98 @@
+/* ============================================================
+   [03] Header chrome — wordmark, navbar column grid, search.
+
+   All three exist to make the header PAGE-TYPE INDEPENDENT, which
+   is the whole reason they belong in one file.
+
+   Contains two `@media (min-width: 50rem)`. That literal is
+   Starlight's own layout switch, not ours, and cannot be
+   tokenized — see the breakpoint note in 01-tokens.css.
+   ============================================================ */
+
+/* --- Header wordmark: a touch smaller than the Starlight default --- */
+.site-title img {
+	height: 2.1rem;
+}
+
+/* ============================================================
+   Navbar column grid — page-type independent.
+
+   Starlight sizes the header's first column from
+   `--sl-content-inline-start` (0 on splash, 18.75rem on doc pages) and
+   `--sl-content-width` (67.5rem vs 45rem), both set by Page.astro
+   keyed on `data-has-sidebar`. That makes the search box and the
+   right-hand icons jump ~7.8rem when navigating between the landing
+   page and any doc page. On splash the 2.1rem wordmark above also
+   beats the computed minimum, so the LOGO ends up setting the column
+   width rather than the layout.
+
+   Pin the first track instead, using only public tokens: column 2
+   then starts at exactly --sl-sidebar-width on every page type, flush
+   with the sidebar's vertical hairline. Both subtractions cancel the
+   header's own padding and grid gap, so this survives the 72rem
+   --sl-content-pad-x step.
+
+   Headroom: the track is 15.75-16.25rem against a ~10.2rem wordmark.
+   Revisit if the wordmark ever grows past ~15rem.
+   ============================================================ */
+@media (min-width: 50rem) {
+	.header {
+		grid-template-columns:
+			calc(var(--sl-sidebar-width) - var(--sl-nav-pad-x) - var(--sl-nav-gap))
+			1fr
+			auto;
+	}
+}
+
+/* ============================================================
+   Search — right-aligned, minimal.
+
+   Sits at the end of the middle column, immediately left of the
+   social/theme icons, so the whole right-hand cluster reads as one
+   group. `site-search` is `display: contents`, so the flex item being
+   aligned is the button itself.
+
+   Pared back from Starlight's default: a filled 22rem pill on
+   --sl-color-black becomes a 13.5rem hairline field on the page
+   canvas, with the shortcut hint as an outlined mono key rather than
+   a filled grey chip.
+   ============================================================ */
+.header div:has(> site-search) {
+	justify-content: flex-end;
+}
+
+@media (min-width: 50rem) {
+	.header button[data-open-modal] {
+		max-width: 13.5rem;
+		height: 2rem;
+		gap: 0.45rem;
+		padding-inline: 0.6rem 0.4rem;
+		border-radius: var(--ns-radius);
+		border-color: var(--ns-hairline);
+		background-color: transparent;
+		color: var(--ns-label-color);
+		font-size: var(--sl-text-xs);
+	}
+	.header button[data-open-modal]:hover {
+		border-color: var(--ns-hairline-strong);
+		background-color: var(--ns-surface-soft);
+		color: var(--sl-color-white);
+	}
+}
+
+/* Shortcut hint: outlined mono key, not a filled chip. */
+.header button[data-open-modal] > kbd {
+	padding-inline: 0.3rem;
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius-sm);
+	background-color: transparent;
+	color: var(--ns-label-color);
+}
+.header button[data-open-modal] kbd {
+	font-family: var(--sl-font-mono);
+	font-size: 0.625rem;
+}
+
+.header button[data-open-modal] svg {
+	font-size: 0.95rem;
+}

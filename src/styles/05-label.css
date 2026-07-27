@@ -1,0 +1,37 @@
+/* ============================================================
+   [05] Mono micro-label — the signature element.
+
+   NOTE `starlight-toc > nav > h2` is ALSO styled in
+   07-chrome-toc.css. That is not a conflict: this file sets the
+   font recipe, 07 sets the box (margin/padding/border). Disjoint
+   property sets, so source order is irrelevant between them.
+
+   The recipe is deliberately NOT unified across all its call
+   sites — see the "not unified" note in 01-tokens.css. Table
+   headers (09) and buttons (11) use different tracking on
+   purpose, so a blanket merge would change rendering.
+   ============================================================ */
+
+/* ============================================================
+   Mono micro-label
+   `.ns-label` is the reusable public class — Phase B directives and
+   any future component should use it rather than redeclaring.
+   ============================================================ */
+.ns-label,
+.sidebar-content .top-level > li > details > summary .group-label > .large,
+starlight-toc > nav > h2,
+mobile-starlight-toc nav > button {
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: var(--ns-label-weight);
+	text-transform: uppercase;
+	letter-spacing: var(--ns-label-tracking);
+	color: var(--ns-label-color);
+}
+
+/* `.ns-label--accent` lived here and was removed 2026-07-27: it was
+   UNREACHABLE, not merely unused. buildLabel() in
+   src/plugins/remark-ns-directives.mjs only ever emits
+   `ns-label ns-label--inline`, so no author could produce the class.
+   To bring it back, give the directive a `variant` attribute the way
+   `::ns-button` already has one, then re-add the two rules. */

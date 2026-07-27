@@ -13,6 +13,9 @@
 // uses for the footer brand link.
 import { Icon } from '@astrojs/starlight/components';
 import nsIcon from '../assets/neuraldocs-icon.png';
+// Same module the client script imports, so the greeting rendered here and the
+// one restored on restart cannot drift apart.
+import { GREETING } from '../lib/ns-chat/constants';
 ---
 
 <div class="ns-chat" data-ns-chat>
@@ -34,9 +37,7 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 			aria-hidden="true"
 			focusable="false"
 		>
-			<path
-				d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"
-			></path>
+			<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path>
 		</svg>
 	</button>
 
@@ -75,9 +76,7 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		</header>
 
 		<div class="ns-chat__log" data-ns-log>
-			<div class="ns-chat__msg ns-chat__msg--bot">
-				Hi! Ask me anything about the documentation.
-			</div>
+			<div class="ns-chat__msg ns-chat__msg--bot">{GREETING}</div>
 		</div>
 
 		<form class="ns-chat__form" data-ns-form>
@@ -122,28 +121,25 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		if (!root || root.hasAttribute('data-ns-init')) return;
 		root.setAttribute('data-ns-init', '');
 
-		const modal = root.querySelector('[data-ns-modal]') as HTMLElement;
-		const log = root.querySelector('[data-ns-log]') as HTMLElement;
-		const form = root.querySelector('[data-ns-form]') as HTMLFormElement;
-		const input = root.querySelector('[data-ns-input]') as HTMLInputElement;
-		const toggleBtn = root.querySelector('[data-ns-toggle]') as HTMLButtonElement;
+		const modal = root.querySelector<HTMLElement>('[data-ns-modal]');
+		const log = root.querySelector<HTMLElement>('[data-ns-log]');
+		const form = root.querySelector<HTMLFormElement>('[data-ns-form]');
+		const input = root.querySelector<HTMLInputElement>('[data-ns-input]');
+		const toggleBtn = root.querySelector<HTMLButtonElement>('[data-ns-toggle]');
 
-		// userId identifies this browser and survives a restart; sessionId
-		// identifies the current conversation and is reset by it. Neither is
-		// sent anywhere yet — both exist for the NeuralSeek `/seek` proxy, which
-		// needs a session id to keep conversational context.
-		let userId = localStorage.getItem(USER_KEY);
-		if (!userId) {
-			userId = uid();
-			localStorage.setItem(USER_KEY, userId);
-		}
-		let sessionId = localStorage.getItem(SESSION_KEY);
-		if (!sessionId) {
-			sessionId = uid();
-			localStorage.setItem(SESSION_KEY, sessionId);
+		// A renamed or removed data-hook used to throw a TypeError here and take
+		// the whole widget down silently. Fail loudly, once, and bail instead.
+		if (!modal || !log || !form || !input || !toggleBtn) {
+			console.error('[ns-chat] markup is missing a required data-ns-* hook; widget disabled');
+			return null;
 		}
 
-		let messages: { who: 'user' | 'bot'; text: string }[] = [];
+		let sessionId = getSessionId();
+		const userId = getUserId();
+		let messages: ChatMessage[] = [];
+		// One in-flight question at a time. Without this, N rapid submits create
+		// N "Thinking…" bubbles and N concurrent requests.
+		let pending: AbortController | null = null;
 
 		// Astro scopes this component's <style> block by appending a build-hashed
 		// class (astro-xxxxxxxx) to every element in the static template; that's
@@ -152,19 +148,19 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		// silently skip them unless we copy it over ourselves.
 		const scopeClass = Array.from(log.classList).find((c) => c.startsWith('astro-'));
 
-		function renderMessage(text: string, who: 'user' | 'bot', extraClass = '') {
+		function renderMessage(text: string, who: ChatRole, extraClass = '') {
 			const el = document.createElement('div');
 			el.className = `ns-chat__msg ns-chat__msg--${who} ${extraClass} ${scopeClass ?? ''}`.trim();
 			el.textContent = text;
-			log.appendChild(el);
-			log.scrollTop = log.scrollHeight;
+			log!.appendChild(el);
+			log!.scrollTop = log!.scrollHeight;
 			return el;
 		}
 
-		function addMessage(text: string, who: 'user' | 'bot') {
+		function addMessage(text: string, who: ChatRole) {
 			const el = renderMessage(text, who);
 			messages.push({ who, text });
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+			saveHistory(messages);
 			return el;
 		}
 
@@ -191,7 +187,9 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		// Wipes history and starts a fresh session: new sessionId, empty log,
 		// back to the default greeting. userId is untouched.
 		function resetChat() {
-			localStorage.removeItem(STORAGE_KEY);
+			pending?.abort();
+			pending = null;
+			clearHistory();
 			messages = [];
 			sessionId = uid();
 			localStorage.setItem(SESSION_KEY, sessionId);
@@ -210,47 +208,43 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		// the input immediately after keeps the keyboard path intact. Closing
 		// un-hides the launcher before focusing it — .focus() is a no-op on a
 		// display:none element.
-		const setOpen = (open: boolean, restoreFocus = true) => {
-			modal.hidden = !open;
+		function setOpen(open: boolean, restoreFocus = true) {
+			modal!.hidden = !open;
 			root.toggleAttribute('data-open', open);
-			toggleBtn.setAttribute('aria-expanded', String(open));
-			if (open) input.focus();
-			else if (restoreFocus) toggleBtn.focus();
-		};
+			toggleBtn!.setAttribute('aria-expanded', String(open));
+			if (open) input!.focus();
+			else if (restoreFocus) toggleBtn!.focus();
+		}
+
+		async function sendMessage(question: string) {
+			if (pending) return;
+			const controller = new AbortController();
+			pending = controller;
+			const typing = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
+			try {
+				const answer = await askSeek({ question, sessionId, userId, signal: controller.signal });
+				typing.remove();
+				addMessage(answer || NO_ANSWER, 'bot');
+			} catch (err) {
+				typing.remove();
+				// Log the real cause — the user-facing string is deliberately
+				// generic, but a silent catch made this undiagnosable in the field.
+				if (err instanceof SeekError) {
+					console.error(`[ns-chat] /seek ${err.kind}`, err.status ?? '', err.message);
+				} else {
+					console.error('[ns-chat] unexpected failure', err);
+				}
+				addMessage(ERROR_MESSAGE, 'bot');
+			} finally {
+				if (pending === controller) pending = null;
+			}
+		}
 
 		// The launcher only opens now — it's hidden while the panel is up, and
 		// the panel's own close button (and Esc) brings it back.
 		toggleBtn.addEventListener('click', () => setOpen(!isOpen()));
 		root.querySelector('[data-ns-close]')?.addEventListener('click', () => setOpen(false));
 		root.querySelector('[data-ns-restart]')?.addEventListener('click', () => resetChat());
-
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape' && isOpen()) setOpen(false);
-		});
-
-		// Click outside the widget closes it, without stealing focus.
-		document.addEventListener('click', (e) => {
-			if (isOpen() && !root.contains(e.target as Node)) setOpen(false, false);
-		});
-
-		async function sendMessage(question: string) {
-			const typing = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
-			try {
-				const res = await fetch(SEEK_URL, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json', embedcode: EMBED_CODE },
-					body: JSON.stringify({ question, sessionId, userId }),
-				});
-				// Auth/rate-limit failures come back as a plain-text body, not JSON.
-				if (!res.ok) throw new Error(`Seek request failed (${res.status})`);
-				const data = await res.json();
-				typing.remove();
-				addMessage(data.answer || "Sorry, I couldn't find an answer for that.", 'bot');
-			} catch {
-				typing.remove();
-				addMessage('Something went wrong reaching NeuralSeek. Please try again in a moment.', 'bot');
-			}
-		}
 
 		form.addEventListener('submit', (e) => {
 			e.preventDefault();

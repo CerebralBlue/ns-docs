@@ -1,0 +1,34 @@
+/* ============================================================
+   [12] Link lists inside cards.
+
+   Styles plain markdown `<ul>` written inside a `:::ns-card`
+   body, so the selectors here depend on buildCard()'s
+   `.ns-card__body` wrapper in src/plugins/remark-ns-directives.mjs.
+   ============================================================ */
+
+/* ============================================================
+   Link lists inside cards — the "browse by capability" pattern.
+   A card whose body is a list of page links rather than a sentence.
+   Denser than one-line cards, and the dominant pattern on Stripe's
+   and Vercel's docs landing pages.
+   ============================================================ */
+/* A hairline separates the card's one-line description from its links —
+   without it the description reads as the first list item. */
+.ns-card__body ul {
+	list-style: none;
+	margin: 0.9rem 0 0;
+	padding: 0.9rem 0 0;
+	border-top: 1px solid var(--ns-hairline);
+}
+.ns-card__body li + li {
+	margin-top: 0.45rem;
+}
+.ns-card__body li > a {
+	color: var(--sl-color-gray-2);
+	text-decoration: none;
+}
+.ns-card__body li > a:hover {
+	color: var(--sl-color-white);
+	text-decoration: underline;
+	text-underline-offset: 0.25em;
+}

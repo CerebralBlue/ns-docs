@@ -1,0 +1,41 @@
+/* ============================================================
+   Asides — flattened to a left accent rule on a near-flat surface
+   ============================================================ */
+.starlight-aside {
+	border-radius: 0;
+	border-inline-start-width: 2px;
+	border-block: 0;
+	border-inline-end: 0;
+	background: var(--ns-surface-soft);
+	padding: 1rem 1.25rem;
+}
+
+.starlight-aside__title {
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: var(--ns-label-weight);
+	text-transform: uppercase;
+	letter-spacing: var(--ns-label-tracking);
+}
+
+/* ============================================================
+   Code — sharp corners, hairline frame, brand surface in dark
+   ============================================================ */
+.expressive-code .frame {
+	--ec-brdRad: var(--ns-radius);
+}
+
+:root[data-theme='dark'] .expressive-code {
+	--ec-codeBg: var(--ns-surface-2);
+	--ec-frm-edBg: var(--ns-surface-2);
+	--ec-frm-trmBg: var(--ns-surface-2);
+	--ec-brdCol: var(--ns-hairline);
+}
+:root[data-theme='light'] .expressive-code {
+	--ec-brdCol: var(--ns-hairline);
+}
+
+.sl-markdown-content code:not(:where(.not-content *)) {
+	border-radius: var(--ns-radius);
+	font-size: 0.85em;
+}

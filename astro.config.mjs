@@ -1,18 +1,42 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import starlightThemeObsidian from 'starlight-theme-obsidian';
+import remarkNsDirectives from './src/plugins/remark-ns-directives.mjs';
+import remarkBasePath from './src/plugins/remark-base-path.mjs';
+
+/**
+ * THE deployment prefix — single source of truth.
+ *
+ * Feeds Astro's own `base` AND remark-base-path, which prefixes every
+ * root-relative link written in page content. Content is therefore authored
+ * prefix-free (`/getting-started/quickstart-seek/`).
+ *
+ * CUSTOM-DOMAIN CUTOVER: set this to '' and `site` to
+ * 'https://documentation.neuralseek.com', then add public/CNAME. Two things
+ * the plugin cannot reach still need doing by hand — `hero.actions` links in
+ * index.mdx (YAML frontmatter takes no expressions) and any raw <a href> in an
+ * HTML block. Find them with:  grep -rn '"/ns-docs' src/content/
+ */
+const BASE = '/ns-docs';
 
 // https://astro.build/config
 export default defineConfig({
-	// GitHub Pages project site. When the custom domain lands (Phase 4),
-	// set `site: 'https://documentation.neuralseek.com'` and remove `base`
-	// (then also drop the `/ns-docs` prefixes on public-asset refs — see AGENTS.md).
+	// GitHub Pages project site.
 	site: 'https://cerebralblue.github.io',
-	base: '/ns-docs',
+	base: BASE,
+	// Astro CONCATENATES this array with Starlight's own remark plugins (user
+	// entries first), so both run before Starlight's asides and neither
+	// displaces them.
+	//
+	// ORDER MATTERS between these two: remark-base-path must see the AUTHORED
+	// directive nodes so it can rewrite `href` attributes on `:::ns-card` /
+	// `::ns-button`. remark-ns-directives rewrites those nodes into paragraphs,
+	// after which the attributes are gone.
+	markdown: {
+		remarkPlugins: [[remarkBasePath, { base: BASE }], remarkNsDirectives],
+	},
 	integrations: [
 		starlight({
-			plugins: [starlightThemeObsidian()],
 			title: 'NeuralDocs',
 			description: 'Official documentation for NeuralSeek — guides, reference, and how-tos.',
 			lastUpdated: true,
@@ -22,12 +46,22 @@ export default defineConfig({
 				replacesTitle: true,
 			},
 			favicon: '/favicon.png',
-			customCss: ['./src/styles/neuralseek.css', './src/styles/chatbot.css'],
+			// One entry on purpose. The design system is ~19 files under
+			// src/styles/, and their ORDER IS LOAD-BEARING (the CSS is unlayered,
+			// so equal-specificity conflicts resolve by source order). That order
+			// lives in src/styles/index.css, next to the CSS it orders — read its
+			// header before adding, moving, or renumbering a file.
+			customCss: ['./src/styles/index.css', './src/styles/chatbot.css'],
 			components: {
 				SocialIcons: './src/components/SocialIcons.astro',
 				Footer: './src/components/Footer.astro',
+				// Wraps Starlight's Hero to add the split code panel. Only
+				// index.mdx has `hero:` frontmatter, so this is landing-page only.
+				Hero: './src/components/Hero.astro',
 			},
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/CerebralBlue/ns-docs' }],
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/CerebralBlue/ns-docs' },
+			],
 			// IA per planning/structure-sketch.md (v1 draft — team review pending).
 			sidebar: [
 				{
@@ -85,7 +119,10 @@ export default defineConfig({
 					items: [
 						{ label: 'Virtual agents', slug: 'integrations/virtual-agents' },
 						{ label: 'Training virtual agents', slug: 'integrations/training-virtual-agents' },
-						{ label: 'watsonx Assistant streaming', slug: 'integrations/watsonx-assistant-streaming' },
+						{
+							label: 'watsonx Assistant streaming',
+							slug: 'integrations/watsonx-assistant-streaming',
+						},
 						{ label: 'NICE CXone', slug: 'integrations/nice-cxone' },
 						{ label: 'Chat SDK', slug: 'integrations/chat-sdk' },
 						{ label: 'Implementing feedback', slug: 'integrations/feedback' },
