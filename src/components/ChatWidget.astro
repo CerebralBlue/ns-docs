@@ -96,10 +96,10 @@ import { GREETING } from '../lib/ns-chat/constants';
 </div>
 
 <script>
-import type { ChatMessage, ChatRole } from "../lib/ns-chat/constants";
-import { NO_ANSWER, ERROR_MESSAGE } from "../lib/ns-chat/constants";
-import { askSeek, SeekError } from "../lib/ns-chat/seek-client";
-import { getSessionId, getUserId, saveHistory, clearHistory } from "../lib/ns-chat/session";
+	import type { ChatMessage, ChatRole } from '../lib/ns-chat/constants';
+	import { NO_ANSWER, ERROR_MESSAGE } from '../lib/ns-chat/constants';
+	import { askSeek, SeekError } from '../lib/ns-chat/seek-client';
+	import { getSessionId, getUserId, saveHistory, clearHistory } from '../lib/ns-chat/session';
 
 	const STORAGE_KEY = 'ns-chat-v1';
 	const SESSION_KEY = 'ns-session-id';
@@ -120,7 +120,7 @@ import { getSessionId, getUserId, saveHistory, clearHistory } from "../lib/ns-ch
 			? crypto.randomUUID()
 			: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 	}
-	
+
 	function initChat() {
 		const root = document.querySelector('[data-ns-chat]');
 		if (!root || root.hasAttribute('data-ns-init')) return;
