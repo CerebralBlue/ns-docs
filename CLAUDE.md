@@ -34,7 +34,7 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
 - `src/lib/ns-chat/` — the chat widget's non-DOM logic, so it is readable and testable apart
   from the component: `constants.ts` (endpoint, embedCode, storage keys, user-facing strings),
   `session.ts` (identity + history persistence; all `localStorage` access), `seek-client.ts`
-  (the `/seek` call, with timeout and typed `SeekError`s).
+  (`askSeek()` — the `/seek` call in streaming mode: SSE parsing, timeout, typed `SeekError`s).
 - `src/components/` — component overrides registered in `astro.config.mjs`:
   - `SocialIcons.astro` — appends a NeuralSeek link (renders everywhere social icons do).
   - `Footer.astro` — branded footer + mounts `ChatWidget`; skips Starlight's default footer
@@ -50,10 +50,23 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
     `neuralseek-documentation-website` instance's `/seek` endpoint (`stagingapi.neuralseek.com`
     — **staging on purpose** while pre-launch) with an `embedcode` header (`2041675160`). That
     is **not** the admin API key — embedCodes are scoped to only the seek/mAIstro endpoints, so
-    unlike the admin key they're meant to ship in public frontend code; no proxy needed. Chat
-    history + a `sessionId`/`userId` pair persist in `localStorage` (`ns-chat-v1` /
-    `ns-session-id` / `ns-user-id`); the restart button clears history and rotates `sessionId`
-    only. **It reparents itself to `<body>` on mount** — see the stacking-context note below.
+    unlike the admin key they're meant to ship in public frontend code; no proxy needed.
+    **Answers stream in.** `/seek` switches to SSE (`data: {"chunk": "…"}` lines, then a
+    terminal `data: {"answer": …, ...scoring metadata}` line) when the body carries **nested**
+    `options: { streaming: true }` — a top-level `streaming` field or `options.stream` (no
+    `-ing`) are silently ignored, and the `Accept: text/event-stream` header is required too,
+    or it falls back to a single non-streaming JSON response. All verified against the live
+    endpoint; this is not documented anywhere obvious. `sendMessage()` renders one bubble
+    in-place as chunks arrive, then finalizes it to the terminal `answer` (not the chunk
+    concatenation) once the stream ends — NeuralSeek can edit/finalize the answer server-side
+    (see `editedAnswer` in the raw response), so the chunks are a preview, not always
+    byte-for-byte the final text. A cached/instant answer can skip straight to the terminal
+    event with no `chunk` events at all; `askSeek()` handles that fine. Chat history + a
+    `sessionId`/`userId` pair persist in `localStorage` (`ns-chat-v1` / `ns-session-id` /
+    `ns-user-id`); the restart button clears history and rotates `sessionId` only — it also
+    aborts an in-flight request, and `sendMessage()` checks `controller.signal.aborted` before
+    showing an error bubble, since a deliberate cancellation isn't a failure. **It reparents
+    itself to `<body>` on mount** — see the stacking-context note below.
 - `src/assets/` — logos (`neuraldocs-logo-light/dark.svg` = wordmark, `neuraldocs-icon.png` = N mark).
 - `public/` — `favicon.png`, hero art.
 - `planning/` — IA proposal (`structure-sketch.md`) + page template.

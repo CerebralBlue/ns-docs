@@ -103,10 +103,6 @@ import { GREETING } from '../lib/ns-chat/constants';
 
 	const STORAGE_KEY = 'ns-chat-v1';
 	const SESSION_KEY = 'ns-session-id';
-	const USER_KEY = 'ns-user-id';
-
-	const SEEK_URL = 'https://stagingapi.neuralseek.com/v1/neuralseek-documentation-website/seek';
-	const EMBED_CODE = '2041675160';
 
 	const QUICK_QUESTIONS = [
 		'What is Seek?',
@@ -114,6 +110,15 @@ import { GREETING } from '../lib/ns-chat/constants';
 		'How do I set a mAIstro agent as a default action?',
 		'How do I enable logs?',
 	];
+
+	// NeuralSeek's chunks arrive unevenly — a ~2s pre-stream delay, then dozens
+	// of small (often 1-10 char) fragments within about a second, sometimes
+	// zero chunks at all before an instant full answer. Revealing text exactly
+	// as it arrives makes the animation invisible: DOM updates that fast don't
+	// read as "typing" to a human eye. This constant decouples the two —
+	// incoming text lands in a buffer and gets revealed at this fixed pace
+	// instead, so the effect is consistent regardless of network timing.
+	const CHARS_PER_FRAME = 3;
 
 	function uid() {
 		return crypto.randomUUID
@@ -162,10 +167,14 @@ import { GREETING } from '../lib/ns-chat/constants';
 			return el;
 		}
 
-		function addMessage(text: string, who: ChatRole) {
-			const el = renderMessage(text, who);
+		function persistMessage(text: string, who: ChatRole) {
 			messages.push({ who, text });
 			saveHistory(messages);
+		}
+
+		function addMessage(text: string, who: ChatRole) {
+			const el = renderMessage(text, who);
+			persistMessage(text, who);
 			return el;
 		}
 
@@ -225,13 +234,89 @@ import { GREETING } from '../lib/ns-chat/constants';
 			if (pending) return;
 			const controller = new AbortController();
 			pending = controller;
-			const typing = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
+			// This one bubble is updated in place as text is revealed — it is
+			// never replaced by a second element, so scroll position and layout
+			// stay stable while the answer grows.
+			const bubble = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
+
+			// Incoming text lands here as it arrives; `reveal()` below drains it
+			// into the bubble at a fixed pace, independent of network timing.
+			let pendingText = '';
+			let revealed = 0;
+			let streamEnded = false;
+			let finalText = '';
+			let rafHandle = 0;
+
+			// `pending` marks this whole exchange as in-flight — including the
+			// reveal animation, not just the network call — so resetChat()'s
+			// `pending?.abort()` can still cancel a reveal that outlives an
+			// already-finished fetch instead of leaving it to keep animating
+			// into a bubble that's about to be wiped, and finalize() persisting
+			// a stale message after the restart's fresh greeting.
+			function finalize() {
+				if (rafHandle) cancelAnimationFrame(rafHandle);
+				rafHandle = 0;
+				if (pending === controller) pending = null;
+			}
+
+			function reveal() {
+				if (controller.signal.aborted) {
+					finalize();
+					return;
+				}
+				revealed = Math.min(pendingText.length, revealed + CHARS_PER_FRAME);
+				bubble.textContent = pendingText.slice(0, revealed);
+				log!.scrollTop = log!.scrollHeight;
+
+				if (revealed < pendingText.length) {
+					rafHandle = requestAnimationFrame(reveal);
+				} else if (streamEnded) {
+					bubble.classList.remove('ns-chat__msg--typing');
+					persistMessage(finalText, 'bot');
+					finalize();
+				} else {
+					// Caught up to what's arrived so far, but the stream is still
+					// going — stop spinning; onChunk restarts this when more lands.
+					rafHandle = 0;
+				}
+			}
+
+			function ensureRevealing() {
+				if (!rafHandle && !controller.signal.aborted) rafHandle = requestAnimationFrame(reveal);
+			}
+
 			try {
-				const answer = await askSeek({ question, sessionId, userId, signal: controller.signal });
-				typing.remove();
-				addMessage(answer || NO_ANSWER, 'bot');
+				const answer = await askSeek({
+					question,
+					sessionId,
+					userId,
+					signal: controller.signal,
+					onChunk: (text) => {
+						if (bubble.classList.contains('ns-chat__msg--typing') && !pendingText) {
+							bubble.classList.remove('ns-chat__msg--typing');
+						}
+						pendingText += text;
+						ensureRevealing();
+					},
+				});
+				// The terminal stream event's `answer` (not the chunk concatenation)
+				// is the source of truth — see askSeek's doc comment. Reassigning
+				// pendingText here means the reveal loop's remaining catch-up (or
+				// its very first reveal, if the answer arrived with zero chunks)
+				// plays out against the authoritative text.
+				finalText = answer || NO_ANSWER;
+				pendingText = finalText;
+				streamEnded = true;
+				bubble.classList.remove('ns-chat__msg--typing');
+				ensureRevealing();
 			} catch (err) {
-				typing.remove();
+				finalize();
+				bubble.remove();
+				// A deliberate cancellation (e.g. restart while this was in
+				// flight) isn't a failure — resetChat() already rendered a fresh
+				// greeting, so showing an error on top of it would be a glitch,
+				// not useful information.
+				if (controller.signal.aborted) return;
 				// Log the real cause — the user-facing string is deliberately
 				// generic, but a silent catch made this undiagnosable in the field.
 				if (err instanceof SeekError) {
@@ -240,8 +325,6 @@ import { GREETING } from '../lib/ns-chat/constants';
 					console.error('[ns-chat] unexpected failure', err);
 				}
 				addMessage(ERROR_MESSAGE, 'bot');
-			} finally {
-				if (pending === controller) pending = null;
 			}
 		}
 
