@@ -9,3 +9,8 @@ This page is part of the new documentation structure and its content is being pr
 
 Content will be converted from the existing documentation.
 Source: `features/pii_detect/index.md` (keep).
+
+## To document on this page
+
+- Extra PII names list — add personal names a general model will not recognise (PII tab > NeuralSeek PII Detectors)
+

@@ -9,3 +9,9 @@ This page is part of the new documentation structure and its content is being pr
 
 Content will be rewritten from the existing documentation with a capability focus.
 Source: `ui/chat/index.md` (rewrite).
+
+## To document on this page
+
+- Edit Configuration — chat against a specific configuration or category; this is how routing is tested
+- Rename Chat and running several test conversations side by side
+

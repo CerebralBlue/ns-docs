@@ -17,7 +17,10 @@
 │  ├─ Quickstart: Seek             ← NEW ("first grounded answer in 15 minutes")
 │  ├─ Quickstart: mAIstro          ← NEW ("your first agent")
 │  ├─ Core concepts                ← NEW (Seek pipeline, mAIstro, KB, curation lifecycle)
-│  └─ Deployment options           ← distilled from plans.md (admin-relevant only)
+│  ├─ Onboarding wizard            ← NEW [gap] (Admin Tools → QA Tools first-run flow)
+│  ├─ How to get NeuralSeek        ← distilled from plans.md — plans & purchasing only
+│  │                                 (renamed from "Deployment options" per Robert)
+│  └─ What can we connect to?      ← same page as Integrations → Overview, on purpose (Robert)
 ├─ Seek — Answering Questions
 │  ├─ Overview                     ← ui/seek (capability framing, not tab tour)
 │  ├─ Tuning answers               ← tuning_guide (flagship)
@@ -31,6 +34,14 @@
 ├─ mAIstro — Agents & Workflows
 │  ├─ Overview                     ← ui/maistro
 │  ├─ Visual editor                ← NEW (nav-listed on old site but file never existed)
+│  ├─ Running & inspecting an agent ← NEW [gap] (timeline, output previews, override input)
+│  ├─ Agent Visualizer             ← NEW [gap]
+│  ├─ Agent Registry               ← NEW [gap] (product screen; the NTL node keeps its own page)
+│  ├─ Agent Marketplace            ← NEW [gap]
+│  ├─ Agent Scheduler              ← NEW [gap]
+│  ├─ Run Agents                   ← NEW [gap] (agent-tile dashboards for non-mAIstro users)
+│  ├─ NeuralEdit/                  ← NEW [gap] overview · context-files ·
+│  │                                 editing-and-reviewing · authoring-an-agent
 │  ├─ NTL overview                 ← NEW (same)
 │  └─ NTL Node Reference           ← the 30 existing NTL pages, directory-driven nav
 │     │                              (future: ~260 nodes auto-generated into these dirs,
@@ -43,35 +54,64 @@
 │                       knowledgebases · sharepoint · slack · trello ·
 │                       watsonx-governance · web-search)
 ├─ Knowledge & Data
+│  ├─ Getting documents in         ← NEW [gap] (routes between the 6 ingestion paths)
 │  ├─ Connect a knowledge base     ← ui/integrate (task-oriented rewrite)
 │  ├─ Supported knowledge bases    ← supported_knowledgebases
 │  ├─ Pinecone setup               ← pinecone_configuration (explicit KEEP)
 │  ├─ Elasticsearch vector model   ← elasticsearch_vector_model
+│  ├─ Hybrid, vector & semantic search ← NEW [gap] (ES / watsonx Discovery only)
 │  ├─ Loading documents            ← ui/load (rewrite)
 │  ├─ Extracting data              ← ui/extract (rewrite)
+│  ├─ Document Manager             ← NEW [gap] (hidden on on-prem)
 │  ├─ Table understanding          ← features/table_understanding (orphan)
-│  └─ Auto data cleanse            ← features/auto_data_cleanse (orphan)
+│  ├─ Auto data cleanse            ← features/auto_data_cleanse (orphan)
+│  └─ Managed KnowledgeBase/       ← NEW [gap] overview · web-crawler · synonyms · kb-api
 ├─ Integrations
+│  ├─ What can we connect to?      ← NEW (Robert) — the sitemap of every external connection
 │  ├─ Virtual agents               ← supported_virtual_agents
+│  ├─ Virtual agent platforms/     ← NEW [gap] watsonx-assistant · aws-lex · kore-ai
 │  ├─ Training virtual agents      ← training_virtual_agents
 │  ├─ watsonx Assistant streaming  ← wa_context_guide
 │  ├─ NICE CXone                   ← nice_cxone_integration
+│  ├─ Slack extension              ← NEW [gap]
+│  ├─ Microsoft Teams extension    ← NEW [gap]
+│  ├─ SharePoint sync              ← NEW [gap]
+│  ├─ MCP server                   ← NEW [gap]
+│  ├─ a2a server                   ← NEW [gap]
+│  ├─ Webhook                      ← NEW [gap]
+│  ├─ REST & Console APIs          ← NEW [gap] (three API surfaces, incl. the KB API)
 │  ├─ Chat SDK                     ← chat_sdk_integration
 │  └─ Implementing feedback        ← implementing_feedback
 ├─ Configuration
 │  ├─ Overview                     ← ui/configure (restructured)
-│  ├─ Neural Config options        ← NEW section; per-option what/why/how pages
-│  │                                 (filled by Alejandro's gap report — starts as stubs)
+│  ├─ Neural Config/               ← NEW section; one page per Configure panel, from the
+│  │                                 gap report: using-this-page · knowledgebase-connection ·
+│  │                                 knowledgebase-tuning · llm-details · managed-llm ·
+│  │                                 embedding-models · maistro-configuration ·
+│  │                                 platform-preferences · prompt-engineering ·
+│  │                                 intent-matching-caching · secrets
 │  ├─ Supported LLMs               ← supported_llms
 │  ├─ Multi-LLM                    ← features/multi_llm (orphan)
 │  ├─ Multimodal                   ← guides/models/multimodal
 │  ├─ Semantic model tuning        ← guides/models/semantic_model
 │  ├─ Language handling            ← MERGE features/language + language_indentification (orphans)
-│  └─ Backup & restore             ← backup_and_restore
-├─ Governance & Analytics          [split into two groups? Q5]
+│  ├─ Backup, restore & change logs ← backup_and_restore (+ rollback, proposals [gap])
+│  └─ Administration/              ← NEW [gap] api-keys · embed-codes · users-and-permissions ·
+│                                    default-permissions · self-hosting-an-llm ·
+│                                    flex-licensing · support-plans
+├─ Governance & Analytics          [Q5 answered: ONE group — Robert, 2026-08-04]
 │  ├─ Overview                     ← MERGE ui/governance + reference_material/governance
+│  ├─ Guardrails/                  ← NEW [gap] overview · profanity-hap · prompt-injection ·
+│  │                                 semantic-scoring · attribution-protection ·
+│  │                                 min-confidence · custom-governance-agents
+│  ├─ Dashboards/                  ← NEW [gap] reading-the-dashboards · seek-overview ·
+│  │                                 seek-tokens-cost · seek-logs-and-config-insights ·
+│  │                                 agent-insights-and-details · agent-logs-tokens-cost ·
+│  │                                 model-comparison · custom-dashboards
 │  ├─ PII detection                ← features/pii_detect (orphan)
-│  ├─ Real-time logging            ← features/RT_logging (orphan)
+│  ├─ Red team testing             ← NEW [gap]
+│  ├─ Logging                      ← features/RT_logging (orphan) + Corporate Logging [gap]
+│  ├─ Corporate document filter    ← NEW [gap]
 │  ├─ Replay                       ← MERGE features/replay_feature + guides/replay_guide
 │  ├─ Data security & privacy      ← more_about_NS/data_security_and_privacy
 │  ├─ Semantic analytics           ← features/semantic_analytics (orphan)
@@ -81,8 +121,27 @@
 │  └─ Entity extraction            ← features/entity_extraction (orphan)
 └─ Reference
    ├─ Changelog                    ← changelog.md
-   └─ Plans & platforms            ← matrix distilled from plans.md
+   ├─ Deployment                   ← platform mechanics split out of "Deployment options" (Robert)
+   └─ Plans & platforms            ← matrix distilled from plans.md (+ the 9 gating conditions [gap])
 ```
+
+## Gap-list fold-in (2026-08-04)
+
+The documentation-gap audit found ~60 undocumented pages and ~95 settings. It proposed three
+**new top-level groups** — `analytics/`, `administration/`, `neuraledit/`. They were folded into
+the approved 8-group tree instead:
+
+| Proposed group | Folded into | Why |
+|---|---|---|
+| `analytics/*` | Governance & Analytics → **Dashboards** | Robert explicitly endorsed Governance & Analytics as one category; the dashboards *are* the analytics. |
+| `administration/*` | Configuration → **Administration** | Keys, users and licensing are instance configuration; nobody looks for them outside Configure. |
+| `neuraledit/*` | mAIstro → **NeuralEdit** | NeuralEdit's behaviour is defined by a mAIstro agent, and its permission is bundled with Run Agents. |
+
+The tree the team approved keeps its shape — only leaves and one level of subgroup were added.
+Every route above marked **[gap]** carries its slice of the audit in the `gaps` array of
+`scripts/migration-map.json`, which `bun run stubs` renders into the page as a
+"To document on this page" list. Items that attach to a page that already exists (e.g. the
+Seek panels, the Extract/Load tabs, Corporate Logging) get a `gaps` note and no new route.
 
 ## Page contract (every page — this is what feeds the chatbot)
 
@@ -150,7 +209,7 @@ Legend: **KEEP** convert as-is (+ FAQ pass) · **REWRITE** keep substance, refra
 | 76 | `features/sentiment/` (orphan) | KEEP | `governance/sentiment` |
 | 77 | `features/intent_cat/` (orphan) | KEEP | `governance/intent-categorization` |
 | 78 | `features/entity_extraction/` (orphan) | KEEP | `governance/entity-extraction` |
-| 79 | `more_about_NS/plans.md` | DISTILL | `getting-started/deployment` + `reference/plans-and-platforms` [Q2c] |
+| 79 | `more_about_NS/plans.md` | DISTILL | `getting-started/how-to-get-neuralseek` (plans, purchasing) + `reference/deployment` (platform mechanics) + `reference/plans-and-platforms` (gating matrix) [Q2c] |
 | 80 | `ui/index.md` | **KILL** | tab-tour shell; nothing to salvage |
 | 81 | `ui/home/index.md` | **KILL** | tab tour; real content → Getting Started |
 | 82 | `features/index.md` | **KILL** | MkDocs tag index; graph/backlinks replace it |
@@ -161,7 +220,9 @@ Legend: **KEEP** convert as-is (+ FAQ pass) · **REWRITE** keep substance, refra
 
 NEW pages (no old source): `getting-started/quickstart-seek`, `getting-started/quickstart-maistro`,
 `getting-started/concepts`, `maistro/visual-editor`, `maistro/ntl-overview` (both were nav-listed
-on the old site but the files never existed), `configuration/neural-config/` (awaits gap report).
+on the old site but the files never existed), plus the ~70 routes added from the gap audit —
+see "Gap-list fold-in" above. The site is now 151 stub routes; `scripts/migration-map.json` is
+the list, and `bun run stubs` regenerates every one of them.
 
 ## Open questions for the team
 
@@ -169,7 +230,8 @@ on the old site but the files never existed), `configuration/neural-config/` (aw
 2. **Kill confirmations:** (a) Proposals — anything to salvage? (b) doc_ingestion — kill, or rewrite later as a proper "Document ingestion" topic? (c) plans.md — where's the marketing/admin line?
 3. **Virtual KB placement** — under Seek (answering) or Knowledge & Data?
 4. **Screenshots** — ~450 images capture the old UI. Migrate as-is and re-capture opportunistically, or re-capture flagships now?
-5. **Governance & Analytics** — one group (10 pages) or split into two?
+5. ~~**Governance & Analytics** — one group or split into two?~~ **ANSWERED** (Robert,
+   2026-08-04): one group. It now holds ~27 pages, with Guardrails and Dashboards as subgroups.
 6. **Public stubs** — site is public-but-unannounced; OK to show "content coming" stubs for a few weeks?
 7. **Old-site drift** — documentation.neuralseek.com keeps changing during migration; who reconciles at each Monday gate?
 8. **NTL syntax highlighting** — Shiki has no NTL grammar; code renders plain until someone writes a tmLanguage. Owner?

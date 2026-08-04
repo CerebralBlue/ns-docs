@@ -9,3 +9,8 @@ This page is part of the new documentation structure and its content is being pr
 
 Content will be converted from the existing documentation.
 Source: `features/table_understanding/index.md` (keep).
+
+## To document on this page
+
+- Guidance is stale: re-crawl and re-load now re-process and cost, but the docs still say crawls are ineligible
+

@@ -4,7 +4,8 @@
  * For every route with status "stub", writes src/content/docs/<route>.md
  * containing frontmatter (title + description) and a short placeholder body.
  * Descriptions fall back to the primary old-doc source's frontmatter
- * description when the map doesn't override one.
+ * description when the map doesn't override one. A route's `gaps` array is
+ * rendered as a "To document on this page" worklist.
  *
  * Safe to re-run: existing files whose map status is no longer "stub"
  * (auto/adopted) are never touched; stub files are re-written each run.
@@ -72,6 +73,12 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 	const sourcesLine = info.sources?.length
 		? `\nSource${info.sources.length > 1 ? 's' : ''}: ${info.sources.map((s: string) => `\`${s}\``).join(', ')} (${info.action}).`
 		: '';
+	// The gap audit (2026-08-04) rides along in the map so each stub shows the work it owes.
+	// Kept as a plain markdown list, not an ns-* directive: stubs are regenerated wholesale and
+	// a directive here would put container-nesting rules in the generator for no benefit.
+	const gapsBlock = info.gaps?.length
+		? `\n\n## To document on this page\n\n${info.gaps.map((g: string) => `- ${g}`).join('\n')}\n`
+		: '';
 
 	const body = `---
 title: ${JSON.stringify(title)}
@@ -82,7 +89,7 @@ description: ${JSON.stringify(description)}
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-${actionNote[info.action] ?? ''}${sourcesLine}
+${actionNote[info.action] ?? ''}${sourcesLine}${gapsBlock}
 `;
 	mkdirSync(dirname(outPath), { recursive: true });
 	writeFileSync(outPath, body);

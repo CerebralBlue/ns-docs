@@ -9,3 +9,8 @@ This page is part of the new documentation structure and its content is being pr
 
 Content will be merged from multiple existing pages.
 Sources: `ui/governance/index.md`, `reference_material/governance/governance.md` (merge).
+
+## To document on this page
+
+- The old standalone governance page is empty — decide what it contributes before merging it in
+

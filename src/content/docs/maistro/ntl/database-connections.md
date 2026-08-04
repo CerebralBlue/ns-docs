@@ -9,3 +9,8 @@ This page is part of the new documentation structure and its content is being pr
 
 Content will be converted from the existing documentation.
 Source: `ui/maistro/features/ntl_functions/database_connections.md` (keep).
+
+## To document on this page
+
+- The IBM DB2 node is documented but no such node appears in the product — verify before publishing
+

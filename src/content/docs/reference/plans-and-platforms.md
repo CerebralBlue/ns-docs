@@ -9,3 +9,9 @@ This page is part of the new documentation structure and its content is being pr
 
 Content will be distilled from the existing documentation (developer/admin scope only).
 Source: `more_about_NS/plans.md` (distill).
+
+## To document on this page
+
+- Boundary: this page is the gating reference; purchasing lives in getting-started/how-to-get-neuralseek
+- 'Why can't I see this page?' — the nine plan and deployment conditions that change what appears in the navbar
+
