@@ -58,7 +58,7 @@
       "title": "Seek overview",
       "sources": ["ui/seek/index.md"],
       "action": "rewrite",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "KnowledgeBase Context accordions — the passage used from each source document",
         "Trained Answers panel — signals a curated answer was served instead of a fresh generation",
@@ -73,19 +73,19 @@
       "title": "Tuning answers",
       "sources": ["guides/data/tuning_guide/index.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "seek/virtual-kb": {
       "title": "Virtual KB",
       "sources": ["guides/data/virtual_kb/index.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "seek/dynamic-filters": {
       "title": "Dynamic filters",
       "sources": ["guides/data/dynamic_filters/index.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "seek/conversational-context": {
       "title": "Conversational context",
@@ -94,19 +94,19 @@
         "guides/integration/providing_context/index.md"
       ],
       "action": "merge",
-      "status": "stub"
+      "status": "auto"
     },
     "seek/caching": {
       "title": "Caching",
       "sources": ["features/caching/index.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "seek/personalization": {
       "title": "Personalization",
       "sources": ["features/dynamic_pers/index.md"],
       "action": "keep",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced)",
         "Personalization agent — the agent that adjusts answers using the personalization details",
@@ -118,7 +118,7 @@
       "title": "Answer curation",
       "sources": ["ui/curate/index.md", "features/answer_curation/index.md"],
       "action": "merge",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Delete user data — the bulk GDPR/CCPA erasure path",
         "Delete and Regenerate Responses for an intent",
@@ -134,7 +134,7 @@
       "title": "Chat client",
       "sources": ["ui/chat/index.md"],
       "action": "rewrite",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Edit Configuration — chat against a specific configuration or category; this is how routing is tested",
         "Rename Chat and running several test conversations side by side"
@@ -471,37 +471,37 @@
       "title": "AWS S3",
       "sources": ["ui/maistro/features/ntl_functions/integrations/aws_s3.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/databases": {
       "title": "Databases",
       "sources": ["ui/maistro/features/ntl_functions/integrations/databases.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/github": {
       "title": "GitHub",
       "sources": ["ui/maistro/features/ntl_functions/integrations/github.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/google-drive": {
       "title": "Google Drive",
       "sources": ["ui/maistro/features/ntl_functions/integrations/google_drive.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/jira": {
       "title": "Jira",
       "sources": ["ui/maistro/features/ntl_functions/integrations/jira.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/knowledgebases": {
       "title": "Knowledge Bases",
       "sources": ["ui/maistro/features/ntl_functions/integrations/knowledgebases.md"],
       "action": "keep",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "ES KB Add Document — chunk, embed and index a document into Elasticsearch (not in the node menu)"
       ]
@@ -534,31 +534,31 @@
       "title": "SharePoint",
       "sources": ["ui/maistro/features/ntl_functions/integrations/sharepoint.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/slack": {
       "title": "Slack",
       "sources": ["ui/maistro/features/ntl_functions/integrations/slack.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/trello": {
       "title": "Trello",
       "sources": ["ui/maistro/features/ntl_functions/integrations/trello.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/watsonx-governance": {
       "title": "watsonx.governance",
       "sources": ["ui/maistro/features/ntl_functions/integrations/watsonx.governance.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "maistro/ntl/integrations/web-search": {
       "title": "Web Search",
       "sources": ["ui/maistro/features/ntl_functions/integrations/web_searches.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
 
     "knowledge/ingestion-overview": {
@@ -1168,7 +1168,7 @@
       "title": "Governance overview",
       "sources": ["ui/governance/index.md", "reference_material/governance/governance.md"],
       "action": "merge",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "The old standalone governance page is empty — decide what it contributes before merging it in"
       ]
@@ -1258,7 +1258,7 @@
       "title": "PII detection",
       "sources": ["features/pii_detect/index.md"],
       "action": "keep",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Extra PII names list — add personal names a general model will not recognise (PII tab > NeuralSeek PII Detectors)"
       ]
@@ -1280,7 +1280,7 @@
       "title": "Logging",
       "sources": ["features/RT_logging/index.md"],
       "action": "keep",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Corporate Logging: Logger Service — ElasticSearch, OpenSearch or mAIstro; the choice changes every field below it",
         "Logger username / password — OpenSearch mode uses basic auth, not an API key",
@@ -1305,13 +1305,13 @@
       "title": "Replay",
       "sources": ["features/replay_feature/index.md", "guides/data/replay_guide/index.md"],
       "action": "merge",
-      "status": "stub"
+      "status": "auto"
     },
     "governance/data-security": {
       "title": "Data security & privacy",
       "sources": ["more_about_NS/data_security_and_privacy.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "governance/analytics/reading-the-dashboards": {
       "title": "Reading the dashboards",
@@ -1425,7 +1425,7 @@
       "title": "Semantic analytics",
       "sources": ["features/semantic_analytics/index.md"],
       "action": "keep",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Absorbs the Seek > Semantic Insights dashboard",
         "Semantic Distribution — histogram of semantic scores",
@@ -1438,7 +1438,7 @@
       "title": "Content analytics",
       "sources": ["features/content_analytics/index.md"],
       "action": "keep",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Absorbs the Documentation Insights dashboard",
         "Download ratings CSV — export user rating data"
@@ -1448,13 +1448,13 @@
       "title": "Sentiment",
       "sources": ["features/sentiment/index.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
     "governance/intent-categorization": {
       "title": "Intent categorization",
       "sources": ["features/intent_cat/index.md"],
       "action": "keep",
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Absorbs the Neural Config > Intent Categorization panel",
         "Category table — add, edit and delete intent categories",
@@ -1470,7 +1470,7 @@
       "title": "Entity extraction",
       "sources": ["features/entity_extraction/index.md"],
       "action": "keep",
-      "status": "stub"
+      "status": "auto"
     },
 
     "reference/changelog": {

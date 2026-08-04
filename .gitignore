@@ -22,3 +22,4 @@ pnpm-debug.log*
 
 # private working notes (roadmap / status)
 CLAUDE.local.md
+_private/

@@ -1,11 +1,43 @@
 ---
 title: "AWS S3"
-description: "AWS S3 — NeuralSeek documentation."
+description: ""
 ---
 
-:::note[Draft]
-This page is part of the new documentation structure and its content is being prepared.
+## S3 Read File 
+
+
+Connect to AWS s3 and read a file
+:::note[Parameters]
+
+- **key**: The filename in S3 to read
+
+- **bucket**: The bucket name
+
+- **region**: the AWS region
+
+- **accessKeyId**: Your IAM access key Id
+
+- **secretAccessKey**: Your Secret access key
 :::
 
-Content will be converted from the existing documentation.
-Source: `ui/maistro/features/ntl_functions/integrations/aws_s3.md` (keep).
+---
+
+
+## S3 Write File 
+
+
+Connect to AWS s3 and write a file
+:::note[Parameters]
+
+- **data**: The data to write
+
+- **key**: The filename in S3 to read
+
+- **bucket**: The bucket name
+
+- **region**: the AWS region
+
+- **accessKeyId**: Your IAM access key Id
+
+- **secretAccessKey**: Your Secret access key
+:::

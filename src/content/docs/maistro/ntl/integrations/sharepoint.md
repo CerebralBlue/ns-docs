@@ -1,11 +1,77 @@
 ---
 title: "SharePoint"
-description: "SharePoint — NeuralSeek documentation."
+description: ""
 ---
 
-:::note[Draft]
-This page is part of the new documentation structure and its content is being prepared.
+## Sharepoint - List Files 
+
+
+Connect to SharePoint and list files.
+:::note[Parameters]
+
+- **driveName**: The sharepoint site or drive name
+
+- **path**: The sharepoint path to start from (optional)
+
+- **tenantName**: Sharepoint tennant name (the subdomain of the url)
+
+- **tenantId**: Sharepoint tennant ID
+
+- **siteName**: Sharepoint site name
+
+- **clientId**: Sharepoint client ID
+
+- **clientSecret**: Sharepoint client secret
 :::
 
-Content will be converted from the existing documentation.
-Source: `ui/maistro/features/ntl_functions/integrations/sharepoint.md` (keep).
+---
+
+
+## Sharepoint - Download 
+
+
+Connect to SharePoint and download files.
+:::note[Parameters]
+
+- **name**: The file name
+
+- **url**: the file url
+
+- **driveName**: The sharepoint site or drive name
+
+- **tenantName**: Sharepoint tennant name (the subdomain of the url)
+
+- **tenantId**: Sharepoint tennant ID
+
+- **siteName**: Sharepoint site name
+
+- **clientId**: Sharepoint client ID
+
+- **clientSecret**: Sharepoint client secret
+:::
+
+---
+
+
+## Sharepoint - Upload 
+
+
+Connect to SharePoint and upload files.
+:::note[Parameters]
+
+- **name**: The file name
+
+- **driveName**: The sharepoint site or drive name
+
+- **path**: The sharepoint path to start from (optional)
+
+- **tenantName**: Sharepoint tennant name (the subdomain of the url)
+
+- **tenantId**: Sharepoint tennant ID
+
+- **siteName**: Sharepoint site name
+
+- **clientId**: Sharepoint client ID
+
+- **clientSecret**: Sharepoint client secret
+:::

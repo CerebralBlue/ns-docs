@@ -1,11 +1,72 @@
 ---
 title: "Web Search"
-description: "Web Search — NeuralSeek documentation."
+description: ""
 ---
 
-:::note[Draft]
-This page is part of the new documentation structure and its content is being prepared.
+## Google Search 
+
+
+Search the web using Google.
+:::note[Parameters]
+
+- **query**: The search query
 :::
 
-Content will be converted from the existing documentation.
-Source: `ui/maistro/features/ntl_functions/integrations/web_searches.md` (keep).
+---
+
+
+## Bing Search 
+
+
+Search the web using Bing.
+:::note[Parameters]
+
+- **query**: The search query
+:::
+
+---
+
+
+## Yahoo Search 
+
+
+Search the web using Yahoo.
+:::note[Parameters]
+
+- **query**: The search query
+:::
+
+---
+
+
+## DuckDuckGo Search 
+
+
+Search the web using DuckDuckGo.
+:::note[Parameters]
+
+- **query**: The search query
+:::
+
+---
+
+
+## Brave Search 
+
+
+Search the web using Brave.
+:::note[Parameters]
+
+- **query**: The search query
+
+- **apiKey**: Your api key
+
+- **count**: 
+    - **text**: The number of responses
+    - **min**: 1
+    - **max**: 20
+    - **step**: 1
+    - **default**: 5
+
+- **cache**: Cache results
+:::
