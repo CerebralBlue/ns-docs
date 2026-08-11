@@ -1,6 +1,6 @@
 ---
 title: "GitHub"
-description: ""
+description: "Connect to GitHub to search, retrieve, create, and update issues and pull requests in repositories."
 ---
 
 ## Search for Issues 

@@ -1,6 +1,6 @@
 ---
 title: "Databases"
-description: ""
+description: "Connect to supported databases, execute SQL or Cypher queries, and return query results as sentences or CSV."
 ---
 
 ## DB2 Database 

@@ -1,6 +1,6 @@
 ---
 title: "Google Drive"
-description: ""
+description: "Connect to Google Drive to read existing documents and write text to files in a shared Google Drive folder."
 ---
 
 ## Google Drive - Read 

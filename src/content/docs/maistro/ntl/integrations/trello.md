@@ -1,6 +1,6 @@
 ---
 title: "Trello"
-description: ""
+description: "Connect to Trello to search boards and cards, retrieve lists and cards, and create or update cards using the Trello API."
 ---
 
 ## Search Trello 

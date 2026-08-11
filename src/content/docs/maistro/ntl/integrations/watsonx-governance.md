@@ -1,6 +1,6 @@
 ---
 title: "watsonx.governance"
-description: ""
+description: "Connect to watsonx.governance and IBM watsonx.governance/OpenScale to log Seek requests or submit custom JSON scoring payloads for governance and evaluation workflows."
 ---
 
 ## watsonx.governance Seek 
@@ -27,7 +27,7 @@ Connect to watsonx.governance / OpenScale and send a JSON object
 
 - **url**: The URL uncluding path of your watsonx.governance / Openscale scoring payload (https://cloud.ibm.com/apidocs/ai-openscale#records-add)
 
-- **key**: The IAM api key
-
 - **raw**: THe JSON object to send
+
+- **key**: The IAM api key
 :::

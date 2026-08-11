@@ -1,6 +1,6 @@
 ---
 title: "SharePoint"
-description: ""
+description: "Connect to SharePoint to list, download, and upload files across SharePoint sites and document libraries."
 ---
 
 ## Sharepoint - List Files 
