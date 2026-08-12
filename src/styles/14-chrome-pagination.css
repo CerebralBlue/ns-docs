@@ -1,0 +1,36 @@
+/* ============================================================
+   Pagination — same flat card treatment as everything else
+   ============================================================ */
+.pagination-links a {
+	border-radius: var(--ns-radius);
+	border-color: var(--ns-hairline);
+	box-shadow: none;
+	transition: border-color var(--ns-transition);
+}
+.pagination-links a:hover {
+	border-color: var(--sl-color-accent);
+}
+/* "Previous"/"Next" is a bare text node inside the <span>, so the label
+   styling goes on the span and `.link-title` resets back to display type. */
+.pagination-links a > span {
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: var(--ns-label-weight);
+	text-transform: uppercase;
+	letter-spacing: var(--ns-label-tracking);
+	color: var(--ns-label-color);
+	line-height: 2;
+}
+.pagination-links .link-title {
+	display: inline-block;
+	font-family: var(--sl-font);
+	font-size: var(--sl-text-lg);
+	font-weight: 600;
+	text-transform: none;
+	letter-spacing: -0.01em;
+	color: var(--sl-color-white);
+	line-height: var(--sl-line-height-headings);
+}
+.pagination-links svg {
+	color: var(--ns-label-color);
+}

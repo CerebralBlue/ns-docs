@@ -9,7 +9,13 @@
 import Default from '@astrojs/starlight/components/Footer.astro';
 import ChatWidget from './ChatWidget.astro';
 
-const isSplash = Astro.locals.starlightRoute.entry.data.template === 'splash';
+// Optional-chained: a route rendered without a starlightRoute in locals (the
+// 404 page is the realistic case) would otherwise throw at render time rather
+// than just falling back to the non-splash layout.
+const isSplash = Astro.locals.starlightRoute?.entry?.data?.template === 'splash';
+
+// Keep the notice current without an annual edit.
+const year = new Date().getFullYear();
 ---
 
 {!isSplash && <Default />}
@@ -18,7 +24,7 @@ const isSplash = Astro.locals.starlightRoute.entry.data.template === 'splash';
 
 <footer class="ns-footer">
 	<div class="ns-footer-inner">
-		<p class="ns-copyright">© 2026 NeuralSeek. All rights reserved.</p>
+		<p class="ns-copyright">© {year} NeuralSeek. All rights reserved.</p>
 		<nav class="ns-footer-links">
 			<a href="https://neuralseek.com">NeuralSeek</a>
 			<a href="https://github.com/CerebralBlue/ns-docs">GitHub</a>

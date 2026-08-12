@@ -1,0 +1,79 @@
+/* ============================================================
+   [01] Brand tokens — mirrored 1:1 from the marketing site
+
+   PRIMITIVES ONLY — theme-independent raw values. The SEMANTIC
+   layer (hairlines, label colour, soft surfaces, and Starlight's
+   accent scales) is per-theme and therefore lives in 04-theme.css.
+   That split is the reason these are two files, not one.
+
+   Some palette entries have NO `var()` consumer. That is BY
+   DESIGN — the palette is kept whole so this file and the
+   marketing site stay in sync by construction. Four of them are
+   also in active use as hand-typed rgba literals in the splash
+   gradient (16-page-splash.css). DO NOT prune on a "dead token"
+   pass; see the annotations there.
+
+   ── THE BREAKPOINT: 50rem ───────────────────────────────────
+   This is not our number. It is STARLIGHT's layout switch:
+   --sl-content-inline-start, --sl-content-width, and the .header
+   grid all flip at 50rem. Changing ours desyncs from theirs.
+
+   It CANNOT be a token. `@media (min-width: var(--x))` is invalid
+   CSS — media-feature values resolve before custom-property
+   substitution. A `--ns-bp` token would be a token that lies, so
+   there isn't one. The literal is repeated in 03, 10, 13 and 17.
+       grep -rn "50rem" src/styles/
+   ============================================================ */
+:root {
+	--ns-cyan: #1fb6ff;
+	--ns-trust-blue: #2d5bff;
+	--ns-indigo: #5b2dff;
+	--ns-magenta: #a24bff;
+	--ns-soft-blue: #7babff;
+	--ns-regal-purple: #301e4c;
+
+	/* Surfaces */
+	--ns-surface: #2a2638;
+	--ns-surface-2: #1f1c28;
+	--ns-surface-elev: #332f42;
+	--ns-nav-black: #0b0a0f;
+
+	/* --- Structure: the "lines and sharp corners" system --- */
+	--ns-radius: 4px;
+	/* Deliberately 1px tighter than --ns-radius, not a rounding error.
+	   Used on the two smallest chips on the site: the search shortcut
+	   `kbd` (03) and inline code inside the hero prompt (17). */
+	--ns-radius-sm: 3px;
+
+	/* Every hover/focus transition on the site. One duration, one
+	   easing — if it needs a second, name that one too rather than
+	   hand-typing a value at the call site. */
+	--ns-transition: 0.15s ease;
+
+	/* --- Mono micro-label: the signature of the corporate/dev look.
+	   Tiny uppercase JetBrains Mono with wide tracking. Used on sidebar
+	   group headings, the TOC heading, table headers, and `.ns-label`.
+
+	   NOT unified into a single selector group ON PURPOSE. Its six call
+	   sites (05 labels, 09 table th, 11 buttons, 13 .ns-links, 14
+	   pagination, 15 aside titles) use THREE different tracking values —
+	   0.16em canonical, 0.1em on table headers, 0.12em on buttons — so a
+	   blanket merge would change rendering. And one selector group
+	   spanning five unrelated components would have to live in one file,
+	   defeating the module split. Token-ize the values; accept the
+	   repetition. --- */
+	--ns-label-size: 0.6875rem; /* 11px */
+	--ns-label-tracking: 0.16em;
+	--ns-label-weight: 500;
+
+	/* Fonts */
+	--sl-font: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+	--sl-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+	/* --- Type scale: tighter and more restrained than Starlight's
+	   default, which runs to 42px h1 / 35px h2 on desktop. --- */
+	--sl-text-h1: 2.25rem; /* 36px */
+	--sl-text-h2: 1.5rem; /* 24px */
+	--sl-text-h3: 1.1875rem; /* 19px */
+	--sl-text-h4: 1rem; /* 16px */
+}

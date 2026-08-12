@@ -1,0 +1,12 @@
+dist/
+.astro/
+node_modules/
+bun.lock
+public/
+
+# Content is excluded on purpose. These are documentation source files whose
+# exact line breaks are meaningful (directive nesting depth, NTL snippets that
+# must not be reflowed), and they are edited by people who should not have to
+# run a formatter to land a typo fix.
+src/content/
+planning/

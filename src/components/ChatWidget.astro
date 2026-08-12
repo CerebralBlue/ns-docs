@@ -13,6 +13,9 @@
 // uses for the footer brand link.
 import { Icon } from '@astrojs/starlight/components';
 import nsIcon from '../assets/neuraldocs-icon.png';
+// Same module the client script imports, so the greeting rendered here and the
+// one restored on restart cannot drift apart.
+import { GREETING } from '../lib/ns-chat/constants';
 ---
 
 <div class="ns-chat" data-ns-chat>
@@ -34,9 +37,7 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 			aria-hidden="true"
 			focusable="false"
 		>
-			<path
-				d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"
-			></path>
+			<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path>
 		</svg>
 	</button>
 
@@ -75,9 +76,7 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		</header>
 
 		<div class="ns-chat__log" data-ns-log>
-			<div class="ns-chat__msg ns-chat__msg--bot">
-				Hi! Ask me anything about the documentation.
-			</div>
+			<div class="ns-chat__msg ns-chat__msg--bot">{GREETING}</div>
 		</div>
 
 		<form class="ns-chat__form" data-ns-form>
@@ -96,257 +95,30 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 	</div>
 </div>
 
-<style>
-	.ns-chat {
-		--ns-chat-w: 380px;
-		--ns-chat-h: 560px;
-		--ns-chat-launcher-size: 3.5rem;
-		--ns-chat-inset: 1.5rem;
-
-		/* Widget-specific brand palette — distinct from the site's Trust Blue
-		   accent, per the Chat Widget brand spec. */
-		--ns-chat-primary: #3d91f0;
-		--ns-chat-secondary: #9d2ff9;
-		--ns-chat-accent: #000000;
-	}
-
-	/* Launcher: round, icon-only. Shares the same corner inset as the panel,
-	   so the panel appears exactly where this button was. */
-	.ns-chat__launcher {
-		position: fixed;
-		right: var(--ns-chat-inset);
-		bottom: var(--ns-chat-inset);
-		z-index: 100;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--ns-chat-launcher-size);
-		height: var(--ns-chat-launcher-size);
-		padding: 0;
-		border: none;
-		border-radius: 50%;
-		background: linear-gradient(135deg, var(--ns-chat-primary), var(--ns-chat-secondary));
-		color: var(--ns-chat-accent);
-		cursor: pointer;
-		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-		transition: transform 0.15s ease, box-shadow 0.15s ease;
-	}
-	.ns-chat__launcher:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 10px 28px rgba(157, 47, 249, 0.35);
-	}
-	.ns-chat__launcher:focus-visible {
-		outline: 2px solid var(--sl-color-white);
-		outline-offset: 3px;
-	}
-	/* Open state: the panel occupies this corner, so the launcher steps aside.
-	   Focus is moved into the panel first — see setOpen() in the script. */
-	.ns-chat[data-open] .ns-chat__launcher {
-		display: none;
-	}
-
-	.ns-chat__icon {
-		width: 1.5rem;
-		height: 1.5rem;
-	}
-
-	/* Tooltip — the icon-only launcher's visible affordance. aria-label carries
-	   the same wording for screen readers, so this stays decorative. */
-	.ns-chat__launcher::after {
-		content: 'NeuralSeek Assistant';
-		position: absolute;
-		right: calc(100% + 0.65rem);
-		top: 50%;
-		translate: 0 -50%;
-		padding: 0.35rem 0.6rem;
-		border-radius: 6px;
-		background: var(--sl-color-gray-6);
-		color: var(--sl-color-white);
-		border: 1px solid var(--sl-color-hairline);
-		font-size: var(--sl-text-xs);
-		font-weight: 600;
-		white-space: nowrap;
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 0.15s ease;
-	}
-	.ns-chat__launcher:hover::after,
-	.ns-chat__launcher:focus-visible::after {
-		opacity: 1;
-	}
-
-	/* Panel: pinned to the same corner the launcher occupies. */
-	.ns-chat__modal {
-		position: fixed;
-		right: var(--ns-chat-inset);
-		bottom: var(--ns-chat-inset);
-		z-index: 101;
-		display: flex;
-		flex-direction: column;
-		width: min(var(--ns-chat-w), calc(100vw - 2rem));
-		height: min(var(--ns-chat-h), calc(100vh - var(--ns-chat-inset) * 2));
-		background: var(--sl-color-bg);
-		border: 1px solid var(--sl-color-hairline);
-		border-radius: 14px;
-		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-		overflow: hidden;
-		transform-origin: bottom right;
-		animation: ns-chat-in 0.18s ease;
-	}
-
-	/* `display: flex` above would otherwise beat the UA's [hidden] rule (author
-	   styles win at equal specificity), leaving the panel permanently open. */
-	.ns-chat__modal[hidden] {
-		display: none;
-	}
-	/* Grows out of the launcher's corner rather than sliding in from nowhere. */
-	@keyframes ns-chat-in {
-		from { opacity: 0; scale: 0.9; }
-		to   { opacity: 1; scale: 1; }
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.ns-chat__modal {
-			animation: none;
-		}
-		.ns-chat__launcher {
-			transition: none;
-		}
-		.ns-chat__launcher:hover {
-			transform: none;
-		}
-	}
-
-	.ns-chat__header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.9rem 1rem;
-		border-bottom: 1px solid var(--sl-color-hairline);
-		background: var(--sl-color-bg-nav);
-	}
-	.ns-chat__title {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-weight: 600;
-		font-size: var(--sl-text-sm);
-		color: var(--sl-color-white);
-	}
-	.ns-chat__logo {
-		width: 20px;
-		height: 20px;
-		border-radius: 5px;
-	}
-	.ns-chat__header-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.15rem;
-	}
-	.ns-chat__restart svg {
-		width: 1.05rem;
-		height: 1.05rem;
-	}
-	.ns-chat__restart,
-	.ns-chat__close {
-		display: inline-flex;
-		padding: 0.25rem;
-		border: none;
-		background: transparent;
-		color: var(--sl-color-gray-2);
-		cursor: pointer;
-		border-radius: 6px;
-	}
-	.ns-chat__restart:hover,
-	.ns-chat__close:hover {
-		color: var(--sl-color-white);
-		background: color-mix(in srgb, var(--ns-chat-secondary) 35%, var(--sl-color-gray-6));
-	}
-
-	/* Message log */
-	.ns-chat__log {
-		flex: 1;
-		overflow-y: auto;
-		padding: 1rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-	.ns-chat__msg {
-		max-width: 85%;
-		padding: 0.6rem 0.8rem;
-		border-radius: 12px;
-		font-size: var(--sl-text-sm);
-		line-height: 1.5;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-	}
-	.ns-chat__msg--bot {
-		align-self: flex-start;
-		background: var(--sl-color-gray-6);
-		color: var(--sl-color-white);
-		border-bottom-left-radius: 4px;
-	}
-	.ns-chat__msg--user {
-		align-self: flex-end;
-		background: var(--ns-chat-primary);
-		color: var(--ns-chat-accent);
-		border-bottom-right-radius: 4px;
-	}
-	.ns-chat__msg--typing {
-		color: var(--sl-color-gray-3);
-		font-style: italic;
-	}
-
-	/* Input */
-	.ns-chat__form {
-		display: flex;
-		gap: 0.5rem;
-		padding: 0.75rem;
-		border-top: 1px solid var(--sl-color-hairline);
-	}
-	.ns-chat__input {
-		flex: 1;
-		padding: 0.6rem 0.8rem;
-		border: 1px solid var(--sl-color-hairline);
-		border-radius: 8px;
-		background: var(--sl-color-bg);
-		color: var(--sl-color-white);
-		font-size: var(--sl-text-sm);
-	}
-	.ns-chat__input:focus {
-		outline: none;
-		border-color: var(--ns-chat-primary);
-	}
-	.ns-chat__send {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 40px;
-		border: none;
-		border-radius: 8px;
-		background: var(--ns-chat-primary);
-		color: var(--ns-chat-accent);
-		cursor: pointer;
-		transition: background 0.15s ease;
-	}
-	.ns-chat__send:hover {
-		background: var(--ns-chat-secondary);
-	}
-
-	@media (max-width: 30rem) {
-		.ns-chat {
-			--ns-chat-inset: 1rem;
-		}
-	}
-</style>
-
 <script>
+	import type { ChatMessage, ChatRole } from '../lib/ns-chat/constants';
+	import { NO_ANSWER, ERROR_MESSAGE } from '../lib/ns-chat/constants';
+	import { askSeek, SeekError } from '../lib/ns-chat/seek-client';
+	import { getSessionId, getUserId, saveHistory, clearHistory } from '../lib/ns-chat/session';
+
 	const STORAGE_KEY = 'ns-chat-v1';
 	const SESSION_KEY = 'ns-session-id';
-	const USER_KEY = 'ns-user-id';
 
-	const SEEK_URL = 'https://stagingapi.neuralseek.com/v1/neuralseek-documentation-website/seek';
-	const EMBED_CODE = '2041675160';
+	const QUICK_QUESTIONS = [
+		'What is Seek?',
+		'How do I connect a Knowledge Base?',
+		'How do I set a mAIstro agent as a default action?',
+		'How do I enable logs?',
+	];
+
+	// NeuralSeek's chunks arrive unevenly — a ~2s pre-stream delay, then dozens
+	// of small (often 1-10 char) fragments within about a second, sometimes
+	// zero chunks at all before an instant full answer. Revealing text exactly
+	// as it arrives makes the animation invisible: DOM updates that fast don't
+	// read as "typing" to a human eye. This constant decouples the two —
+	// incoming text lands in a buffer and gets revealed at this fixed pace
+	// instead, so the effect is consistent regardless of network timing.
+	const CHARS_PER_FRAME = 3;
 
 	function uid() {
 		return crypto.randomUUID
@@ -359,28 +131,25 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		if (!root || root.hasAttribute('data-ns-init')) return;
 		root.setAttribute('data-ns-init', '');
 
-		const modal = root.querySelector('[data-ns-modal]') as HTMLElement;
-		const log = root.querySelector('[data-ns-log]') as HTMLElement;
-		const form = root.querySelector('[data-ns-form]') as HTMLFormElement;
-		const input = root.querySelector('[data-ns-input]') as HTMLInputElement;
-		const toggleBtn = root.querySelector('[data-ns-toggle]') as HTMLButtonElement;
+		const modal = root.querySelector<HTMLElement>('[data-ns-modal]');
+		const log = root.querySelector<HTMLElement>('[data-ns-log]');
+		const form = root.querySelector<HTMLFormElement>('[data-ns-form]');
+		const input = root.querySelector<HTMLInputElement>('[data-ns-input]');
+		const toggleBtn = root.querySelector<HTMLButtonElement>('[data-ns-toggle]');
 
-		// userId identifies this browser and survives a restart; sessionId
-		// identifies the current conversation and is reset by it. Neither is
-		// sent anywhere yet — both exist for the NeuralSeek `/seek` proxy, which
-		// needs a session id to keep conversational context.
-		let userId = localStorage.getItem(USER_KEY);
-		if (!userId) {
-			userId = uid();
-			localStorage.setItem(USER_KEY, userId);
-		}
-		let sessionId = localStorage.getItem(SESSION_KEY);
-		if (!sessionId) {
-			sessionId = uid();
-			localStorage.setItem(SESSION_KEY, sessionId);
+		// A renamed or removed data-hook used to throw a TypeError here and take
+		// the whole widget down silently. Fail loudly, once, and bail instead.
+		if (!modal || !log || !form || !input || !toggleBtn) {
+			console.error('[ns-chat] markup is missing a required data-ns-* hook; widget disabled');
+			return null;
 		}
 
-		let messages: { who: 'user' | 'bot'; text: string }[] = [];
+		let sessionId = getSessionId();
+		const userId = getUserId();
+		let messages: ChatMessage[] = [];
+		// One in-flight question at a time. Without this, N rapid submits create
+		// N "Thinking…" bubbles and N concurrent requests.
+		let pending: AbortController | null = null;
 
 		// Astro scopes this component's <style> block by appending a build-hashed
 		// class (astro-xxxxxxxx) to every element in the static template; that's
@@ -389,19 +158,23 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		// silently skip them unless we copy it over ourselves.
 		const scopeClass = Array.from(log.classList).find((c) => c.startsWith('astro-'));
 
-		function renderMessage(text: string, who: 'user' | 'bot', extraClass = '') {
+		function renderMessage(text: string, who: ChatRole, extraClass = '') {
 			const el = document.createElement('div');
 			el.className = `ns-chat__msg ns-chat__msg--${who} ${extraClass} ${scopeClass ?? ''}`.trim();
 			el.textContent = text;
-			log.appendChild(el);
-			log.scrollTop = log.scrollHeight;
+			log!.appendChild(el);
+			log!.scrollTop = log!.scrollHeight;
 			return el;
 		}
 
-		function addMessage(text: string, who: 'user' | 'bot') {
-			const el = renderMessage(text, who);
+		function persistMessage(text: string, who: ChatRole) {
 			messages.push({ who, text });
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+			saveHistory(messages);
+		}
+
+		function addMessage(text: string, who: ChatRole) {
+			const el = renderMessage(text, who);
+			persistMessage(text, who);
 			return el;
 		}
 
@@ -413,7 +186,7 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 			try {
 				const parsed = JSON.parse(saved);
 				if (Array.isArray(parsed) && parsed.length) {
-					log.innerHTML = '';
+					log!.innerHTML = '';
 					for (const m of parsed) renderMessage(m.text, m.who);
 					messages = parsed;
 				}
@@ -421,19 +194,25 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 				// Corrupt data — ignore and keep the default greeting.
 			}
 		}
+		// Runs for a brand-new visitor too (saved is null above), not just a
+		// returning one with an empty history.
+		if (messages.length === 0) renderSuggestions();
 
 		// Wipes history and starts a fresh session: new sessionId, empty log,
 		// back to the default greeting. userId is untouched.
 		function resetChat() {
-			localStorage.removeItem(STORAGE_KEY);
+			pending?.abort();
+			pending = null;
+			clearHistory();
 			messages = [];
 			sessionId = uid();
 			localStorage.setItem(SESSION_KEY, sessionId);
-			log.innerHTML = '';
+			log!.innerHTML = '';
 			renderMessage('Hi! Ask me anything about the documentation.', 'bot');
+			renderSuggestions();
 		}
 
-		const isOpen = () => root.hasAttribute('data-open');
+		const isOpen = () => root!.hasAttribute('data-open');
 
 		// restoreFocus: only when the user deliberately closed it (button/Esc).
 		// Clicking away must not yank focus back to the launcher.
@@ -443,47 +222,117 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 		// the input immediately after keeps the keyboard path intact. Closing
 		// un-hides the launcher before focusing it — .focus() is a no-op on a
 		// display:none element.
-		const setOpen = (open: boolean, restoreFocus = true) => {
-			modal.hidden = !open;
-			root.toggleAttribute('data-open', open);
-			toggleBtn.setAttribute('aria-expanded', String(open));
-			if (open) input.focus();
-			else if (restoreFocus) toggleBtn.focus();
-		};
+		function setOpen(open: boolean, restoreFocus = true) {
+			modal!.hidden = !open;
+			root!.toggleAttribute('data-open', open);
+			toggleBtn!.setAttribute('aria-expanded', String(open));
+			if (open) input!.focus();
+			else if (restoreFocus) toggleBtn!.focus();
+		}
+
+		async function sendMessage(question: string) {
+			if (pending) return;
+			const controller = new AbortController();
+			pending = controller;
+			// This one bubble is updated in place as text is revealed — it is
+			// never replaced by a second element, so scroll position and layout
+			// stay stable while the answer grows.
+			const bubble = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
+
+			// Incoming text lands here as it arrives; `reveal()` below drains it
+			// into the bubble at a fixed pace, independent of network timing.
+			let pendingText = '';
+			let revealed = 0;
+			let streamEnded = false;
+			let finalText = '';
+			let rafHandle = 0;
+
+			// `pending` marks this whole exchange as in-flight — including the
+			// reveal animation, not just the network call — so resetChat()'s
+			// `pending?.abort()` can still cancel a reveal that outlives an
+			// already-finished fetch instead of leaving it to keep animating
+			// into a bubble that's about to be wiped, and finalize() persisting
+			// a stale message after the restart's fresh greeting.
+			function finalize() {
+				if (rafHandle) cancelAnimationFrame(rafHandle);
+				rafHandle = 0;
+				if (pending === controller) pending = null;
+			}
+
+			function reveal() {
+				if (controller.signal.aborted) {
+					finalize();
+					return;
+				}
+				revealed = Math.min(pendingText.length, revealed + CHARS_PER_FRAME);
+				bubble.textContent = pendingText.slice(0, revealed);
+				log!.scrollTop = log!.scrollHeight;
+
+				if (revealed < pendingText.length) {
+					rafHandle = requestAnimationFrame(reveal);
+				} else if (streamEnded) {
+					bubble.classList.remove('ns-chat__msg--typing');
+					persistMessage(finalText, 'bot');
+					finalize();
+				} else {
+					// Caught up to what's arrived so far, but the stream is still
+					// going — stop spinning; onChunk restarts this when more lands.
+					rafHandle = 0;
+				}
+			}
+
+			function ensureRevealing() {
+				if (!rafHandle && !controller.signal.aborted) rafHandle = requestAnimationFrame(reveal);
+			}
+
+			try {
+				const answer = await askSeek({
+					question,
+					sessionId,
+					userId,
+					signal: controller.signal,
+					onChunk: (text) => {
+						if (bubble.classList.contains('ns-chat__msg--typing') && !pendingText) {
+							bubble.classList.remove('ns-chat__msg--typing');
+						}
+						pendingText += text;
+						ensureRevealing();
+					},
+				});
+				// The terminal stream event's `answer` (not the chunk concatenation)
+				// is the source of truth — see askSeek's doc comment. Reassigning
+				// pendingText here means the reveal loop's remaining catch-up (or
+				// its very first reveal, if the answer arrived with zero chunks)
+				// plays out against the authoritative text.
+				finalText = answer || NO_ANSWER;
+				pendingText = finalText;
+				streamEnded = true;
+				bubble.classList.remove('ns-chat__msg--typing');
+				ensureRevealing();
+			} catch (err) {
+				finalize();
+				bubble.remove();
+				// A deliberate cancellation (e.g. restart while this was in
+				// flight) isn't a failure — resetChat() already rendered a fresh
+				// greeting, so showing an error on top of it would be a glitch,
+				// not useful information.
+				if (controller.signal.aborted) return;
+				// Log the real cause — the user-facing string is deliberately
+				// generic, but a silent catch made this undiagnosable in the field.
+				if (err instanceof SeekError) {
+					console.error(`[ns-chat] /seek ${err.kind}`, err.status ?? '', err.message);
+				} else {
+					console.error('[ns-chat] unexpected failure', err);
+				}
+				addMessage(ERROR_MESSAGE, 'bot');
+			}
+		}
 
 		// The launcher only opens now — it's hidden while the panel is up, and
 		// the panel's own close button (and Esc) brings it back.
 		toggleBtn.addEventListener('click', () => setOpen(!isOpen()));
 		root.querySelector('[data-ns-close]')?.addEventListener('click', () => setOpen(false));
 		root.querySelector('[data-ns-restart]')?.addEventListener('click', () => resetChat());
-
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape' && isOpen()) setOpen(false);
-		});
-
-		// Click outside the widget closes it, without stealing focus.
-		document.addEventListener('click', (e) => {
-			if (isOpen() && !root.contains(e.target as Node)) setOpen(false, false);
-		});
-
-		async function sendMessage(question: string) {
-			const typing = renderMessage('Thinking…', 'bot', 'ns-chat__msg--typing');
-			try {
-				const res = await fetch(SEEK_URL, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json', embedcode: EMBED_CODE },
-					body: JSON.stringify({ question, sessionId, userId }),
-				});
-				// Auth/rate-limit failures come back as a plain-text body, not JSON.
-				if (!res.ok) throw new Error(`Seek request failed (${res.status})`);
-				const data = await res.json();
-				typing.remove();
-				addMessage(data.answer || "Sorry, I couldn't find an answer for that.", 'bot');
-			} catch {
-				typing.remove();
-				addMessage('Something went wrong reaching NeuralSeek. Please try again in a moment.', 'bot');
-			}
-		}
 
 		form.addEventListener('submit', (e) => {
 			e.preventDefault();
@@ -493,6 +342,39 @@ import nsIcon from '../assets/neuraldocs-icon.png';
 			input.value = '';
 			sendMessage(q);
 		});
+
+		function renderSuggestions() {
+			// No static placeholder in the markup: log.innerHTML = '' (hydration
+			// and resetChat, above) wipes the log's entire content, so a fixed
+			// container living inside it would be destroyed along with the old
+			// messages. Creating it fresh here and appending it as the log's last
+			// child is what puts it directly under the greeting instead of pinned
+			// near the input — it just stacks like any other log entry.
+			log!.querySelector('[data-ns-suggestions]')?.remove();
+			const box = document.createElement('div');
+			box.className = `ns-chat__suggestions ${scopeClass ?? ''}`.trim();
+			box.dataset.nsSuggestions = '';
+			log!.appendChild(box);
+			for (const q of QUICK_QUESTIONS) {
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'ns-chat__chip';
+				btn.textContent = q;
+				btn.addEventListener('click', () => {
+					addMessage(q, 'user');
+					sendMessage(q);
+					// Hide, don't remove/clear: this click is still bubbling up to
+					// the document-level "click outside closes the panel" listener,
+					// and detaching the clicked button from the DOM mid-bubble (via
+					// .remove() or clearing the container's innerHTML) makes
+					// root.contains(e.target) false, which reads as "clicked
+					// outside" and closes the whole panel. Hiding only changes
+					// visibility, not tree membership, so contains() still holds.
+					box.hidden = true;
+				});
+				box.appendChild(btn);
+			}
+		}
 	}
 
 	// Run on first load and on Starlight's client-side view transitions.

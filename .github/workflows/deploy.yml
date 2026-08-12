@@ -3,6 +3,11 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # Runs on PRs too, so lint/type errors are caught BEFORE merge. The deploy
+  # jobs below are gated on `github.event_name == 'push'`, so a PR gets the
+  # quality gate without publishing anything.
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +20,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Quality gate. Needs its own checkout + bun install because withastro/action
+  # does its own install internally and nothing is shared between jobs.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Check formatting
+        run: bun run format:check
+      - name: Lint CSS
+        run: bun run lint:css
+      - name: Type-check
+        run: bun run check
+
   build:
+    needs: lint
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,6 +52,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

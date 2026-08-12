@@ -1,0 +1,17 @@
+/* ============================================================
+   Tables — hairline rules, mono uppercase headers, no fills
+   ============================================================ */
+.sl-markdown-content th {
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size);
+	font-weight: var(--ns-label-weight);
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: var(--ns-label-color);
+	border-bottom: 1px solid var(--ns-hairline-strong);
+}
+
+.sl-markdown-content :is(td, th) {
+	border-color: var(--ns-hairline);
+	padding: 0.6rem 0.75rem;
+}

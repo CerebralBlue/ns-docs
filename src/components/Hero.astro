@@ -1,0 +1,121 @@
+---
+/**
+ * Hero override — a single "Ask AI" prompt panel beside Starlight's hero copy.
+ *
+ * This WRAPS Starlight's Hero rather than reimplementing it. The h1 it renders
+ * carries `id="_top"`, which is the target of both `SkipLink.astro` and the
+ * table-of-contents script — and `PAGE_TITLE_ID` lives in
+ * `@astrojs/starlight/constants`, which is NOT in the package `exports` map.
+ * Reimplementing would mean hardcoding that id and silently drifting from
+ * Starlight on every upgrade. Wrapping inherits it, plus the `set:html` title
+ * (which is how the mono eyebrow is smuggled in from frontmatter) and the whole
+ * `actions` → <LinkButton> mapping, for a third of the code.
+ *
+ * The panel shows ONE pre-written prompt covering the brand fundamentals —
+ * what NeuralSeek is, what it does, and how to set up an instance. Pressing
+ * the button hands it to the existing ChatWidget through its `ns-chat:ask`
+ * event, so the docs answer the question with NeuralSeek itself.
+ *
+ * The tab glyph is inlined here rather than added to ns-icons.mjs: Starlight
+ * has no sparkle icon and this is the only place that needs one.
+ *
+ * Only `index.mdx` has `hero:` frontmatter, and `Page.astro` only renders
+ * <Hero /> when it exists — so this file affects exactly one page.
+ */
+import Default from '@astrojs/starlight/components/Hero.astro';
+import { nsIcons } from '../plugins/ns-icons.mjs';
+
+/**
+ * The prompt, as alternating prose / code segments.
+ *
+ * Built as data rather than markup for two reasons: the copy button and the
+ * chat handoff both need the exact plain-text version of what is rendered,
+ * and a literal `{` in .astro markup would be parsed as an expression.
+ */
+const prompt: Array<{ t?: string; c?: string }> = [
+	{ t: 'What is NeuralSeek and what does it actually do? Explain how ' },
+	{ c: 'Seek' },
+	{ t: ' answers questions from my own KnowledgeBase and returns a ' },
+	{ c: 'KBscore' },
+	{ t: ' and a clickable citation on every response, what ' },
+	{ c: 'mAIstro' },
+	{
+		t: ' agents are for, and then walk me through setting up my first instance — connecting a KnowledgeBase, choosing an LLM, and getting my first grounded answer.',
+	},
+];
+
+const promptText = prompt.map((s) => s.t ?? s.c).join('');
+---
+
+<div class="ns-hero-split">
+	<Default />
+
+	<div class="ns-hero-panel ns-prompt" data-ns-prompt>
+		<div class="ns-prompt__tabs">
+			<span class="ns-prompt__tab" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+					<path
+						d="M12 2.5 13.6 8 19 9.6 13.6 11.2 12 16.7 10.4 11.2 5 9.6 10.4 8 12 2.5Zm6.2 9.6.8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7ZM5.6 14l.7 2.2 2.2.7-2.2.7-.7 2.2-.7-2.2-2.2-.7 2.2-.7.7-2.2Z"
+					></path>
+				</svg>
+				<span>Ask AI</span>
+			</span>
+
+			{
+				/* Sits where the reference puts its copy button. This is the only
+			    control in the panel — it sends the prompt to the chat widget. */
+			}
+			<button
+				class="ns-prompt__send"
+				type="button"
+				data-ns-prompt-ask={promptText}
+				aria-label="Ask NeuralSeek this question"
+			>
+				{/* Same glyph the ns-* directives use — kept in one place. */}
+				<svg
+					aria-hidden="true"
+					viewBox="0 0 24 24"
+					width="16"
+					height="16"
+					fill="currentColor"
+					set:html={nsIcons['right-arrow']}
+				/>
+			</button>
+		</div>
+
+		<div class="ns-prompt__prose">
+			<p>{prompt.map((s) => (s.c ? <code>{s.c}</code> : s.t))}</p>
+		</div>
+	</div>
+</div>
+
+<script>
+	// The event name is shared with ChatWidget.astro's listener; importing it
+	// keeps the two ends of this contract from drifting.
+	import { NS_CHAT_ASK_EVENT } from '../lib/ns-chat/constants';
+
+	function initHeroPrompt() {
+		const root = document.querySelector<HTMLElement>('[data-ns-prompt]');
+		if (!root || root.hasAttribute('data-ns-prompt-init')) return;
+		root.setAttribute('data-ns-prompt-init', '');
+
+		const askBtn = root.querySelector<HTMLButtonElement>('[data-ns-prompt-ask]');
+		if (!askBtn) {
+			console.warn('[ns-hero] prompt panel has no [data-ns-prompt-ask] button');
+			return;
+		}
+
+		askBtn.addEventListener('click', (e) => {
+			// The chat widget closes itself on any document click landing outside
+			// [data-ns-chat]. Without stopPropagation the panel would open and
+			// immediately close again on this very event.
+			e.stopPropagation();
+			document.dispatchEvent(
+				new CustomEvent(NS_CHAT_ASK_EVENT, { detail: { question: askBtn.dataset.nsPromptAsk } })
+			);
+		});
+	}
+
+	initHeroPrompt();
+	document.addEventListener('astro:page-load', initHeroPrompt);
+</script>

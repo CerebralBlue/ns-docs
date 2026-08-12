@@ -9,3 +9,8 @@ This page is part of the new documentation structure and its content is being pr
 
 Content will be converted from the existing documentation.
 Source: `ui/integrate/integrations/supported_knowledgebases/supported_knowledgebases.md` (keep).
+
+## To document on this page
+
+- Six KB types missing from the support matrix: Watson Discovery on CP4D, Postgres, Coveo, Virtual KB, NeuralSeek KB, and No KnowledgeBase
+

@@ -1,0 +1,117 @@
+/* ============================================================
+   [08] Markdown content + page title.
+
+   NOTE the `:root[data-has-hero] .sl-markdown-content …` rules
+   at the end of this file are splash-scoped and taxonomically
+   belong in 16-page-splash.css. They stay here because their
+   specificity (0,5,0) wins regardless of file, so moving them
+   would be a pure reorder with no benefit.
+
+   `.content-panel:first-of-type` is also touched by 16, which
+   wins on specificity (0,4,0 vs 0,2,0) — not on order.
+   ============================================================ */
+
+/* ============================================================
+   Markdown content
+   Sections are separated by hairline rules above every h2 — this is
+   the core of the "minimal with lines" reference aesthetic.
+   ============================================================ */
+.sl-markdown-content {
+	font-size: 0.9375rem; /* 15px — denser, closer to reference docs */
+}
+
+.sl-markdown-content :is(h2, h3, h4) {
+	letter-spacing: -0.015em;
+	font-weight: 600;
+}
+
+/* Starlight wraps headings in `.sl-heading-wrapper` to hang the anchor link
+   beside them, which makes the heading itself `display: inline` — a border-top
+   on the <h2> would only span the width of the text, not the column. The
+   section rule therefore goes on the wrapper. Both selectors are listed so the
+   treatment still applies if a heading ever renders unwrapped. */
+.sl-markdown-content :is(h2, .sl-heading-wrapper.level-h2) {
+	margin-top: 3.25rem;
+	padding-top: 1.75rem;
+	border-top: 1px solid var(--ns-hairline);
+}
+.sl-markdown-content .sl-heading-wrapper.level-h2 > h2 {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
+/* The first section sits directly under the page title, which already has a
+   rule beneath it — a second one immediately after reads as a double line. */
+.sl-markdown-content > :is(h2, .sl-heading-wrapper.level-h2):first-child {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
+.sl-markdown-content :is(h3, .sl-heading-wrapper.level-h3) {
+	margin-top: 2.25rem;
+}
+
+/* On the SPLASH page a heading is a label, not a section: every block
+   under it already carries its own visual treatment (tiles, the index
+   table, the link cluster), so the hairline is a second divider saying
+   what the treatment already said — and the anchor link beside it is
+   decoration, since nobody deep-links to a landing page heading.
+
+   Whitespace replaces the rule, so the top margin absorbs the padding
+   the border used to sit above. Scoped to `[data-has-hero]` (Starlight
+   sets it on <html> for hero pages) so DOC pages keep both: there the
+   rule IS the section structure and the anchor is how a reader shares
+   a heading. To drop anchors site-wide instead, set
+   `markdown: { headingLinks: false }` in astro.config.mjs. */
+:root[data-has-hero] .sl-markdown-content :is(h2, .sl-heading-wrapper.level-h2) {
+	/* Matches the old margin + padding total exactly, so dropping the rule
+	   makes the gap no tighter than it was — whitespace is now the only
+	   thing separating one section from the next and cannot be skimped. */
+	margin-top: 5rem;
+	padding-top: 0;
+	border-top: 0;
+}
+/* The scoped rule above out-specifies the generic first-child reset
+   (0,5,0 vs 0,4,0), so the first heading needs its own. */
+:root[data-has-hero] .sl-markdown-content > :is(h2, .sl-heading-wrapper.level-h2):first-child {
+	margin-top: 0;
+}
+:root[data-has-hero] .sl-markdown-content .sl-anchor-link {
+	display: none;
+}
+
+/* Standalone rules match the section rules. */
+.sl-markdown-content hr {
+	border: 0;
+	border-top: 1px solid var(--ns-hairline);
+	margin: 3rem 0;
+}
+
+.sl-markdown-content a:not(:where(.not-content *)) {
+	text-underline-offset: 0.25em;
+	text-decoration-thickness: 1px;
+}
+
+/* ============================================================
+   Page title — solid and crisp on doc pages.
+   The cyan→blue gradient is reserved for the splash hero, where it
+   reads as brand rather than decoration on every single page.
+   To restore gradient doc titles, add `.sl-markdown-content
+   h1:first-of-type, h1#_top, .content-panel h1` back to the hero
+   selector below.
+   ============================================================ */
+.content-panel h1#_top {
+	letter-spacing: -0.025em;
+	font-weight: 700;
+}
+
+/* Rule under the title block, separating it from the body. */
+.content-panel:first-of-type {
+	border-bottom: 1px solid var(--ns-hairline);
+}
+
+/* The hero title gradient lives with the rest of the hero rules further
+   down — it targets `.ns-hero-title`, not the h1, so the eyebrow above it
+   keeps its own colour. */

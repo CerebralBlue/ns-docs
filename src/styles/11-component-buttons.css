@@ -1,0 +1,81 @@
+/* ============================================================
+   [11] Buttons.
+
+   `.sl-link-button` is emitted by THREE routes that all land
+   here: Starlight's Hero actions, an in-content <LinkButton>, and
+   `::ns-button` via src/plugins/remark-ns-directives.mjs →
+   buildButton(). There is no `.action` class — a `.hero .action`
+   selector matches nothing.
+
+   `.ns-button__icon` (also emitted by buildButton) has no rule
+   here on purpose: it inherits correctly from `.sl-link-button
+   svg` below. It is a hook, not a gap — adding a rule changes
+   rendering.
+   ============================================================ */
+
+/* ============================================================
+   Buttons — sharp, mono uppercase label.
+   `.sl-link-button` is the ONE class behind hero actions (Hero.astro
+   renders <LinkButton>; there is no `.action` class in Starlight
+   0.37.7), in-content <LinkButton>, and the ::ns-button directive.
+   Starlight's own rules sit in @layer starlight.components, and
+   unlayered declarations beat a layer regardless of media query — so
+   these flat rules win at every breakpoint with no @media override.
+   ============================================================ */
+.sl-link-button {
+	border-radius: var(--ns-radius);
+	border: 1px solid transparent;
+	padding: 0.8125rem 1.375rem;
+	gap: 0.6em;
+	font-family: var(--sl-font-mono);
+	font-size: 0.75rem;
+	font-weight: var(--ns-label-weight);
+	line-height: 1;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	text-decoration: none;
+	transition:
+		background-color var(--ns-transition),
+		border-color var(--ns-transition),
+		color var(--ns-transition);
+}
+
+/* LinkButton hardcodes <Icon size="1.5rem">, which lands as an inline
+   --sl-icon-size. Setting font-size directly beats the layered
+   `font-size: var(--sl-icon-size, 1em)` without needing !important. */
+.sl-link-button svg {
+	font-size: 1rem;
+}
+
+/* White on the accent, NOT Starlight's `--sl-color-black` — in dark theme
+   that token is near-black and fails contrast on the blue fill. */
+.sl-link-button.primary {
+	background: var(--sl-color-accent);
+	border-color: var(--sl-color-accent);
+	color: #fff;
+}
+.sl-link-button.primary:hover {
+	background: color-mix(in srgb, var(--sl-color-accent) 82%, #fff);
+	border-color: color-mix(in srgb, var(--sl-color-accent) 82%, #fff);
+	color: #fff;
+}
+
+.sl-link-button.secondary {
+	background: transparent;
+	border-color: var(--ns-hairline-strong);
+	color: var(--sl-color-white);
+}
+.sl-link-button.secondary:hover {
+	border-color: var(--sl-color-accent);
+	background: var(--ns-surface-soft);
+	color: var(--sl-color-white);
+}
+
+.sl-link-button.minimal {
+	padding-inline: 0;
+	border-color: transparent;
+	color: var(--ns-label-color);
+}
+.sl-link-button.minimal:hover {
+	color: var(--sl-color-white);
+}
