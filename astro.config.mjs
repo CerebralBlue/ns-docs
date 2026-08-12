@@ -298,6 +298,7 @@ export default defineConfig({
 							],
 						},
 						{ label: 'Custom Governance', slug: 'governance/custom-governance' },
+						{
 							label: 'Guardrails',
 							collapsed: true,
 							items: [
