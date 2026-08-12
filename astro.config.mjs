@@ -108,6 +108,35 @@ export default defineConfig({
 					label: 'Governance & Analytics',
 					items: [
 						{ label: 'Overview', slug: 'governance/overview' },
+						{
+							// Mirrors the product's own Governance sidebar order (sideGov.js) so a
+							// reader who knows the product finds the doc in the same place.
+							label: 'Seek Governance',
+							items: [
+								{ label: 'Semantic Insights', slug: 'governance/seek-semantic-insights' },
+								{ label: 'Documentation Insights', slug: 'governance/seek-documentation-insights' },
+								{ label: 'Intent Insights', slug: 'governance/seek-intent-insights' },
+								{ label: 'Token Insights', slug: 'governance/seek-token-insights' },
+								{ label: 'Cost Insights', slug: 'governance/seek-cost-insights' },
+								{ label: 'Seek Logs', slug: 'governance/seek-logs' },
+								{ label: 'Model Comparison', slug: 'governance/seek-model-comparison' },
+								{ label: 'Configuration Insights', slug: 'governance/seek-configuration-insights' },
+							],
+						},
+						{
+							label: 'mAIstro Governance',
+							items: [
+								{ label: 'Agent Insights', slug: 'governance/maistro-agent-insights' },
+								{ label: 'Agent Details', slug: 'governance/maistro-agent-details' },
+								{ label: 'Agent Timeline', slug: 'governance/maistro-agent-timeline' },
+								{ label: 'Red Team Testing', slug: 'governance/maistro-red-team-testing' },
+								{ label: 'mAIstro Logs', slug: 'governance/maistro-logs' },
+								{ label: 'Token Insights', slug: 'governance/maistro-token-insights' },
+								{ label: 'Cost Insights', slug: 'governance/maistro-cost-insights' },
+								{ label: 'Model Comparison', slug: 'governance/maistro-model-comparison' },
+							],
+						},
+						{ label: 'Custom Governance', slug: 'governance/custom-governance' },
 						{ label: 'PII detection', slug: 'governance/pii-detection' },
 						{ label: 'Real-time logging', slug: 'governance/logging' },
 						{ label: 'Replay', slug: 'governance/replay' },
