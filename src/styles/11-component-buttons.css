@@ -28,11 +28,11 @@
 	padding: 0.8125rem 1.375rem;
 	gap: 0.6em;
 	font-family: var(--sl-font-mono);
-	font-size: 0.75rem;
+	font-size: var(--ns-label-size-button);
 	font-weight: var(--ns-label-weight);
 	line-height: 1;
 	text-transform: uppercase;
-	letter-spacing: 0.12em;
+	letter-spacing: var(--ns-label-tracking-button);
 	text-decoration: none;
 	transition:
 		background-color var(--ns-transition),
