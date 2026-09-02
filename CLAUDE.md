@@ -164,8 +164,9 @@ Two things that look like bugs and are not:
 - **Seven brand primitives have no `var()` consumer.** The palette is mirrored 1:1 from the
   marketing site and kept whole deliberately; four of them are also live as hand-typed `rgba`
   literals in the splash gradient (annotated in `16-page-splash.css`). Do not prune them.
-- **The mono-label recipe is repeated at six call sites and is not unified.** Three of them use
-  different tracking, so a blanket merge changes rendering — and one selector group spanning
+- **The mono-label recipe is repeated at six call sites and is not unified.** Two of them
+  deviate — table headers track at `0.1em`, buttons at `0.12em` and 12px rather than the
+  canonical `0.16em`/11px — so a blanket merge changes rendering, and one selector group spanning
   five components would have to live in one file, defeating the split.
 
 **`50rem` is a magic number that cannot be a token.** `@media (min-width: var(--x))` is invalid
@@ -291,5 +292,33 @@ The content is being restructured from the previous MkDocs site (read-only refer
 porting a page: `!!!` admonitions (→ `:::` asides), `???` collapsibles (→ `<details>`), internal
 links hardcoded to `documentation.neuralseek.com`, NTL code fences (no Shiki grammar), and
 in-body H1s that would double with Starlight's auto-title.
+
+## The `neuraldocs-writer` skill
+
+`.claude/skills/neuraldocs-writer/` — a Claude Code skill holding the writing workflow for this
+repo: a technical-writer persona, the two Phase-5 paths (convert an old MkDocs page vs author a
+from-scratch one), an ordered source-of-truth ladder (NeuralSeek MCP → the old-docs clone → the
+live portal → ask), and the definition of done. It triggers on any request to migrate, convert,
+finish or write a page under `src/content/docs/`, or to edit `scripts/migration-map.json`.
+
+Four `references/` files carry the detail that would otherwise bloat the always-loaded body:
+`page-contract.md`, `conversion-hazards.md`, `migration-map.md`, `neuralseek-orientation.md`.
+
+It restates rather than replaces what is above — the `ns-*` directive rules, the base-path link
+rule, the old-docs hazards. If one of those changes here, change it in the skill too.
+
+Two committed pieces work with it:
+
+- **`scripts/doc-lint.ts`** — the deterministic half of a page review: leftover `MERGE:`/gap
+  markers, in-body H1s, heading depth, hand-written `/ns-docs` prefixes, old-domain links,
+  missing images, ` ```ntl ` fences, directive colon nesting, missing template sections.
+  Severity follows the route's `status`: errors on `adopted`, warnings on drafts, `--strict`
+  removes the downgrade. **Deliberately not part of `bun run verify`** — ~70 draft pages are
+  unfinished on purpose and would fail CI. Run it per module; revisit before launch.
+- **`.claude/agents/doc-reviewer.md`** — a read-only subagent that re-verifies a finished page's
+  factual claims with no memory of writing it, then returns findings. Spawn it after the linter
+  is clean. It never edits and never flips a status.
+
+All three are committed, so the same bar applies to every module.
 
 > Roadmap, phase status, and current priorities live in `CLAUDE.local.md` (gitignored, private).
