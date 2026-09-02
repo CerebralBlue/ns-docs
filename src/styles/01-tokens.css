@@ -56,15 +56,25 @@
 
 	   NOT unified into a single selector group ON PURPOSE. Its six call
 	   sites (05 labels, 09 table th, 11 buttons, 13 .ns-links, 14
-	   pagination, 15 aside titles) use THREE different tracking values —
-	   0.16em canonical, 0.1em on table headers, 0.12em on buttons — so a
+	   pagination, 15 aside titles) share one recipe but THREE tracking
+	   values: 0.16em canonical on four of them, and two deliberate
+	   deviations — 0.1em on table headers, 0.12em on buttons — so a
 	   blanket merge would change rendering. And one selector group
 	   spanning five unrelated components would have to live in one file,
-	   defeating the module split. Token-ize the values; accept the
-	   repetition. --- */
+	   defeating the module split. So: token-ize the values, accept the
+	   repetition. Every tracking value below has exactly one consumer;
+	   a literal `letter-spacing` on a mono label is drift, not a fourth
+	   variant. --- */
 	--ns-label-size: 0.6875rem; /* 11px */
 	--ns-label-tracking: 0.16em;
 	--ns-label-weight: 500;
+
+	/* The two deviations, named so they are searchable and so a diff
+	   shows intent rather than a magic number. Buttons also run 12px
+	   rather than the 11px `--ns-label-size` — the widest outlier. */
+	--ns-label-tracking-table: 0.1em;
+	--ns-label-tracking-button: 0.12em;
+	--ns-label-size-button: 0.75rem; /* 12px */
 
 	/* Fonts */
 	--sl-font: 'Open Sans', ui-sans-serif, system-ui, sans-serif;

@@ -1,74 +1,117 @@
 ---
-title: "Caching"
-description: ""
+title: 'Caching'
+description: 'The two caches behind a Seek answer — the KnowledgeBase cache and the answer cache — what each one stores, where to configure it, and how NeuralSeek detects a cached answer has gone stale.'
 ---
 
---- 
-title: Caching
-tags:
-   - Feature
-description: Discover how NeuralSeek's caching strategy boosts performance and cuts costs by storing frequently accessed answers. Learn to configure cache settings for faster, consistent responses.
----
+## What is it
 
+NeuralSeek caches in two places, and they are independent of each other:
 
-**What is it?**
+- The **Corporate KnowledgeBase cache** stores the processed search result — the window of source
+  content that gets handed to the LLM.
+- The **answer cache** stores finished answers, both generated ones and ones you edited in
+  Curate, and serves them again when a later question matches the same intent.
 
-- NeuralSeek uses [caching](https://en.wikipedia.org/wiki/Cache_(computing)) strategy in two areas (Corporate KnowledgeBase and Answer) to enhance performance and reduce computational cost during its operation.
+A question can hit either, both, or neither.
 
-**Why is it important?**
+## Why it matters
 
-- Caching frequently returned answers saves both time and computation cost to run virtual agents, as it reduces NeuralSeek having to generate responses repeatedly, especially on the more frequently asked questions or seldom updated answers.
+Every uncached question costs a KnowledgeBase search, a cleansing and compression pass, and an
+LLM call. Frequently asked questions pay that repeatedly for an answer that does not change.
+Caching removes both the latency and the token spend, and it makes repeated answers consistent
+rather than subtly reworded each time.
 
+The cost is staleness. A cached answer can outlive the document it came from, which is why the
+change detection below exists — and why caching is a poor fit for content that changes daily
+unless you keep the cache duration short.
 
-**How does it work?**
+## When to use it
 
-- The first part is when NeuralSeek searches through the corporate knowledge base to obtain the original information. You can set the cache duration of such responses to be cached, so that the original information’s retrieval time can be reduced.
-- NeuralSeek then utilizes two types of caches for both your edited answers and generated answers that can serve cached answers to user questions in order to speed up response times and produce more consistent results.
+- High-volume questions whose answers rarely change — policies, definitions, plan limits.
+- Any deployment where response time is user-facing.
+- Answers you have curated by hand and want served verbatim rather than regenerated.
 
-## Corporate KnowledgeBase Cache
+Keep durations short, or lean on the answer cache instead, when the underlying documents change
+often.
 
-When NeuralSeek accesses the Corporate KnowledgeBase, it processes the original data from it, cleanses its contents (e.g. removing unnecessary contents, filtering, deduplicating, etc.), compresses it, and prioritize the returned contents which is then processed with LLM (Large Language Model) to form the completed response, usually at the range of 8,000 ~ 9,000 characters. It then derives a hash value of that response window which acts as a check to later see if the original data is updated. This response is what actually gets cached within NeuralSeek, so that all the search, processing, and LLM-generated time is effectively saved when the same answer needs to be derived.
+## How it works
 
-Under the `Configure > Corporate KnowledgeBase Details` section, user can set the duration of the cache measured in minutes to control how long these responses need to be cached.
+### Corporate KnowledgeBase cache
 
-![kb cache setting](/img/seek/caching/image_001.png)
-    
-## Answer Cache
+When NeuralSeek reads the Corporate KnowledgeBase it processes the raw content — removing
+unnecessary material, filtering, deduplicating, compressing, and prioritizing what is left. The
+result is a window of roughly **8,000–9,000 characters**, which is what goes to the LLM to form
+the answer. That processed window is what gets cached, so a later question that needs the same
+material skips the search, the processing and the generation.
 
-When the user asks a question to NeuralSeek, it tries to use the question to find the matching ‘intent’ of the question. And when the matching intent is discovered (usually via fuzzy matching), the provided answer, either normal or user edited, can then be cached.
+NeuralSeek also derives a hash of that window, which is what later tells it whether the original
+source has changed.
 
-![answers](/img/seek/caching/image_002.png)
+Set how long these results are held under **Neural Config > KnowledgeBase Tuning >
+KnowledgeBase Query Cache (minutes)** — a slider running from `Disabled` to `6000`.
 
-Under the `Configure > Intent Matching & Cache Configuration` section, you can enable or disable the edited answer cache or normal answer cache, and set the following parameters to control how it works:
+### Answer cache
 
-![answer cache settings](/img/seek/caching/image_003.png)
+When a question arrives, NeuralSeek matches it to an **intent** — usually by fuzzy matching. If
+an answer already exists for that intent, normal or edited, it can be served from cache.
 
-Each cache type (edited answer, normal) would have the answer threshold bar and edited answer match tolerance. You can adjust the threshold to control when the caching will start caching for the answer, depending on how many answers exist for a given user question. For example, if you set the threshold to 5, the caching will not start until there exist 5 or more different answers to the given question. Setting the threshold to 1 would let NeuralSeek start caching as soon as it sees at least a single answer exists. Setting the value to 0 will disable caching completely.
+Configure this under **Neural Config > Intent Matching & Cache Configuration** (visible after
+**Show Advanced Options**), where the edited answer cache and the normal answer cache are enabled
+or disabled separately.
 
-The matching method (Exact Match, Fuzzy Match, etc.) is the method you can specify to tell NeuralSeek on how to perform the intent matching on the question.
+![Screenshot needed — Configure ▸ Intent Matching & Cache Configuration, showing the threshold, tolerance and matching-method controls](/img/_placeholder.svg)
 
-There is also a more advanced matching method of ‘Exact Match, exact conversational context’ on the normal answers that would try to find the match if the consecutive conversation (e.g. one and the one after) both have the matching result, so that the match could be more correct in terms of how the conversation flow is occurring.
+<!-- SCREENSHOT: Neural Config > Intent Matching & Cache Configuration, with the answer threshold,
+     the edited answer match tolerance and the matching-method selector all visible.
+     Why: three controls that interact, on one panel, and the threshold's meaning is not
+     guessable from its label. -->
 
-In terms of the edited answers, this ‘conversational context’ matching is not provided given that the edited answers should be more concise and based on a more substantial ground and thus should not rely on the conversational context.
+Each cache type has an **answer threshold** and, for edited answers, a **match tolerance**. The
+threshold is the number of distinct answers that must exist for a question before caching starts:
 
-### Detecting changes in the original source
-In order to make sure the cached answers retain the authenticity, every cached answers are fed into a hashing algorithm to generate a unique hash key, which is then compared with the original source to detect whether the original source has been altered or not.
+| Threshold | Effect |
+| --- | --- |
+| `0` | Caching is disabled |
+| `1` | Cache as soon as a single answer exists |
+| `5` | Do not cache until five different answers exist for that question |
 
-If the hash keys do not match, NeuralSeek will notify users that the answers are not up-to-date with what’s found in the KnowledgeBase. This would happen when a particular answer is being used during the Seek time, so that the answer would be kept in check with the original.
+The **matching method** — Exact Match, Fuzzy Match and others — controls how a question is
+matched to an intent.
 
-![out of date data in kb](/img/seek/caching/image_004.png)
+Normal answers also support **Exact Match, exact conversational context**, which requires
+consecutive turns to match rather than the single question, so the match respects where the
+conversation had got to. Edited answers do not offer it: an edited answer is meant to be concise
+and grounded on its own, so it should not depend on conversational context.
 
-Users can then take a look at the outdated answer, and can either delete and reload it, or edit it and then mark it as current, so that NeuralSeek will be able to check it off from its outdated list.
+### Detecting a stale cached answer
 
-![acknowledge of currency](/img/seek/caching/image_005.png)
+Every cached answer is hashed, and that hash is compared against the current source. If they
+differ, NeuralSeek flags the answer as out of date with what is now in the KnowledgeBase. The
+check runs when the answer is used at Seek time.
+
+You then either delete and reload the answer, or edit it and mark it as current, which clears it
+from the outdated list.
 
 :::note
-One other way the answer would be checked is when NeuralSeek is handling round trip logging. During that time, NeuralSeek would check which answers are getting frequently returned and also perform asynchronous checks with the KnowledgeBase to make sure they are up-to-date.
+Answers are also checked during round-trip logging. NeuralSeek looks at which answers are being
+returned frequently and runs asynchronous checks against the KnowledgeBase to confirm they are
+still current.
 :::
 
-### How do we know the answers are coming from cache?
-You can check whether your query matched and returned the cached answer in the `Seek` tab. For example, this is an example of the answer returned from the cache.
+## FAQ
 
-![answer from cache](/img/seek/caching/image_006.png)
+### How do I tell whether an answer came from the cache?
 
-Next to the `Total Response Time`, you will see a label `Cached` which indicates that the answer came straight from the cache.
+Run the question in the **Seek** tab and look next to **Total Response Time**. A `Cached` label
+there means the answer was served straight from the cache rather than generated.
+
+### What is the difference between the two caches?
+
+The KnowledgeBase cache stores source material — the processed content window before the LLM
+sees it. The answer cache stores finished answers. Clearing or expiring one does not affect the
+other.
+
+### Why is my answer not being cached?
+
+Check the answer threshold for that cache type. At `0` caching is off entirely, and at a higher
+value nothing is cached until that many distinct answers exist for the question.
