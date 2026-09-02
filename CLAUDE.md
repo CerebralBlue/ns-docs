@@ -313,8 +313,20 @@ Two committed pieces work with it:
   markers, in-body H1s, heading depth, hand-written `/ns-docs` prefixes, old-domain links,
   missing images, ` ```ntl ` fences, directive colon nesting, missing template sections.
   Severity follows the route's `status`: errors on `adopted`, warnings on drafts, `--strict`
-  removes the downgrade. **Deliberately not part of `bun run verify`** — ~70 draft pages are
+  removes the downgrade.
+
+  It also owns the **visual backlog**. Every old-docs screenshot is stale — the product moved
+  past that UI — so a copied image is a placeholder with a misleading picture on it. The script
+  proves which are carry-overs **by content hash**: `convert.ts` copies with `copyFileSync`, so
+  a byte-identical file was carried over untouched, and a recaptured one drops out of the report
+  by itself. No manifest, no marker, nothing to keep in sync. Currently all 137 copied images
+  are flagged. A pending visual is marked with `/img/_placeholder.svg` (a visible "SCREENSHOT
+  PENDING" panel, theme-aware) plus a `<!-- SCREENSHOT: path — why -->` comment carrying the
+  capture instruction; `bun scripts/doc-lint.ts --all --screenshots` prints the whole backlog.
+  **Image rules are warnings at every status and never block**, including under `--strict` —
+  capturing a screenshot needs somebody with the product open, so prose is not held hostage. **Deliberately not part of `bun run verify`** — ~70 draft pages are
   unfinished on purpose and would fail CI. Run it per module; revisit before launch.
+
 - **`.claude/agents/doc-reviewer.md`** — a read-only subagent that re-verifies a finished page's
   factual claims with no memory of writing it, then returns findings. Spawn it after the linter
   is clean. It never edits and never flips a status.

@@ -194,6 +194,54 @@ bite while writing a page.
   This overrides any global attribution habit.
 - Do not edit anything under `sourceRoot` — it is a read-only clone of the old site.
 
+## Visuals — every old screenshot is stale
+
+**No image from the old MkDocs docs may be reused.** They all show a UI the product has moved
+past. `convert.ts` copies them so a converted page renders, but a copied file is a placeholder
+with a misleading picture on it, not a finished visual. `bun scripts/doc-lint.ts` proves which
+ones are carry-overs by content hash — a file byte-identical to its old-docs original is stale;
+a recaptured one differs and drops out of the report on its own.
+
+So the visual work on a page is yours to _mark_, not to _finish_: capturing a real screenshot
+needs somebody with the product open. Your job is to decide **where a reader gets lost without a
+picture**, and leave an instruction precise enough that whoever captures it does not have to
+re-read the page.
+
+### Where a visual actually earns its place
+
+Mark one only where prose genuinely fails:
+
+- A setting that is hard to _find_ — several levels deep, or under a label that does not match
+  what the docs call it.
+- A screen with many controls where the reader must identify one.
+- A multi-step flow whose intermediate state cannot be described in a sentence.
+- Output whose _shape_ is the point — a graph, a trace, a diff view.
+
+Do **not** mark one for: a button whose label is already quoted in the text, anything a code
+block shows better, or decoration. A page with no visuals is fine if nothing on it is hard to
+find. Screenshots age badly, so every one you add is a maintenance debt someone inherits.
+
+### The marker
+
+Replace the stale image (or insert at the point of confusion):
+
+```md
+![Screenshot needed — Configure ▸ Seek ▸ Minimum confidence](/img/_placeholder.svg)
+
+<!-- SCREENSHOT: Configure > Seek tab, the Minimum confidence slider with its value readout.
+     Why: the control is three levels deep and its label differs from the API field name. -->
+```
+
+- `/img/_placeholder.svg` renders a visible "SCREENSHOT PENDING" panel, so the gap is honest on
+  the published site rather than a silently missing visual.
+- The alt text says what the picture will show — it is what a screen-reader user gets meanwhile.
+- The `SCREENSHOT:` comment carries the **capture path** and the **why**. `doc-lint` prints
+  these as the backlog: `bun scripts/doc-lint.ts --all --screenshots`.
+
+Image findings are **warnings at every status and never block a page**, including under
+`--strict`. A page can be correct, complete and `adopted` while its visuals are still pending —
+do not hold prose hostage to a screenshot you cannot take.
+
 ## Checking the page — the mechanical pass, then the fresh-eyes pass
 
 Two checks, in this order. They catch different things and neither replaces the other.
@@ -201,7 +249,9 @@ Two checks, in this order. They catch different things and neither replaces the 
 **1. `bun scripts/doc-lint.ts <route>`** — the deterministic pass. Leftover `MERGE:` markers and
 gap lists, in-body H1s, heading depth, hand-written `/ns-docs` prefixes, links still pointing at
 the old domain, images referenced but absent from `public/`, ` ```ntl ` fences, directive colon
-nesting, missing template sections. Severity follows the route's status: findings on an `adopted`
+nesting, missing template sections, plus the two image rules (`stale-image` for an unchanged
+old-docs carry-over, `screenshot-pending` for a placeholder still in place). Severity follows
+the route's status, except the image rules which never escalate: findings on an `adopted`
 route are errors and exit 1; on a `stub`/`auto` draft the same findings are warnings, because ~70
 draft pages are deliberately unfinished. `--strict` removes that downgrade.
 
@@ -231,7 +281,9 @@ prefix is not, unless the user explicitly asks for a batch run.
 
 A page is finished when all five hold:
 
-1. Content is correct and renders — asides, collapsibles, tables and images all display.
+1. Content is correct and renders — asides, collapsibles and tables all display, and every
+   image is either recaptured from the current product or replaced by `/img/_placeholder.svg`
+   with a `<!-- SCREENSHOT: -->` instruction. No old-docs screenshot survives unchanged.
 2. The `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment is worked through and deleted, and no
    `<!-- MERGE: -->` or `<!-- ASK: -->` marker is left behind.
 3. The page follows `planning/templates/feature-page.md` — What is it / Why it matters / When to

@@ -98,7 +98,24 @@ The linter checks the five headings exist. You check they are honest:
 - Undefined jargon on first use.
 - `description:` frontmatter that a search result or a chatbot citation could not stand alone on.
 
-### 5. Links and navigation
+### 5. Visuals — is the reader left to guess?
+
+Every screenshot in the old docs is stale by policy; `doc-lint` flags carry-overs as
+`stale-image` and pending placeholders as `screenshot-pending`. Do not re-report those counts.
+Judge the two things a script cannot:
+
+- **A missing visual.** The page documents a setting several levels deep, a crowded screen, or
+  a multi-step flow, and offers no picture and no `<!-- SCREENSHOT: -->` marker. Say where one
+  is needed and why.
+- **A pointless one.** A placeholder marked for a button whose label the text already quotes,
+  or for something a code block shows better. Screenshots age badly; an unnecessary one is a
+  maintenance cost.
+
+Also check each `<!-- SCREENSHOT: -->` instruction is _actionable_: it must name the capture
+path through the product and say why the visual is needed. "Screenshot of the Seek tab" is not
+actionable; "Configure > Seek tab, the Minimum confidence slider with its value readout" is.
+
+### 6. Links and navigation
 
 - Internal links resolve to routes that exist in the map.
 - Cross-references point somewhere useful rather than to an overview page.

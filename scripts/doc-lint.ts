@@ -10,18 +10,25 @@
  *   bun scripts/doc-lint.ts seek/overview      # one route
  *   bun scripts/doc-lint.ts --all              # every route in the map
  *   bun scripts/doc-lint.ts --all --strict     # hold drafts to the same bar
+ *   bun scripts/doc-lint.ts --all --screenshots  # only the visual backlog
  *
  * Severity depends on the route's status in scripts/migration-map.json:
  *   adopted            -> a human called this done, so findings are ERRORS (exit 1)
  *   stub / auto        -> still a draft, so the same findings are warnings (exit 0)
  *   --strict           -> no downgrade; everything is an error
  *
+ * Images never block. Every screenshot in the old MkDocs docs shows a UI the product
+ * has moved past, so a carried-over image is stale by definition — but recapturing one
+ * needs somebody with the product open, which is not the writer's turn. Both image rules
+ * are therefore warnings at every status, even under --strict.
+ *
  * That gate is why this is NOT wired into `bun run verify`: ~70 draft pages are
  * deliberately unfinished and would fail CI today. Run it by hand on the module
  * you are working on. Revisit before public launch.
  */
-import { readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -30,23 +37,76 @@ const MAP_PATH = join(ROOT, 'scripts/migration-map.json');
 const args = process.argv.slice(2);
 const all = args.includes('--all');
 const strict = args.includes('--strict');
+const screenshotsOnly = args.includes('--screenshots');
 const prefixes = args.filter((a) => !a.startsWith('--'));
 
 if (!all && prefixes.length === 0) {
 	console.error(
-		'Usage: bun scripts/doc-lint.ts <route-prefix> [...] [--strict]\n' +
-			'       bun scripts/doc-lint.ts --all [--strict]\n\n' +
+		'Usage: bun scripts/doc-lint.ts <route-prefix> [...] [--strict] [--screenshots]\n' +
+			'       bun scripts/doc-lint.ts --all [--strict] [--screenshots]\n\n' +
 			'Examples:\n' +
 			'  bun scripts/doc-lint.ts seek/\n' +
-			'  bun scripts/doc-lint.ts governance/ --strict'
+			'  bun scripts/doc-lint.ts governance/ --strict\n' +
+			'  bun scripts/doc-lint.ts --all --screenshots   # just the visual backlog'
 	);
 	process.exit(1);
 }
 
-const map: { routes: Record<string, any> } = JSON.parse(readFileSync(MAP_PATH, 'utf8'));
+const map: { sourceRoot: string; routes: Record<string, any> } = JSON.parse(
+	readFileSync(MAP_PATH, 'utf8')
+);
+const staleHashes = oldDocsImageHashes(map.sourceRoot);
 
 /** The five sections of planning/templates/feature-page.md. */
 const CONTRACT_SECTIONS = ['What is it', 'Why it matters', 'When to use it', 'How it works', 'FAQ'];
+
+/**
+ * The visible "screenshot pending" graphic. A page referencing it is honest about a gap
+ * rather than silently missing a visual — see the SCREENSHOT marker convention in
+ * .claude/skills/neuraldocs-writer/references/page-contract.md.
+ */
+const PLACEHOLDER = '/img/_placeholder.svg';
+
+/**
+ * Every image in the old docs, by content hash.
+ *
+ * convert.ts copies images with copyFileSync, so a file under public/img that is
+ * byte-identical to one in the old docs was carried over untouched and therefore shows
+ * the old UI. A recaptured screenshot differs, so it drops out of this set on its own —
+ * no manifest, no marker, nothing to keep in sync.
+ */
+function oldDocsImageHashes(sourceRoot: string): Set<string> {
+	const hashes = new Set<string>();
+	const IMG = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']);
+	const walk = (dir: string) => {
+		let entries: string[];
+		try {
+			entries = readdirSync(dir);
+		} catch {
+			return;
+		}
+		for (const name of entries) {
+			const full = join(dir, name);
+			let s;
+			try {
+				s = statSync(full);
+			} catch {
+				continue;
+			}
+			if (s.isDirectory()) walk(full);
+			else if (IMG.has(extname(name).toLowerCase()))
+				hashes.add(createHash('sha1').update(readFileSync(full)).digest('hex'));
+		}
+	};
+	if (existsSync(sourceRoot)) walk(sourceRoot);
+	return hashes;
+}
+
+/**
+ * Image work needs somebody with the product open, which is not the writer's turn, so
+ * these never block a page — not even under --strict. They are tracked, not gated.
+ */
+const IMAGE_RULES = new Set(['screenshot-pending', 'screenshot-todo', 'stale-image']);
 
 type Level = 'error' | 'warn';
 type Finding = { level: Level; line: number; rule: string; message: string };
@@ -105,6 +165,17 @@ function lintPage(status: string, raw: string, findings: Finding[]) {
 				line: at(i),
 				rule: 'merge-marker',
 				message: 'unresolved MERGE marker — fold the sources together, then delete it',
+			});
+
+		if (line.startsWith('<!-- SCREENSHOT:'))
+			findings.push({
+				level: 'warn',
+				line: at(i),
+				rule: 'screenshot-todo',
+				message: line
+					.replace(/^<!--\s*SCREENSHOT:\s*/, '')
+					.replace(/\s*-->\s*$/, '')
+					.trim(),
 			});
 
 		if (line.startsWith('<!-- STILL TO DOCUMENT'))
@@ -218,14 +289,35 @@ function lintPage(status: string, raw: string, findings: Finding[]) {
 			message: `shallowest heading is h${shallowest} — promote to h2 or the TOC renders empty`,
 		});
 
-	for (const img of images)
-		if (!existsSync(join(ROOT, 'public', img.path.replace(/^\//, ''))))
+	for (const img of images) {
+		if (img.path === PLACEHOLDER) {
+			findings.push({
+				level: 'warn',
+				line: img.line,
+				rule: 'screenshot-pending',
+				message: 'placeholder still in place — capture the real screenshot',
+			});
+			continue;
+		}
+		const abs = join(ROOT, 'public', img.path.replace(/^\//, ''));
+		if (!existsSync(abs)) {
 			findings.push({
 				level: 'error',
 				line: img.line,
 				rule: 'missing-image',
 				message: `public${img.path} does not exist`,
 			});
+			continue;
+		}
+		// Byte-identical to an old-docs image => carried over, so it shows the old UI.
+		if (staleHashes.has(createHash('sha1').update(readFileSync(abs)).digest('hex')))
+			findings.push({
+				level: 'warn',
+				line: img.line,
+				rule: 'stale-image',
+				message: `${img.path} is the old-docs file unchanged — recapture, or swap for ${PLACEHOLDER}`,
+			});
+	}
 
 	// A stub is a generated placeholder by definition — holding it to the page
 	// contract would print the same warning on 121 routes and drown the real ones.
@@ -276,19 +368,21 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 
 	// A draft is allowed to be unfinished; "adopted" means a human called it done.
 	const adopted = info.status === 'adopted';
-	const level = (f: Finding): Level => (adopted || strict ? f.level : 'warn');
+	const level = (f: Finding): Level =>
+		IMAGE_RULES.has(f.rule) ? 'warn' : adopted || strict ? f.level : 'warn';
 
-	if (!findings.length) {
+	const shown = screenshotsOnly ? findings.filter((f) => IMAGE_RULES.has(f.rule)) : findings;
+	if (!shown.length) {
 		clean++;
 		continue;
 	}
-	const e = findings.filter((f) => level(f) === 'error').length;
-	const w = findings.length - e;
+	const e = shown.filter((f) => level(f) === 'error').length;
+	const w = shown.length - e;
 	errors += e;
 	warnings += w;
 
 	report.push(`\n${rel}  [${info.status}${adopted ? '' : ' — draft, warnings only'}]`);
-	for (const f of findings.sort((a, b) => a.line - b.line))
+	for (const f of shown.sort((a, b) => a.line - b.line))
 		report.push(
 			`  ${level(f) === 'error' ? 'ERROR' : 'warn '} ${String(f.line).padStart(4)}  ${f.rule.padEnd(18)} ${f.message}`
 		);
@@ -296,7 +390,8 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 
 if (report.length) console.log(report.join('\n'));
 console.log(
-	`\nclean: ${clean}, errors: ${errors}, warnings: ${warnings}` +
+	(screenshotsOnly ? '\nVisual backlog only (--screenshots).' : '') +
+		`\nclean: ${clean}, errors: ${errors}, warnings: ${warnings}` +
 		(errors
 			? '\nErrors are on routes marked "adopted" — a human called those done.'
 			: strict
