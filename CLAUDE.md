@@ -293,6 +293,39 @@ porting a page: `!!!` admonitions (→ `:::` asides), `???` collapsibles (→ `<
 links hardcoded to `documentation.neuralseek.com`, NTL code fences (no Shiki grammar), and
 in-body H1s that would double with Starlight's auto-title.
 
+## Migration status
+
+**Structure is complete; content is the remaining work.** 151 routes exist, are in the sidebar
+and build. They split in two halves:
+
+- **76 routes have an old MkDocs page** to convert. `bun scripts/convert.ts <prefix>` does the
+  mechanical part; a human finishes it.
+- **75 routes have nothing to migrate** and must be written with the product open — MCP, a2a,
+  NeuralEdit, Run Agents, the dashboards, API keys, permissions, Red Team Testing, most of
+  Neural Config. This is the bigger half.
+
+**The gap audit lives in the repo, not in chat.** Every route in `scripts/migration-map.json`
+can carry a `gaps` array listing the undocumented product surfaces that route must cover; 96
+routes have one. `gen-stubs.ts` renders it as a visible "To document on this page" worklist,
+`convert.ts` as an invisible `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment.
+
+**`status` is load-bearing.** `stub` is overwritten by `bun run stubs`, `auto` is overwritten by
+`bun scripts/convert.ts`, and **`adopted` is never touched by either**. Flip a route to
+`adopted` the moment you start hand-editing it or the next run erases the work — but convert
+first and flip second, because `convert.ts` skips a route that is already `adopted`.
+
+Open items that affect anyone touching content:
+
+- **The NTL doc generator is broken** — it stopped detecting nodes. Fixing it auto-emits 103 of
+  the 112 NTL node gaps, so NTL node pages should not be hand-written until it is resolved.
+- **NTL has no Shiki grammar**, so `convert.ts` rewrites ` ```ntl ` to ` ```text ` to keep the
+  build clean. A grammar reportedly exists and could be ported.
+- **Every old-docs screenshot is stale** — see the `doc-lint.ts` visual backlog below.
+- **~70 draft pages are publicly visible** on the deployed site, each listing what it is
+  missing. Fine while the site is unannounced; decide before launch.
+- **`src/content/docs/styleguide.mdx` must be deleted before public launch.** It is the
+  branding verification kitchen-sink, not a documentation page.
+
 ## The `neuraldocs-writer` skill
 
 `.claude/skills/neuraldocs-writer/` — a Claude Code skill holding the writing workflow for this
@@ -313,7 +346,8 @@ Two committed pieces work with it:
   markers, in-body H1s, heading depth, hand-written `/ns-docs` prefixes, old-domain links,
   missing images, ` ```ntl ` fences, directive colon nesting, missing template sections.
   Severity follows the route's `status`: errors on `adopted`, warnings on drafts, `--strict`
-  removes the downgrade.
+  removes the downgrade. **Deliberately not part of `bun run verify`** — ~70 draft pages are
+  unfinished on purpose and would fail CI. Run it per module; revisit before launch.
 
   It also owns the **visual backlog**. Every old-docs screenshot is stale — the product moved
   past that UI — so a copied image is a placeholder with a misleading picture on it. The script
@@ -324,8 +358,7 @@ Two committed pieces work with it:
   PENDING" panel, theme-aware) plus a `<!-- SCREENSHOT: path — why -->` comment carrying the
   capture instruction; `bun scripts/doc-lint.ts --all --screenshots` prints the whole backlog.
   **Image rules are warnings at every status and never block**, including under `--strict` —
-  capturing a screenshot needs somebody with the product open, so prose is not held hostage. **Deliberately not part of `bun run verify`** — ~70 draft pages are
-  unfinished on purpose and would fail CI. Run it per module; revisit before launch.
+  capturing a screenshot needs somebody with the product open, so prose is not held hostage.
 
 - **`.claude/agents/doc-reviewer.md`** — a read-only subagent that re-verifies a finished page's
   factual claims with no memory of writing it, then returns findings. Spawn it after the linter
@@ -333,4 +366,6 @@ Two committed pieces work with it:
 
 All three are committed, so the same bar applies to every module.
 
-> Roadmap, phase status, and current priorities live in `CLAUDE.local.md` (gitignored, private).
+> Anything that cannot go in a public repo — team assignments, personal task notes, internal
+> plans and status — lives in `_private/` (gitignored). Nothing in this file should name a
+> person or restate what is in there.

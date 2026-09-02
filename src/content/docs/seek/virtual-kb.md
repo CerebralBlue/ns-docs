@@ -1,35 +1,50 @@
 ---
-title: "Virtual KB"
-description: "Discover mAIstro's Virtual KnowledgeBase, a powerful tool to unify multiple knowledge sources for enhanced search and discovery. Learn to configure and expand your Virtual KB for flexible, scalable solutions."
+title: 'Virtual KB'
+description: 'Use a mAIstro flow as a KnowledgeBase, so Seek can answer from web search, REST APIs, databases or several sources at once instead of one indexed corpus.'
 ---
 
-## Overview
+## What is it
 
-**What is it?**
+A Virtual KB is a mAIstro flow used as a KnowledgeBase. Instead of pointing NeuralSeek at one
+indexed corpus, you build a flow that fetches content — from a web search, a REST API, a
+database, or several of these together — and hand what it returns back to Seek for answer
+generation.
 
-- Virtual KB is a feature in mAIstro that allows you to define a flow and use it as a virtual knowledge base. This feature enables you to combine multiple knowledge sources into a single, unified knowledge base, providing a more comprehensive and flexible solution for your information retrieval needs.
+The flow sits between the two RAG Tools nodes: **Virtual KB - In** receives the query, and
+**Virtual KB - Out** returns the passages Seek will use.
 
-**Why is it important?**
+## Why it matters
 
-- A Virtual KB enhances your application's search and discovery by integrating multiple knowledge sources, delivering more comprehensive and relevant results. It offers flexibility and scalability, allowing you to easily adjust the knowledge sources as your needs change.
+Some knowledge cannot be indexed ahead of time. It lives behind an API, changes hourly, or sits
+in a system nobody is going to export into a search index. A Virtual KB reaches it at query time.
 
-**How does it work?**
+It also lets one KnowledgeBase span several sources at once, so an answer can be synthesized
+across a web search and your own documentation in a single Seek.
 
-- Virtual KB allows you to connect and integrate various knowledge sources, such as databases, content management systems, and external APIs, into a single virtual knowledge base. Begin by building a flow in mAIstro utilizing our variety of native functions and connectors or reference our Virtual KB example template for an easy guide on configuring a Virtual KB. 
+The trade-off follows from the mechanism: the flow runs at query time, so answers depend on
+external calls completing. Weigh that against an indexed KnowledgeBase, which has already done
+its retrieval work before the question arrives.
 
-## Example Template in mAIstro
+## When to use it
 
-1. Navigate to the mAIstro tab in your NeuralSeek instance.
-2. Click on Example Templates, and search for the template titled **Virtual KB**. 
+- The source is an API or a live website rather than a document set.
+- Content changes faster than an index can be rebuilt.
+- You want several sources combined into one KnowledgeBase.
+- You need to filter, reshape or enrich results before Seek sees them — which the flow can do,
+  because it is a full mAIstro flow.
 
-![image](/img/seek/virtual-kb/virtualKB_selectExTemp.png)
-![image](/img/seek/virtual-kb/virtualKB_selectVirtualKBtemplate.png)
+## How it works
 
-This flow utilizes the **Virtual In** and **Virtual Out** nodes, located underneath RAG Tools on the sidebar menu. It passes a DuckDuckGo Search connector and a Rest API connector with a Wikipedia URL to the Large Language Model for answer generation within the Seek tab. We are now able to utilize the World Wide Web as a knowledge source for answer generation.
+### Start from the example template
 
-![image](/img/seek/virtual-kb/virtualKB_mAIstroVisual.png)
+1. Go to the **mAIstro** tab in your NeuralSeek instance.
+2. Open **Example Templates** and search for **Virtual KB**.
 
-```
+The template uses the **Virtual In** and **Virtual Out** nodes, found under **RAG Tools** in the
+sidebar. It passes a DuckDuckGo Search connector and a REST API connector pointed at Wikipedia
+to the LLM for answer generation, which makes the open web the knowledge source.
+
+```text
 {{ virtualKbIn  }}
 {{ duckSearch  | query: "<< name: virtualKbIn.contextQuery>>" }}=>{{ variable  | name: "parallelDuckRaw" }}
 {{ post  | url: "https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=<< name: virtualKbIn.contextQuery, prompt: true >>" | body: "" | headers: "" | username: "" | password: "" | apikey: "" | operation: "POST" | jsonToVars: "true" }}=>{{ varsToJSON  | path: "query.search" | variable: "s1" | includePath: "false" | output: "true" }}=>{{ arrayFilter  | filter: "0-3" | filterType: "IndexRange" }}=>{{ reMapJSON  | match: "title" | replace: "document" }}=>{{ reMapJSON  | match: "snippet" | replace: "passage" }}=>{{ regex  | match: "/(\"document\":\")([^\"]+)/g" | replace: "$1$2\",\"url\":\"https://en.wikipedia.org/wiki/$2" | group: "" }}=>{{ regex  | match: "/^\[/" | replace: "" | group: "" }}=>{{ regex  | match: "/<\/?span.*?>/g" | replace: "" | group: "" }}=>{{ variable  | name: "wikipedia" }}
@@ -42,82 +57,67 @@ This flow utilizes the **Virtual In** and **Virtual Out** nodes, located underne
 },<< name: wikipedia, prompt: false >>" | kbCoverage: 0 | kbScore: 0 | url: "<< name: url >>" | document: "" }}
 ```
 
-## Selecting a Virtual KB
+### Point the KnowledgeBase at it
 
-1. Navigate to the Configure tab in your NeuralSeek instance.
+1. Go to the **Configure** tab.
 2. Expand the **KnowledgeBase Connection** accordion.
-3. For KnowledgeBase Type, select the **Virtual KB** option.
-4. For mAIstro Virtual KB template, select the **ex_Virtual_KB** option.
-5. Click the red Save icon at the bottom of the screen to save your configuration. 
+3. Set **KnowledgeBase Type** to **Virtual KB**.
+4. Set **mAIstro Virtual KB template** to your flow — `ex_Virtual_KB` for the example template.
+5. Select the red **Save** icon at the bottom of the screen.
 
-![image](/img/seek/virtual-kb/virtualKB_selectKB.png)
-![image](/img/seek/virtual-kb/virtualKB_selectTemplate.png)
-![image](/img/seek/virtual-kb/virtualKB_saveConfig.png)
+### Seek against it
 
-## Seek With a Virtual KB
+Go to the [Seek tab](/seek/overview/), ask a question and select **Seek**. Ask "Who is Taylor Swift?" against
+the example template and the answer is synthesized from both the DuckDuckGo and Wikipedia
+results; the semantic analysis reports the jumps between source articles, and coverage comes back
+high — 99% in the documented run — because Wikipedia carries so much on the subject.
 
-1. Navigate to the Seek tab in your NeuralSeek instance.
-2. Type in any question. For example, **Who is Taylor Swift?**
-3. Click the Seek button to generate an answer. 
+Expand **KnowledgeBase Context** under the answer to see each source individually. The provenance
+highlights show which keywords and phrases were taken from which source.
 
-As we review the answer generated, we can highlight over the statistical details and source brought back by NeuralSeek. The response is synthesized from a combination of DuckDuckGo and Wikipedia searches related to the singer. Our semantic analysis tells us about the varying jumps between source articles. Considering there is vast information on Wikipedia about Taylor Swift, we also receive a 99% KB Coverage score back. 
- 
-By expanding the sources below, we can examine each one in detail. The provenance highlights indicate the specific keywords and phrases drawn from each source to form the final response.
+![Screenshot needed — a Seek answer with KnowledgeBase Context expanded, showing each Virtual KB source separately](/img/_placeholder.svg)
 
-![image](/img/seek/virtual-kb/virtualKB_seek.png)
-![image](/img/seek/virtual-kb/virtualKB_seekStats.png)
+<!-- SCREENSHOT: A Seek result against a Virtual KB with the KnowledgeBase Context section
+     expanded, so the per-source passages and the provenance highlights are both visible.
+     Why: the value of a Virtual KB is seeing which source contributed which sentence — that is
+     the shape of the output, and prose cannot show it. -->
 
-## Expanding Your KnowledgeBase
+## Building your own flow
 
-Ultimately, you can connect virtually any knowledge source to your NeuralSeek instance for answer generation via the Virtual KB connectors in mAIstro. You can choose from a variety of built-in database connectors, KnowelgeBase connectors, or Web Search connectors. Or, connect to any additional source via our Rest API connector node. 
+Any source reachable from mAIstro can back a Virtual KB: the built-in database, KnowledgeBase and
+web-search connectors, or anything else through the REST API connector node.
 
-#### Building a Flow
+1. Go to **mAIstro** and select the **Virtual KB - In** node, under **RAG Tools**. It exposes
+   several variables for use inside the flow, including `virtualKbIn.contextQuery`.
+2. Select the **Website Data** node under **Get Data**. It links below the first node
+   automatically.
+3. Select the gear icon and enter a URL — here, a Google search:
+   `https://www.google.com/search?gfns=1&q=<< name: virtualKbIn.contextQuery>>`
+4. Select the **Set Variable** node under **Control Flow**, drag it to the right of the Website
+   Data node to chain it, then set the variable name with the gear icon — `google` in this
+   example.
+5. Add a second **Website Data** node with another URL — `https://documentation.neuralseek.com/`
+   in this example — and chain a second **Set Variable** to it, named `docs`. That adds the
+   NeuralSeek documentation as a second reference source, pulled statically from the site.
+6. Select the **Virtual KB - Out** node under **RAG Tools**. Use the gear icon to define the
+   passage piped back into Seek — here, `<< name: google >>\n<< name: docs >>`. You can also
+   preset `kbCoverage`, `kbScore`, `url` and the document name — `Virtual KB` in this example.
+7. Save the flow with a unique name, `websiteKB` in this example, then point the KnowledgeBase
+   Connection at it as above.
 
-1. Navigate to mAIstro in your NeuralSeek Instance.
-2. Select the **Virtual KB - In** node from the sidebar menu under RAG Tools. 
+`virtualKbIn.contextQuery` is what carries the user's query into the fetch, so the search runs
+against what was actually asked. Because the two fetches are separate steps rather than a chain,
+this flow pulls both sites at once on each Seek.
 
-This node gives you several variables to use inside of your flow. 
+![Screenshot needed — the finished websiteKB flow on the mAIstro canvas](/img/_placeholder.svg)
 
-![image](/img/seek/virtual-kb/virtualKB_addKBin.png)
+<!-- SCREENSHOT: The completed websiteKB flow on the mAIstro canvas — the two Website Data →
+     Set Variable chains sitting between Virtual KB - In and Virtual KB - Out.
+     Why: step 4 is a canvas gesture ("drag it to the right to chain it") and the layout of the
+     nodes is what determines whether fetches run in parallel or in sequence. Prose cannot show
+     either. -->
 
-3. Select the **Website Data** node from the sidebar menu under Get Data. This will automatically link below your first node.
-4. Click the gear icon to input any valid URL. In this example, we are connecting to a Google search: `https://www.google.com/search?gfns=1&q=<< name: virtualKbIn.contextQuery>>`
-5. Select the **Set Variable** node from the sidebar menu under Control Flow. 
-6. Click and drag the Set Variable node to the right of the Website Data node to chain it. 
-7. Click the gear icon to set the variable name. In this example, the variable name is `google`. 
-
-The addition of the variable **virtualKbIn.contextQuery** allows the context of the user's query to be dynamically carried forward in the Google search. 
-
-![image](/img/seek/virtual-kb/virtualKB_addWeb1.png)
-![image](/img/seek/virtual-kb/virtualKB_addVar1.png)
-
-8. Select a second **Website Data** node. 
-9. Click the gear icon to input any additional URL. In this example, we are connecting to NeuralSeek's documentation page: `https://documentation.neuralseek.com/`
-10. Select the **Set Variable** node from the sidebar menu under Control Flow. 
-11. Click and drag the Set Variable node to the right of the second Website Data node to chain it. 
-12. Click the gear icon to set the variable name. In this example, the variable name is `docs`.
-
-We have added the NeuralSeek documentation as a second source of reference for our KnowledgeBase and are performing a static pull of the website's information.
-
-![image](/img/seek/virtual-kb/virtualKB_addWeb2.png)
-![image](/img/seek/virtual-kb/virtualKB_addVar2.png)
-
-13. Select the **Virtual KB - Out** node from the sidebar menu under RAG Tools. 
-14. Click the gear icon to configure the information to be piped back into Seek. In this example, we want to define the passage by including the variable names: `<< name: google >>\n<< name: docs >>`. 
-15. Additionally, we can preset the kbCoverage, kbScore, url, and document name. In this example, we define the document name as `Virtual KB`. 
-16. Save your mAIstro flow with a unique name and optional description. In this example, the name is `websiteKB`.
-
-Both of the websites will now be pulled live every time a Seek comes in. The information scraped from the sites will come out dynamically and in parallel, then plugged back into the Seek process for answer generation.
-
-:::note
-While we use a single, concatenated document here for the sake of simplicity, it is possible to split this into multiple documents. Simply build a JSON object with an array of document objects containing properties: document (title), url, score, and passage.
-:::
-
-![image](/img/seek/virtual-kb/virtualKB_addKBout.png)
-![image](/img/seek/virtual-kb/virtualKB_finalBuild.png)
-![image](/img/seek/virtual-kb/virtualKB_saveNewFlow.png)
-
-```
+```text
 
 {{ virtualKbIn  }}
 {{ web  | url: "https://www.google.com/search?gfns=1&q=<< name: virtualKbIn.contextQuery>>" }}=>{{ variable  | name: "google" }}
@@ -126,23 +126,34 @@ While we use a single, concatenated document here for the sake of simplicity, it
 
 ```
 
-#### Configuring a Virtual KB
+:::note
+This example concatenates everything into a single document for simplicity. To return several
+documents instead, build a JSON object containing an array of document objects, each with
+`document` (the title), `url`, `score` and `passage`.
+:::
 
-1. Navigate to the Configure tab in your NeuralSeek instance.
-2. Expand the **KnowledgeBase Connection** accordion.
-3. For KnowledgeBase Type, select the **Virtual KB** option.
-4. For mAIstro Virtual KB template, select the **websiteKB** option.
-5. Click the red Save icon at the bottom of the screen to save your configuration. 
+Point the KnowledgeBase Connection at `websiteKB` and seek again — "Does NeuralSeek provide a
+Hands-On Lab?" is the documented example. Expanding **KnowledgeBase Context** now shows which part
+of the answer came from the Google search and which came from the documentation URL.
 
-![image](/img/seek/virtual-kb/virtualKB_saveNewConfig.png)
+## FAQ
 
-#### Seek with a Virtual KB
+### How do I see which source an answer came from?
 
-1. Navigate to the Seek tab in your NeuralSeek instance.
-2. Type in any question. For example, **Does NeuralSeek provide a Hands-On Lab?**
-3. Click the Seek button to generate an answer. 
+Expand **KnowledgeBase Context** under the answer in the Seek tab. Each Virtual KB source appears
+separately, with provenance highlights showing what was drawn from it.
 
-We can expand the Virtual KB source underneath KnowledgeBase Context and view which information was pulled from the Google Search and which was pulled from our NeuralSeek Documentation URL to generate the answer.
+### Can a Virtual KB return more than one document?
 
-![image](/img/seek/virtual-kb/virtualKB_seekNewBuild.png)
-![image](/img/seek/virtual-kb/virtualKB_seekNewContext.png)
+Yes. Return a JSON array of document objects from **Virtual KB - Out**, each with `document`,
+`url`, `score` and `passage`. Returning one concatenated passage is only the simplest case.
+
+### Does a Virtual KB fetch on every question?
+
+The flow runs when a Seek needs it, which is what keeps the content current — and what makes an
+unreliable source visible in answer latency. Whether the [caches](/seek/caching/) can serve an
+answer without running the flow at all is not documented; treat "every Seek" as the worst case
+when sizing.
+
+Whether fetches inside a flow run at once or one after another depends on how you built it:
+separate steps run together, a chain with `=>` runs in order.

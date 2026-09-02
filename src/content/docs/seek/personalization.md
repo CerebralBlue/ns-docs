@@ -1,23 +1,57 @@
 ---
-title: "Personalization"
-description: "Discover how NeuralSeek's Dynamic Personalization leverages CRM data to tailor results, boosting user engagement and satisfaction."
+title: 'Personalization'
+description: 'Adjust Seek answers per user from CRM data you pass on the request — what Dynamic Personalization changes, and when it is worth turning on.'
 ---
 
-**What is it?**
+## What is it
 
-- One way NeuralSeek quickly ties into the users business is by automatically personalizing results based on information from their Customer Relationship Management (CRM) system. By analyzing user data such as past interactions, preferences, purchase history, and demographic information, NeuralSeek can dynamically adjust its outputs to match the specific needs and preferences of each individual user.
+Dynamic Personalization adjusts the answer NeuralSeek generates using information about the
+person asking. You supply that information — typically from your CRM: past interactions,
+preferences, purchase history, demographics — and NeuralSeek shapes the response around it
+rather than answering the same way for everyone.
 
-**Why is it important?**
+It changes how an answer is written for a given user. It does not change which documents are
+searched; that is [Dynamic filters](/seek/dynamic-filters/).
 
-- Personalized answers tend to engage users more, and can result in higher satisfaction and containment.
+## Why it matters
 
-**How does it work?**
+A generic answer is correct and still unhelpful. A customer on an enterprise plan asking about
+limits does not want the free-tier number, and a returning buyer does not want to be told what
+they already own. Personalized answers hold attention better, which shows up as higher
+satisfaction and higher containment — fewer conversations escalating to a human.
 
-- This can be previewed in the Seek tab of the NeuralSeek UI, and in production environments users will pass the personalization details via our API as the REST call to when /seek is made.
+It is the wrong thing to reach for if you have no per-user data to pass. Personalization is
+driven entirely by what you send on the request; with nothing to send, it has nothing to work
+with and you gain only the overhead.
 
-<!-- STILL TO DOCUMENT ON THIS PAGE:
-  - Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced)
-  - Personalization agent — the agent that adjusts answers using the personalization details
-  - Its NTL surface: the Personalization In/Out node pair (cross-link maistro/ntl/pipeline-hooks)
-  - Its test surface: the Seek > Personalize modal
--->
+## When to use it
+
+- You already hold user context in a CRM and can attach it to the request.
+- Answers differ by plan, entitlement, region or purchase history.
+- You are trying to raise containment on a support surface where the generic answer is
+  technically right but not actionable for the person reading it.
+
+## How it works
+
+You can preview personalization in the **Seek** tab of the NeuralSeek console, which is the
+fastest way to see how a given user's details change an answer before any integration work.
+
+In production you pass the personalization details on the REST call to `/seek`. The values ride
+with the request, so they can be different on every call — nothing is stored against a user
+between requests.
+
+The pipeline surface is a **Personalization In/Out** node pair, which is what lets an agent read
+and rewrite the personalization payload as it passes through. See
+[Pipeline hooks](/maistro/ntl/pipeline-hooks/).
+
+## FAQ
+
+### Where does the personalization data come from?
+
+From you. NeuralSeek does not connect to your CRM by itself — you read the user's details from
+whatever system holds them and attach them to the `/seek` request.
+
+### Can I try it without writing any integration code?
+
+Yes. The Seek tab previews it in the console, so you can see the effect on real answers before
+deciding whether the integration is worth building.

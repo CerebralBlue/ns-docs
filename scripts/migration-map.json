@@ -58,7 +58,7 @@
       "title": "Seek overview",
       "sources": ["ui/seek/index.md"],
       "action": "rewrite",
-      "status": "auto",
+      "status": "adopted",
       "gaps": [
         "KnowledgeBase Context accordions — the passage used from each source document",
         "Trained Answers panel — signals a curated answer was served instead of a fresh generation",
@@ -73,19 +73,19 @@
       "title": "Tuning answers",
       "sources": ["guides/data/tuning_guide/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "adopted"
     },
     "seek/virtual-kb": {
       "title": "Virtual KB",
       "sources": ["guides/data/virtual_kb/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "adopted"
     },
     "seek/dynamic-filters": {
       "title": "Dynamic filters",
       "sources": ["guides/data/dynamic_filters/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "adopted"
     },
     "seek/conversational-context": {
       "title": "Conversational context",
@@ -94,19 +94,19 @@
         "guides/integration/providing_context/index.md"
       ],
       "action": "merge",
-      "status": "auto"
+      "status": "adopted"
     },
     "seek/caching": {
       "title": "Caching",
       "sources": ["features/caching/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "adopted"
     },
     "seek/personalization": {
       "title": "Personalization",
       "sources": ["features/dynamic_pers/index.md"],
       "action": "keep",
-      "status": "auto",
+      "status": "adopted",
       "gaps": [
         "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced)",
         "Personalization agent — the agent that adjusts answers using the personalization details",
@@ -118,7 +118,7 @@
       "title": "Answer curation",
       "sources": ["ui/curate/index.md", "features/answer_curation/index.md"],
       "action": "merge",
-      "status": "auto",
+      "status": "adopted",
       "gaps": [
         "Delete user data — the bulk GDPR/CCPA erasure path",
         "Delete and Regenerate Responses for an intent",
@@ -134,7 +134,7 @@
       "title": "Chat client",
       "sources": ["ui/chat/index.md"],
       "action": "rewrite",
-      "status": "auto",
+      "status": "adopted",
       "gaps": [
         "Edit Configuration — chat against a specific configuration or category; this is how routing is tested",
         "Rename Chat and running several test conversations side by side"

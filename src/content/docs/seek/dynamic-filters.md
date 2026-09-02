@@ -1,315 +1,186 @@
 ---
-title: "Dynamic filters"
-description: "Explore NeuralSeek's Dynamic Filters to refine document searches with precision using DQL. Learn setup, application, and examples for real-time query adjustments without altering core datasets."
+title: 'Dynamic filters'
+description: 'Dynamic Query Language (DQL) — the filter syntax that narrows which KnowledgeBase documents a Seek query can draw on, where to enable it, and the full operator reference.'
 ---
 
-## Overview
+## What is it
 
-**What is it?**
+Dynamic Query Language (DQL) is a rule- and operator-based filter syntax for narrowing which
+documents a query is allowed to draw on. You write a filter expression, NeuralSeek interprets it
+at query time, and the search runs against the reduced set — without changing the underlying
+data.
 
-- Dynamic Query Language (DQL) is a system for defining flexible, operator and rule-based filters that refine document results based on specific criteria. This interprets filter expressions, enabling real-time adjustments to document queries without modifying the core dataset.
+NeuralSeek translates DQL into whatever query format the connected KnowledgeBase understands, so
+a KnowledgeBase with no filter syntax of its own can still be filtered. Dynamic filtering is
+supported on **Watson Discovery**, **watsonx Discovery**, **Elasticsearch** and — for some
+operators — **Kendra**. It is not available on every KnowledgeBase type.
 
-**Why is it important?**
+## Why it matters
 
-- Dynamic filters empower users to refine document searches using DQL operators. This allows for more precise queries by narrowing document results to specific groups or areas without being limited to filtering by one singular metadata property in a very rigid manner (exact matches). DQL allows you to filter by many or few facets as needed.
+Filtering by a single metadata property with an exact match is rigid: one field, one value, no
+combinations. DQL lets you filter on as many or as few facets as you need, combine them with AND
+and OR, compare dates and numbers, and test whether a field exists at all.
 
-**How does it work?**
+It restricts *which documents* are searched. To change *how the answer is written* for a given
+user, see [Personalization](/seek/personalization/) instead.
 
-- NeuralSeek converts DQL into the correct query format for the connected KnowledgeBase (KB), allowing support for DQL even on KBs that do not natively support it.
+## When to use it
 
----
+- Restricting answers to a department, region, product line or document type.
+- Excluding drafts, superseded revisions or anything past a cut-off date.
+- Filtering on nested metadata, where the field lives inside a JSON structure.
+- Any query where the right documents exist but the wrong ones keep winning.
 
-## Setting up Dynamic Filters
+## How it works
 
-To use dynamic filter capabilities within NeuralSeek, we need to configure `DQL_Pushdown` as follows:
+### Enable DQL on the KnowledgeBase connection
 
-1. Navigate to the **Configuration** tab in the **KnowledgeBase Connection** section.
+1. Go to the **Configure** tab, **KnowledgeBase Connection** section.
+2. In the **Filter Field** drop-down, select `DQL_Pushdown`.
 
-   ![Configuration Knowledge Base](/img/seek/dynamic-filters/config_knowledge.png)
+Filters passed from the Seek tab, from a mAIstro `KB Search` node, or on the API's `filter`
+parameter are now interpreted as DQL.
 
-2. In the **Filter Field** drop-down, select the `DQL_Pushdown` option. This enables queries to include dynamic filters.
+![Screenshot needed — the Filter Field drop-down in KnowledgeBase Connection, set to DQL_Pushdown](/img/_placeholder.svg)
 
-   ![DQL Pushdown](/img/seek/dynamic-filters/dql_pushdown.png)
+<!-- SCREENSHOT: Configure > KnowledgeBase Connection with the Filter Field drop-down open and
+     DQL_Pushdown selected.
+     Why: it sits low in a dense two-column form with no nearby heading, and it is the setting
+     that gates the whole feature — a filter silently does nothing until it is set. -->
 
-You can now pass dynamic filter language through the filter parameters available.
-
-:::caution[Elasticsearch and watsonx Discovery users]
-Please note that due to the tokenization method that Elasticsearch uses, dynamic filters will not always work as expected on properties that are not of type `keyword`. For best results, set up your index to either have important types as `keyword` or have a duplicate nested property that is type `keyword` for use with dynamic filters.
+:::caution[Elasticsearch and watsonx Discovery]
+Because of the way Elasticsearch tokenizes, dynamic filters do not always behave as expected on
+properties that are not of type `keyword`. Either set the important fields to `keyword` in your
+index, or add a duplicate nested property of type `keyword` for filtering to use.
 :::
 
-#### Applying filters in Seek
+### Applying a filter
 
-1. Navigate to the Seek tab.
+**In Seek** — open the [Seek tab](/seek/overview/), select the filter icon in the toolbar beside
+**Seek** and **Personalize**, enter your DQL string in **Filter Text**, and select **Save**. The
+filter is not applied until you save it.
 
-2. Find the "filters" button (highlighted by the red arrow)
+![Screenshot needed — the filter icon in the Seek toolbar and the Filter modal it opens](/img/_placeholder.svg)
 
-3. Input your DQL filter string.
+<!-- SCREENSHOT: The Seek tab's toolbar with the funnel icon called out, and the Filter modal it
+     opens — the Filter Text field with its Clear and Save buttons visible.
+     Why: it is an unlabelled funnel icon on a busy toolbar, so prose cannot make it findable,
+     and the Save step is easy to miss. -->
 
-![seek filters](/img/seek/dynamic-filters/seek_filters.png)
+**In mAIstro** — add the filter to the `KB Search` node, in its **The KnowledgeBase filter**
+field. The NTL reference calls the same node **KB Documentation**.
 
-#### Applying filters in mAIstro
+**Through the API** — pass the filter string, plain or DQL, as the `filter` parameter of the Seek
+API call.
 
-1. Locate the `KB Search` node in mAIstro.
+### Value types
 
-2. You can now begin adding filters to query the KnowledgeBase effectively.
+The parser distinguishes numbers, booleans and strings, and accepts a deliberately blank value:
 
-![KB Search Example](/img/seek/dynamic-filters/kb_search_example.png)
+| Expression | Type |
+| --- | --- |
+| `age::25` | number |
+| `age::"25"` | string |
+| `available::true` | boolean |
+| `available::"true"` | string |
+| `value::""` | intentionally blank |
 
-#### Applying filters via the API
+### Worked examples
 
-Simply pass the regular or DQL filter string as the `filter` parameter of the Seek API call.
+Given this document:
 
-![api filter](/img/seek/dynamic-filters/api_filter.png)
+```json
+{
+	"document_id": "doc_001",
+	"section_name": "Overview",
+	"content": {
+		"title": "NeuralSeek Use Cases Overview",
+		"text": "An introductory guide to NeuralSeek use cases, focusing on application and benefits.",
+		"date_created": "2023-02-15"
+	},
+	"author": "NeuralSeek Bot"
+}
+```
 
-:::tip
-NeuralSeek's DQL parser is able to distinguish between numbers, booleans, and strings. It also allows for intentionally blank values.
+Exact match — only documents whose `section_name` is exactly `Overview`:
 
-For example: 
+```plaintext
+section_name::"Overview"
+```
 
-- `age::25` is a **number**, where `age::"25"` is a **string**.
-- `available::true` is a **boolean**, where `available::"true"` is a **string**.
-- `value::""` is an intentionally blank value. 
-:::
+Date comparison on a nested field — documents created on or after 1 January 2023:
 
----
+```plaintext
+content.date_created >= "2023-01-01"
+```
 
-## Query Filtering Examples
+Wildcard — documents whose `content.title` starts with `neu`, so "NeuralSeek" and "neurobiology"
+both match:
 
-Here are some examples of how to filter the KnowledgeBase in NeuralSeek using dynamic filters, given this example document that we want to highlight using filters:
-
-  ```json title="bubble_sort.py"
-  {
-    "document_id": "doc_001",
-    "section_name": "Overview",
-    "content": {
-      "title": "NeuralSeek Use Cases Overview",
-      "text": "An introductory guide to NeuralSeek use cases, focusing on application and benefits.",
-      "date_created": "2023-02-15"
-    },
-    "author": "NeuralSeek Bot"
-  }
-  ```
-
-* **Exact Match Filter**: To retrieve only documents that are exactly matched with the term `"Overview"`, apply the filter as follows. This will return documents related to 'neuralseek use cases' with "Overview" specifically in the `section_name` property.
-
-  ```plaintext
-  section_name::"Overview"
-  ```
-
-* **Delimiter and Date Comparison Filter**: To retrieve only documents that are greater or equal `"2023-01-01"`, apply the filter as follows. This will return documents in that range specifically in the `content.date_created` property.
-
-  ```plaintext
-  content.date_created >= "2023-01-01"
-  ```
-
-* **Wildcard Filter**: To retrieve documents where the `title` within `content` begins with "neu" and is followed by any characters, use the wildcard filter as shown below. This filter will return all documents with a `content.title` that starts with "neu" (e.g., "NeuralSeek," "neurobiology").
-
-  ```plaintext
-  content.title:neu*
-  ```
-
----
+```plaintext
+content.title:neu*
+```
 
 ## Operator reference
 
-### Delimiter `.` (JSON hierarchy delimiter)
-
-**Description**:  
-The `.` operator is used to access fields within a nested JSON structure. It allows you to specify subfields within a field, making it easy to search within specific sections of hierarchical data.
- 
-`title.subsection:"AI"`
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-- Kendra
-
----
-
-### Phrase Query `""`
-
-**Description**:  
-Placing terms within quotation marks `" "` searches for an exact phrase match within the specified field, preserving the word order. This is useful for finding specific phrases instead of individual terms. Please note that Phrase Query converts all values to strings, even in KnowledgeBases that support native data types such as numbers, booleans, or dates. 
- 
-`url:"neuralseek"`
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-- Kendra
-
----
-
-### Exact Match `::`
-
-**Description**:  
-The `::` operator performs an exact match, ensuring that the field content matches the specified term or phrase exactly. It is stricter than `:` and `""`, as it does not allow partial or flexible matches.
- 
-`content::"AI"`  
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-- Kendra
-
----
-
-### Not an Exact Match `::!`
-
-**Description**:  
-The `::!` operator excludes documents that exactly match a specified term or phrase. It is the negation of the `::` operator and can be useful for filtering out precise phrases.
- 
-`content::!"large models"`  
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-- Kendra
-
----
-
-### Nested Grouping `()`
-
-**Description**:  
-Parentheses `()` are used to group queries, allowing for more complex expressions with combined operators. They let you control the order of operations in a query, much like in mathematical expressions.
- 
-`(title:"AI" | title:"ML") , content:"deep learning"`
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-- Kendra
-
----
-
-### OR `|`
-
-**Description**:  
-The `|` operator allows you to perform an OR operation between two or more terms. It returns documents that contain at least one of the specified terms, making it useful for broad searches.
- 
-`title:"AI" | title:"machine learning"` 
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-- Kendra
-
----
-
-### AND `,`
-
-**Description**:  
-The `,` operator performs an AND operation, requiring that both terms appear within the specified fields. This is useful when you need to find documents containing multiple specific terms.
- 
-`title:"AI", content:"neural networks"` 
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-- Kendra
-
----
-
-### Numerical and Date Comparisons `>, <, >=, <=`
-
-**Description**:  
-These operators allow for numerical or date comparisons within fields. Use them to search for records within a specific range or threshold of values.
- 
-`publish_date>=2023-01-01`  
-`revision>5, revision<10`
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-- Kendra
-
----
-
-### Includes `:`
-
-**Description**:  
-The `:` operator performs a search to see if the specified field includes the given term or phrase. This is a broad match that will return results containing the specified term anywhere within the field.
- 
-`title:"LLMs"`  
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-
----
-
-### Does Not Include `:!`
-
-**Description**:  
-The `:!` operator is used to exclude documents that contain a specified term within a field. It is the negation of the `:` operator and helps filter out unwanted terms.
- 
-`content:!"profanity"` 
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-
----
-
-### Field Exists `:*`
-
-**Description**:  
-The `:*` operator checks if a field is present in a document, regardless of its content. It’s useful for filtering records based on the existence of specific fields.
- 
-`author:*`  
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-
----
-
-### Field Does Not Exist `:*!`
-
-**Description**:  
-The `:*!` operator checks if a field is absent in a document. It’s useful for finding records missing a specific field.
- 
-`author:*!`  
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
-
----
-
-### Wildcard Operator `:*`
-
-**Description**:  
-The `:*` operator is used to match any value within a specified field, acting as a wildcard. This operator is helpful for locating records where a field contains any value, rather than a specific one.
-
-`author:*` 
-
-**Supported By**:
-
-- Watson Discovery
-- watsonx Discovery
-- ElasticSearch
+These operators apply when **Filter Field** is set to `DQL_Pushdown`. In the plain filter field a
+comma separates values as an OR instead — see [Tuning answers](/seek/tuning/).
+
+Every operator below works on Watson Discovery, watsonx Discovery and Elasticsearch. The last
+column says whether Kendra supports it too.
+
+| Operator | Name | What it does | Example | Also on Kendra |
+| --- | --- | --- | --- | --- |
+| `.` | JSON hierarchy delimiter | Reaches a field inside a nested JSON structure. | `title.subsection:"AI"` | yes |
+| `""` | Phrase query | Exact phrase match within a field, word order preserved. Converts all values to strings, even on KnowledgeBases with native number, boolean or date types. | `url:"neuralseek"` | yes |
+| `::` | Exact match | Field content must match the term exactly. Stricter than `:` and `""` — no partial matches. | `content::"AI"` | yes |
+| `::!` | Not an exact match | Excludes documents that exactly match the term. Negation of `::`. | `content::!"large models"` | yes |
+| `()` | Nested grouping | Groups expressions to control the order of operations. | `(title:"AI" \| title:"ML") , content:"deep learning"` | yes |
+| `\|` | OR | Matches documents containing at least one of the terms. | `title:"AI" \| title:"machine learning"` | yes |
+| `,` | AND | Requires both terms to appear. | `title:"AI", content:"neural networks"` | yes |
+| `>` `<` `>=` `<=` | Numerical and date comparison | Ranges and thresholds on numbers or dates. | `publish_date>=2023-01-01`<br />`revision>5, revision<10` | yes |
+| `:` | Includes | Broad match — the term appears anywhere in the field. | `title:"LLMs"` | no |
+| `:!` | Does not include | Excludes documents containing the term in that field. Negation of `:`. | `content:!"profanity"` | no |
+| `:*` | Field exists | True when the field is present, whatever its content. | `author:*` | no |
+| `:*!` | Field does not exist | True when the field is absent. | `author:*!` | no |
+
+:::note
+The prefix wildcard shown earlier — `content.title:neu*` — is a trailing `*` on a term, which is
+not the same thing as `:*`. The old documentation described `:*` twice, once as "field exists"
+and once as "wildcard", with the same example both times, so the two are documented here as one
+operator meaning "the field is present".
+:::
+
+<!-- ASK: confirm whether `:*` and a trailing-star prefix wildcard are one operator or two. One
+     live test settles it: run `author:*`, `author:neu*` and `author:*` against a document with no
+     author field. Tracked in _private/seek-migration-questions.md. -->
+
+## FAQ
+
+### Why is my filter matching nothing on Elasticsearch?
+
+Most likely the field is not of type `keyword`. Elasticsearch tokenizes other types, so filters
+on them behave unpredictably. Reindex the field as `keyword`, or add a `keyword` duplicate for
+filtering.
+
+### Why is my DQL filter being ignored?
+
+Almost always because **Filter Field** is not set to `DQL_Pushdown` in the KnowledgeBase
+Connection settings. Without it the filter string is treated as a plain value, not parsed as DQL.
+In the Seek tab, also check you selected **Save** in the Filter modal.
+
+### Which KnowledgeBases support DQL?
+
+Watson Discovery, watsonx Discovery and Elasticsearch support every operator in the table above.
+Kendra supports the first eight but not `:`, `:!`, `:*` or `:*!`. Other KnowledgeBase types do
+not support dynamic filtering.
+
+### Can I filter on a field inside nested JSON?
+
+Yes, with the `.` delimiter — `content.date_created`, `title.subsection`. It works to any depth
+your documents have.
+
+### Does filtering change the answer, or just the sources?
+
+Just the sources. A filter restricts which documents can be retrieved; everything after that —
+generation, scoring, caching — is unchanged.

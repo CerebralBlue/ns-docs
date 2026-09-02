@@ -1,221 +1,230 @@
 ---
-title: "Answer curation"
-description: "Explore NeuralSeek's Curate feature to manage and optimize intents from your KnowledgeBase. Import, export, and customize Q&A, track changes, and enhance user interactions with ease."
+title: 'Answer curation'
+description: 'The Curate tab is where you review and correct the intents and answers NeuralSeek generated from your KnowledgeBase — and an answer you edit there becomes training.'
 ---
 
-## Overview
+## What is it
 
-![curate](/img/seek/curation/curate.png)
+Curate is where you review and correct what NeuralSeek has learned. NeuralSeek trains off the
+documentation in your KnowledgeBase; Curate shows you the intents it generated from that
+documentation, the questions grouped under each one, and the answers being served — and lets you
+change them.
 
-**What is it?**
+An answer you edit here becomes training. It teaches the model the style and content you want for
+that intent, and it can be cached and served directly without going back to the LLM.
 
-- NeuralSeek's Curate features allows users to view intents generated from the KnowledgeBase, import and export intents into the virtual agent, and manage example questions and answers. The content and parameters of each 'Intent' can be adapted and adjusted to accommodate employee and customer needs.
-- Users can also view the results of other features as well, such as round trip logging, merge/unmerge actions, whether the intent contains any Personally Identifiable Information (P.I.I.), and whether the source KnowledgeBase information has changed so that users can easily detect whether the answers that were generated needs to be updated or not.
-- Sometimes, it is easier to curate all the questions and answers outside of NeuralSeek, and upload them in batch. Use the Curate feature to upload and update the curated Q&A's (supports CSV format). A template CSV file is given for you to use it.
+## Why it matters
 
-**Why is it important?**
+When an answer is wrong, the first move is to look at the documentation behind it. Curate is
+where that inspection happens, and where the correction gets recorded once you have made it.
 
-- This feature enhances the user experience by providing a streamlined and accessible interface. Additionally, it enables users to closely monitor incoming queries and the corresponding generated answers, allowing for a better understanding of user interactions. Users are able to easily identify outdated information within the connected documentation through the displayed coverage and confidence scores, facilitated by the built-in semantic scoring model. Furthermore, the ability to adjust answers and parameters ensures customization to better align with user queries and intents. Lastly, the feature allows users to view and modify auto-generated queries for each intent, providing a comprehensive toolkit for refining and optimizing responses. Overall, these functionalities collectively contribute to a more effective and tailored knowledge management experience.
+Two things it does that are hard to do anywhere else:
 
-**How does it work?**
+- **Cost.** Serving a curated answer from a pool of approved responses is cheaper than generating
+  a fresh one every time.
+- **Staleness.** NeuralSeek monitors the source documents and compares them against the answers
+  generated from them, so an answer whose source has changed gets flagged instead of quietly
+  going out of date.
 
-- The Curate feature in NeuralSeek's UI allows users to manage intents and answers efficiently. Accessed through the Curate tab, the UI comprises columns like Intent, displaying categorized questions with indicators for status; Q&A, indicating the number of questions and answers per intent; Coverage %, showing KnowledgeBase contribution; and Confidence %, reflecting the likelihood of user satisfaction. The trend graphs use color codes for coverage and confidence states. Users can hover over the graph to observe changes over time. Intents and answers can be displayed, searched, and filtered based on various criteria. Users can edit, delete, or backup answers, and perform operations on intents, such as merging or renaming. Caution is advised for irreversible actions like deletion and merging.
+Curate fixes answers one at a time. If many answers are wrong the cause is upstream — what the
+KnowledgeBase is returning — and [tuning](/seek/tuning/) is the tool for that. A hand-edited
+answer also stops tracking the document it came from, which is a cost worth paying deliberately
+rather than by accident.
 
-:::tip
-For more information see [Curation of Answers](../../features/answer_curation/index.md).
+## When to use it
+
+- After bootstrapping an instance, to review what was generated before anyone else sees it.
+- When a specific answer is wrong and you want to fix it rather than retune the whole instance.
+- To bulk-load Q&A pairs a subject-matter expert has written outside NeuralSeek.
+- To find intents holding personally identifiable information (PII), or intents whose underlying
+  documentation has moved on.
+
+## How it works
+
+Open **Curate** from the **Admin Tools** menu in the top nav. The table has six columns:
+
+| Column | What it shows |
+| --- | --- |
+| **Intent** | A collection of questions sharing the same intent, prefixed by its type — `FAQ`, for example — followed by the subject area. Everything falls under the `Others` category by default; you can define your own categories in the configuration. Status indicators here surface new answers, personally identifiable information (PII), out-of-date underlying data, [round-trip logging](/governance/logging/) results, and merge/unmerge actions. |
+| **Q&A** | How many questions (white dialog icon) and answers (blue dialog icon) the intent holds. |
+| **Coverage %** | How much the KnowledgeBase contributed to the answer. High means NeuralSeek found everything it needed. |
+| **Confidence %** | How likely the answer is to satisfy the user — high means it is well grounded in the documentation. |
+| **Category** | The intent's category, editable in place. |
+| **Governance** | Opens the governance view for that intent. |
+
+Above the table sit search, a settings gear, **Add Intent**, **Filter** and **Load Q&A**. Below it,
+a pager with an items-per-page selector.
+
+### Reading the trend graphs
+
+Two graphs sit behind those percentages.
+
+**Coverage** counts the citations and reference material used to answer a question. Zero means no
+relevant documentation exists; 100% means the topic is comprehensively documented. It is shown in
+shades of blue — the darker the shade, the more documentation was referenced.
+
+**Confidence** is how sure NeuralSeek is of its own answer. High confidence means the answer is
+well cited; low confidence suggests the source material is ambiguous or contradicts itself. Green
+is high, red is low.
+
+The two are independent, and both matter for data governance. An accurate answer can have low
+coverage and high confidence. An inaccurate one can have high coverage and low confidence,
+because several sources disagreed.
+
+**Slope** is volume: the height shows how many hits landed in that bucket. If every answer scored
+99% except one at 20%, the slope is tall at 99% and barely visible at 20%. Hover the graph to see
+how it moved over time — a confidence drop from 83% to 22% within five minutes is the kind of
+thing this surfaces.
+
+![Screenshot needed — the Coverage and Confidence trend graphs on an intent, with the hover detail showing a change over time](/img/_placeholder.svg)
+
+<!-- SCREENSHOT: Curate tab, an intent row's Coverage and Confidence graphs, with the hover
+     tooltip open on a point where confidence dropped. Needs an instance whose history actually
+     contains a drop — that is the hard part of this capture.
+     Why: colour intensity, slope height and the time-series hover are three encodings in one
+     small graphic — the shape is the information, and prose cannot substitute for it. -->
+
+### Questions and answers under an intent
+
+Select the `⌄` arrow beside an intent name to expand its example questions and their generated
+answers.
+
+Example questions are coloured by origin: **black** ones were actually submitted by a user, and
+**gray** ones were generated by NeuralSeek, which produces similar-meaning questions alongside
+each one it receives. You can add your own example questions too, with **Add Examples**. **Generate Examples** creates
+more automatically, and **Remove Auto-Generated Examples** clears the generated ones while leaving
+the questions real users asked.
+
+You can also attach **Notes** to an intent, to keep additional information with it.
+
+### Searching and filtering
+
+Intents can run to many pages. The search box at the top narrows by keyword.
+
+The filter button is more precise: filter to intents that were edited, that gained a new answer,
+that are flagged, or where out-of-date data was found.
+
+### Editing an answer
+
+Select the answer, change it, and save. It is then marked `Edited`.
+
+Edited answers do two things beyond fixing that one response: they become training for the
+underlying LLM, teaching it the style and content you want for that intent, and they are eligible
+for independent caching, so they can be served straight to the user without another generation
+call — see [Caching](/seek/caching/), and [Tuning answers](/seek/tuning/) for the setting that
+switches it on.
+
+<details>
+<summary>Formatting edited answers</summary>
+
+Edited answers can be styled with
+[Markdown](https://www.markdownguide.org/cheat-sheet/), subject to what the assistant or agent
+supports (see [Virtual agents](/integrations/virtual-agents/)) and to the delivery channel —
+Slack, Facebook, WhatsApp and so on.
+
+Supported elements typically include **bold**, _italic_, `inline code` and hyperlinks.
+
+```md
+This is a **bold** word, this is an _italic_ word, and here is a [link to a website](https://example.com).
+```
+
+</details>
+
+### Deleting questions and answers
+
+Select the `circle with i` icon on a question or answer and choose **Remove**.
+
+:::caution
+Removal cannot be rolled back.
 :::
 
-## Uploading Q/A Files (CSV/XLSX)
+The gear icon at the top offers three bulk operations: **Delete all data**, **Delete all
+analytics**, and **Delete all unEdited Answers** — for resetting an instance and starting over.
 
-NeuralSeek supports ingesting Q/A pairs directly from CSV or Excel files into the Curate tab. This process expedites intent generation for both the NeuralSeek environment and a virtual agent. You can either upload new Q&A pairs, or edit existing ones.
+### Intent operations
 
-### If uploading new Q&A pairs, follow these steps:
+Selecting one or more intents replaces the toolbar with an action bar showing the count and the
+operations available. **Cancel** clears the selection. The export action is labelled with whatever
+**Virtual Agent Type** is configured in Platform Preferences — **Export to Watson Assistant
+Actions**, for instance.
 
-![QA Upload12](/img/seek/curation/QnA_upload.png)
+| Operation | What it does |
+| --- | --- |
+| **Edit category** | Change the intent's category. |
+| **Download to CSV** | Export as `ID,question,score,kbCoverage,answer,category,intent,pii`. |
+| **Generate Conversation** | Turn the intent into a conversation rather than a single question and answer, giving NeuralSeek more context to generate from. |
+| **Flag** | Mark it so you can find it again quickly. |
+| **Rename** | Rename the intent. |
+| **Delete** | Delete the selected intents. |
+| **Backup** | Back up an intent for later recovery. The backup file is binary, not text. |
+| **Merge** | Appears only when two or more intents are selected; merges all their questions and answers into one. |
+| **Export to _\<Virtual Agent Type\>_** | Exports the selection in the format set by **Virtual Agent Type** in Neural Config > Platform Preferences. |
 
-- Download the template from the Curate tab by clicking the **Load Q&A** button.
-- Fill in the required columns — `question` and `answer` at minimum. Optionally, you can add additional payload fields with column titles like tags, category, etc.
-- Drag and drop or click to upload the file on the Q&A Upload screen. 
-- Additionally, you can select to improve your answers by sending them through Seek by checking "Yes" on the **Improve my answers** button. 
-- Finally, click **Submit**.
+### Uploading Q&A files (CSV/XLSX)
 
-:::tip[Tips]
-- Keep new and exisiting Q&A pairs separate — do not mix them in one file.
-- Add only one question per row.
-- Ensure answers are SME-approved, or select the option to improve your answers by running them through Seek.
-- Perform a quality assurance test first with 5–10 rows, before bulk upload. 
+NeuralSeek ingests Q&A pairs directly from CSV or Excel, which is usually faster than curating in
+the UI when a subject-matter expert has already written the answers. You can upload new pairs or
+edit existing ones.
+
+1. Download the template from the Curate tab with **Load Q&A**.
+2. Fill in `question` and `answer` at minimum. Additional payload fields are optional — add
+   columns such as tags or category.
+3. Drag and drop, or select, the file on the Q&A Upload screen.
+4. To run the answers through Seek and improve them on the way in, check **Yes** on **Improve my
+   answers**.
+5. Select **Submit**.
+
+:::tip
+- Keep new and existing Q&A pairs in separate files — do not mix them.
+- One question per row.
+- Answers should be SME-approved, or run through Seek with **Improve my answers**.
+- Test with 5–10 rows before a bulk upload.
 - Use UTF-8 encoding for CSVs.
 :::
 
 ## Guides
-Here is a list of guides relevant to the Curate tab and the curation of answers. 
 
-{pagelist 1000 Gcurate}
+Guides that relate to the Curate tab and the curation of answers:
 
+- [Tuning answers](/seek/tuning/)
+- [Training virtual agents](/integrations/training-virtual-agents/)
 
-<!-- MERGE: everything below came from features/answer_curation/index.md. Fold it into the sections above, then delete this comment. -->
+## FAQ
 
+### Does editing an answer change anything beyond that answer?
 
-**What is it?**
+Yes. Edited answers train the underlying model on the style and content you want for that intent,
+and they can be cached and served without a generation call. They also always report a Semantic
+Score of 100%.
 
-- NeuralSeek is directly trained off of the documentation loaded into the KnowledgeBase. If there are undesired answers from NeuralSeek, the first step is to review the documentation within the KnowledgeBase, and effectively curate the answer which can then be used by NeuralSeek to train itself better the next time it answers.
+### How do I find answers whose documentation has changed?
 
-**Why is it important?**
+Use the filter button and filter on out-of-date data. NeuralSeek compares generated answers
+against their source documents continuously, so those intents are already marked.
 
-- One of the key factors in reducing costs is the utilization of curated answers sourced from a pool of responses, which proves to be more economical. Also, when the collection of answers becomes stagnant, potentially leading to outdated information, this feature will be able to detect it and refresh those with less manual process.
+### What is the difference between Coverage % and Confidence %?
 
-**How does it work?**
+Coverage is about your documentation: how many documents or sections discuss the subject at all.
+Confidence is about the answer: how likely the information used in it is to be correct. They move
+independently — an accurate answer can have low coverage and high confidence, and an inaccurate
+one can have high coverage and low confidence because several sources disagreed.
 
-- To tackle this challenge, NeuralSeek provides a solution by automatically monitoring the sources of information. It continuously tracks and compares the generated responses with the source documents to determine if any changes have occurred. By doing so, NeuralSeek ensures that the answers remain up-to-date and relevant. This eliminates the need for manual intervention and the potential for outdated information, allowing users to trust the accuracy and currency of the answers provided.
+### Can I upload answers from a spreadsheet?
 
+Yes. Download the template with **Load Q&A**, fill in at least the `question` and `answer`
+columns, and upload it on the Q&A Upload screen. Test with 5–10 rows before a bulk upload.
 
-## Curating Intents and Answers
+### Can I get the curated answers back out?
 
-![curate](/img/seek/curation/currate-page.png)
-
-Let's first visit the UI page for curating intents and answers. Click the `Curate` tab on the top menu. 
-
-The UI is composed of the following columns:
-
-**Intent**: 
-
-- Intents are a collection of questions that may be related to the similar `intent` of the question. It is prefixed by certain types of intents, such as `FAQ`, followed by the question's subject areas. By default, all the intents do fall under a category `Others`, but you can also define your own category in NeuralSeek's configuration.
-- Intents also have a number of indicators that help users to understand the status of the intent. For example, it can show whether the intent has any new answers, whether the intent contains any PII (personally identifiable information), or whether the intent's underlying data has been outdated, etc.
-
-**Q&A**: 
-
-- Shows the number of questions (white dialog icon) and answers (blue dialog icon) that this particular intent contains.
-
-**Coverage %**: 
-
-- Indicates how much the KnowledgeBase has contributed to the answer's coverage. If NeuralSeek was able to find all the necessary information from the KnowledgeBase, this percentage is going to be very high.
-
-**Confidence %**: 
-
-- Indicates how much NeuralSeek's answer is most likely to satisfy the user. If this score is high, it means the answer has a high score of being legitimate and true to the facts.
-
-### Reading the trend
-![graph and color](/img/seek/curation/image-002.png)
-
-The data is presented through two distinct graphs: Coverage and Confidence. 
-
-1. **Coverage Graph**: This graph illustrates the total number of citations or reference materials utilized to address a specific question. A coverage value of zero indicates the absence of relevant documentation, while a value of 100% signifies comprehensive documentation available on the topic.
-
-2. **Confidence Graph**: This graph assesses NeuralSeek’s confidence in the automated response provided. High confidence suggests that the answer is likely cited by the documentation well, whereas low confidence infers that the resource material might have conflicting documentation or ambiguity.
-
-Both graphs are integral to data governance, directly reflecting the quality and reliability of the data used in generating answers. It is possible to have an accurate answer with low coverage but high confidence. It is also possible to have an inaccurate answer with high coverage and low confidence because the multiple resources have conflicting information.
-
-**Color Coding**:
-
-- **Coverage**: Represented in shades of blue, with intensity varying based on coverage levels. The darker the shade, the more comprehensive documentation is referenced.
-- **Confidence**: Indicated by green for high confidence and red for low confidence.
-
-**Slope**: The slope's height indicates the number of hits. A higher slope will show the majority of where the answers were bucketed - for example, if all the answers but one were scored at 99%, but there is one at 20%, the slope will be far larger at 99% and very small at 20%. By hovering over the graph, you can observe the trend of slope changes over time.
-
-![changes](/img/seek/curation/image-003.png)
-
-In this case, there were instances of when the confidence had dropped from 83% to 22%, over the period between 14:07:31 to 14:12:15 on July 20th.
-
-### Displaying Intents and Answers
-If you click the `⌄` Arrow next to the intent name, you will see the list of example questions and its generated answers:
-
-![Alt text](/img/seek/curation/image-004.png)
-
-The example questions have either black color or gray color, depending on how they were created. The black colored examples are the ones that were actually submitted by the user's question. NeuralSeek automatically generates similar meaning questions per each question that it receives.
-
-As necessary, you can also enter your own Example question in addition to the ones that NeuralSeek generates.
-
-![Alt text](/img/seek/curation/image-005.png)
-
-:::tip
-It is also possible to add Notes that may save additional information regarding this particular intent.
-:::
-
-## Searching the intent
-The size of intent can vary but could grow over multiple pages, so you may want to search for a particular intent from time to time. You could do that by using the search form at the top of the page. Enter the keyword and it will narrow down your search.
-
-![search](/img/seek/curation/image-010.png)
-
-## Filtering the intent
-There is a more fine-grained way of filtering intents based on criteria such as whether they were edited, or a new answer was added, flagged, or out-of-date data was found. Click the filter button, set the criterias that you want, and the page will only show the ones that meet the filtering condition.
-
-![filter](/img/seek/curation/image-011.png)
-
-## Editing the Answer
-On all the answers generated, a Subject Matter Expert can edit answers for both style and content. Edited answers automatically become training for the underlying LLM and will train the model on the style and content of the desired answer for that intent. Edited answers are also eligible for independant caching and can be directly served to the end user without going back to language genration.
-
-Editing can be done by clicking the answer, modifying its content, and saving it.
-
-![editing](/img/seek/curation/image-006.png)
-
-After saving, you will see that the answer that you edited will be marked as `Edited`.
-
-![Alt text](/img/seek/curation/image-007.png)
-
-<details>
-<summary>Formating edited answers</summary>
-
-
-Edited answers can be styled using [Markdown syntax](https://www.markdownguide.org/cheat-sheet/), depending on the formatting capabilities of the assistant/agent ([Supported Virtual Agents](/integrations/virtual-agents/)) or the delivery channel (e.g., Slack, Facebook, WhatsApp).
-
-Supported elements may include: **bold**, *italic*, `inline code`, [hyperlinks](https://example.com), etc.
-
-</details>
-
-<details>
-<summary>Example of Mardown formating</summary>
-
-```md
-This is a **bold** word, this is an *italic* word, and here is a [link to a website](https://example.com).
-```
-
-Will render as:
-
-This is a **bold** word, this is an *italic* word, and here is a [link to a website](https://example.com). 
-
-</details>
-
-## Deleting Questions and Answers
-If you wish to delete either the question or answer under the intent, you can do so by clicking the `circle with i` icon and selecting `Remove`.
-
-![remove](/img/seek/curation/image-008.png)
-
-:::caution
-Once they are removed, there is no way to roll back the removal, so be careful.
-:::
-
-### Deleting all data
-You can delete all data by selecting the gear icon at the top and selecting:
-
-![deletion](/img/seek/curation/image-009.png)
-
-- Delete all data
-- Delete all analytics
-- Delete all unEdited Answers
-
-These are a useful feature if you wish to simply reset all of these data and start from the scratch.
-
-### Intent operations
-When you select an intent, a popup will be displayed which shows you the operations that you can do with the selected intent.
-
-![operations](/img/seek/curation/image-012.png)
-
-- Edit category - will let you edit the current category
-- Download to CSV - will export this into a CSV file. It will have the following format: `ID,question,score,kbCoverage,answer,category,intent,pii`
-- Generate Conversation - This will convert the intent into conversation, instead of a simple question and answer. This will give a better context for the NeuralSeek to generate answers from.
-- Flag - Will flag the intent so that you can quickly find it later.
-- Rename - Will let you rename its name
-- Delete - Deletes the selected intent(s).
-- Backup - Backs up the intent for later recovery. Note that the backed up file is not a text file, but in binary format.
-- Merge - appears only when two or more intents are selected. It merges all of their questions and answers into a single intent.
+Yes — **Download to CSV** on an intent exports
+`ID,question,score,kbCoverage,answer,category,intent,pii`. **Backup** also exists, but produces a
+binary file meant for restoring rather than reading.
 
 <!-- STILL TO DOCUMENT ON THIS PAGE:
+  - Notes on an intent — where the control is, and whether it takes plain text or Markdown
   - Delete user data — the bulk GDPR/CCPA erasure path
   - Delete and Regenerate Responses for an intent
   - Enhance Conversation — improve a stored conversation with the LLM
-  - Notes on an intent — free-text annotation for the next curator
-  - Generate / Remove Examples — bulk-create or clear auto-generated example questions
   - User Agents modal in the Curate context
   - Add Intent > mAIstro toggle — an intent answered by an agent instead of by Seek
-  - Export to the configured Virtual Agent Type
 -->
