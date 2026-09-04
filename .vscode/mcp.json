@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "neuralseek": {
+      "type": "stdio",
+      "command": "mcpns",
+      "args": [],
+      "env": {
+        "NS_WORKSPACE": "${workspaceFolder}"
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "$comment": "Single source of truth for the old-docs -> new-site restructure. Keys of `routes` are new-site routes (file: src/content/docs/<route>.md). `sources` are paths relative to sourceRoot in the old repo; the first source is the primary content donor. `status`: stub (placeholder) | auto (script-converted, regenerate freely) | adopted (human-edited, never overwrite). `gaps` is the documentation-gap audit (2026-08-04): undocumented product surfaces this route must cover, rendered into the stub as a worklist. `kill` lists old pages that are deliberately not migrated. This file doubles as the link-rewrite map and the future redirect map.",
-  "sourceRoot": "/home/fabio/Documents/NeuralSeek/knowledge/neuralseek/documentation/docs",
+  "$comment": "Single source of truth for the old-docs -> new-site restructure. Keys of `routes` are new-site routes (file: src/content/docs/<route>.md). `sources` are paths relative to sourceRoot in the old repo; the first source is the primary content donor. `status`: stub (placeholder, rewritten by `bun run stubs`) | auto (machine-drafted, not verified against the product; nothing regenerates it since convert.ts was removed 2026-09-04) | adopted (human-edited and checked). `gaps` is the documentation-gap audit (2026-08-04): undocumented product surfaces this route must cover, rendered into the stub as a worklist. `kill` lists old pages that are deliberately not migrated. This file doubles as the link-rewrite map and the future redirect map.",
+  "sourceRoot": "/home/fabio/Documents/NeuralSeek/ns-documentation/knowledge/neuralseek/documentation/docs",
   "routes": {
     "getting-started/what-is-neuralseek": {
       "title": "What is NeuralSeek",

@@ -70,7 +70,7 @@ const PLACEHOLDER = '/img/_placeholder.svg';
 /**
  * Every image in the old docs, by content hash.
  *
- * convert.ts copies images with copyFileSync, so a file under public/img that is
+ * The old converter copied images with copyFileSync, so a file under public/img that is
  * byte-identical to one in the old docs was carried over untouched and therefore shows
  * the old UI. A recaptured screenshot differs, so it drops out of this set on its own —
  * no manifest, no marker, nothing to keep in sync.
@@ -219,7 +219,7 @@ function lintPage(status: string, raw: string, findings: Finding[]) {
 				level: 'error',
 				line: at(i),
 				rule: 'image-path',
-				message: 'relative image path — converted pages reference /img/<route>/<file>',
+				message: 'relative image path — pages reference /img/<route>/<file>',
 			});
 
 		if (/\]\((?:\.\.?\/)[^)]*\.mdx?[)#]/.test(line))
@@ -360,7 +360,7 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 			level: 'error',
 			line: 1,
 			rule: 'missing-page',
-			message: 'no page file — run `bun run stubs` or `bun scripts/convert.ts`',
+			message: 'no page file — run `bun run stubs`',
 		});
 	} else {
 		lintPage(info.status, readFileSync(path, 'utf8'), findings);

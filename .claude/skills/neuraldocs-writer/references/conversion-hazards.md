@@ -1,42 +1,30 @@
 # MkDocs → Starlight conversion
 
-Read this at the start of any Path A (migration) task. The converter is
-`scripts/convert.ts`; the old site is a read-only clone at the map's `sourceRoot`
-(`/home/fabio/Documents/NeuralSeek/knowledge/neuralseek/documentation/docs`).
+Read this at the start of any Path A (migration) task. **Conversion is done by hand** — the
+`scripts/convert.ts` script was removed on 2026-09-04, because mechanically reshaping a stale
+page produced pages that looked finished and were not. Everything below is now your checklist
+rather than a description of a tool. The old site is a read-only clone at the map's `sourceRoot`
+(`/home/fabio/Documents/NeuralSeek/ns-documentation/knowledge/neuralseek/documentation/docs`).
 
 ## Contents
 
-- [Running the converter](#running-the-converter)
-- [What the converter handles](#what-the-converter-handles)
-- [What it deliberately does not do](#what-it-deliberately-does-not-do)
-- [Hazards it cannot see](#hazards-it-cannot-see)
+- [Editing the migration map](#editing-the-migration-map)
+- [What to convert](#what-to-convert)
+- [What needs a judgement call](#what-needs-a-judgement-call)
+- [Hazards a script could never see](#hazards-a-script-could-never-see)
 - [Finishing checklist for a converted page](#finishing-checklist-for-a-converted-page)
 
-## Running the converter
+## Editing the migration map
 
-```bash
-bun scripts/convert.ts seek/ --dry     # preview; writes nothing
-bun scripts/convert.ts seek/           # convert one module
-bun scripts/convert.ts maistro/ ntl/   # several prefixes at once
-bun scripts/convert.ts --all --dry     # see the whole remaining migration
-```
+`scripts/migration-map.json` is hand-grouped, with blank lines separating sections. **Edit it with
+small targeted string edits, never by loading and re-serialising it** — a reserialize reflows all
+3,000 lines, destroys the grouping, and buries the one field you meant to change in an unreviewable
+diff. (This has been done by accident; it is recoverable only because the data rarely changes.)
 
-A route matches a prefix by exact match or `startsWith`, so `seek/` takes the whole module.
+When you start hand-editing a page, set that route's `status` to `adopted` so `bun run stubs`
+cannot reclaim the file.
 
-Two behaviours to keep in mind:
-
-- **It skips any route whose `status` is `adopted`** and says so in the report. So if you have
-  already flipped the status, convert first and flip second — otherwise nothing happens and it
-  looks like the tool is broken.
-- **On a successful write it flips `stub` → `auto`** in `scripts/migration-map.json`, by string
-  surgery inside that route's block, so the map keeps its hand-maintained grouping and blank
-  lines. That is why the map should be edited the same way — small targeted edits, not a
-  reserialize.
-
-The run report flags, per route: `MERGE of N sources`, `N unresolved link(s)`, and
-`N missing image(s)`. Read it; those three lines are your worklist.
-
-## What the converter handles
+## What to convert
 
 | Old MkDocs                                   | Becomes                                         | Notes                                   |
 | -------------------------------------------- | ----------------------------------------------- | --------------------------------------- |
@@ -58,7 +46,7 @@ docs and becomes a plain `note`, so **check every converted `:::note` that used 
 Admonition bodies end at the first non-blank unindented line; blank lines inside the block are
 kept. A `???` block with no title falls back to the capitalised type as its `<summary>`.
 
-## What it deliberately does not do
+## What needs a judgement call
 
 These are design decisions, not bugs. Do not "fix" them in the script — finish them in the page.
 
@@ -87,7 +75,7 @@ human call — check `renamed` and `kill` in the map first, then ask.
 references, and only if the file exists in the old repo. A reported missing image usually means the
 old page linked something that was already broken.
 
-## Hazards it cannot see
+## Hazards a script could never see
 
 - **Shape.** The output is a converted old page, not a page that follows the contract. Bold
   pseudo-headings (`**What is it?**`) and bullet-wrapped paragraphs survive conversion untouched.

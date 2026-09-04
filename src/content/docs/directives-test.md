@@ -2,9 +2,8 @@
 title: "Directives test"
 description: "Regression page for the ns-* remark directives in plain .md, including failure modes."
 # `draft: true` = visible in `bun run dev`, excluded from production builds.
-# This is the only .md coverage for the directive pipeline (styleguide.mdx
-# covers .mdx), so it is worth keeping — it is never published. Safe to delete
-# if you would rather not carry it.
+# The only coverage for the directive pipeline now that styleguide.mdx is gone
+# (deleted 2026-09-04), so it is worth keeping — it is never published.
 draft: true
 ---
 

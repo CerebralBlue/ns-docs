@@ -8,6 +8,11 @@
 // footers stacks two hairlines a few rem apart.
 import Default from '@astrojs/starlight/components/Footer.astro';
 import ChatWidget from './ChatWidget.astro';
+// Mounted here for the same reason as ChatWidget: this footer renders on
+// every route, and the viewer needs exactly one instance per page. It binds
+// itself to `.sl-markdown-content` by delegation, so a splash page (no
+// markdown content) simply finds nothing and does nothing.
+import ImageZoom from './ImageZoom.astro';
 
 // Optional-chained: a route rendered without a starlightRoute in locals (the
 // 404 page is the realistic case) would otherwise throw at render time rather
@@ -21,6 +26,8 @@ const year = new Date().getFullYear();
 {!isSplash && <Default />}
 
 <ChatWidget />
+
+<ImageZoom />
 
 <footer class="ns-footer">
 	<div class="ns-footer-inner">

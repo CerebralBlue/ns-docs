@@ -82,6 +82,27 @@
 	display: none;
 }
 
+/* ============================================================
+   Images — a framed object, not raw bleed.
+
+   Every doc image is a plain markdown `![]()` served from public/,
+   so this selector is the ONLY styling they get; Starlight ships
+   none. The hairline + sharp radius is the same frame the cards
+   and code blocks use, which is what makes a screenshot read as
+   part of the system rather than pasted on top of it.
+
+   The zoom affordance (`cursor: zoom-in`) is NOT here — it belongs
+   to the lightbox in 20-component-lightbox.css, because only that
+   component's script knows which images actually open.
+   ============================================================ */
+.sl-markdown-content img:not(:where(.not-content *)) {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+}
+
 /* Standalone rules match the section rules. */
 .sl-markdown-content hr {
 	border: 0;

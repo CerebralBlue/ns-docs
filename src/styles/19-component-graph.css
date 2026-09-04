@@ -1,0 +1,288 @@
+/* ============================================================
+   [19] Site graph — the sidebar panel and its fullscreen overlay.
+
+   Markup: src/components/SiteGraph.astro
+   Renderer: src/lib/ns-graph/view.ts
+
+   THE PALETTE IS AN API. view.ts draws to a canvas, and canvas takes
+   no stylesheet — so every colour it uses is read out of the custom
+   properties below with getComputedStyle(). The names in `PROPS` in
+   view.ts must match the `--ns-graph-*` names here exactly; there is
+   no build step that checks it. A renamed property silently falls
+   back to #888.
+
+   That indirection is what makes the canvas theme-aware: the renderer
+   re-reads these when `data-theme` flips, so the graph follows the
+   theme like everything else rather than hardcoding two palettes in
+   JavaScript.
+
+   ORDERING: nothing here collides with an earlier file — every
+   selector is `.ns-graph*`-prefixed and those classes exist nowhere
+   else. Position 19 is simply "after everything", which is also why
+   the overlay's z-index does not have to fight anyone.
+   ============================================================ */
+
+/* ── Palette ─────────────────────────────────────────────────────
+   Declared PER THEME, not on a bare `:root`. Starlight declares its
+   own scales under `[data-theme='light']`, which out-specifies a
+   plain `:root` rule — the same trap documented for the accent
+   scales in 04-theme.css.
+
+   Status hues are a deliberate near-monochrome ramp rather than a
+   traffic-light. The card lattice already established that this site
+   reads as one monochrome system; a red/amber/green legend would be
+   the loudest thing on the page and would also imply "stub = broken",
+   which is wrong. Stubs are simply unwritten. Magenta is the single
+   chromatic outlier and is reserved for `unmapped` — a page that
+   exists on disk with no entry in migration-map.json, which IS a
+   thing somebody should fix.
+   ──────────────────────────────────────────────────────────────── */
+:root[data-theme='dark'] {
+	--ns-graph-edge: rgba(255, 255, 255, 0.13);
+	--ns-graph-edge-link: rgba(123, 171, 255, 0.55);
+	--ns-graph-node: rgba(255, 255, 255, 0.5);
+	--ns-graph-group: var(--ns-soft-blue);
+	--ns-graph-root: var(--ns-cyan);
+	--ns-graph-current: #b9c7ff;
+	--ns-graph-label: rgba(255, 255, 255, 0.85);
+	--ns-graph-surface: var(--sl-color-bg);
+
+	--ns-graph-adopted: var(--ns-trust-blue);
+	--ns-graph-auto: rgba(123, 171, 255, 0.75);
+	--ns-graph-stub: rgba(255, 255, 255, 0.3);
+	--ns-graph-unmapped: var(--ns-magenta);
+}
+
+:root[data-theme='light'] {
+	--ns-graph-edge: rgba(0, 0, 0, 0.14);
+	--ns-graph-edge-link: rgba(47, 79, 214, 0.45);
+	--ns-graph-node: rgba(0, 0, 0, 0.45);
+	--ns-graph-group: #2f4fd6;
+	--ns-graph-root: #0d7fb8;
+	--ns-graph-current: #17297f;
+	--ns-graph-label: rgba(0, 0, 0, 0.8);
+	--ns-graph-surface: var(--sl-color-bg);
+
+	--ns-graph-adopted: var(--ns-trust-blue);
+	--ns-graph-auto: rgba(47, 79, 214, 0.55);
+	--ns-graph-stub: rgba(0, 0, 0, 0.28);
+	--ns-graph-unmapped: #8b34e0;
+}
+
+/* ── Sidebar panel ──────────────────────────────────────────────
+   THE WIDTH IS NOT INHERITED, AND CANNOT BE.
+
+   `.right-sidebar` (TwoColumnContent.astro) is `position: fixed` with
+   `width: 100%`. A fixed element's percentage resolves against the
+   VIEWPORT, not its parent — so although the `<aside>` above it is
+   correctly capped at `--sl-sidebar-width` by 07-chrome-toc.css, the
+   `.right-sidebar` inside it is as wide as the window. Anything
+   dropped in there stretches with it: measured at 1550px in a 1600px
+   window, which drew the graph mostly off-screen.
+
+   Starlight's own TOC never hits this because PageSidebar.astro wraps
+   it in `.sl-container`, which sets an explicit width. That class is
+   Astro-scoped to that component, so it cannot be borrowed by name
+   from here — the width has to be restated.
+   ──────────────────────────────────────────────────────────────── */
+.ns-graph {
+	box-sizing: border-box;
+	width: var(--sl-sidebar-width);
+	padding: 1rem var(--sl-sidebar-pad-x);
+	border-top: 1px solid var(--ns-hairline);
+}
+
+.ns-graph__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+/* Mirrors the pagination/aside label treatment: a text button that is
+   quiet until you look for it. */
+.ns-graph__expand {
+	padding: 0;
+	border: none;
+	background: none;
+	font-family: var(--sl-font-mono);
+	font-size: 0.6875rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--sl-color-gray-3);
+	cursor: pointer;
+	transition: color var(--ns-transition);
+}
+
+.ns-graph__expand:hover,
+.ns-graph__expand:focus-visible {
+	color: var(--sl-color-text-accent);
+}
+
+.ns-graph__panel {
+	position: relative;
+	/* Fixed height: the canvas is absolutely positioned inside, so the
+	   box must reserve its own space or the panel collapses to nothing
+	   and ResizeObserver never fires. */
+	height: 190px;
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+	overflow: hidden;
+}
+
+.ns-graph__canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.ns-graph__fallback {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	font-size: var(--sl-text-xs);
+	color: var(--sl-color-gray-3);
+}
+
+/* ── Fullscreen overlay ─────────────────────────────────────────
+   Reparented to <body> by SiteGraph.astro. It has to be: this markup
+   is authored inside the right sidebar, and `.main-pane` sets
+   `isolation: isolate` while `.right-sidebar` is a fixed full-height
+   element outside it — a fixed overlay left in place is trapped in
+   whichever context it rendered in. In the root stacking context the
+   z-index below is simply the top of the page.
+   ──────────────────────────────────────────────────────────────── */
+.ns-graph-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 200;
+	display: flex;
+	flex-direction: column;
+	background: var(--sl-color-bg);
+}
+
+.ns-graph-overlay[hidden] {
+	display: none;
+}
+
+/* Stop the page behind the overlay from scrolling under it. */
+:root.ns-graph-open body {
+	overflow: hidden;
+}
+
+.ns-graph-overlay__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 1.25rem;
+	padding: 0.75rem 1.25rem;
+	border-bottom: 1px solid var(--ns-hairline);
+}
+
+.ns-graph-overlay__search {
+	flex: 1 1 12rem;
+	max-width: 20rem;
+	padding: 0.35rem 0.6rem;
+	border: 1px solid var(--ns-hairline);
+	border-radius: var(--ns-radius);
+	background: var(--ns-surface-soft);
+	color: var(--sl-color-white);
+	font: inherit;
+	font-size: var(--sl-text-xs);
+}
+
+.ns-graph-overlay__search:focus-visible {
+	border-color: var(--sl-color-text-accent);
+	outline: none;
+}
+
+.ns-graph-overlay__close {
+	padding: 0.35rem 0.75rem;
+	border: 1px solid var(--ns-hairline-strong);
+	border-radius: var(--ns-radius);
+	background: none;
+	color: var(--sl-color-white);
+	font-family: var(--sl-font-mono);
+	font-size: var(--ns-label-size-button);
+	letter-spacing: var(--ns-label-tracking-button);
+	text-transform: uppercase;
+	cursor: pointer;
+	transition:
+		border-color var(--ns-transition),
+		color var(--ns-transition);
+}
+
+.ns-graph-overlay__close:hover {
+	border-color: var(--sl-color-text-accent);
+	color: var(--sl-color-text-accent);
+}
+
+.ns-graph-overlay__canvas {
+	flex: 1;
+	width: 100%;
+	min-height: 0;
+	touch-action: none;
+}
+
+/* ── Legend ─────────────────────────────────────────────────────── */
+.ns-graph-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 1rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: var(--sl-text-xs);
+	color: var(--sl-color-gray-3);
+}
+
+.ns-graph-legend li {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.ns-graph-legend i {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--ns-graph-stub);
+}
+
+.ns-graph-legend i[data-status='adopted'] {
+	background: var(--ns-graph-adopted);
+}
+
+.ns-graph-legend i[data-status='auto'] {
+	background: var(--ns-graph-auto);
+}
+
+.ns-graph-legend i[data-status='unmapped'] {
+	background: var(--ns-graph-unmapped);
+}
+
+.ns-graph-legend i[data-status='group'] {
+	background: var(--ns-graph-group);
+}
+
+/* ── Screen-reader route list ───────────────────────────────────
+   The canvas is `aria-hidden`; this is the real navigable copy of the
+   same data, built from graph.json so the two cannot disagree. Not
+   `display: none` — that would take it out of the accessibility tree
+   along with everything else.
+   ──────────────────────────────────────────────────────────────── */
+.ns-graph-a11y {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}

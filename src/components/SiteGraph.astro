@@ -1,0 +1,174 @@
+---
+/**
+ * Obsidian-style site graph: a small local map in the right sidebar, which
+ * expands into a fullscreen view of the whole site.
+ *
+ * Data comes from public/graph.json (built by scripts/gen-graph.ts). It is
+ * FETCHED rather than imported so the 44 KB payload stays out of every page's
+ * JS bundle — a reader who never opens the graph never downloads it.
+ *
+ * Styles live in src/styles/19-component-graph.css, not in a scoped <style>
+ * here, because the overlay is reparented to <body> at runtime (see below) and
+ * the design system keeps its CSS in one ordered place regardless.
+ */
+// `id`, not `slug` — Starlight deprecated `slug` in favour of the Content
+// Layer id. Both spell the same thing for this site (`seek/curation`), which is
+// exactly the form gen-graph.ts uses for node ids.
+const slug = Astro.locals.starlightRoute?.id ?? '';
+---
+
+<div class="ns-graph" data-ns-graph data-current={slug}>
+	<div class="ns-graph__head">
+		<span class="ns-label">Graph</span>
+		<button type="button" class="ns-graph__expand" data-ns-graph-expand aria-haspopup="dialog">
+			Expand
+		</button>
+	</div>
+	<div class="ns-graph__panel">
+		<canvas class="ns-graph__canvas" data-ns-graph-mini aria-hidden="true"></canvas>
+		<p class="ns-graph__fallback" data-ns-graph-fallback>Graph unavailable.</p>
+	</div>
+</div>
+
+<div class="ns-graph-overlay" data-ns-graph-overlay hidden role="dialog" aria-label="Site graph">
+	<div class="ns-graph-overlay__bar">
+		<span class="ns-label">Site graph</span>
+		<input
+			type="search"
+			class="ns-graph-overlay__search"
+			placeholder="Filter pages…"
+			aria-label="Filter pages"
+			data-ns-graph-search
+		/>
+		<ul class="ns-graph-legend">
+			<li><i data-status="adopted"></i>Adopted</li>
+			<li><i data-status="auto"></i>Converted</li>
+			<li><i data-status="stub"></i>Stub</li>
+			<li><i data-status="unmapped"></i>Unmapped</li>
+			<li><i data-status="group"></i>Section</li>
+		</ul>
+		<button type="button" class="ns-graph-overlay__close" data-ns-graph-close>Close</button>
+	</div>
+	<canvas class="ns-graph-overlay__canvas" data-ns-graph-full aria-hidden="true"></canvas>
+	<nav class="ns-graph-a11y" aria-label="All documentation pages" data-ns-graph-a11y></nav>
+</div>
+
+<script>
+	import { loadGraph, neighborhood, hrefFor } from '../lib/ns-graph/data';
+	import { createGraphView, type GraphView } from '../lib/ns-graph/view';
+	import type { SiteGraphData } from '../lib/ns-graph/types';
+
+	const BASE = import.meta.env.BASE_URL;
+
+	function initGraph() {
+		const root = document.querySelector<HTMLElement>('[data-ns-graph]');
+		const overlay = document.querySelector<HTMLElement>('[data-ns-graph-overlay]');
+		if (!root || !overlay) return;
+
+		/**
+		 * ESCAPE THE STACKING CONTEXT.
+		 *
+		 * This component renders inside the right sidebar, and Starlight's
+		 * TwoColumnContent.astro sets `isolation: isolate` on `.main-pane` while
+		 * `.right-sidebar` is a `position: fixed` full-height element outside it.
+		 * A `position: fixed` overlay left in place is trapped in whichever of
+		 * those contexts it was rendered in and gets painted over. Moving it to
+		 * <body> puts it in the root stacking context, where a plain z-index
+		 * actually means what it says.
+		 */
+		document.body.appendChild(overlay);
+
+		const current = root.dataset.current ?? '';
+		const mini = root.querySelector<HTMLCanvasElement>('[data-ns-graph-mini]');
+		const full = overlay.querySelector<HTMLCanvasElement>('[data-ns-graph-full]');
+		const fallback = root.querySelector<HTMLElement>('[data-ns-graph-fallback]');
+		const expand = root.querySelector<HTMLButtonElement>('[data-ns-graph-expand]');
+		const close = overlay.querySelector<HTMLButtonElement>('[data-ns-graph-close]');
+		const search = overlay.querySelector<HTMLInputElement>('[data-ns-graph-search]');
+		const a11y = overlay.querySelector<HTMLElement>('[data-ns-graph-a11y]');
+		if (!mini || !full || !expand || !close) return;
+
+		const navigate = (id: string) => {
+			window.location.href = hrefFor(id, BASE);
+		};
+
+		let data: SiteGraphData | null = null;
+		// Only the overlay's view is kept: it is built lazily and the search box
+		// needs to reach it. The panel's view lives until the next navigation,
+		// which tears the whole page down anyway.
+		let fullView: GraphView | null = null;
+
+		loadGraph(`${BASE.endsWith('/') ? BASE : `${BASE}/`}graph.json`)
+			.then((loaded) => {
+				data = loaded;
+				fallback?.remove();
+
+				createGraphView(mini, neighborhood(loaded, current, 2), {
+					current,
+					interactive: false,
+					autoFit: true,
+					onNavigate: navigate,
+				});
+
+				// The screen-reader route list. Built from the same data so it can
+				// never disagree with what the canvas draws.
+				if (a11y) {
+					const list = document.createElement('ul');
+					for (const node of loaded.nodes) {
+						if (node.kind === 'group') continue;
+						const li = document.createElement('li');
+						const a = document.createElement('a');
+						a.href = hrefFor(node.id, BASE);
+						a.textContent = node.label;
+						li.appendChild(a);
+						list.appendChild(li);
+					}
+					a11y.appendChild(list);
+				}
+			})
+			.catch(() => {
+				// Leave the fallback paragraph in place; a missing graph must not
+				// take the sidebar down with it.
+				if (fallback) fallback.hidden = false;
+			});
+
+		let lastFocus: HTMLElement | null = null;
+
+		function openOverlay() {
+			if (!data) return;
+			lastFocus = document.activeElement as HTMLElement | null;
+			overlay!.hidden = false;
+			document.documentElement.classList.add('ns-graph-open');
+			// Built on first open only — the full graph's simulation is the
+			// expensive part and most readers never ask for it.
+			if (!fullView) {
+				fullView = createGraphView(full!, data, {
+					current,
+					interactive: true,
+					autoFit: true,
+					onNavigate: navigate,
+				});
+			}
+			close!.focus();
+		}
+
+		function closeOverlay() {
+			overlay!.hidden = true;
+			document.documentElement.classList.remove('ns-graph-open');
+			lastFocus?.focus();
+		}
+
+		expand.addEventListener('click', openOverlay);
+		close.addEventListener('click', closeOverlay);
+		search?.addEventListener('input', () => fullView?.filter(search.value));
+		overlay.addEventListener('click', (e) => {
+			// Backdrop click closes; clicks on the bar or canvas do not.
+			if (e.target === overlay) closeOverlay();
+		});
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && !overlay.hidden) closeOverlay();
+		});
+	}
+
+	initGraph();
+</script>

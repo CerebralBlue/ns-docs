@@ -50,10 +50,9 @@ The persona is the behaviour, not decoration.
    `status` tells you who owns the file right now. `gaps` is this page's slice of the gap audit.
    Full schema: `references/migration-map.md`.
 
-2. **Set `"status": "adopted"` on the route before you edit the page.** This is the one rule that
-   protects a human's afternoon: `bun run stubs` rewrites every `stub` file on each run, and
-   `bun scripts/convert.ts` rewrites every `auto` file on re-run. `adopted` is never touched by
-   either script. Do this first, not last.
+2. **Set `"status": "adopted"` on the route before you edit the page.** `bun run stubs` rewrites
+   every `stub` file on each run, so a route left at `stub` can lose an afternoon of writing.
+   `auto` and `adopted` are never regenerated. Do this first, not last.
 
 3. Read the current file at `src/content/docs/<route>.md` even if it looks like a stub —
    `adopted` does not mean finished. Several adopted pages still carry unresolved
@@ -65,29 +64,24 @@ The persona is the behaviour, not decoration.
 ## Path A — Migrate an existing page
 
 1. **Find the source.** `sources` in the map are paths relative to `sourceRoot`
-   (`/home/fabio/Documents/NeuralSeek/knowledge/neuralseek/documentation/docs`). That clone is
-   **read-only reference** — never edit it. Read the original alongside the converted page; the
-   converter is good but it is a regex pass, and the original is what tells you whether an aside
-   lost its body or a table lost a column.
+   (`/home/fabio/Documents/NeuralSeek/ns-documentation/knowledge/neuralseek/documentation/docs`). That clone is
+   **read-only reference** — never edit it. It tells you what was *previously published*, which is
+   not the same as what is true now: use it for structure and for the questions a reader asks, and
+   re-check every fact against the running product.
 
-2. **Convert, if it has not been converted.** Preview first — it writes nothing:
+2. **Convert it by hand.** There is no converter script any more — it was removed on 2026-09-04
+   because mechanically reshaping a stale page produced pages that looked finished and were not.
+   The full MkDocs → Starlight hazard table is in `references/conversion-hazards.md`; work through
+   it as a checklist. 21 routes still carry `status: "auto"` from the old script and are drafts,
+   not finished pages.
 
-   ```bash
-   bun scripts/convert.ts seek/ --dry
-   bun scripts/convert.ts seek/
-   ```
-
-   The converter refuses to touch any route already at `status: "adopted"`, so if you flipped the
-   status in Step 0 you must convert first and flip second. Read the run report: it flags merges,
-   unresolved links and missing images per route.
-
-3. **Finish what the converter deliberately left alone.** These are known gaps in the tool, not
-   bugs — detail and reasoning in `references/conversion-hazards.md`:
+3. **Watch for what the old script used to leave behind.** Detail and reasoning in
+   `references/conversion-hazards.md`:
    - `<!-- MERGE: ... -->` markers — two or more old pages concatenated. Fold them into one set of
      sections, delete duplicated "What is it / Why is it important" blocks, delete the marker.
    - Unresolved links — an old absolute URL whose target is not in the map. Decide where it should
      point, or ask. Do not guess a route that may not exist.
-   - Missing images — the converter reports them; the file was not in the old repo.
+   - Missing images — referenced by the old page but never present in the old repo.
    - Bare `https://documentation.neuralseek.com/...` URLs left untouched on purpose (some are
      example _content_ inside code fences or an NTL `{{ web }}` node's `url:`). Rewrite only the
      ones that are genuinely navigation.
@@ -197,7 +191,7 @@ bite while writing a page.
 ## Visuals — every old screenshot is stale
 
 **No image from the old MkDocs docs may be reused.** They all show a UI the product has moved
-past. `convert.ts` copies them so a converted page renders, but a copied file is a placeholder
+past. Pages converted before 2026-09-04 carry copies of them, but a copied file is a placeholder
 with a misleading picture on it, not a finished visual. `bun scripts/doc-lint.ts` proves which
 ones are carry-overs by content hash — a file byte-identical to its old-docs original is stale;
 a recaptured one differs and drops out of the report on its own.
@@ -274,8 +268,8 @@ to `adopted` and before committing. Batch your open questions and put them at th
 page's report rather than stopping the work at the first unknown — write everything that is not
 blocked, mark the rest with `<!-- ASK: … -->`, then ask once.
 
-Running the converter or the linter across a whole prefix is fine; _writing_ across a whole
-prefix is not, unless the user explicitly asks for a batch run.
+Running the linter across a whole prefix is fine; _writing_ across a whole prefix is not,
+unless the user explicitly asks for a batch run.
 
 ## Definition of done
 

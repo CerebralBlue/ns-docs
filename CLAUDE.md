@@ -28,7 +28,7 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
 ## Layout
 
 - `src/content/docs/` — documentation pages. Routes = file paths.
-- `src/styles/` — the design system, split into ~18 numbered modules. Rules are **unlayered on
+- `src/styles/` — the design system, split into ~20 numbered modules. Rules are **unlayered on
   purpose** so they win over Starlight's `@layer starlight.*` cascade layers. See
   "The stylesheet" below — read `src/styles/index.css` before touching any of it.
 - `src/lib/ns-chat/` — the chat widget's non-DOM logic, so it is readable and testable apart
@@ -45,6 +45,17 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
     `@astrojs/starlight/constants`, which is **not** in the package `exports` map — a
     reimplementation would have to hardcode it. Only `index.mdx` has `hero:` frontmatter, so
     this affects one page.
+  - `PageSidebar.astro` — wraps Starlight's right sidebar and appends the site
+    graph panel under the TOC. Guarded on `starlightRoute.toc`, mirroring the
+    default: Starlight renders the right sidebar only when the route has a TOC,
+    so on a splash page the slot is never displayed.
+  - `SiteGraph.astro` — the Obsidian-style graph: a local map in the sidebar
+    that expands to a fullscreen view of all 185 nodes. Non-DOM logic lives in
+    `src/lib/ns-graph/` (`types.ts`, `data.ts` = fetch + neighbourhood slicing,
+    `view.ts` = canvas renderer + d3-force simulation). Data is **fetched**
+    from `/graph.json`, not imported, so the 44 KB payload never enters a page
+    bundle. **The overlay reparents itself to `<body>` on mount** — see the
+    stacking-context note below.
   - `ChatWidget.astro` — "NeuralSeek Assistant" launcher / "Ask NeuralSeek" panel. Only DOM
     wiring lives here; everything else is in `src/lib/ns-chat/` (above). It calls the
     `neuralseek-documentation-website` instance's `/seek` endpoint (`stagingapi.neuralseek.com`
@@ -65,20 +76,34 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
     `sessionId`/`userId` pair persist in `localStorage` (`ns-chat-v1` / `ns-session-id` /
     `ns-user-id`); the restart button clears history and rotates `sessionId` only — it also
     aborts an in-flight request, and `sendMessage()` checks `controller.signal.aborted` before
-    showing an error bubble, since a deliberate cancellation isn't a failure. **It reparents
-    itself to `<body>` on mount** — see the stacking-context note below.
+    showing an error bubble, since a deliberate cancellation isn't a failure. **It does NOT
+    reparent itself to `<body>`, and it should** — verified 2026-09-03: there is no
+    `document.body` reference in the file, and at 1400px on a doc page
+    `elementFromPoint()` over the launcher returns `.right-sidebar`, so the launcher is
+    covered and unclickable. See the stacking-context note below; `SiteGraph.astro` and
+    `ImageZoom.astro` both do reparent and are the pattern to copy.
+  - `ImageZoom.astro` — the image lightbox. Click any screenshot in the docs to open it
+    fullscreen, then zoom (wheel / pinch / buttons / `+` `-` `0`) and pan (drag / arrows).
+    Mounted from `Footer.astro`, so it exists on every route. **Nothing is authored per
+    page**: every doc image is a plain markdown `![]()`, so one delegated listener on
+    `.sl-markdown-content` covers all of them and a new page gets it for free — there is
+    deliberately no `ns-image` directive to remember to use. Two images are skipped on
+    purpose: `/img/_placeholder.svg` (opening a "SCREENSHOT PENDING" panel fullscreen shows
+    the reader a bigger apology) and any image inside an `<a>` (the click belongs to the
+    link). The script marks the eligible ones with `.ns-zoomable`, which is what carries the
+    `cursor: zoom-in` — so the affordance can never disagree with what actually opens.
+    **It reparents itself to `<body>` on mount** — see the stacking-context note below.
 - `src/assets/` — logos (`neuraldocs-logo-light/dark.svg` = wordmark, `neuraldocs-icon.png` = N mark).
 - `public/` — `favicon.png`, hero art.
 - `planning/` — IA proposal (`structure-sketch.md`) + page template.
 - `scripts/` — `migration-map.json` (old→new route map, drives stub/content generation) +
-  `gen-stubs.ts`.
+  `gen-stubs.ts` + `gen-graph.ts` (writes the gitignored `public/graph.json`; runs from
+  `bun run dev` and `bun run build`, or `bun run graph` on its own).
 - `src/plugins/` — `remark-base-path.mjs` (prefixes root-relative links with `base`),
   `remark-ns-directives.mjs` (the `ns-*` component layer), `ns-icons.mjs` (vendored Starlight
   glyphs). The two remark plugins are registered via `markdown.remarkPlugins` in
   `astro.config.mjs`, **in that order** — base-path must see the authored directive nodes
   before ns-directives rewrites them into paragraphs.
-- `src/content/docs/styleguide.mdx` — internal component/branding kitchen-sink page; out of the
-  sidebar but still routable.
 - `src/content/docs/directives-test.md` — `draft: true` regression page for the directives in
   plain `.md` (incl. failure modes). Excluded from production builds; visible in dev.
 
@@ -142,7 +167,7 @@ Inline status: :ns-label[beta]
 
 ## The stylesheet — `src/styles/` (split 2026-07-27)
 
-The design system was one 1200-line `neuralseek.css`. It is now ~18 numbered modules plus
+The design system was one 1200-line `neuralseek.css`. It is now ~20 numbered modules plus
 `src/styles/index.css`, which is **the only entry in `customCss`** and holds the `@import`
 list. Read its header before changing anything here.
 
@@ -209,6 +234,14 @@ Starlight behaviours worth remembering (all cost real debugging time):
   unclickable on every doc page at ≥50rem while working fine on the splash page (no sidebar),
   which is why it went unnoticed for a long time. The widget now reparents itself to `<body>`
   on mount. **Any future page-level overlay must do the same.**
+
+- **`.right-sidebar` is `position: fixed` with `width: 100%`, so a percentage
+  inside it resolves against the VIEWPORT, not its parent.** The `<aside>` above
+  it is correctly capped at `--sl-sidebar-width`, but anything you drop into the
+  rail stretches to window width — the graph panel measured 1550px in a 1600px
+  window and drew mostly off-screen. Starlight's own TOC dodges this via an inner
+  `.sl-container` with an explicit width, but that class is Astro-scoped to
+  `PageSidebar.astro` and cannot be borrowed by name. Restate the width.
 
 - **Headings are wrapped.** Starlight puts `h2`–`h6` inside `.sl-heading-wrapper.level-hN`
   for anchor links, which makes the heading itself `display: inline`. A `border-top` on the
@@ -285,10 +318,26 @@ Deployment & platforms (`.ns-tiles`, 2 cards) · Resources & community (`.ns-lin
 - **Custom-domain cutover (later):** set `site: 'https://documentation.neuralseek.com'`, set
   `BASE = ''`, fix the hero action link, add `public/CNAME`.
 
+## The chatbot's knowledge base — it is NOT this repo
+
+The ChatWidget's `/seek` calls answer from a knowledge base built out of the **old MkDocs site**,
+not from `src/content/docs/`. Every source URL it returns is a `documentation.neuralseek.com/…`
+address (verified 2026-09-03 against the live endpoint). Two consequences while writing pages
+here:
+
+- **Nothing you write reaches the chatbot.** A page finished today is not retrievable through the
+  widget on the deployed site, and a fact corrected here stays wrong in its answers.
+- **Its citations break at the custom-domain cutover**, when those old URLs start resolving to new
+  pages at different paths. A repo-markdown → KB ingestion path has to exist before launch.
+
+None of this is fixable from inside this repo — it is a NeuralSeek instance/KB task. Instance
+identities, the ingestion state, and the unverified doc-automation side are in
+`_private/chatbot-and-kb.md`.
+
 ## Old docs (migration source)
 
 The content is being restructured from the previous MkDocs site (read-only reference clone):
-`~/Documents/NeuralSeek/knowledge/neuralseek/documentation/`. Known conversion hazards when
+`~/Documents/NeuralSeek/ns-documentation/knowledge/neuralseek/documentation/`. Known conversion hazards when
 porting a page: `!!!` admonitions (→ `:::` asides), `???` collapsibles (→ `<details>`), internal
 links hardcoded to `documentation.neuralseek.com`, NTL code fences (no Shiki grammar), and
 in-body H1s that would double with Starlight's auto-title.
@@ -298,33 +347,31 @@ in-body H1s that would double with Starlight's auto-title.
 **Structure is complete; content is the remaining work.** 151 routes exist, are in the sidebar
 and build. They split in two halves:
 
-- **76 routes have an old MkDocs page** to convert. `bun scripts/convert.ts <prefix>` does the
-  mechanical part; a human finishes it.
+- **76 routes have an old MkDocs page** to draw on. It is a starting point for structure only —
+  the facts in it are stale, so every claim is re-checked against the running product.
 - **75 routes have nothing to migrate** and must be written with the product open — MCP, a2a,
   NeuralEdit, Run Agents, the dashboards, API keys, permissions, Red Team Testing, most of
   Neural Config. This is the bigger half.
 
 **The gap audit lives in the repo, not in chat.** Every route in `scripts/migration-map.json`
 can carry a `gaps` array listing the undocumented product surfaces that route must cover; 96
-routes have one. `gen-stubs.ts` renders it as a visible "To document on this page" worklist,
-`convert.ts` as an invisible `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment.
+routes have one. `gen-stubs.ts` renders it as a visible "To document on this page" worklist; converted pages
+carry it as an invisible `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment.
 
-**`status` is load-bearing.** `stub` is overwritten by `bun run stubs`, `auto` is overwritten by
-`bun scripts/convert.ts`, and **`adopted` is never touched by either**. Flip a route to
-`adopted` the moment you start hand-editing it or the next run erases the work — but convert
-first and flip second, because `convert.ts` skips a route that is already `adopted`.
+**`status` is load-bearing.** `stub` is overwritten by `bun run stubs`; **`auto` and `adopted`
+are never regenerated**. `auto` means machine-drafted and not yet verified against the product;
+`adopted` means a human has checked it. Flip a route to `adopted` when you start hand-editing it,
+so `bun run stubs` can never reclaim the file.
 
 Open items that affect anyone touching content:
 
 - **The NTL doc generator is broken** — it stopped detecting nodes. Fixing it auto-emits 103 of
   the 112 NTL node gaps, so NTL node pages should not be hand-written until it is resolved.
-- **NTL has no Shiki grammar**, so `convert.ts` rewrites ` ```ntl ` to ` ```text ` to keep the
-  build clean. A grammar reportedly exists and could be ported.
+- **NTL has no Shiki grammar** — write NTL fences as ` ```text `, not ` ```ntl `, or the build
+  warns. A grammar reportedly exists and could be ported.
 - **Every old-docs screenshot is stale** — see the `doc-lint.ts` visual backlog below.
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
-- **`src/content/docs/styleguide.mdx` must be deleted before public launch.** It is the
-  branding verification kitchen-sink, not a documentation page.
 
 ## The `neuraldocs-writer` skill
 
@@ -351,7 +398,7 @@ Two committed pieces work with it:
 
   It also owns the **visual backlog**. Every old-docs screenshot is stale — the product moved
   past that UI — so a copied image is a placeholder with a misleading picture on it. The script
-  proves which are carry-overs **by content hash**: `convert.ts` copies with `copyFileSync`, so
+  proves which are carry-overs **by content hash**: the old converter copied with `copyFileSync`, so
   a byte-identical file was carried over untouched, and a recaptured one drops out of the report
   by itself. No manifest, no marker, nothing to keep in sync. Currently all 137 copied images
   are flagged. A pending visual is marked with `/img/_placeholder.svg` (a visible "SCREENSHOT

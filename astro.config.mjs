@@ -58,6 +58,11 @@ export default defineConfig({
 				// Wraps Starlight's Hero to add the split code panel. Only
 				// index.mdx has `hero:` frontmatter, so this is landing-page only.
 				Hero: './src/components/Hero.astro',
+				// Wraps Starlight's right sidebar to add the site graph panel
+				// under the table of contents. Guarded on `toc` inside, because
+				// Starlight only renders the right sidebar at all when a route
+				// has one.
+				PageSidebar: './src/components/PageSidebar.astro',
 			},
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/CerebralBlue/ns-docs' },

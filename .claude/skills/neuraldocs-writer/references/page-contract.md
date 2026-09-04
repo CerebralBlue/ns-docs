@@ -39,7 +39,7 @@ means a new route, a map entry and a sidebar entry, so raise it rather than doin
 
 ## Frontmatter
 
-Only `title` and `description` are used. The converter and the stub generator both emit them as
+Only `title` and `description` are used. The stub generator emits them as
 JSON strings (`title: "Seek overview"`), which is safe for colons and quotes — keep that style.
 
 `description` is not decoration. It is what a search result and the docs chatbot show, and often
@@ -89,7 +89,7 @@ Old MkDocs pages are UI tab tours. They use **bold pseudo-headings** and wrap pa
 bullets, which produces a page with no usable table of contents and a hostile shape for
 retrieval. Converting one means keeping every fact and changing the shape.
 
-**Before** (from `ui/seek/index.md`, as it lands after `bun scripts/convert.ts`):
+**Before** (from `ui/seek/index.md`, roughly as the old converter left it):
 
 ```markdown
 ## Overview

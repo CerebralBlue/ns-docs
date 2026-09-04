@@ -3,9 +3,9 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro build",
+    "dev": "bun scripts/gen-graph.ts && astro dev",
+    "start": "bun scripts/gen-graph.ts && astro dev",
+    "build": "bun scripts/gen-graph.ts && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "stubs": "bun scripts/gen-stubs.ts",
@@ -13,19 +13,22 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint:css": "stylelint \"src/**/*.css\"",
-    "verify": "bun run format:check && bun run lint:css && bun run check && bun run build"
+    "verify": "bun run format:check && bun run lint:css && bun run check && bun run build",
+    "graph": "bun scripts/gen-graph.ts"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.37.7",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/open-sans": "^5.2.7",
     "astro": "^5.18.2",
+    "d3-force": "^3.0.0",
     "hast-util-from-html": "^2.0.3",
     "sharp": "^0.34.5",
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@types/d3-force": "^3.0.10",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
     "stylelint": "^17.14.1",

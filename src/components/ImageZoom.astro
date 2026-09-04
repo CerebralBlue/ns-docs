@@ -1,0 +1,342 @@
+---
+/**
+ * Image lightbox: click any screenshot in the docs to open it fullscreen,
+ * then zoom (wheel / pinch / buttons / keys) and pan (drag / arrows).
+ *
+ * NOTHING IS AUTHORED PER PAGE. Every doc image is a bare `<img>` inside
+ * `.sl-markdown-content` — plain markdown, no component, no directive — so a
+ * single delegated listener covers all of them and a new page gets the
+ * behaviour for free. There is deliberately no `ns-image` directive to
+ * remember to use.
+ *
+ * Styles live in src/styles/20-component-lightbox.css rather than a scoped
+ * <style> here, for the same two reasons as SiteGraph: the overlay is
+ * reparented to <body> at runtime, and the design system keeps its cascade in
+ * one ordered place.
+ */
+---
+
+<div class="ns-zoom" data-ns-zoom hidden role="dialog" aria-modal="true" aria-label="Image viewer">
+	<div class="ns-zoom__bar">
+		<span class="ns-label">Image</span>
+		<!-- The alt text, verbatim. It is NOT a `.ns-label`: that recipe
+		     uppercases, and an alt is a full descriptive sentence. -->
+		<span class="ns-zoom__caption" data-ns-zoom-caption></span>
+		<div class="ns-zoom__tools">
+			<button type="button" class="ns-zoom__btn" data-ns-zoom-out aria-label="Zoom out">
+				&minus;
+			</button>
+			<button
+				type="button"
+				class="ns-zoom__btn ns-zoom__level"
+				data-ns-zoom-reset
+				aria-label="Reset zoom"
+			>
+				100%
+			</button>
+			<button type="button" class="ns-zoom__btn" data-ns-zoom-in aria-label="Zoom in">+</button>
+			<button type="button" class="ns-zoom__btn ns-zoom__close" data-ns-zoom-close>Close</button>
+		</div>
+	</div>
+	<div class="ns-zoom__stage" data-ns-zoom-stage>
+		<img class="ns-zoom__img" data-ns-zoom-img alt="" draggable="false" />
+	</div>
+</div>
+
+<script>
+	/** Zoom bounds, expressed as a multiple of the fit-to-stage size. */
+	const MIN = 1;
+	const MAX = 8;
+	/** One click of the +/- buttons, and one detent of a mouse wheel. */
+	const STEP = 1.4;
+	const WHEEL = 1.0015;
+
+	/**
+	 * A pending screenshot renders `/img/_placeholder.svg` — the visible
+	 * "SCREENSHOT PENDING" panel from the doc-lint visual backlog. Opening that
+	 * fullscreen shows the reader a bigger apology, so those stay inert and
+	 * never get the zoom-in cursor either.
+	 */
+	const PLACEHOLDER = '/img/_placeholder.svg';
+
+	function isZoomable(img: HTMLImageElement) {
+		if (img.dataset.noZoom !== undefined) return false;
+		// An image wrapped in a link is a navigation control; the click belongs
+		// to the anchor.
+		if (img.closest('a')) return false;
+		return !img.getAttribute('src')?.endsWith(PLACEHOLDER);
+	}
+
+	function initZoom() {
+		const overlay = document.querySelector<HTMLElement>('[data-ns-zoom]');
+		const content = document.querySelector<HTMLElement>('.sl-markdown-content');
+		if (!overlay || !content || overlay.dataset.nsInit !== undefined) return;
+		overlay.dataset.nsInit = '';
+
+		/**
+		 * ESCAPE THE STACKING CONTEXT.
+		 *
+		 * This is mounted from Footer.astro, which renders inside `.main-pane` —
+		 * and TwoColumnContent.astro sets `isolation: isolate` there, while the
+		 * full-height `position: fixed` `.right-sidebar` lives OUTSIDE it. A
+		 * fixed overlay left in place is trapped in the isolated context and the
+		 * sidebar paints over it at >=50rem, which is exactly the bug that made
+		 * the chat launcher unclickable on doc pages. In <body> the z-index in
+		 * 20-component-lightbox.css means what it says.
+		 */
+		document.body.appendChild(overlay);
+
+		const stage = overlay.querySelector<HTMLElement>('[data-ns-zoom-stage]')!;
+		const img = overlay.querySelector<HTMLImageElement>('[data-ns-zoom-img]')!;
+		const caption = overlay.querySelector<HTMLElement>('[data-ns-zoom-caption]')!;
+		const level = overlay.querySelector<HTMLButtonElement>('[data-ns-zoom-reset]')!;
+		const zoomIn = overlay.querySelector<HTMLButtonElement>('[data-ns-zoom-in]')!;
+		const zoomOut = overlay.querySelector<HTMLButtonElement>('[data-ns-zoom-out]')!;
+		const close = overlay.querySelector<HTMLButtonElement>('[data-ns-zoom-close]')!;
+
+		// Mark the eligible images so the cursor affordance and the keyboard
+		// entry point apply to exactly the set that actually opens.
+		for (const candidate of content.querySelectorAll('img')) {
+			if (!isZoomable(candidate)) continue;
+			candidate.classList.add('ns-zoomable');
+			candidate.tabIndex = 0;
+			candidate.setAttribute('role', 'button');
+			candidate.setAttribute('aria-haspopup', 'dialog');
+		}
+
+		// scale is a multiple of the FIT size (1 = the whole image visible), and
+		// tx/ty are the pan offset in stage pixels.
+		let scale = 1;
+		let tx = 0;
+		let ty = 0;
+		let lastFocus: HTMLElement | null = null;
+		let lastSource: HTMLImageElement | null = null;
+
+		/**
+		 * Largest pan that still keeps the image covering the stage — 0 on an
+		 * axis where the scaled image is still smaller than the stage.
+		 *
+		 * THIS INTERACTS WITH zoomAt() AND LOOKS LIKE A BUG. A portrait
+		 * screenshot fitted into a wide stage has vertical room long before it
+		 * has horizontal room, so an early zoom step snaps back to horizontally
+		 * centred while the vertical anchor tracks the cursor. That is the clamp
+		 * working: there is nothing to pan to on that axis, and honouring the
+		 * anchor would open a gap at the edge. Verified: once BOTH axes have
+		 * room the anchor holds exactly, and zooming back out lands on a centred
+		 * fit with no accumulated drift.
+		 */
+		function limits() {
+			return {
+				x: Math.max(0, (img.offsetWidth * scale - stage.clientWidth) / 2),
+				y: Math.max(0, (img.offsetHeight * scale - stage.clientHeight) / 2),
+			};
+		}
+
+		function apply() {
+			const lim = limits();
+			tx = Math.min(lim.x, Math.max(-lim.x, tx));
+			ty = Math.min(lim.y, Math.max(-lim.y, ty));
+			img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+			// Reported against the image's NATURAL pixels, so 100% is genuinely
+			// 1:1 — the number a reader squinting at a screenshot cares about.
+			const natural = img.naturalWidth && img.offsetWidth ? img.offsetWidth / img.naturalWidth : 1;
+			level.textContent = `${Math.round(scale * natural * 100)}%`;
+			overlay!.classList.toggle('is-pannable', scale > MIN);
+		}
+
+		/**
+		 * Zoom about a point given in stage coordinates, so whatever is under
+		 * the cursor stays under the cursor. Origin is the stage centre because
+		 * that is where the image is centred and where its transform-origin is.
+		 */
+		function zoomAt(next: number, cx: number, cy: number) {
+			const clamped = Math.min(MAX, Math.max(MIN, next));
+			if (clamped === scale) return;
+			tx = cx - (clamped / scale) * (cx - tx);
+			ty = cy - (clamped / scale) * (cy - ty);
+			scale = clamped;
+			if (scale === MIN) {
+				tx = 0;
+				ty = 0;
+			}
+			apply();
+		}
+
+		/** Stage-centre-relative coordinates for a pointer/wheel event. */
+		function stagePoint(e: { clientX: number; clientY: number }) {
+			const box = stage.getBoundingClientRect();
+			return {
+				x: e.clientX - (box.left + box.width / 2),
+				y: e.clientY - (box.top + box.height / 2),
+			};
+		}
+
+		function reset() {
+			scale = MIN;
+			tx = 0;
+			ty = 0;
+			apply();
+		}
+
+		// offsetWidth is 0 until the image has loaded and laid out, which makes
+		// both the pan limits and the zoom readout wrong on the first frame
+		// (fit would report as "100%" whatever the real ratio is). Re-run once
+		// the real dimensions exist.
+		img.addEventListener('load', apply);
+
+		function open(source: HTMLImageElement) {
+			lastFocus = document.activeElement as HTMLElement | null;
+			lastSource = source;
+			// currentSrc, not src: it resolves the base path and any srcset the
+			// pipeline may add later, so the overlay shows the same bytes the
+			// page already downloaded rather than triggering a second request.
+			img.src = source.currentSrc || source.src;
+			img.alt = source.alt;
+			caption.textContent = source.alt;
+			overlay!.hidden = false;
+			document.documentElement.classList.add('ns-zoom-open');
+			reset();
+			close.focus();
+		}
+
+		function shut() {
+			overlay!.hidden = true;
+			document.documentElement.classList.remove('ns-zoom-open');
+			// Drop the source so a large screenshot is not held decoded while the
+			// reader carries on down the page.
+			img.removeAttribute('src');
+			// Fall back to the image that was opened. `document.activeElement`
+			// is <body> whenever the viewer was opened by something that does
+			// not take focus — and returning focus to <body> drops a keyboard
+			// reader back to the top of the document instead of to the figure
+			// they were just looking at.
+			(lastFocus && lastFocus !== document.body ? lastFocus : lastSource)?.focus();
+		}
+
+		// ── Opening ────────────────────────────────────────────────────────
+		content.addEventListener('click', (e) => {
+			const target = (e.target as HTMLElement | null)?.closest('img');
+			if (!target || !isZoomable(target as HTMLImageElement)) return;
+			open(target as HTMLImageElement);
+		});
+		content.addEventListener('keydown', (e) => {
+			if (e.key !== 'Enter' && e.key !== ' ') return;
+			const target = (e.target as HTMLElement | null)?.closest('img');
+			if (!target || !isZoomable(target as HTMLImageElement)) return;
+			e.preventDefault();
+			open(target as HTMLImageElement);
+		});
+
+		// ── Toolbar ────────────────────────────────────────────────────────
+		zoomIn.addEventListener('click', () => zoomAt(scale * STEP, 0, 0));
+		zoomOut.addEventListener('click', () => zoomAt(scale / STEP, 0, 0));
+		level.addEventListener('click', reset);
+		close.addEventListener('click', shut);
+
+		// Backdrop click closes; a click on the image itself must not.
+		overlay.addEventListener('click', (e) => {
+			if (e.target === overlay || e.target === stage) shut();
+		});
+
+		// ── Wheel + double-click ───────────────────────────────────────────
+		stage.addEventListener(
+			'wheel',
+			(e) => {
+				e.preventDefault();
+				const p = stagePoint(e);
+				zoomAt(scale * WHEEL ** -e.deltaY, p.x, p.y);
+			},
+			{ passive: false }
+		);
+		stage.addEventListener('dblclick', (e) => {
+			const p = stagePoint(e);
+			// Toggle fit <-> 1:1 with the natural size. An image that already fits
+			// at full resolution has nothing to toggle to, so give it a plain 2x.
+			const oneToOne = img.offsetWidth ? img.naturalWidth / img.offsetWidth : 2;
+			zoomAt(scale > MIN ? MIN : Math.max(2, oneToOne), p.x, p.y);
+		});
+
+		// ── Drag to pan, pinch to zoom ─────────────────────────────────────
+		// Pointer Events cover mouse, pen and touch in one path; `touch-action:
+		// none` on the stage (in CSS) is what stops the browser scrolling instead.
+		const points = new Map<number, { x: number; y: number }>();
+		let pinch = 0;
+
+		stage.addEventListener('pointerdown', (e) => {
+			stage.setPointerCapture(e.pointerId);
+			points.set(e.pointerId, { x: e.clientX, y: e.clientY });
+			pinch = 0;
+		});
+		stage.addEventListener('pointermove', (e) => {
+			const prev = points.get(e.pointerId);
+			if (!prev) return;
+			points.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+			if (points.size === 1) {
+				if (scale === MIN) return;
+				tx += e.clientX - prev.x;
+				ty += e.clientY - prev.y;
+				apply();
+				return;
+			}
+			if (points.size !== 2) return;
+
+			const [a, b] = [...points.values()];
+			const spread = Math.hypot(a.x - b.x, a.y - b.y);
+			if (pinch) {
+				const mid = stagePoint({ clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 });
+				zoomAt(scale * (spread / pinch), mid.x, mid.y);
+			}
+			pinch = spread;
+		});
+		for (const end of ['pointerup', 'pointercancel', 'pointerleave'] as const) {
+			stage.addEventListener(end, (e) => {
+				points.delete(e.pointerId);
+				if (points.size < 2) pinch = 0;
+			});
+		}
+
+		// ── Keyboard ───────────────────────────────────────────────────────
+		document.addEventListener('keydown', (e) => {
+			if (overlay!.hidden) return;
+
+			if (e.key === 'Escape') return shut();
+			if (e.key === '+' || e.key === '=') return zoomAt(scale * STEP, 0, 0);
+			if (e.key === '-') return zoomAt(scale / STEP, 0, 0);
+			if (e.key === '0') return reset();
+
+			const pan: Record<string, [number, number]> = {
+				ArrowLeft: [60, 0],
+				ArrowRight: [-60, 0],
+				ArrowUp: [0, 60],
+				ArrowDown: [0, -60],
+			};
+			if (pan[e.key] && scale > MIN) {
+				e.preventDefault();
+				tx += pan[e.key][0];
+				ty += pan[e.key][1];
+				return apply();
+			}
+
+			// Focus trap. The dialog is modal, so Tab must not walk out into the
+			// page still rendered behind it.
+			if (e.key === 'Tab') {
+				const stops = [zoomOut, level, zoomIn, close];
+				const at = stops.indexOf(document.activeElement as HTMLButtonElement);
+				e.preventDefault();
+				const next = e.shiftKey ? (at <= 0 ? stops.length - 1 : at - 1) : (at + 1) % stops.length;
+				stops[next].focus();
+			}
+		});
+
+		// A resized window changes the fit size, which changes what a given pan
+		// offset means — re-clamp rather than leave the image stranded off-stage.
+		window.addEventListener('resize', () => {
+			if (!overlay!.hidden) apply();
+		});
+	}
+
+	// First load, and again after Starlight's client-side view transitions.
+	initZoom();
+	document.addEventListener('astro:page-load', initZoom);
+</script>

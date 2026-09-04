@@ -1,0 +1,33 @@
+---
+/**
+ * Override: keep Starlight's right sidebar (the table of contents) and add the
+ * site graph panel beneath it.
+ *
+ * WRAPS rather than reimplements, the same reason Hero.astro does — the default
+ * renders both the desktop TOC and the mobile one, and reproducing that split
+ * would mean re-deriving Starlight's `lg:` breakpoint by hand.
+ *
+ * The `toc` guard mirrors the default's own. Starlight renders the whole right
+ * sidebar only when the route has a table of contents, so on a splash page this
+ * slot is never displayed; without the guard the graph's markup — including its
+ * overlay — would still be emitted into a container nobody can see.
+ *
+ * `sl-hidden lg:sl-block` is Starlight's own utility pair, copied from
+ * PageSidebar.astro. Below that breakpoint there is no right sidebar at all,
+ * only the mobile TOC dropdown, which is no place for a canvas.
+ */
+import Default from '@astrojs/starlight/components/PageSidebar.astro';
+import SiteGraph from './SiteGraph.astro';
+
+const hasToc = Boolean(Astro.locals.starlightRoute?.toc);
+---
+
+<Default />
+
+{
+	hasToc && (
+		<div class="sl-hidden lg:sl-block">
+			<SiteGraph />
+		</div>
+	)
+}

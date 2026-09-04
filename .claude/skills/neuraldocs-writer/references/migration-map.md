@@ -21,7 +21,7 @@ Read this before editing the map or picking up a route.
 ```jsonc
 {
   "$comment": "…",
-  "sourceRoot": "/home/fabio/Documents/NeuralSeek/knowledge/neuralseek/documentation/docs",
+  "sourceRoot": "/home/fabio/Documents/NeuralSeek/ns-documentation/knowledge/neuralseek/documentation/docs",
   "routes":  { "<new route>": { … }, … },   // 151 entries
   "kill":    { "<old path>": "why it is not migrating", … },
   "renamed": { "<old route>": "what happened to it", … }
@@ -57,7 +57,7 @@ Counts at last check: 151 routes; 76 with sources, 75 without.
 | Status    | Meaning                            | Who overwrites it                                  |
 | --------- | ---------------------------------- | -------------------------------------------------- |
 | `stub`    | generated placeholder              | `bun run stubs` rewrites it **every run**          |
-| `auto`    | script-converted from the old docs | `bun scripts/convert.ts` rewrites it **on re-run** |
+| `auto`    | drafted by the old converter script | nothing regenerates it — treat as an unverified draft |
 | `adopted` | a human has edited the page        | **nothing ever touches it**                        |
 
 Set `adopted` the moment you start editing a page. It is the only thing standing between an
@@ -95,7 +95,7 @@ rendered into the page two different ways depending on status:
 - **Stub pages** (`bun run stubs`) render it as a visible `## To document on this page` section —
   so ~70 draft pages currently publish their own worklist. That is deliberate while the site is
   unannounced.
-- **Converted pages** (`bun scripts/convert.ts`) render it as an HTML comment at the bottom:
+- **Converted pages** render it as an HTML comment at the bottom:
   `<!-- STILL TO DOCUMENT ON THIS PAGE: … -->` — invisible on the published site, visible to
   whoever edits the file.
 

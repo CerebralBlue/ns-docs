@@ -67,3 +67,13 @@
 /* Landing page only */
 @import './16-page-splash.css';
 @import './17-page-hero.css';
+
+/* Site graph — sidebar panel + fullscreen overlay. Last on purpose: its
+   selectors are all `.ns-graph*` and collide with nothing, so "after
+   everything" is the honest position rather than a negotiated one. */
+@import './19-component-graph.css';
+
+/* Image lightbox — the fullscreen zoom/pan viewer for doc screenshots.
+   Same reasoning as 19: `.ns-zoom*` / `.ns-zoomable` collide with nothing,
+   so "after everything" is honest rather than negotiated. */
+@import './20-component-lightbox.css';
