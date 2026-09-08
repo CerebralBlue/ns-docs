@@ -1,16 +1,55 @@
 ---
 title: "Sandboxes"
-description: "Sandboxes — NeuralSeek documentation."
+description: "Nodes that run isolated code or agents: Custom Connector, Javascript Sandbox, and Python Sandbox."
 ---
 
-:::note[Draft]
-This page is part of the new documentation structure and its content is being prepared.
+## Custom Connector
+
+Call another mAIstro template as a custom connector, keeping a separate variable space from the current mAIstro and only returning the final output.
+
+:::note[Parameters]
+
+- **template**: The mAIstro agent name.
+
+- **params**: The parameters to pass to the agent, in JSON format
+
+- **path**: (Optional) mAIstro call url of the region/instance
+
+- **apikey**: (Optional) mAIstro api key
 :::
 
-Content will be converted from the existing documentation.
-Source: `ui/maistro/features/ntl_functions/sandboxes.md` (keep).
+---
 
-## To document on this page
+## Javascript Sandbox
 
-- Custom Connector — call another agent as an isolated connector (not in the node menu)
+Run arbitrary javascript ESM code. You must use import and not require (CJS)
 
+:::note[Parameters]
+
+- **script**: The script
+
+- **maxTime**: 
+    - **text**: Max execution time in MS
+    - **min**: 100
+    - **max**: 30000
+    - **step**: 1
+    - **default**: 1000
+:::
+
+---
+
+## Python Sandbox
+
+Run arbitrary Python code.
+
+:::note[Parameters]
+
+- **script**: The script
+
+- **maxTime**: 
+    - **text**: Max execution time in MS
+    - **min**: 100
+    - **max**: 30000
+    - **step**: 1
+    - **default**: 1000
+:::

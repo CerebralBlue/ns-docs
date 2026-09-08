@@ -49,6 +49,38 @@ Connect to a Postgres database and run a sql query, returning the data.
 ---
 
 
+## Presto
+
+
+Connect to Presto and run a sql query, returning the data.
+:::note[Parameters]
+
+- **query**: The Presto query
+
+- **uri**: A connection string in the format:  prestos://analytics_user:secret@presto.example.com:8443/hive/default
+
+- **sentences**: Return in sentences (true) or as CSV (false)
+:::
+
+---
+
+
+## Cassandra
+
+
+Connect to Cassandra and run a query, returning the data.
+:::note[Parameters]
+
+- **query**: The query
+
+- **uri**: A connection string in the format:  cassandra://user:password@node1:9042/my_keyspace?localDataCenter=datacenter1&ssl=true
+
+- **sentences**: Return in sentences (true) or as CSV (false)
+:::
+
+---
+
+
 ## MariaDB 
 
 
@@ -164,6 +196,26 @@ Connect to Snowflake and run a sql query, returning the data.
 - **password**: The password to use
 
 - **database**: The database to use
+
+- **sentences**: Return in sentences (true) or as CSV (false)
+:::
+
+---
+
+
+## Databricks
+
+
+Connect to Databricks SQL and run a query, returning the data.
+:::note[Parameters]
+
+- **query**: The SQL query to run
+
+- **host**: The Databricks workspace hostname (e.g. adb-xxxx.azuredatabricks.net)
+
+- **path**: The SQL Warehouse HTTP path (e.g. /sql/1.0/warehouses/abcdef123)
+
+- **token**: The personal access token for authentication
 
 - **sentences**: Return in sentences (true) or as CSV (false)
 :::

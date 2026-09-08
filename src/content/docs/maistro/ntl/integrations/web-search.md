@@ -11,9 +11,9 @@ Search the web using Google.
 
 - **query**: The search query
 
-- **key**: Google API Key
+- **apiKey**: Google API Key
 
-- **searchId**: Programmable Search Engine ID
+- **engine**: Programmable Search Engine ID
 :::
 
 ---
@@ -87,25 +87,25 @@ Search the web using Exa neural search. Returns model-extracted highlights, opti
 
 - **apiKey**: Your Exa API key
 
-- **searchType**:
-    - **text**: Search type (leave blank for auto)
-    - **auto**:
-    - **neural**:
-    - **keyword**:
-    - **fast**:
+- **type**: Search type (leave blank for auto)
 
-- **count**: 
+- **numResults**: 
     - **text**: The number of responses
     - **min**: 1
     - **max**: 20
     - **step**: 1
     - **default**: 5
 
-- **restricted**: Restrict to these domains (comma or newline separated, eg: epa.gov, osha.gov). Leave blank for the whole web.
+- **includeDomains**: Restrict to these domains (comma or newline separated, eg: epa.gov, osha.gov). Leave blank for the whole web.
 
-- **characters**: Max characters per highlight
+- **highlightChars**: 
+    - **text**: Max characters per highlight
+    - **min**: 500
+    - **max**: 10000
+    - **step**: 500
+    - **default**: 3000
 
-- **json**: Advanced: raw JSON merged into the Exa request body. Override or add any Exa API param (eg excludeDomains, startPublishedDate, category, livecrawl, contents). Top-level keys here win over the fields above.
+- **jsonOverride**: Advanced: raw JSON merged into the Exa request body. Override or add any Exa API param (eg excludeDomains, startPublishedDate, category, livecrawl, contents). Top-level keys here win over the fields above.
 
 - **cache**: Cache results
 :::

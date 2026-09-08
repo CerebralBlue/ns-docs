@@ -82,7 +82,7 @@ Connect to Trello and create a card
 ## Update a Card 
 
 
-Connect to Trello and create a card
+Connect to Trello and update a card
 :::note[Parameters]
 
 - **name**: The card name

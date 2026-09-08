@@ -19,9 +19,9 @@ Connect to AWS s3 and read a file
 
 - **secretAccessKey**: Access Key Secret
 
-- **Override S3 endpoint**: Override s3 endpoint
+- **endpoint**: Override S3 endpoint
 
-- **fileName**: Optional - save the file locally with this name
+- **filename**: Optional - save the file locally with this name
 :::
 
 ---
@@ -45,9 +45,9 @@ Connect to AWS s3 and write a file
 
 - **secretAccessKey**: Access Key Secret
 
-- **s3Endpoint**: Override S3 endpoint
+- **endpoint**: Override S3 endpoint
 
-- **fileName**: Optional - read and upload this local file instead of data
+- **filename**: Optional - read and upload this local file instead of data
 :::
 
 ## S3 List Objects
@@ -58,7 +58,7 @@ Connect to AWS s3 and list objects
 
 - **bucket**: The bucket name
 
-- **keys**: Optional prefix to filter keys
+- **prefix**: Optional prefix to filter keys
 
 - **region**: The provider's region
 
@@ -66,9 +66,9 @@ Connect to AWS s3 and list objects
 
 - **secretAccessKey**: Access Key Secret
 
-- **s3Endpoint**: Override S3 endpoint
+- **endpoint**: Override S3 endpoint
 
-- **maxNumber**: Maximum number of objects to return (optional)
+- **maxKeys**: Maximum number of objects to return (optional)
 :::
 
 ## S3 Delete File
@@ -77,7 +77,7 @@ Connect to AWS s3 and list objects
 Connect to AWS s3 and delete a file
 :::note[Parameters]
 
-- **fileName**: The filename in S3 to delete
+- **key**: The filename in S3 to delete
 
 - **bucket**: The bucket name
 
@@ -87,7 +87,7 @@ Connect to AWS s3 and delete a file
 
 - **secretAccessKey**: Access Key Secret
 
-- **s3Endpoint**: Override S3 endpoint
+- **endpoint**: Override S3 endpoint
 
 :::
 ---

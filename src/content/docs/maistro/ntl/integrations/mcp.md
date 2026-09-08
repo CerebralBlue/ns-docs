@@ -3,15 +3,34 @@ title: "MCP client"
 description: "Call external MCP (Model Context Protocol) tools and agents from inside your own agent."
 ---
 
-:::note[Draft]
-This page is part of the new documentation structure and its content is being prepared.
+## MCP
+
+Call a tool by MCP.
+
+:::note[Parameters]
+
+- **baseURL**: The URL of the MCP server
+
+- **endpoint**: MCP endpoint (/mcp)
+
+- **action**: The action to take
+
+- **method**: The method to send
+
+- **tool**: The tool to call
+
+- **params**: The params
+
+- **arguments**: The Arguments
+
+- **headers**: The headers
+
+- **bearer**: The bearer token
+
+- **timeout**: 
+    - **text**: The timeout
+    - **min**: 1000
+    - **max**: 60000
+    - **step**: 1000
+    - **default**: 30000
 :::
-
-This page is brand new for the restructured docs.
-
-## To document on this page
-
-- The MCP client node — calling an external MCP agent
-- Cross-link: integrations/mcp-server is the other direction (exposing your agents)
-- Owned by the NTL doc generator once it is fixed — this stub reserves the route
-
