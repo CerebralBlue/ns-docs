@@ -1,11 +1,14 @@
 ---
 title: "XML Toolbox"
-description: "XML Toolbox — NeuralSeek documentation."
+description: "Convert between XML and JSON."
 ---
 
-:::note[Draft]
-This page is part of the new documentation structure and its content is being prepared.
-:::
+## XML to JSON
 
-Content will be converted from the existing documentation.
-Source: `ui/maistro/features/ntl_functions/modify_data/xml_toolbox.md` (keep).
+Turn XML into JSON
+
+---
+
+## JSON to XML
+
+Turn JSON to XML
