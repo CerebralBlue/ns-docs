@@ -19,8 +19,10 @@ import { join, relative } from 'node:path';
 import {
 	CURRENT_RUN_FILE,
 	DOCS_DIR,
+	loadInstances,
 	loadMap,
 	parseArgs,
+	rcInstance,
 	ROOT,
 	routeFolder,
 	runDir,
@@ -36,6 +38,15 @@ if (!prefix) {
 	process.exit(1);
 }
 const only = args.values.only ?? [];
+// The pipeline runs against the playground and nothing else — fail before any agent starts.
+const inst = loadInstances();
+const rc = rcInstance();
+if (rc !== inst.playground) {
+	console.error(
+		`.neuralseekrc.json points the MCP at ${rc ?? 'nothing'}, not the playground ${inst.playground} — fix it before running`
+	);
+	process.exit(2);
+}
 const { map } = loadMap();
 
 const routes = Object.entries(map.routes)
@@ -116,6 +127,7 @@ const questionsFile = join(
 const queue = {
 	runId,
 	prefix,
+	instance: { host: inst.host, id: inst.playground },
 	createdAt: new Date().toISOString(),
 	routes,
 	sidebar: sidebar

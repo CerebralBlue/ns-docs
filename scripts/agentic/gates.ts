@@ -15,10 +15,10 @@
  *   images     every image exists, is not an old-docs carry-over, and a placeholder is
  *              followed by a SCREENSHOT marker within 3 lines
  *   evidence   every non-prose claim has a verdict; no unverifiable param/default claim;
- *              every confirmed ui claim's snapshot exists, its sha1 matches and its label
- *              greps (re-checked here — the verifier's own flag is not trusted); every
- *              contradicted/missing verdict the writer says it applied has its `actual`
- *              text present in the page
+ *              every confirmed ui/behaviour claim rests on a saved snapshot (label greps) or
+ *              a run file (the probe's raw output) whose sha1 still matches — re-checked
+ *              here, the agents' own flags are not trusted; every contradicted/missing
+ *              verdict the writer says it applied has its `actual` text present in the page
  *   write      write.json exists and lists no `left_unresolved` load-bearing claim
  *
  * `bun run verify` (the build) is not here: it runs once per pipeline run, after the last
@@ -161,6 +161,14 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 // ── evidence ──────────────────────────────────────────────────────────────────
 const docs = readJson(join(rd, 'docs.json'));
 const verdicts = readJson(join(rd, 'verdicts.json'));
+const runner = readJson(join(rd, 'runner.json'));
+if (runner?.verdicts?.length) {
+	// Same merge rule as compile.ts: a run settles a claim over a screen.
+	const byId = new Map<string, any>((verdicts?.verdicts ?? []).map((v: any) => [v.id, v]));
+	for (const v of runner.verdicts)
+		if (v.verdict !== 'unverifiable' || !byId.has(v.id)) byId.set(v.id, v);
+	if (verdicts) verdicts.verdicts = [...byId.values()];
+}
 const write = readJson(join(rd, 'write.json'));
 {
 	if (!docs || !verdicts)
@@ -176,15 +184,29 @@ const write = readJson(join(rd, 'write.json'));
 			if (!v) continue;
 			if (v.verdict === 'unverifiable' && (c.kind === 'param' || c.kind === 'default'))
 				detail.push(`${c.id} (${c.kind}) is unverifiable: ${v.reason ?? ''}`.trim());
-			if (v.verdict === 'confirmed' && c.kind === 'ui') {
+			// A confirmed ui/behaviour claim rests on a saved snapshot (label greps) or a run
+			// file (the probe's raw output), each with a matching sha1; param/default too when
+			// the verifier settled them on screen or by a run.
+			const needsFile =
+				c.kind === 'ui' ||
+				c.kind === 'behaviour' ||
+				((c.kind === 'param' || c.kind === 'default') &&
+					v.tier !== 'config' &&
+					v.tier !== 'portal');
+			if (v.verdict === 'confirmed' && needsFile) {
+				const runFile = v.evidence?.run ? join(rd, v.evidence.run) : '';
 				const snap = v.evidence?.snapshot ? join(rd, v.evidence.snapshot) : '';
-				if (!snap || !existsSync(snap))
-					detail.push(`${c.id}: confirmed ui claim without a saved snapshot`);
+				if (runFile) {
+					if (!existsSync(runFile)) detail.push(`${c.id}: run file missing (${v.evidence.run})`);
+					else if (v.evidence.sha1 && sha1(readFileSync(runFile, 'utf8')) !== v.evidence.sha1)
+						detail.push(`${c.id}: run file sha1 mismatch — evidence changed after the verdict`);
+				} else if (!snap || !existsSync(snap))
+					detail.push(`${c.id}: confirmed ${c.kind} claim without a saved snapshot or run file`);
 				else {
 					const text = readFileSync(snap, 'utf8');
 					if (v.evidence.sha1 && sha1(text) !== v.evidence.sha1)
 						detail.push(`${c.id}: snapshot sha1 mismatch — evidence changed after the verdict`);
-					if (!v.evidence.label || !text.includes(v.evidence.label))
+					if (c.kind !== 'behaviour' && (!v.evidence.label || !text.includes(v.evidence.label)))
 						detail.push(
 							`${c.id}: label "${v.evidence?.label ?? ''}" is not in ${v.evidence.snapshot}`
 						);

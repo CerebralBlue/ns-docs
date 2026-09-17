@@ -18,10 +18,38 @@ export const RUNS_DIR = join(V2_DIR, 'runs');
 export const COMPONENT_MAP_DIR = join(ROOT, '_private/component-map');
 export const PW_OUTPUT_DIR = join(ROOT, '_private/tools/playwright/output');
 export const CURRENT_RUN_FILE = join(V2_DIR, 'current-run');
+export const INSTANCES_FILE = join(V2_DIR, 'instances.json');
+export const RC_FILE = join(ROOT, '.neuralseekrc.json');
 
-/** Same word list as .claude/hooks/pw-readonly.sh — a control whose name matches commits an action. */
+/**
+ * The one instance the pipeline may touch (the playground) and the ids it must never touch.
+ * Gitignored: `_private/agentic-v2/instances.json`. Both hooks read the same file.
+ */
+export type Instances = { host: string; playground: string; locked: string[]; agentPrefix: string };
+export function loadInstances(): Instances {
+	if (!existsSync(INSTANCES_FILE)) {
+		console.error(`missing ${INSTANCES_FILE} — {host, playground, locked[], agentPrefix}`);
+		process.exit(2);
+	}
+	return JSON.parse(readFileSync(INSTANCES_FILE, 'utf8'));
+}
+/** The instance id `.neuralseekrc.json` currently points the MCP at, or null. */
+export function rcInstance(): string | null {
+	if (!existsSync(RC_FILE)) return null;
+	const m = String(JSON.parse(readFileSync(RC_FILE, 'utf8')).baseUrl ?? '').match(
+		/\/([0-9a-f]{24})\/?$/
+	);
+	return m ? m[1] : null;
+}
+export const consoleUrl = (inst: Instances, page: string) =>
+	`https://${inst.host}/${inst.playground}/${page.replace(/^\//, '')}`;
+
+/** A control whose name matches commits an action — information for the verifier (click deliberately, keep it small). */
 export const COMMIT_VERBS =
 	/\b(save|run|submit|delete|remove|apply|update|test|send|generate|regenerate|upload|merge|train|enhance|import|export|reset|clear|confirm|ok|yes|create|add|edit|publish|deploy|start|stop|execute|sign out|log ?out)\b/i;
+
+/** Same list as .claude/hooks/pw-policy.sh — the hook never lets these be clicked, on any instance. */
+export const DESTRUCTIVE = /\b(delete|remove|purge|erase|reset|clear all|sign out|log ?out)\b/i;
 
 export type Route = {
 	title: string;

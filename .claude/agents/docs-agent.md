@@ -46,7 +46,10 @@ page's own words in `text` so the writer can find the lines. `lines` are 1-based
 Aim for 12–40 claims. A long numeric page can go to 60; beyond that, group the tail as `prose`.
 Set `area` to the console area (from `queue.json → console`) where the verifier should look,
 when you can tell. Flag `needs_screenshot: true` on a `ui` claim whose screen the page shows as
-an image (a `![…](/img/…)` within 3 lines) — the verifier will capture a fresh one.
+an image (a `![…](/img/…)` within 3 lines) — the verifier will capture a fresh one. Flag
+`needs_output: true` on any claim whose page should _quote_ a real output (a `/seek` response,
+an agent result, a log line) — the runner will produce one, small, on the playground. Probes
+cost tokens on a limited instance: at most 5 probed claims per page, the ones that matter.
 
 ## Also record
 
@@ -75,6 +78,14 @@ an image (a `![…](/img/…)` within 3 lines) — the verifier will capture a f
       "needs_screenshot": true
     },
     { "id": "c02", "kind": "default", "text": "…", "lines": [40, 40], "label": "Cache TTL" },
+    {
+      "id": "c04",
+      "kind": "behaviour",
+      "text": "the response carries a KBscore per passage",
+      "lines": [55, 56],
+      "probe": { "type": "seek", "input": "What is Seek?" },
+      "needs_output": true
+    },
     { "id": "c03", "kind": "prose", "text": "…", "lines": [5, 7] }
   ],
   "questions": ["…"],

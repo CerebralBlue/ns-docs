@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# PostToolUse audit trail for the browser: every navigation, click and hover on the production
-# console is appended to the current run's run.log (or a global one when no run is active).
+# PostToolUse audit trail for the browser: every navigation, click, hover and keystroke on the
+# playground console is appended to the current run's run.log (or a global one when no run is active).
 # The pipeline's report reads it; a human can answer "what did the browser do?" from it.
 set -euo pipefail
 
@@ -16,6 +16,8 @@ case "$TOOL" in
 		WHAT=$(printf '%s' "$INPUT" | jq -r '.tool_input.url // ""') ;;
 	mcp__neuralseek-ui__browser_click | mcp__neuralseek-ui__browser_hover)
 		WHAT=$(printf '%s' "$INPUT" | jq -r '(.tool_input.element // "") + " [ref=" + (.tool_input.ref // "?") + "]"') ;;
+	mcp__neuralseek-ui__browser_type | mcp__neuralseek-ui__browser_fill_form | mcp__neuralseek-ui__browser_select_option | mcp__neuralseek-ui__browser_press_key)
+		WHAT=$(printf '%s' "$INPUT" | jq -r '.tool_input | tostring' | cut -c1-120) ;;
 	*) exit 0 ;;
 esac
 mkdir -p "$(dirname "$LOG")" 2>/dev/null

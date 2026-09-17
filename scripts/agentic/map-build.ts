@@ -11,14 +11,15 @@
  * that changes between visits (counts, dates, the signed-in user, table rows, refs).
  *
  * The map stores `role + name` per control, never a Playwright ref — refs are regenerated on
- * every snapshot. `commits` marks controls whose name matches the browser hook's commit-verb
- * list, so a verifier knows in advance what it must not click.
+ * every snapshot. `commits` marks controls that save/run/submit (click deliberately, keep the
+ * run small); `destructive` marks the ones the browser hook will never let anyone click.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, join, relative } from 'node:path';
 import {
 	COMMIT_VERBS,
 	COMPONENT_MAP_DIR,
+	DESTRUCTIVE,
 	INTERACTIVE,
 	nameOf,
 	parseArgs,
@@ -45,6 +46,7 @@ type Control = {
 	name: string;
 	kind: string;
 	commits: boolean;
+	destructive: boolean;
 	opens?: string;
 	columns?: string[];
 	states: string[];
@@ -128,6 +130,7 @@ for (const spec of args.values.state) {
 				kind: isTable ? 'table' : collapsed.has(node) ? 'repeated' : node.role,
 				// Links navigate (fenced by host in the hook); only non-link controls can commit.
 				commits: !isTable && node.role !== 'link' && COMMIT_VERBS.test(name),
+				destructive: !isTable && DESTRUCTIVE.test(name),
 				opens: node.url,
 				columns,
 				states: [id],

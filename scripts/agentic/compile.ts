@@ -50,6 +50,20 @@ for (const route of routes) {
 	const rd = routeDir(runId, route);
 	const docs = readJson(join(rd, 'docs.json'));
 	const ver = readJson(join(rd, 'verdicts.json'));
+	// The runner (MCP probes) writes its own verdicts; they are merged with the verifier's by id,
+	// the runner winning for a claim it settled (a run is stronger evidence than a screen).
+	const runner = readJson(join(rd, 'runner.json'));
+	if (runner?.verdicts?.length) {
+		const byId = new Map<string, any>((ver?.verdicts ?? []).map((v: any) => [v.id, v]));
+		for (const v of runner.verdicts)
+			if (v.verdict !== 'unverifiable' || !byId.has(v.id)) byId.set(v.id, v);
+		if (ver) ver.verdicts = [...byId.values()];
+	}
+	const merged =
+		ver ??
+		(runner?.verdicts?.length
+			? { route, verdicts: runner.verdicts, observed: [], map_gaps: [] }
+			: null);
 	const page = join(DOCS_DIR, `${route}.md`);
 	const body = existsSync(page) ? readFileSync(page, 'utf8') : '';
 	const h2s = [...body.matchAll(/^##\s+(.+?)\s*$/gm)].map((m) => m[1]);
@@ -58,11 +72,22 @@ for (const route of routes) {
 	const integrity: string[] = [];
 	const byId = new Map<string, any>((docs?.claims ?? []).map((c: any) => [c.id, c]));
 	const rows: string[] = [];
-	for (const v of ver?.verdicts ?? []) {
+	const samples: { id: string; file: string; input: string; text: string }[] = [];
+	for (const v of merged?.verdicts ?? []) {
 		counts[v.verdict as keyof typeof counts] = (counts[v.verdict as keyof typeof counts] ?? 0) + 1;
 		const claim = byId.get(v.id);
 		let ev = '';
-		if (v.evidence?.snapshot) {
+		if (v.evidence?.run) {
+			const runFile = join(rd, v.evidence.run);
+			if (!existsSync(runFile)) integrity.push(`${v.id}: run file missing (${v.evidence.run})`);
+			else {
+				const text = readFileSync(runFile, 'utf8');
+				if (v.evidence.sha1 && sha1(text) !== v.evidence.sha1)
+					integrity.push(`${v.id}: run file sha1 mismatch`);
+				ev = `${v.evidence.run} ✓`;
+				samples.push({ id: v.id, file: v.evidence.run, input: v.evidence.input ?? '', text });
+			}
+		} else if (v.evidence?.snapshot) {
 			const snap = join(rd, v.evidence.snapshot);
 			if (!existsSync(snap)) integrity.push(`${v.id}: snapshot missing (${v.evidence.snapshot})`);
 			else {
@@ -82,7 +107,7 @@ for (const route of routes) {
 			`| ${v.id} | ${claim?.kind ?? '?'} | ${(claim?.text ?? '').replace(/\|/g, '\\|')} (L${claim?.lines?.join('–') ?? '?'}) | **${v.verdict}** | ${v.tier ?? ''} | ${ev} | ${(v.actual ?? v.reason ?? '').replace(/\|/g, '\\|')} |`
 		);
 	}
-	const claimIds = new Set((ver?.verdicts ?? []).map((v: any) => v.id));
+	const claimIds = new Set((merged?.verdicts ?? []).map((v: any) => v.id));
 	const unverdicted = (docs?.claims ?? []).filter((c: any) => !claimIds.has(c.id));
 
 	// Observed controls that no claim mentions by label.
@@ -99,14 +124,14 @@ for (const route of routes) {
 
 	const configFacts = config?.keys
 		? Object.entries(config.keys).filter(([k]) =>
-				(ver?.verdicts ?? []).some((v: any) => v.tier === 'config' && v.config_key === k)
+				(merged?.verdicts ?? []).some((v: any) => v.tier === 'config' && v.config_key === k)
 			)
 		: [];
 
 	const md = [
 		`# ${route} — evidence`,
 		'',
-		`Run \`${runId}\` · ${docs ? `${docs.claims?.length ?? 0} claims` : 'no docs.json'} · ${ver ? `${ver.verdicts?.length ?? 0} verdicts, ${ver.navigations ?? '?'} navigations${ver.halt ? ` · HALT ${ver.halt}` : ''}` : 'no verdicts.json'}`,
+		`Run \`${runId}\` · ${docs ? `${docs.claims?.length ?? 0} claims` : 'no docs.json'} · ${merged ? `${merged.verdicts?.length ?? 0} verdicts, ${ver?.navigations ?? '?'} navigations${runner ? `, ${runner.probes ?? '?'} probes` : ''}${ver?.halt ? ` · HALT ${ver.halt}` : ''}` : 'no verdicts'}`,
 		'',
 		`## Verdicts — confirmed ${counts.confirmed} · contradicted ${counts.contradicted} · missing ${counts.missing} · unverifiable ${counts.unverifiable}`,
 		'',
@@ -136,7 +161,7 @@ for (const route of routes) {
 		'',
 		...[
 			...(docs?.questions ?? []),
-			...(ver?.verdicts ?? [])
+			...(merged?.verdicts ?? [])
 				.filter((v: any) => v.verdict === 'unverifiable')
 				.map((v: any) => `${v.id}: ${v.reason ?? 'unverifiable'}`),
 		].map((q: string) => `- ${q}`),
@@ -185,7 +210,10 @@ for (const route of routes) {
 		needsComponent: !!docs?.needs_component?.flag,
 		h2s,
 		hasDocs: !!docs,
-		hasVerdicts: !!ver,
+		hasVerdicts: !!merged,
+		probes: runner?.probes ?? 0,
+		created: runner?.created ?? [],
+		configChanged: runner?.configChanged ?? [],
 	};
 }
 

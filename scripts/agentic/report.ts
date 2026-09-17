@@ -99,6 +99,18 @@ const hosts = [
 const denials = existsSync(join(dir, 'denials.log'))
 	? readFileSync(join(dir, 'denials.log'), 'utf8').trim().split('\n').filter(Boolean)
 	: [];
+const spend = existsSync(join(dir, 'spend.log'))
+	? readFileSync(join(dir, 'spend.log'), 'utf8').trim().split('\n').filter(Boolean)
+	: [];
+const spendByTool: Record<string, number> = {};
+for (const l of spend) spendByTool[l.split('\t')[2]] = (spendByTool[l.split('\t')[2]] ?? 0) + 1;
+const cleanup = readJson(join(dir, 'section/cleanup.json'));
+const created = routes.flatMap(
+	(r) => readJson(join(routeDir(runId, r), 'runner.json'))?.created ?? []
+);
+const configChanged = routes.flatMap(
+	(r) => readJson(join(routeDir(runId, r), 'runner.json'))?.configChanged ?? []
+);
 const denialsByAgent: Record<string, number> = {};
 for (const d of denials)
 	denialsByAgent[d.split('\t')[1]] = (denialsByAgent[d.split('\t')[1]] ?? 0) + 1;
@@ -115,6 +127,14 @@ const summary = {
 		denials: denialsByAgent,
 	},
 	ia: ia ? { decisions: ia.decisions ?? ia } : null,
+	playground: {
+		probes: spendByTool,
+		agentsCreated: created,
+		agentsDeleted: cleanup?.deleted ?? [],
+		leftovers: cleanup?.leftovers ?? created.filter((n) => !(cleanup?.deleted ?? []).includes(n)),
+		configChanged,
+		configRestored: cleanup?.configRestored ?? [],
+	},
 	structuralChanges: [...changed].filter((p) => !p.startsWith('src/content/docs/')),
 };
 writeJson(join(dir, 'section/report.json'), summary);
@@ -142,12 +162,18 @@ const md = [
 		? `IA decisions: ${JSON.stringify(ia.decisions ?? ia).slice(0, 400)}`
 		: 'IA: no decisions recorded.',
 	'',
+	`Playground: ${
+		Object.entries(spendByTool)
+			.map(([t, n]) => `${t} ×${n}`)
+			.join(', ') || 'no probes'
+	}. Agents created: ${created.length ? created.join(', ') : 'none'}; deleted: ${(cleanup?.deleted ?? []).length}; **leftovers: ${summary.playground.leftovers.length ? summary.playground.leftovers.join(', ') : 'none'}**. Config branches changed: ${configChanged.length ? configChanged.join(', ') : 'none'}${configChanged.length ? `; restored: ${(cleanup?.configRestored ?? []).join(', ') || 'NOT CONFIRMED'}` : ''}.`,
+	'',
 	'## Review the diff',
 	'',
 	...rows.filter((r) => r.diff).map((r) => `- \`${r.diff}\``),
 	...summary.structuralChanges.map((p) => `- \`git diff -- ${p}\`  (structural)`),
 	'',
-	'Nothing was committed. `status` was set to `auto` on written routes; `adopted` is yours to set.',
+	'Nothing was committed. `status` was set to `auto` on written routes; `adopted` is yours to set. The playground should be as it was found — check the leftovers line.',
 	'',
 ].join('\n');
 require('node:fs').writeFileSync(join(dir, 'section/report.md'), md);

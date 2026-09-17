@@ -1,6 +1,6 @@
 ---
 name: docs-verify
-description: Run the NeuralDocs v2 pipeline over a section — gather (repo · MCP config · console component map) → verify every page against the production console → compile evidence → IA decision → design (if flagged) → write → gates → review → build once → report. Leaves every change as an uncommitted diff. Use when Fabio types /docs-verify; never invoke on your own.
+description: Run the NeuralDocs v2 pipeline over a section — gather (repo · MCP config · console component map) → verify every page against the playground console and run small probes → compile evidence → IA decision → design (if flagged) → write → gates → review → build once → report → clean the playground up. Leaves every change as an uncommitted diff. Use when Fabio types /docs-verify; never invoke on your own.
 disable-model-invocation: true
 argument-hint: '<route-prefix> [--only <route>] [--no-write] [--refresh-map] [--resume <workflow-run-id> --run <ledger-run-id>]'
 allowed-tools: Bash(bun scripts/agentic/*), Bash(git status *), Bash(git diff *), Bash(bun run verify), Bash(cat _private/agentic-v2/*), Read, Workflow
@@ -11,9 +11,11 @@ allowed-tools: Bash(bun scripts/agentic/*), Bash(git status *), Bash(git diff *)
 Arguments: `$ARGUMENTS`
 
 You are the operator. You do not verify, decide or write pages yourself — the agents do, the
-scripts decide what passes, and the two hooks keep production read-only for everyone. Your job
-is to open the run, launch the Workflow, and put the result in front of Fabio.
-**Nothing is committed. Ever. `adopted` is never set by the pipeline.**
+scripts decide what passes, and the two hooks lock every browser and MCP call to the
+**playground** instance (production is on a locked list). Your job is to open the run, launch
+the Workflow, and put the result in front of Fabio.
+**Nothing is committed. Ever. `adopted` is never set by the pipeline. The playground is left
+as it was found — the cleanup stage runs on every exit.**
 
 The design, with the diagram: `_private/agentic-v2/diagrams/architecture.html`.
 
@@ -41,9 +43,10 @@ map afterwards. If `sidebar` is null, stop and ask: the IA stage needs a group t
 - `git status --porcelain src/content/docs/<prefix> astro.config.mjs scripts/migration-map.json`
   must be empty (the report attributes changes to this run). If not, stop and ask.
 - `_private/agentic-v2/current-run` now names this run (queue.ts wrote it — the hooks log to it).
-- The Playwright profile must hold a live Auth0 session. Not checkable from here; the map-agent
-  returns `halt: "login"` if it is not, and the run stops itself.
-- `.neuralseekrc.json` points at the partners instance (`console-partners…/28b3b687…`).
+- `queue.ts` already refused to run unless `.neuralseekrc.json` points at the playground named
+  in `_private/agentic-v2/instances.json`; if it exited 2, relay its message and stop.
+- The Playwright profile must hold a live Auth0 session for the playground. Not checkable from
+  here; the map-agent returns `halt: "login"` if it is not, and the run stops itself.
 
 ## 4. Launch the Workflow
 
@@ -59,12 +62,16 @@ export const meta = {
     'Verify a docs section against the production console, then rewrite it from evidence — no commits',
   phases: [
     { title: 'Gather', detail: 'docs-agent per route · config export · map-agent (browser)' },
-    { title: 'Verify', detail: 'verifier per route, one at a time (one browser)' },
+    {
+      title: 'Verify',
+      detail: 'verifier per route, one at a time (one browser) · runner per route (MCP probes)',
+    },
     { title: 'Compile', detail: 'compile.ts → evidence.md, coverage.json' },
     { title: 'IA', detail: 'ia-agent, section barrier' },
     { title: 'Design', detail: 'designer, only when a route is flagged' },
     { title: 'Write', detail: 'prepare-write → writer → gates → reviewer, per route' },
     { title: 'Report', detail: 'bun run verify once, report.ts' },
+    { title: 'Cleanup', detail: 'delete docs-* agents, confirm config restored' },
   ],
 };
 
@@ -123,6 +130,29 @@ const VERDICTS = {
   },
   required: ['route', 'verdicts'],
 };
+const RUNNER = {
+  type: 'object',
+  properties: {
+    route: { type: 'string' },
+    probes: { type: 'number' },
+    verdicts: { type: 'array' },
+    created: { type: 'array' },
+    configChanged: { type: 'array' },
+    notes: { type: 'string' },
+  },
+  required: ['route', 'verdicts'],
+};
+const CLEANUP = {
+  type: 'object',
+  properties: {
+    deleted: { type: 'array' },
+    failed: { type: 'array' },
+    leftovers: { type: 'array' },
+    configRestored: { type: 'array' },
+    configNotRestored: { type: 'array' },
+  },
+  required: ['deleted', 'leftovers'],
+};
 const IA = {
   type: 'object',
   properties: {
@@ -163,6 +193,11 @@ const withBrowser = (fn) => {
   browser = p.catch(() => {});
   return p;
 };
+const cleanup = () =>
+  agent(
+    `runId: ${RUN}. Leave the playground as the run found it per your instructions and write section/cleanup.json.`,
+    { agentType: 'cleanup', label: 'cleanup', phase: 'Cleanup', schema: CLEANUP }
+  );
 const halt = (why) => {
   loginHalted = true;
   log(
@@ -211,35 +246,48 @@ const docsOk = new Set(
     .map((d) => d.route)
 );
 
-// ── 2 · Verify (serialized) ───────────────────────────────────────────────────
+// ── 2 · Verify (browser, serialized) ∥ Run (MCP probes, parallel) ────────────
 const toVerify = args.routes.filter((r) => docsOk.has(r));
-const verified = await pipeline(toVerify, (r) => {
-  if (loginHalted) {
-    log(`skip verify ${r}: halted`);
-    return null;
-  }
-  return withBrowser(async () => {
-    if (loginHalted) return null;
-    const v = await agent(
-      `runId: ${RUN}. route: ${r}. Verify the claims in ${RD(r)}/docs.json against the console per your instructions and write ${RD(r)}/verdicts.json.`,
-      { agentType: 'verifier', label: `verify:${r}`, phase: 'Verify', schema: VERDICTS }
-    );
-    if (v && v.halt === 'login') halt(`console session expired while verifying ${r}`);
-    return v;
-  });
-});
-const verifiedRoutes = toVerify.filter((r, i) => verified[i] && !verified[i].halt);
+const verified = await pipeline(toVerify, (r) =>
+  parallel([
+    () => {
+      if (loginHalted) {
+        log(`skip verify ${r}: halted`);
+        return null;
+      }
+      return withBrowser(async () => {
+        if (loginHalted) return null;
+        const v = await agent(
+          `runId: ${RUN}. route: ${r}. Verify the claims in ${RD(r)}/docs.json against the playground console per your instructions and write ${RD(r)}/verdicts.json.`,
+          { agentType: 'verifier', label: `verify:${r}`, phase: 'Verify', schema: VERDICTS }
+        );
+        if (v && v.halt === 'login') halt(`console session expired while verifying ${r}`);
+        return v;
+      });
+    },
+    () =>
+      agent(
+        `runId: ${RUN}. route: ${r}. Run the probes named in ${RD(r)}/docs.json on the playground per your instructions and write ${RD(r)}/runner.json.`,
+        { agentType: 'runner', label: `run:${r}`, phase: 'Verify', schema: RUNNER }
+      ),
+  ]).then(([v, run]) => ({ v, run }))
+);
+const verifiedRoutes = toVerify.filter(
+  (r, i) => verified[i] && ((verified[i].v && !verified[i].v.halt) || verified[i].run)
+);
 
 // ── 3 · Compile ───────────────────────────────────────────────────────────────
 const compiled = await run(`bun scripts/agentic/compile.ts ${RUN} --json`, 'compile', 'Compile');
 if (!compiled || !compiled.ok) log('compile.ts failed — see the wrapper output');
 if (args.noWrite || loginHalted) {
+  const cleaned = await cleanup();
   const report = await run(`bun scripts/agentic/report.ts ${RUN} --json`, 'report', 'Report');
   return {
     runId: RUN,
     stoppedAfter: loginHalted ? 'halt' : 'compile',
     verified: verifiedRoutes,
     loginHalted,
+    cleanup: cleaned,
     report: report && report.json,
   };
 }
@@ -326,6 +374,7 @@ const build = await run(
   'build',
   'Report'
 );
+const cleaned = await cleanup();
 const report = await run(`bun scripts/agentic/report.ts ${RUN} --json`, 'report', 'Report');
 const summary = finalRoutes.map((r, i) => {
   const w = written[i];
@@ -341,6 +390,7 @@ return {
   buildOk: !!(build && build.json && build.json.buildOk),
   loginHalted,
   summary,
+  cleanup: cleaned,
   report: report && report.json,
 };
 ```
@@ -348,7 +398,9 @@ return {
 ## 5. After the run
 
 1. `cat _private/agentic-v2/runs/<runId>/section/report.md` — the per-route table, the browser
-   audit (navigations, hosts, denials), the IA decisions, the diff commands.
+   audit (navigations, hosts, denials), the playground line (probes by tool, agents created /
+   deleted / **leftovers**, config branches changed / restored), the IA decisions, the diff
+   commands. A non-empty leftovers list or a NOT CONFIRMED restore is the first thing you say.
 2. If the build was red: `bun run verify` yourself to show the error; the diff still stands.
 3. Put in front of Fabio, in this order: the report; halted or parked routes with reasons; the
    IA decisions and any `questions` from ia.json; the token/cost figures from the Workflow

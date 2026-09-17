@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/pw-readonly.sh",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/pw-policy.sh",
             "timeout": 10
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/mcp-readonly.sh",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/mcp-policy.sh",
             "timeout": 10
           }
         ]
@@ -34,7 +34,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "mcp__neuralseek-ui__browser_(navigate|click|hover)",
+        "matcher": "mcp__neuralseek-ui__browser_(navigate|click|hover|type|fill_form|select_option|press_key)",
         "hooks": [
           {
             "type": "command",

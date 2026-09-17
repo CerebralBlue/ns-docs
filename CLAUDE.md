@@ -397,21 +397,29 @@ model-invoked. Design + diagram: `_private/agentic-v2/diagrams/architecture.html
 - **Stages** — queue (script) → gather in parallel: `docs-agent` (claims per page),
   `config-export` (one `backup_instance` call → `config-slice.ts`), `map-agent` (console
   a11y snapshots → `map-build.ts` / `map-diff.ts` → the cached **component map** in
-  `_private/component-map/<area>.json`) → `verifier` per route, serialized on the one browser
-  → `compile.ts` (evidence.md, coverage.json) → `ia-agent` (section barrier: sidebar/route
-  tree, auto-applied) → `designer` (barrier, only when a route needs a page component) →
-  per route `prepare-write.ts` → `writer` → `gates.ts` → `doc-reviewer` (one rewrite loop, then
-  park) → `bun run verify` once → `report.ts`. Everything lands as an **uncommitted diff**;
-  the pipeline sets `status: auto` and never `adopted`.
-- **Evidence rule** — a UI claim is `confirmed` only when an accessibility snapshot saved into
-  the run's `evidence/` folder contains the label (grep, sha1 recorded; `gates.ts` re-checks).
-  Load-bearing facts (defaults, params) with no evidence park the route.
-- **Production is read-only, by hooks, for every caller including the main session**:
-  `.claude/hooks/pw-readonly.sh` (browser: deny mutating tools; a click's `ref` must resolve in
-  the latest saved snapshot to a non-committing control; host allow-list; screenshot paths),
-  `mcp-readonly.sh` (the `neuralseek-node` MCP, now on the partners instance: allow-list of six
-  read tools), `agent-paths.sh` (per-agent write fences), `nav-log.sh` (audit trail). All fail
-  closed. Denials go to `runs/<id>/denials.log`; three for one agent halt the run.
+  `_private/component-map/<area>.json`) → per route, `verifier` (browser, serialized on the
+  one profile) alongside `runner` (MCP probes, no browser) → `compile.ts` (evidence.md,
+  coverage.json) → `ia-agent` (section barrier: sidebar/route tree, auto-applied) → `designer`
+  (barrier, only when a route needs a page component) → per route `prepare-write.ts` →
+  `writer` → `gates.ts` → `doc-reviewer` (one rewrite loop, then park) → `bun run verify` once
+  → `cleanup` (delete `docs-*` agents, confirm config restored — on every exit) → `report.ts`.
+  Everything lands as an **uncommitted diff**; the pipeline sets `status: auto`, never `adopted`.
+- **Evidence rule** — a claim is `confirmed` only on a file saved into the run's `evidence/`
+  folder: an accessibility snapshot that contains the label (grep) or a probe's raw output
+  (`*.run.json`), sha1 recorded; `gates.ts` re-checks both. Load-bearing facts (defaults,
+  params) with no evidence park the route.
+- **One instance — the playground — and nothing else.** `_private/agentic-v2/instances.json`
+  names the playground id and the locked ids (production). On the playground the agents may
+  type, submit, run Seek, run and create agents (`docs-*` names) and change a setting they
+  restore; every probe is small (inputs ≤ 200 chars, ≤ 10 per route — the instance has a
+  token limit nobody knows). The hooks enforce it for every caller including the main
+  session, and fail closed: `.claude/hooks/pw-policy.sh` (browser: URL must carry the
+  playground id; a click's `ref` must resolve in the latest saved snapshot to a
+  non-destructive control; typing only while on the playground; `evaluate` never),
+  `mcp-policy.sh` (the `neuralseek-node` MCP: every tool denied unless `.neuralseekrc.json`
+  points at the playground; `delete_agent` only for `docs-*`; run tools logged to
+  `spend.log`), `agent-paths.sh` (per-agent write fences), `nav-log.sh` (audit trail).
+  Denials go to `runs/<id>/denials.log`; three for one agent halt the run.
 - **Console areas per route** are the `console` field in `scripts/migration-map.json`
   (seeded for `seek/*`); routes without one get a proposal file for Fabio, never an agent edit.
 - Ledger: `_private/agentic-v2/runs/<run-id>/` (gitignored). Scripts: `scripts/agentic/`.

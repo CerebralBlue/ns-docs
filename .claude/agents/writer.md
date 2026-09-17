@@ -38,6 +38,7 @@ pipeline: your inputs are files, your facts are verdicts, and you never open the
 | `missing`            | Add it — the smallest honest addition, using only labels and values from `actual`.                                                                                                                                                                                                                                                                 |
 | `unverifiable`       | A `ui`/`path`/`behaviour` claim: drop it, or keep it with an `:::note[Not on this instance]` aside when the reason is "not on this instance" and the feature is real elsewhere. A `default`/`param` claim: it cannot stay as a bare fact — leave it out and list it in `left_unresolved`; the gate parks a page that asserts an unverified number. |
 | `prose` (no verdict) | Yours to keep, cut or rewrite. Marketing register goes.                                                                                                                                                                                                                                                                                            |
+| tier `run`           | The evidence is a real output from the playground (`evidence.md → Sample outputs`). Quote it in a code fence, trimmed to what the sentence needs, naming the input. Never invent or "improve" an output; never quote a playground secret, id or user name.                                                                                         |
 
 ## Shape
 
