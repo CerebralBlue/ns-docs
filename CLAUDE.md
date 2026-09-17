@@ -338,25 +338,21 @@ identities, the ingestion state, and the unverified doc-automation side are in
 
 The content came from the previous MkDocs site — `CerebralBlue/knowledge`, path
 `neuralseek/documentation/docs`, pinned in `scripts/migration-map.json` as `sourceRoot` +
-`sourceCommit`. **The clone is no longer needed on disk**: every sourced page was ported
-verbatim on 2026-09-17 (`scripts/migration/`, see below) and the stale-screenshot check reads
-`scripts/old-docs-image-hashes.json` instead of walking the clone. A local checkout (normally
-the sibling `../knowledge/`) is only needed to re-run the migration scripts, which take it via
-`--source <dir>` or `$NS_OLD_DOCS_DIR`.
+`sourceCommit`. **Every sourced page was ported verbatim on 2026-09-17 and the clone is no longer
+needed**: the stale-screenshot check reads `scripts/old-docs-image-hashes.json` instead of walking
+it. The toolchain that did the port (audit → convert → check → close-dependency, TypeScript on
+bun) was retired the same day so it can never overwrite a page again; it lives in git at commit
+`80ee3b9` (`scripts/migration/`) and, with its reports and the pre-migration copy of every
+overwritten page, in the gitignored `_private/archive/verbatim-migration/`. To re-port a route
+after a map change, restore that folder from git and run it with `--source <clone>`.
 
-`scripts/migration/` is the verbatim converter and its proofs — `bun run migration:audit`
-(map soundness + live-sitemap reconciliation + TF-IDF mis-assignment signal), `migration:convert`
-(line-based MkDocs→Starlight port, idempotent, overwrites every sourced route and flips it to
-`auto`), `migration:check` (mdast comparison old vs new: headings, asides, images, links, fence
-bodies byte-for-byte, tables, list items, word bag) and `migration:close` (the image-hash
-manifest + `sourceRoot` pin). Reports land in the gitignored `_private/migration/`. Conversion
-hazards it handles, all learned the hard way: `!!!` admonitions (→ `:::` asides, nested ones get
-one more colon per level), `???` collapsibles (→ `<details>`), in-body H1s (the title one is
-dropped, any other becomes `##`), old-domain and relative `.md` links, ` ```ntl ` fences, uppercase
-fence languages, `:material-*:` icons, `{ .md-button }` attr_lists, and — the non-obvious one —
-**`:word` in prose is a remark-directive text directive and vanishes in the build**
-(`user:pass@host` rendered as `user@host`); the converter escapes it as `user\:pass`. Write
-pages with that in mind.
+Conversion hazards the port handled, all learned the hard way and still true for anyone writing
+pages: `!!!` admonitions (→ `:::` asides, nested ones get one more colon per level), `???`
+collapsibles (→ `<details>`), in-body H1s (the title one is dropped, any other becomes `##`),
+old-domain and relative `.md` links, ` ```ntl ` fences, uppercase fence languages, `:material-*:`
+icons, `{ .md-button }` attr_lists, and — the non-obvious one — **`:word` in prose is a
+remark-directive text directive and vanishes in the build** (`user:pass@host` rendered as
+`user@host`); escape it as `user\:pass`.
 
 ## Migration status
 
@@ -376,11 +372,10 @@ can carry a `gaps` array listing the undocumented product surfaces that route mu
 routes have one. `gen-stubs.ts` renders it as a visible "To document on this page" worklist; converted pages
 carry it as an invisible `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment.
 
-**`status` is load-bearing.** `stub` is overwritten by `bun run stubs`; `auto` is overwritten
-only by `bun run migration:convert` (which ports every sourced route, `adopted` included — the
-2026-09-17 decision; the previous page is kept once under `_private/migration/previous/`);
-nothing else regenerates either. `auto` means machine-converted and not yet verified against the
-product; `adopted` means a human has checked it. Flip a route to `adopted` when you start
+**`status` is load-bearing.** `stub` is overwritten by `bun run stubs`; **`auto` and `adopted`
+are never regenerated** (the converter that wrote the `auto` pages is retired). `auto` means
+machine-converted verbatim from the old page and not yet verified against the product; `adopted`
+means a human has checked it. Flip a route to `adopted` when you start
 hand-editing it, so `bun run stubs` can never reclaim the file.
 
 Open items that affect anyone touching content:
@@ -421,7 +416,7 @@ Two committed pieces work with it:
   proves which are carry-overs **by content hash**: the old converter copied with `copyFileSync`, so
   a byte-identical file was carried over untouched, and a recaptured one drops out of the report
   by itself. The hashes come from `scripts/old-docs-image-hashes.json` (generated once from
-  the clone by `migration:close`), so no clone is needed; nothing else to keep in sync.
+  the clone by the retired `close-dependency.ts`), so no clone is needed; nothing else to keep in sync.
   Currently all 358 copied images are flagged. A pending visual is marked with `/img/_placeholder.svg` (a visible "SCREENSHOT
   PENDING" panel, theme-aware) plus a `<!-- SCREENSHOT: path — why -->` comment carrying the
   capture instruction; `bun scripts/doc-lint.ts --all --screenshots` prints the whole backlog.

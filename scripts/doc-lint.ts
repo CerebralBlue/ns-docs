@@ -74,7 +74,8 @@ const PLACEHOLDER = '/img/_placeholder.svg';
  * no marker, nothing to keep in sync; the hash manifest is generated once from the clone.
  */
 function oldDocsImageHashes(): Set<string> {
-	// scripts/old-docs-image-hashes.json is written by scripts/migration/close-dependency.ts
+	// scripts/old-docs-image-hashes.json was generated from the old-docs clone (commit 80ee3b9,
+	// scripts/migration/close-dependency.ts, since retired)
 	// from the old-docs clone, so the clone itself is not needed on disk.
 	try {
 		const manifest = JSON.parse(
