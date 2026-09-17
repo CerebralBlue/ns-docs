@@ -32,3 +32,6 @@ _private/
 
 # NeuralSeek agent working copies — the instance is the source of truth
 /agents/
+
+# NeuralSeek instance config exports (packConfig) — contain the instance configuration
+backups/

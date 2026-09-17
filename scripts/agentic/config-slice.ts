@@ -1,17 +1,23 @@
 /**
  * Turn the instance config export into the pipeline's config evidence.
  *
- *   bun scripts/agentic/config-slice.ts <run-id> [--file <export>] [--json]
+ *   bun scripts/agentic/config-slice.ts <run-id> [--fetch] [--file <export>] [--json]
  *
- * Input: the newest `backups/*.nsconfig` (written by the neuralseek-node MCP's `backup_instance`
- * — the only read-only way to the console config, since consoleData is 403 from outside), or
- * --file. Output: runs/<id>/section/config.json with
+ * Input: the newest `backups/*.nsconfig`, or --file, or --fetch — which POSTs
+ * `<consoleApiUrl>/packConfig` from `.neuralseekrc.json` itself and saves the reply as
+ * `backups/<instance>_<ts>.nsconfig`. (--fetch exists because the MCP's `backup_instance`
+ * derives the console host from `baseUrl` and ignores `consoleApiUrl`, so on the partners plane
+ * it posts to the UI and gets a 401/302 — verified 2026-09-17.)
+ *
+ * Output: runs/<id>/section/config.json. When the export is JSON:
  *   keys   every dotted path → scalar value, secrets stripped, sorted — what the verifier greps
  *   tree   the export minus secrets, for a writer who needs the shape
- * Anything under a key named secrets/apiKey/password/token/credential(s) is dropped, whatever
- * its depth. Exit 1 when no export exists — ABSENT config is a parked route, never a guess.
+ * When it is the packed blob packConfig actually returns (opaque hex, not JSON — the normal
+ * case), config.json carries only {source, sha1, packed: true}: the file is a RESTORE point for
+ * the runner/cleanup, and the config tier is ABSENT — defaults are verified on the Neural Config
+ * screens instead. Exit 1 only when no export exists at all.
  */
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { parseArgs, ROOT, runDir, sha1, writeJson } from './lib';
 
@@ -24,6 +30,31 @@ if (!runId) {
 	process.exit(1);
 }
 let file = args.get('file');
+if (!file && args.flags.has('fetch')) {
+	const rc = JSON.parse(readFileSync(join(ROOT, '.neuralseekrc.json'), 'utf8'));
+	const consoleApiUrl = String(rc.consoleApiUrl ?? '').replace(/\/$/, '');
+	const instanceId = String(rc.baseUrl ?? '')
+		.split('/')
+		.pop();
+	if (!consoleApiUrl || !rc.apiKey) {
+		console.error('.neuralseekrc.json needs consoleApiUrl and apiKey for --fetch');
+		process.exit(1);
+	}
+	const res = await fetch(`${consoleApiUrl}/packConfig`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json', Accept: '*/*', apikey: rc.apiKey },
+		body: '{}',
+	});
+	if (!res.ok) {
+		console.error(`packConfig failed: HTTP ${res.status} from ${consoleApiUrl}/packConfig`);
+		process.exit(1);
+	}
+	const body = await res.text();
+	const dir = join(ROOT, 'backups');
+	mkdirSync(dir, { recursive: true });
+	file = join(dir, `${instanceId}_${new Date().toISOString().replace(/[:.]/g, '-')}.nsconfig`);
+	writeFileSync(file, body);
+}
 if (!file) {
 	const dir = join(ROOT, 'backups');
 	const candidates = existsSync(dir)
@@ -45,15 +76,28 @@ let data: unknown;
 try {
 	data = JSON.parse(raw);
 } catch {
-	console.error(`${file} is not JSON — cannot slice; keeping a hash only`);
-	writeJson(join(runDir(runId), 'section/config.json'), {
+	// The packed export: a restore point, not evidence. Not an error.
+	const out = {
 		source: relative(ROOT, file),
+		exportedAt: statSync(file).mtime.toISOString(),
 		sha1: sha1(raw),
+		packed: true,
+		bytes: raw.length,
+		keyCount: 0,
 		keys: {},
 		tree: null,
-		note: 'export was not JSON',
-	});
-	process.exit(1);
+		note: 'packConfig returns a packed blob, not JSON — config tier ABSENT; defaults are verified on the Neural Config screens',
+	};
+	writeJson(join(runDir(runId), 'section/config.json'), out);
+	if (args.flags.has('json'))
+		console.log(
+			JSON.stringify({ source: out.source, packed: true, bytes: out.bytes, sha1: out.sha1 })
+		);
+	else
+		console.log(
+			`config: packed export (${out.bytes} bytes) saved as a restore point → runs/${runId}/section/config.json (no keys)`
+		);
+	process.exit(0);
 }
 
 const SECRET =

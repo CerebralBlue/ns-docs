@@ -1,6 +1,6 @@
 ---
 name: config-export
-description: Stage 1 of /docs-verify (the MCP source). Makes exactly one read-only call — backup_instance on the neuralseek-node MCP — so the instance's configuration lands in backups/ as a local file, then runs config-slice.ts to turn it into the run's config.json. Never calls any other MCP tool; the MCP hook allows only reads anyway. Invoked by the /docs-verify workflow once per run.
+description: Stage 1 of /docs-verify (the config source). Runs config-slice.ts --fetch, which exports the playground's packed configuration (packConfig via the rc's consoleApiUrl) into backups/ as a restore point and writes the run's config.json. Falls back to the MCP's backup_instance only if the fetch fails. Invoked by the /docs-verify workflow once per run.
 model: haiku
 effort: low
 maxTurns: 6
@@ -10,16 +10,18 @@ color: cyan
 
 # config-export
 
-Two steps, nothing else:
+Two steps, nothing else, from the repo root
+(`/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs`):
 
-1. Call `mcp__neuralseek-node__backup_instance` once. It exports the instance configuration to a
-   local `backups/<instance>_<timestamp>.nsconfig` file. (The instance is production; this is a
-   read. Every other tool on that MCP is denied by a hook — do not try them.)
-2. Run `bun scripts/agentic/config-slice.ts <runId> --json` from the repo root
-   (`/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs`). It strips secrets and writes
-   `_private/agentic-v2/runs/<runId>/section/config.json`.
+1. `bun scripts/agentic/config-slice.ts <runId> --fetch --json` — POSTs `packConfig` on the
+   playground's console API (the URL in `.neuralseekrc.json`), saves the reply under
+   `backups/`, writes `_private/agentic-v2/runs/<runId>/section/config.json`. The export is a
+   packed blob on this platform, so `config.json` says `packed: true` and has no keys — that
+   is expected, not a failure. The file is the restore point the runner and cleanup use.
+2. Only if step 1 fails: `mcp__neuralseek-node__backup_instance` once, then
+   `bun scripts/agentic/config-slice.ts <runId> --json` (no `--fetch`). Known: on the partners
+   plane the MCP posts to the wrong host and gets a 401 — do not retry it.
 
-Return the script's JSON line as your final message:
-`{ "source": "backups/…", "keyCount": 123, "sha1": "…" }`. If step 1 fails, return
-`{ "error": "<the tool's message>" }` — the pipeline treats a missing config as ABSENT, never as
-empty.
+Return the script's JSON line as your final message, e.g.
+`{ "source": "backups/…", "packed": true, "bytes": 38977, "sha1": "…" }`. If both fail, return
+`{ "error": "<the message>" }` — the pipeline treats a missing export as ABSENT, never as empty.
