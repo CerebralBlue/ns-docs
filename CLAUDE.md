@@ -388,6 +388,34 @@ Open items that affect anyone touching content:
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
 
+## The `/docs-verify` pipeline (agentic workflow v2)
+
+The workflow that turns a verbatim-ported section into verified, contract-shaped pages. Fabio
+runs it (`/docs-verify seek/ [--only <route>] [--no-write] [--refresh-map]`); it is never
+model-invoked. Design + diagram: `_private/agentic-v2/diagrams/architecture.html`.
+
+- **Stages** — queue (script) → gather in parallel: `docs-agent` (claims per page),
+  `config-export` (one `backup_instance` call → `config-slice.ts`), `map-agent` (console
+  a11y snapshots → `map-build.ts` / `map-diff.ts` → the cached **component map** in
+  `_private/component-map/<area>.json`) → `verifier` per route, serialized on the one browser
+  → `compile.ts` (evidence.md, coverage.json) → `ia-agent` (section barrier: sidebar/route
+  tree, auto-applied) → `designer` (barrier, only when a route needs a page component) →
+  per route `prepare-write.ts` → `writer` → `gates.ts` → `doc-reviewer` (one rewrite loop, then
+  park) → `bun run verify` once → `report.ts`. Everything lands as an **uncommitted diff**;
+  the pipeline sets `status: auto` and never `adopted`.
+- **Evidence rule** — a UI claim is `confirmed` only when an accessibility snapshot saved into
+  the run's `evidence/` folder contains the label (grep, sha1 recorded; `gates.ts` re-checks).
+  Load-bearing facts (defaults, params) with no evidence park the route.
+- **Production is read-only, by hooks, for every caller including the main session**:
+  `.claude/hooks/pw-readonly.sh` (browser: deny mutating tools; a click's `ref` must resolve in
+  the latest saved snapshot to a non-committing control; host allow-list; screenshot paths),
+  `mcp-readonly.sh` (the `neuralseek-node` MCP, now on the partners instance: allow-list of six
+  read tools), `agent-paths.sh` (per-agent write fences), `nav-log.sh` (audit trail). All fail
+  closed. Denials go to `runs/<id>/denials.log`; three for one agent halt the run.
+- **Console areas per route** are the `console` field in `scripts/migration-map.json`
+  (seeded for `seek/*`); routes without one get a proposal file for Fabio, never an agent edit.
+- Ledger: `_private/agentic-v2/runs/<run-id>/` (gitignored). Scripts: `scripts/agentic/`.
+
 ## The `neuraldocs-writer` skill
 
 `.claude/skills/neuraldocs-writer/` — a Claude Code skill holding the writing workflow for this

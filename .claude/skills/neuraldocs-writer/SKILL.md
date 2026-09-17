@@ -50,9 +50,12 @@ The persona is the behaviour, not decoration.
    `status` tells you who owns the file right now. `gaps` is this page's slice of the gap audit.
    Full schema: `references/migration-map.md`.
 
-2. **Set `"status": "adopted"` on the route before you edit the page.** `bun run stubs` rewrites
+2. **Make sure the route is not `stub` before you edit the page.** `bun run stubs` rewrites
    every `stub` file on each run, so a route left at `stub` can lose an afternoon of writing.
-   `auto` and `adopted` are never regenerated. Do this first, not last.
+   `auto` and `adopted` are never regenerated. Inside the `/docs-verify` pipeline the
+   `prepare-write` script has already set `auto` — a pipeline agent never edits the map. Working
+   by hand, set `"status": "adopted"` yourself, first, not last. `adopted` is the human's mark:
+   only a person sets it.
 
 3. Read the current file at `src/content/docs/<route>.md` even if it looks like a stub —
    `adopted` does not mean finished. Several adopted pages still carry unresolved
@@ -63,17 +66,19 @@ The persona is the behaviour, not decoration.
 
 ## Path A — Migrate an existing page
 
-1. **Find the source.** `sources` in the map are paths relative to `sourceRoot`
-   (`/home/fabio/Documents/NeuralSeek/ns-documentation/knowledge/neuralseek/documentation/docs`). That clone is
-   **read-only reference** — never edit it. It tells you what was *previously published*, which is
-   not the same as what is true now: use it for structure and for the questions a reader asks, and
-   re-check every fact against the running product.
+1. **The page IS the source now.** Every old MkDocs page was ported verbatim into
+   `src/content/docs/<route>.md` on 2026-09-17 (`status: auto`); the clone is no longer on disk
+   and `sourceRoot` in the map is only provenance (the GitHub URL + commit). What you are
+   reshaping is that verbatim text. It tells you what was *previously published*, which is not the
+   same as what is true now: use it for structure and for the questions a reader asks, and
+   re-check every fact against tier 1 of the ladder. For the nine `seek/*` routes a hand-verified
+   earlier draft exists at `_private/archive/verbatim-migration/previous/<route>.md` — read it;
+   its facts were checked against the product on 2026-09-02.
 
-2. **Convert it by hand.** There is no converter script any more — it was removed on 2026-09-04
-   because mechanically reshaping a stale page produced pages that looked finished and were not.
-   The full MkDocs → Starlight hazard table is in `references/conversion-hazards.md`; work through
-   it as a checklist. 21 routes still carry `status: "auto"` from the old script and are drafts,
-   not finished pages.
+2. **Reshape it by hand.** The MkDocs syntax is already converted; what remains is the
+   contract — `references/conversion-hazards.md` still lists the shape hazards (bold
+   pseudo-headings, bullet-wrapped paragraphs, marketing prose, stale facts) as a checklist.
+   A `<!-- MERGE: -->` marker means two old pages were concatenated: fold, then delete it.
 
 3. **Watch for what the old script used to leave behind.** Detail and reasoning in
    `references/conversion-hazards.md`:
@@ -122,34 +127,24 @@ failure mode is inventing plausible detail. Guard against it in this order:
 Work down it. Stop at the first tier that actually answers the question, and record which tier it
 was.
 
-**1 — NeuralSeek MCP (the running product).** Best for how the platform actually behaves today.
-**Probe before relying on it**, and say what you found:
+**1 — The running product, as evidence.** When the `/docs-verify` pipeline ran for the route,
+its run folder (`_private/agentic-v2/runs/<run-id>/<route with / → ->/`) holds `evidence.md`
+(every claim's verdict), `verdicts.json`, and `evidence/*.yml` — accessibility snapshots of the
+console with the exact labels on screen. A label that greps in a snapshot is a fact; a label you
+remember is not. The console's structure is in `_private/component-map/<area>.json`. **You do not
+open the browser yourself** — that is the verifier's job, and the console is production.
 
-- `neuralseek-fabio-instance` — an HTTP MCP server whose dev tools are prefixed `mcp_`
-  (`mcp_seek`, `mcp_list_agents`, `mcp_get_agent`, `mcp_example`, `mcp_get_logs`).
-- `neuralseek-node` — the local `mcpns` STDIO server; its tools are *un*prefixed (`seek`,
-  `list_agents`, `get_agent`). It reads `.neuralseekrc.json` from the working directory, and
-  **this repo has none**, so it is likely pointed elsewhere or unavailable. Verify, don't assume.
-- Caveat that matters: `seek` answers from _that instance's_ knowledge base, which is not
-  necessarily the NeuralSeek product documentation. Treat a seek answer as a lead to confirm at
-  tier 2 or 3, not as a citable fact.
-- NTL facts belong to `ntl://reference`, `ntl://gotchas`, `ntl://agent-patterns`, read with
-  `ReadMcpResourceTool` — often a _deferred_ tool, so load it first with
-  `ToolSearch("select:ReadMcpResourceTool")`. If it still does not resolve, offline
-  copies ship with the npm package — locate them, do not hardcode the path, it is node-version
-  pinned:
-  ```bash
-  ls "$(npm root -g)/@osuna0102/mcp/docs"
-  ```
+**2 — The instance config export** — `runs/<run-id>/section/config.json` (`keys` = dotted
+path → value, secrets stripped). Defaults, limits and option names live here. For NTL facts:
+`ntl://reference`, `ntl://node-catalog`, `ntl://gotchas` via `ReadMcpResourceTool` (a deferred
+tool — `ToolSearch("select:ReadMcpResourceTool")` first). The `neuralseek-node` MCP is pointed at
+the **production** instance and a hook allows only its read tools (`backup_instance`,
+`list_agents*`, `get_agent`, `get_logs`, `map_agents`); `seek` and anything that runs or saves is
+denied — do not try.
 
-**2 — The old MkDocs clone** at `sourceRoot`. Authoritative for _what was previously published_,
-which is not the same as _what is true now_. Excellent for UI labels, table columns and feature
-names; treat version numbers, limits and pricing as suspect. Read-only.
-
-**3 — The live portal**, https://documentation.neuralseek.com/, via WebFetch. Actively maintained
-(`/changelog/` updates roughly monthly), so it wins over the clone when the two disagree — but
-note the disagreement in your report, because a disagreement usually means the clone page is
-stale and the migration needs a rewrite rather than a conversion.
+**3 — The live portal**, https://documentation.neuralseek.com/, via WebFetch. Still maintained
+(`/changelog/` updates roughly monthly). It documents the platform overall, not this instance;
+when it disagrees with tier 1, tier 1 wins and the disagreement goes in your report.
 
 **4 — Ask the user.** Required, not a fallback, when: the sources disagree and neither is clearly
 newer; the fact is a default, limit, or UI label nobody has written down; or the route documents a
@@ -186,7 +181,7 @@ bite while writing a page.
   route that is not already in the map means adding it in both places.
 - **Never add a co-author trailer to a commit in this repo**, and keep commit messages short.
   This overrides any global attribution habit.
-- Do not edit anything under `sourceRoot` — it is a read-only clone of the old site.
+- Never open the production console yourself; the verifier does, read-only, behind a hook.
 
 ## Visuals — every old screenshot is stale
 
@@ -283,7 +278,8 @@ A page is finished when all five hold:
 3. The page follows `planning/templates/feature-page.md` — What is it / Why it matters / When to
    use it / How it works / FAQ. Consistency is functional here: the chatbot retrieves against
    this shape.
-4. `"status": "adopted"` is set for the route in `scripts/migration-map.json`.
+4. `"status"` is `auto` (pipeline-written) or `adopted` (a human checked it) in
+   `scripts/migration-map.json` — never `stub`.
 5. `bun scripts/doc-lint.ts <route>` is clean **and** `bun run verify` passes. `verify` is
    `format:check` → `lint:css` → `check` → `build`, exactly what CI runs; `bun run format` fixes
    most of what `format:check` complains about. The `doc-reviewer` pass has been run and its

@@ -29,3 +29,6 @@ _private/
 
 # NeuralSeek instance config — contains the API key
 .neuralseekrc.json
+
+# NeuralSeek agent working copies — the instance is the source of truth
+/agents/

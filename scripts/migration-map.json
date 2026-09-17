@@ -62,6 +62,7 @@
       "sources": ["ui/seek/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "console": ["seek"],
       "gaps": [
         "KnowledgeBase Context accordions — the passage used from each source document",
         "Trained Answers panel — signals a curated answer was served instead of a fresh generation",
@@ -77,21 +78,24 @@
       "description": "Enhance your NeuralSeek KnowledgeBase with our comprehensive tuning guide. Learn best practices, auto-generate questions, and improve answer quality with semantic scores and hybrid search methods.",
       "sources": ["guides/data/tuning_guide/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config:advanced", "seek"]
     },
     "seek/virtual-kb": {
       "title": "Virtual KB",
       "description": "Discover mAIstro's Virtual KnowledgeBase, a powerful tool to unify multiple knowledge sources for enhanced search and discovery. Learn to configure and expand your Virtual KB for flexible, scalable solutions.",
       "sources": ["guides/data/virtual_kb/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config:advanced", "seek"]
     },
     "seek/dynamic-filters": {
       "title": "Dynamic filters",
       "description": "Explore NeuralSeek's Dynamic Filters to refine document searches with precision using DQL. Learn setup, application, and examples for real-time query adjustments without altering core datasets.",
       "sources": ["guides/data/dynamic_filters/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["seek", "neural-config:advanced"]
     },
     "seek/conversational-context": {
       "title": "Conversational context",
@@ -101,14 +105,16 @@
         "guides/integration/providing_context/index.md"
       ],
       "action": "merge",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config:advanced", "seek"]
     },
     "seek/caching": {
       "title": "Caching",
       "description": "When NeuralSeek accesses the Corporate KnowledgeBase, it processes the original data from it, cleanses its contents (e.g.",
       "sources": ["features/caching/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config:advanced", "seek"]
     },
     "seek/personalization": {
       "title": "Personalization",
@@ -116,6 +122,7 @@
       "sources": ["features/dynamic_pers/index.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["seek", "neural-config:advanced"],
       "gaps": [
         "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced)",
         "Personalization agent — the agent that adjusts answers using the personalization details",
@@ -129,6 +136,7 @@
       "sources": ["ui/curate/index.md", "features/answer_curation/index.md"],
       "action": "merge",
       "status": "auto",
+      "console": ["curate"],
       "gaps": [
         "Delete user data — the bulk GDPR/CCPA erasure path",
         "Delete and Regenerate Responses for an intent",
@@ -146,6 +154,7 @@
       "sources": ["ui/chat/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "console": ["chat"],
       "gaps": [
         "Edit Configuration — chat against a specific configuration or category; this is how routing is tested",
         "Rename Chat and running several test conversations side by side"

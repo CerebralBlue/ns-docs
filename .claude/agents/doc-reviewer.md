@@ -20,13 +20,14 @@ do not commit. You produce findings; a human decides what to fix.
 
 A route (e.g. `seek/curation`). Everything else you look up:
 
-| Thing                                                                         | Where                                     |
-| ----------------------------------------------------------------------------- | ----------------------------------------- |
-| The page                                                                      | `src/content/docs/<route>.md`             |
-| Its map entry — `action`, `status`, `sources`, `gaps`, `title`, `description` | `scripts/migration-map.json`              |
-| The old page it came from (if `sources` is non-empty)                         | `<sourceRoot>/<source>` — read-only clone |
-| The page contract                                                             | `planning/templates/feature-page.md`      |
-| Repo conventions                                                              | `CLAUDE.md`                               |
+| Thing                                                                         | Where                                                                                                      |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| The page                                                                      | `src/content/docs/<route>.md`                                                                              |
+| Its map entry — `action`, `status`, `sources`, `gaps`, `title`, `description` | `scripts/migration-map.json`                                                                               |
+| The pipeline's evidence, when `/docs-verify` ran for the route                | `_private/agentic-v2/runs/<run-id>/<route with / → ->/` — `evidence.md`, `verdicts.json`, `evidence/*.yml` |
+| The console's structure                                                       | `_private/component-map/<area>.json`                                                                       |
+| The page contract                                                             | `planning/templates/feature-page.md`                                                                       |
+| Repo conventions                                                              | `CLAUDE.md`                                                                                                |
 
 ## Run the mechanical check first
 
@@ -50,13 +51,17 @@ Ordered by how much damage it does.
 Every parameter name, endpoint, field, default, limit, header, UI label, menu path and code
 sample is a claim. For each one, either confirm it or flag it. Confirm in this order:
 
-1. **NeuralSeek MCP** — probe what is connected first (`neuralseek-node` exposes `seek`,
-   `list_agents`, `get_agent` unprefixed; `neuralseek-fabio-instance` exposes them as
-   `mcp_seek`, `mcp_list_agents`, `mcp_get_agent`). Note that `seek` answers from _that
-   instance's_ KB, which is not the product documentation — treat its answer as a lead.
-2. **The old MkDocs source**, if the route has one. Authoritative for what was published;
-   possibly stale.
-3. **`https://documentation.neuralseek.com/`** via WebFetch — actively maintained.
+1. **The pipeline's evidence.** When a run folder exists for the route, read `verdicts.json`
+   and `evidence.md` before anything else, and **do not re-litigate a `confirmed` verdict whose
+   snapshot contains the label** — `Grep` the `evidence/<id>.yml` if you doubt it; a label that
+   greps there is a fact about the production console. A finding that merely repeats a verdict
+   is noise. Your value is the claims the verifier did not cover and the prose around them.
+2. **The instance config export** — `runs/<run-id>/section/config.json` (`keys`); NTL facts
+   from `ntl://reference` / `ntl://node-catalog`. The `neuralseek-node` MCP is on the
+   **production** instance behind an allow-list hook: `list_agents*`, `get_agent`, `get_logs`
+   work; `seek` and anything that runs or saves is denied — do not call them.
+3. **`https://documentation.neuralseek.com/`** via WebFetch — actively maintained, documents the
+   platform overall; tier 1 wins when they disagree. You never open the console yourself.
 4. **Unconfirmable** → flag it as `UNVERIFIED`. Do not quietly accept it.
 
 Known traps worth checking by name:
