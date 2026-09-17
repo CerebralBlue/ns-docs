@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const MAP_PATH = join(ROOT, 'scripts/migration-map.json');
 
-let map: { sourceRoot: string; routes: Record<string, any> };
+let map: { routes: Record<string, any> };
 try {
 	map = JSON.parse(readFileSync(MAP_PATH, 'utf8'));
 } catch (err) {
@@ -31,22 +31,6 @@ try {
 if (!map.routes || typeof map.routes !== 'object') {
 	console.error(`${MAP_PATH} has no "routes" object — nothing to generate.`);
 	process.exit(1);
-}
-
-function sourceFrontmatter(relPath: string): { title?: string; description?: string } {
-	try {
-		const raw = readFileSync(join(map.sourceRoot, relPath), 'utf8');
-		const m = raw.match(/^---\n([\s\S]*?)\n---/);
-		if (!m) return {};
-		const fm: Record<string, string> = {};
-		for (const line of m[1].split('\n')) {
-			const kv = line.match(/^(title|description):\s*(.*)$/);
-			if (kv) fm[kv[1]] = kv[2].trim().replace(/^['"]|['"]$/g, '');
-		}
-		return fm;
-	} catch {
-		return {};
-	}
 }
 
 const actionNote: Record<string, string> = {
@@ -67,9 +51,8 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 		skipped++;
 		continue;
 	}
-	const src = info.sources?.[0] ? sourceFrontmatter(info.sources[0]) : {};
-	const title = info.title ?? src.title ?? route.split('/').pop();
-	const description = info.description ?? src.description ?? `${title} — NeuralSeek documentation.`;
+	const title = info.title ?? route.split('/').pop();
+	const description = info.description ?? `${title} — NeuralSeek documentation.`;
 	const sourcesLine = info.sources?.length
 		? `\nSource${info.sources.length > 1 ? 's' : ''}: ${info.sources.map((s: string) => `\`${s}\``).join(', ')} (${info.action}).`
 		: '';

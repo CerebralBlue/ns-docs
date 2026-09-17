@@ -26,9 +26,9 @@
  * deliberately unfinished and would fail CI today. Run it by hand on the module
  * you are working on. Revisit before public launch.
  */
-import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, extname } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -52,10 +52,8 @@ if (!all && prefixes.length === 0) {
 	process.exit(1);
 }
 
-const map: { sourceRoot: string; routes: Record<string, any> } = JSON.parse(
-	readFileSync(MAP_PATH, 'utf8')
-);
-const staleHashes = oldDocsImageHashes(map.sourceRoot);
+const map: { routes: Record<string, any> } = JSON.parse(readFileSync(MAP_PATH, 'utf8'));
+const staleHashes = oldDocsImageHashes();
 
 /** The five sections of planning/templates/feature-page.md. */
 const CONTRACT_SECTIONS = ['What is it', 'Why it matters', 'When to use it', 'How it works', 'FAQ'];
@@ -73,33 +71,19 @@ const PLACEHOLDER = '/img/_placeholder.svg';
  * The old converter copied images with copyFileSync, so a file under public/img that is
  * byte-identical to one in the old docs was carried over untouched and therefore shows
  * the old UI. A recaptured screenshot differs, so it drops out of this set on its own —
- * no manifest, no marker, nothing to keep in sync.
+ * no marker, nothing to keep in sync; the hash manifest is generated once from the clone.
  */
-function oldDocsImageHashes(sourceRoot: string): Set<string> {
-	const hashes = new Set<string>();
-	const IMG = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']);
-	const walk = (dir: string) => {
-		let entries: string[];
-		try {
-			entries = readdirSync(dir);
-		} catch {
-			return;
-		}
-		for (const name of entries) {
-			const full = join(dir, name);
-			let s;
-			try {
-				s = statSync(full);
-			} catch {
-				continue;
-			}
-			if (s.isDirectory()) walk(full);
-			else if (IMG.has(extname(name).toLowerCase()))
-				hashes.add(createHash('sha1').update(readFileSync(full)).digest('hex'));
-		}
-	};
-	if (existsSync(sourceRoot)) walk(sourceRoot);
-	return hashes;
+function oldDocsImageHashes(): Set<string> {
+	// scripts/old-docs-image-hashes.json is written by scripts/migration/close-dependency.ts
+	// from the old-docs clone, so the clone itself is not needed on disk.
+	try {
+		const manifest = JSON.parse(
+			readFileSync(join(ROOT, 'scripts/old-docs-image-hashes.json'), 'utf8')
+		);
+		return new Set(Object.keys(manifest.hashes ?? {}));
+	} catch {
+		return new Set();
+	}
 }
 
 /**
