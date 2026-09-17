@@ -64,6 +64,12 @@ const coverage = {
 	missingOnDisk: [...sourced].filter((s) => !existsSync(join(SRC, s))),
 	sourcedAndKilled: [...sourced].filter((s) => s in killed),
 	killedNotOnDisk: Object.keys(killed).filter((k) => !existsSync(join(SRC, k))),
+	// A sourced page with no body converts to nothing — the map should not claim it.
+	emptySources: [...sourced].filter(
+		(s) =>
+			existsSync(join(SRC, s)) &&
+			splitFrontmatter(readFileSync(join(SRC, s), 'utf8')).body.trim() === ''
+	),
 };
 
 const sharedSources = Object.fromEntries([...bySource].filter(([, routes]) => routes.length > 1));
@@ -186,14 +192,17 @@ if (!offline) {
 }
 
 // ── similarity ────────────────────────────────────────────────────────────────
+// An empty page's vector is just its title, which matches every route sharing that word
+// (governance.md, 0 bytes, scored 0.6 against eight routes) — leave those out of the corpus.
+const corpus = oldFiles.filter((f) => oldText[f].body.trim() !== '');
 const tfidf = new TfIdf();
 const docTokens: Record<string, string[]> = {};
-for (const f of oldFiles) {
+for (const f of corpus) {
 	docTokens[f] = tokenize(oldText[f].title + ' ' + stripFences(oldText[f].body));
 	tfidf.add(docTokens[f]);
 }
 const docVec: Record<string, Vec> = {};
-for (const f of oldFiles) docVec[f] = tfidf.vector(docTokens[f]);
+for (const f of corpus) docVec[f] = tfidf.vector(docTokens[f]);
 
 const routeVec = (route: string) => {
 	const r = map.routes[route];
@@ -203,7 +212,7 @@ const routeVec = (route: string) => {
 	return tfidf.vector(tokenize(text));
 };
 const rank = (v: Vec) =>
-	oldFiles
+	corpus
 		.map((f) => ({ source: f, score: +cosine(v, docVec[f]).toFixed(3) }))
 		.sort((a, b) => b.score - a.score);
 
@@ -217,7 +226,10 @@ const noSourceCandidates: Record<string, { source: string; score: number; strong
 for (const [route, info] of Object.entries(map.routes)) {
 	const ranked = rank(routeVec(route));
 	if (info.sources.length) {
-		const own = ranked.find((x) => x.source === info.sources[0])!;
+		const own = ranked.find((x) => x.source === info.sources[0]) ?? {
+			source: info.sources[0],
+			score: 0,
+		};
 		const bestOther = ranked.find((x) => !info.sources.includes(x.source) && !(x.source in killed));
 		if (bestOther && bestOther.score - own.score > 0.05) {
 			misassigned.push({ route, primary: info.sources[0], ownScore: own.score, bestOther });
@@ -323,7 +335,8 @@ if (asJson) {
 			(coverage.missingOnDisk.length ? `  MISSING ${coverage.missingOnDisk.join(', ')}` : '') +
 			(coverage.sourcedAndKilled.length
 				? `  SOURCED∧KILLED ${coverage.sourcedAndKilled.join(', ')}`
-				: '')
+				: '') +
+			(coverage.emptySources.length ? `  EMPTY ${coverage.emptySources.join(', ')}` : '')
 	);
 	console.log(
 		`shared sources  ${Object.keys(sharedSources).length}` +
