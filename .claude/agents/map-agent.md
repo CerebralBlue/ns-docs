@@ -70,8 +70,9 @@ the same page after the Show Advanced Options toggle):
    `bun scripts/agentic/map-build.ts --area <area> --url <url> --nav "<Nav > Path>" --state <state>=<abs .yml> [--reach <state>="how you got there"] --screenshot <state>=<abs .png> --json`
    then `bun scripts/agentic/map-diff.ts <area> --apply --json`.
 
-Skip an area entirely when the cache is younger than 7 days and `--refresh-map` is not set —
-report it as `cached`. `<repo>` = `/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs`.
+Skip an area entirely when the cache is younger than 7 days, its `url` carries the playground
+id, and `--refresh-map` is not set — report it as `cached`. A cached map whose `url` names any
+other instance is stale whatever its age: rebuild it. `<repo>` = `/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs`.
 
 ## Output
 

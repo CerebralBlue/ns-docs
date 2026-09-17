@@ -15,7 +15,7 @@ case "$TOOL" in
 	mcp__neuralseek-ui__browser_navigate)
 		WHAT=$(printf '%s' "$INPUT" | jq -r '.tool_input.url // ""') ;;
 	mcp__neuralseek-ui__browser_click | mcp__neuralseek-ui__browser_hover)
-		WHAT=$(printf '%s' "$INPUT" | jq -r '(.tool_input.element // "") + " [ref=" + (.tool_input.ref // "?") + "]"') ;;
+		WHAT=$(printf '%s' "$INPUT" | jq -r '(.tool_input.element // "") + " [ref=" + (.tool_input.target // .tool_input.ref // "?") + "]"') ;;
 	mcp__neuralseek-ui__browser_type | mcp__neuralseek-ui__browser_fill_form | mcp__neuralseek-ui__browser_select_option | mcp__neuralseek-ui__browser_press_key)
 		WHAT=$(printf '%s' "$INPUT" | jq -r '.tool_input | tostring' | cut -c1-120) ;;
 	*) exit 0 ;;

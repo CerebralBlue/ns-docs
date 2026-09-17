@@ -54,11 +54,11 @@ Counts at last check: 151 routes; 76 with sources, 75 without.
 
 ## `status` — the field that protects your work
 
-| Status    | Meaning                            | Who overwrites it                                  |
-| --------- | ---------------------------------- | -------------------------------------------------- |
-| `stub`    | generated placeholder              | `bun run stubs` rewrites it **every run**          |
+| Status    | Meaning                             | Who overwrites it                                     |
+| --------- | ----------------------------------- | ----------------------------------------------------- |
+| `stub`    | generated placeholder               | `bun run stubs` rewrites it **every run**             |
 | `auto`    | drafted by the old converter script | nothing regenerates it — treat as an unverified draft |
-| `adopted` | a human has edited the page        | **nothing ever touches it**                        |
+| `adopted` | a human has edited the page         | **nothing ever touches it**                           |
 
 Set `adopted` the moment you start editing a page. It is the only thing standing between an
 afternoon of writing and a regenerated blank page. The converter sets `auto` for you; moving to

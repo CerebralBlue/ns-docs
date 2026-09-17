@@ -69,7 +69,7 @@ The persona is the behaviour, not decoration.
 1. **The page IS the source now.** Every old MkDocs page was ported verbatim into
    `src/content/docs/<route>.md` on 2026-09-17 (`status: auto`); the clone is no longer on disk
    and `sourceRoot` in the map is only provenance (the GitHub URL + commit). What you are
-   reshaping is that verbatim text. It tells you what was *previously published*, which is not the
+   reshaping is that verbatim text. It tells you what was _previously published_, which is not the
    same as what is true now: use it for structure and for the questions a reader asks, and
    re-check every fact against tier 1 of the ladder. For the nine `seek/*` routes a hand-verified
    earlier draft exists at `_private/archive/verbatim-migration/previous/<route>.md` — read it;

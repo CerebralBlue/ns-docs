@@ -26,7 +26,9 @@ The browser is logged into the **playground** instance
 fill, select and submit** to observe what a feature does — that is how you settle a `behaviour`
 claim: ask one short Seek question and snapshot the answer panels, open the Personalize modal
 and fill it, toggle a setting and read the result. Keep it small: inputs ≤ 200 characters, one
-observation per claim, no repeated queries (the playground has a token limit). **Never click a
+observation per claim (the playground has a token limit) — except that a claim about caching or
+repeat behaviour is observed by asking the **same** question a second time; that one repeat is
+the evidence, not waste. **Never click a
 destructive control** (Delete, Remove, Purge, Erase, Reset, Clear all, Sign out) — the hook
 refuses and logs it. If you change a setting, set it back before you leave the screen and say
 so in `notes`. A click needs a `ref` from a snapshot you saved to a file; the hook resolves the

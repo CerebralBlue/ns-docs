@@ -49,10 +49,12 @@ const known = new Set(
 
 const lines: string[] = [];
 const add = (source: string, text: string) => {
-	const t = String(text ?? '')
+	let t = String(text ?? '')
 		.replace(/\s+/g, ' ')
 		.trim();
-	if (!t) return;
+	// "same as c10" and friends carry nothing for the next run; long notes are cut, not kept.
+	if (!t || /^same as c\d+/i.test(t)) return;
+	if (t.length > 240) t = t.slice(0, 237).replace(/\s+\S*$/, '') + '…';
 	const line = `${t} _(${source})_`;
 	if (!known.has(line)) {
 		known.add(line);

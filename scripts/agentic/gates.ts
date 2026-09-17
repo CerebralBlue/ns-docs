@@ -7,7 +7,8 @@
  *   bun scripts/agentic/gates.ts <run-id> <route> [--json]
  *
  * Every gate returns PASS, FAIL or ABSENT (its input does not exist). ABSENT is a park,
- * never a pass. Exit 1 unless every gate is PASS. Result → runs/<id>/<route>/gates.json.
+ * never a pass. Exit 1 unless every gate is PASS (with --json always 0: the JSON says `ok`).
+ * Result → runs/<id>/<route>/gates.json.
  *
  *   lint       bun scripts/doc-lint.ts <route> --strict — any ERROR fails
  *   contract   the five h2s in order, title + description present
@@ -254,5 +255,6 @@ function finish(): never {
 			for (const d of g.detail) console.log(`         ${d}`);
 		}
 	}
-	process.exit(ok ? 0 : 1);
+	// A parked route is a result the workflow reads from the JSON, not a script failure.
+	process.exit(args.flags.has('json') ? 0 : ok ? 0 : 1);
 }

@@ -70,8 +70,10 @@ case "$TOOL" in
 
 	mcp__neuralseek-ui__browser_click | mcp__neuralseek-ui__browser_hover)
 		on_playground || deny "the browser is not on the playground (state: $(cat "$STATE" 2>/dev/null | cut -f1 || echo unknown)) — navigate there first"
-		REF=$(printf '%s' "$INPUT" | jq -r '.tool_input.ref // ""')
-		[ -n "$REF" ] || deny "a click needs a ref from a saved snapshot"
+		# Playwright MCP 0.0.80 calls the ref `target` ("Exact target element reference from the
+		# page snapshot"); older builds called it `ref`. Accept both.
+		REF=$(printf '%s' "$INPUT" | jq -r '.tool_input.target // .tool_input.ref // ""')
+		[ -n "$REF" ] || deny "a click needs a target ref from a saved snapshot"
 		SNAP=$(find "$ROOT/_private/tools/playwright/output" "$V2/runs" -name '*.yml' -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2- || true)
 		NODE=$(grep -m1 -F "[ref=$REF]" "${SNAP:-/dev/null}" 2>/dev/null || true)
 		[ -n "$NODE" ] || deny "ref $REF is not in the latest saved snapshot ($(basename "${SNAP:-none}")) — snapshot to a file first, then click"
