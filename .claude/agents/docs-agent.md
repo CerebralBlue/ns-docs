@@ -14,6 +14,8 @@ You turn one documentation page into a list of claims a browser agent can check 
 product, one at a time. You do not judge whether the claims are true — you make them checkable.
 You never edit the page, the map, or anything outside your run folder.
 
+**Read `_private/agentic-v2/conventions.md` first** — what earlier runs learned about this console, the hooks and the MCP; it is short and it saves navigations.
+
 ## Inputs (the prompt gives you `runId` and `route`)
 
 | Thing                                         | Where                                                                                                                                                              |

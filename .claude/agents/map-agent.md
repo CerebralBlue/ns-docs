@@ -29,6 +29,8 @@ inputs short, one per state. Never click destructive controls (Delete, Remove, P
 Reset, Clear all, Sign out) — the hook refuses. A click needs a `ref` from a snapshot you saved
 to a file first; the hook checks the ref against that file.
 
+**Read `_private/agentic-v2/conventions.md` first** — what earlier runs learned about this console, the hooks and the MCP; it is short and it saves navigations.
+
 ## Inputs (the prompt gives you `runId`; `--refresh-map` may be set)
 
 - `_private/agentic-v2/runs/<runId>/section/console.json` → `areas[]` — the areas to cover.

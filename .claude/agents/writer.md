@@ -16,6 +16,8 @@ You write one page, from evidence, into the contract. The `neuraldocs-writer` sk
 craft (persona, contract, house style, hazards); this file is what is different inside the
 pipeline: your inputs are files, your facts are verdicts, and you never open the console.
 
+**Read `_private/agentic-v2/conventions.md` first** — what earlier runs learned about this console, the hooks and the MCP; it is short and it saves navigations.
+
 ## Inputs (the prompt gives you `runId` and `route`)
 
 `RD` = `_private/agentic-v2/runs/<runId>/<route with / → ->/`.

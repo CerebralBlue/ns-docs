@@ -402,8 +402,14 @@ model-invoked. Design + diagram: `_private/agentic-v2/diagrams/architecture.html
   coverage.json) → `ia-agent` (section barrier: sidebar/route tree, auto-applied) → `designer`
   (barrier, only when a route needs a page component) → per route `prepare-write.ts` →
   `writer` → `gates.ts` → `doc-reviewer` (one rewrite loop, then park) → `bun run verify` once
-  → `cleanup` (delete `docs-*` agents, confirm config restored — on every exit) → `report.ts`.
-  Everything lands as an **uncommitted diff**; the pipeline sets `status: auto`, never `adopted`.
+  → `cleanup` (delete `docs-*` agents, confirm config restored — on every exit) → `report.ts`
+  → `learn.ts`. Everything lands as an **uncommitted diff**; the pipeline sets `status: auto`,
+  never `adopted`.
+- **The only memory is `_private/agentic-v2/conventions.md`.** Agents start blank every run;
+  `learn.ts` harvests each run's _structured_ notes (verifier/runner `notes`, `map_gaps`,
+  unverifiable reasons, hook denials, map diffs) into that file, verbatim with their source, and
+  five agents read it first. No agent free-writes into it — a hallucination there would become
+  an instruction for every future run. Prune it by hand.
 - **Evidence rule** — a claim is `confirmed` only on a file saved into the run's `evidence/`
   folder: an accessibility snapshot that contains the label (grep) or a probe's raw output
   (`*.run.json`), sha1 recorded; `gates.ts` re-checks both. Load-bearing facts (defaults,

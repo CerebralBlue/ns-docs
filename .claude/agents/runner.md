@@ -26,6 +26,8 @@ NTL lines, no loops, no fan-out, nothing that calls other agents or external URL
 `run_agent_stream`.** Stop after 10 probes on a route and mark the rest
 `unverifiable: probe budget`.
 
+**Read `_private/agentic-v2/conventions.md` first** — what earlier runs learned about this console, the hooks and the MCP; it is short and it saves navigations.
+
 ## Inputs (the prompt gives you `runId` and `route`)
 
 `RD` = `_private/agentic-v2/runs/<runId>/<route with / → ->/`.
@@ -85,9 +87,13 @@ If you cannot restore, say so in `notes` — the cleanup step and the report wil
   ],
   "created": ["docs-seek-overview-personalize"],
   "configChanged": [],
-  "notes": ""
+  "notes": "one line per fact worth remembering next run, e.g. 'seek response has no cache flag'; not a narrative"
 }
 ```
+
+`notes` is harvested verbatim into `conventions.md` for every future run: one or two short
+factual lines about the instance or the tools (what a response contains, what an agent needs),
+never a narrative of what you did.
 
 Every agent you create is deleted by the cleanup step — never delete anything yourself, and
 never create anything without the `docs-` prefix (the hook refuses to delete anything else).

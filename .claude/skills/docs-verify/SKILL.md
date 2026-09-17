@@ -1,7 +1,7 @@
 ---
 name: docs-verify
 description: Run the NeuralDocs v2 pipeline over a section — gather (repo · MCP config · console component map) → verify every page against the playground console and run small probes → compile evidence → IA decision → design (if flagged) → write → gates → review → build once → report → clean the playground up. Leaves every change as an uncommitted diff. Use when Fabio types /docs-verify; never invoke on your own.
-disable-model-invocation: true
+disable-model-invocation: false
 argument-hint: '<route-prefix> [--only <route>] [--no-write] [--refresh-map] [--resume <workflow-run-id> --run <ledger-run-id>]'
 allowed-tools: Bash(bun scripts/agentic/*), Bash(git status *), Bash(git diff *), Bash(bun run verify), Bash(cat _private/agentic-v2/*), Read, Workflow
 ---
@@ -72,6 +72,7 @@ export const meta = {
     { title: 'Write', detail: 'prepare-write → writer → gates → reviewer, per route' },
     { title: 'Report', detail: 'bun run verify once, report.ts' },
     { title: 'Cleanup', detail: 'delete docs-* agents, confirm config restored' },
+    { title: 'Learn', detail: 'learn.ts → conventions.md' },
   ],
 };
 
@@ -193,6 +194,7 @@ const withBrowser = (fn) => {
   browser = p.catch(() => {});
   return p;
 };
+const learn = () => run(`bun scripts/agentic/learn.ts ${RUN} --json`, 'learn', 'Learn');
 const cleanup = () =>
   agent(
     `runId: ${RUN}. Leave the playground as the run found it per your instructions and write section/cleanup.json.`,
@@ -230,7 +232,10 @@ const gather = await parallel([
   ),
 ]);
 const mapResult = gather[0];
-if (!mapResult || mapResult.halt === 'login') halt('console session expired during the map stage');
+// An explicit login halt stops the run. A map-agent that returned nothing (browser closed,
+// agent failed) is not fatal by itself: the verifier can work from the cached map.
+if (mapResult && mapResult.halt === 'login') halt('console session expired during the map stage');
+else if (!mapResult) log('map-agent returned nothing — continuing on the cached component map');
 if (mapResult)
   log(
     `map: ${Object.entries(mapResult.areas || {})
@@ -282,9 +287,11 @@ if (!compiled || !compiled.ok) log('compile.ts failed — see the wrapper output
 if (args.noWrite || loginHalted) {
   const cleaned = await cleanup();
   const report = await run(`bun scripts/agentic/report.ts ${RUN} --json`, 'report', 'Report');
+  const learned = await learn();
   return {
     runId: RUN,
     stoppedAfter: loginHalted ? 'halt' : 'compile',
+    learned: learned && learned.json,
     verified: verifiedRoutes,
     loginHalted,
     cleanup: cleaned,
@@ -376,6 +383,7 @@ const build = await run(
 );
 const cleaned = await cleanup();
 const report = await run(`bun scripts/agentic/report.ts ${RUN} --json`, 'report', 'Report');
+const learned = await learn();
 const summary = finalRoutes.map((r, i) => {
   const w = written[i];
   let outcome = 'dropped';
@@ -391,6 +399,7 @@ return {
   loginHalted,
   summary,
   cleanup: cleaned,
+  learned: learned && learned.json,
   report: report && report.json,
 };
 ```
@@ -410,3 +419,5 @@ return {
 4. If the verifier halted on login: say so first, and give the exact `--resume` command.
 5. `--no-write` runs: show `section/coverage.json` per route (verdict counts, uncovered
    controls, integrity problems) — that is the deliverable.
+6. Say what the run taught the next one: the lines `learn.ts` appended to
+   `_private/agentic-v2/conventions.md` (in the Workflow result as `learned`).

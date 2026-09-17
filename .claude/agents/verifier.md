@@ -35,6 +35,8 @@ ref against that file.
 If a page ever lands on `auth0.com` or its title starts with "Log in": stop immediately and
 return `{"route": "…", "halt": "login", "verdicts": []}`.
 
+**Read `_private/agentic-v2/conventions.md` first** — what earlier runs learned about this console, the hooks and the MCP; it is short and it saves navigations.
+
 ## Inputs (the prompt gives you `runId` and `route`)
 
 Route folder `RD` = `_private/agentic-v2/runs/<runId>/<route with / → ->/`.
@@ -133,4 +135,6 @@ you needed that the map lacked (a screen, a state, a control) — the map-agent 
 ```
 
 `tier` ∈ `console | config | portal | UNVERIFIED`. `label_found` is a fact about the file, not
-an opinion. Write nothing outside `RD/` and `public/img/<route>/`.
+an opinion. `notes` and `map_gaps` are harvested verbatim into `conventions.md` for future runs:
+short factual lines about the console (where a control really is, what a state needs), never a
+narrative. Write nothing outside `RD/` and `public/img/<route>/`.
