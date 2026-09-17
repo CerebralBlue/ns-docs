@@ -21,7 +21,7 @@ description: "Discover NeuralSeek's Sentiment Analysis: Uncover emotional tones 
 
 When using REST API, for example, providing negative comments could trigger a low sentiment analysis score.
 
-```JSON
+```json
 {
   "question": "I don't like NeuralSeek",
   "context": {},
@@ -37,7 +37,7 @@ When using REST API, for example, providing negative comments could trigger a lo
 
 Would yield a response with low sentiment score:
 
-```JSON
+```json
 {
   "answer": "String i'm sorry to hear that you don't like NeuralSeek. If you have any specific concerns or feedback, please let me know and I'll do my best to assist you.",
   "cachedResult": false,
@@ -56,7 +56,7 @@ Would yield a response with low sentiment score:
 
 Notice the sentiment score of 3, which is in the low range of 0 - 10. On the other hand, if you express a positive sentiment as such:
 
-```JSON
+```json
 {
   "question": "I really love NeuralSeek. It's the best software in the world.",
   "context": {},
@@ -72,7 +72,7 @@ Notice the sentiment score of 3, which is in the low range of 0 - 10. On the oth
 
 The response will have a higher sentiment score:
 
-```JSON
+```json
 {
   "answer": "Thank you for sharing your positive feedback about NeuralSeek.  I cannot have personal opinions, but I'm glad to hear that you find NeuralSeek to be the best software in the world.",
   "cachedResult": false,

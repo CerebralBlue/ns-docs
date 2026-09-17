@@ -1,6 +1,6 @@
 ---
 title: "GitHub"
-description: "Connect to GitHub to search, retrieve, create, and update issues and pull requests in repositories."
+description: "Connect to Github and run a search for Issues and Pull Requests based on the provided query, returning the data."
 ---
 
 ## Search for Issues 

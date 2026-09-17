@@ -1,6 +1,6 @@
 ---
 title: "Knowledge Bases"
-description: "Connect to supported knowledge base services to index, search, retrieve, update, and manage documents and data using Elasticsearch or Watson Discovery."
+description: "Run an exists, index, get, search, update, or delete operation on ElasticSearch :::note[Parameters]"
 ---
 
 ## Elastic 

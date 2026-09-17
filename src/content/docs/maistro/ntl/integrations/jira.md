@@ -1,6 +1,6 @@
 ---
 title: "Jira"
-description: "Connect to Jira to search, retrieve, create, and update issues, as well as list projects using the Jira API."
+description: "Connect to Jira and run a search based on the provided query, returning the data."
 ---
 
 ## Jira Search 

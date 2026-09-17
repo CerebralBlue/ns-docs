@@ -1,0 +1,1186 @@
+{
+ "scriptContent": {
+  "header": {
+   "scriptName": "TDD_TEXT_VAHSampleChatScript",
+   "busNo": 4610407,
+   "mediaType": 3,
+   "mediaTypeName": "chat",
+   "purposeType": "General",
+   "variableRedaction": "",
+   "nextActionId": 22,
+   "status": "Active",
+   "lastSavedIn": "cxs",
+   "wasLayoutAlgorithmRun": true
+  },
+  "actions": {
+   "1": {
+    "actionId": 1,
+    "libraryId": "B2F794C5-0232-40E7-9830-76D573BF57D7",
+    "name": "BEGIN",
+    "version": 1,
+    "label": "Begin",
+    "dependencyOrder": "0",
+    "implType": "0",
+    "x": 288,
+    "y": 176,
+    "xws": 288,
+    "yws": 176
+   },
+   "2": {
+    "actionId": 2,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Declare JSON vars",
+    "dependencyOrder": "1",
+    "implType": "0",
+    "x": 288,
+    "y": 272,
+    "xws": 288,
+    "yws": 272
+   },
+   "3": {
+    "actionId": 3,
+    "libraryId": "45A72B54-4407-4F10-B9AE-464FF02DBB3C",
+    "name": "TEXTMSG",
+    "version": 1,
+    "label": "Textmsg",
+    "dependencyOrder": "2",
+    "implType": "0",
+    "x": 480,
+    "y": 560,
+    "xws": 480,
+    "yws": 560
+   },
+   "4": {
+    "actionId": 4,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process Bot Response",
+    "dependencyOrder": "3",
+    "implType": "0",
+    "x": 720,
+    "y": 384,
+    "xws": 720,
+    "yws": 384
+   },
+   "5": {
+    "actionId": 5,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process User Error",
+    "dependencyOrder": "4",
+    "implType": "0",
+    "x": 1312,
+    "y": 192,
+    "xws": 1312,
+    "yws": 192
+   },
+   "6": {
+    "actionId": 6,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process User Timeout",
+    "dependencyOrder": "19",
+    "implType": "0",
+    "x": 1312,
+    "y": 288,
+    "xws": 1312,
+    "yws": 288
+   },
+   "7": {
+    "actionId": 7,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process User Input",
+    "dependencyOrder": "-2",
+    "implType": "0",
+    "x": 1312,
+    "y": 384,
+    "xws": 1312,
+    "yws": 384
+   },
+   "8": {
+    "actionId": 8,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process Bot Response",
+    "dependencyOrder": "6",
+    "implType": "0",
+    "x": 1312,
+    "y": 560,
+    "xws": 1312,
+    "yws": 560
+   },
+   "9": {
+    "actionId": 9,
+    "libraryId": "45A72B54-4407-4F10-B9AE-464FF02DBB3C",
+    "name": "TEXTMSG",
+    "version": 1,
+    "label": "Textmsg",
+    "dependencyOrder": "7",
+    "implType": "0",
+    "x": 96,
+    "y": 560,
+    "xws": 96,
+    "yws": 560
+   },
+   "10": {
+    "actionId": 10,
+    "libraryId": "45A72B54-4407-4F10-B9AE-464FF02DBB3C",
+    "name": "TEXTMSG",
+    "version": 1,
+    "label": "Textmsg",
+    "dependencyOrder": "8",
+    "implType": "0",
+    "x": 1936,
+    "y": 240,
+    "xws": 1936,
+    "yws": 240
+   },
+   "11": {
+    "actionId": 11,
+    "libraryId": "93FB8888-30CF-4DF3-8ED9-1F2986819080",
+    "name": "END",
+    "version": 1,
+    "label": "End",
+    "dependencyOrder": "9",
+    "implType": "0",
+    "x": 2176,
+    "y": 240,
+    "xws": 2176,
+    "yws": 240
+   },
+   "12": {
+    "actionId": 12,
+    "libraryId": "93FB8888-30CF-4DF3-8ED9-1F2986819080",
+    "name": "END",
+    "version": 1,
+    "label": "End",
+    "dependencyOrder": "10",
+    "implType": "0",
+    "x": 2176,
+    "y": 544,
+    "xws": 2176,
+    "yws": 544
+   },
+   "13": {
+    "actionId": 13,
+    "libraryId": "45A72B54-4407-4F10-B9AE-464FF02DBB3C",
+    "name": "TEXTMSG",
+    "version": 1,
+    "label": "Textmsg",
+    "dependencyOrder": "11",
+    "implType": "0",
+    "x": 1936,
+    "y": 544,
+    "xws": 1936,
+    "yws": 544
+   },
+   "14": {
+    "actionId": 14,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process Ending Error",
+    "dependencyOrder": "12",
+    "implType": "0",
+    "x": 1664,
+    "y": 544,
+    "xws": 1664,
+    "yws": 544
+   },
+   "15": {
+    "actionId": 15,
+    "libraryId": "93FB8888-30CF-4DF3-8ED9-1F2986819080",
+    "name": "END",
+    "version": 1,
+    "label": "End",
+    "dependencyOrder": "13",
+    "implType": "0",
+    "x": 288,
+    "y": 672,
+    "xws": 288,
+    "yws": 672
+   },
+   "16": {
+    "actionId": 16,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process Ending Error",
+    "dependencyOrder": "14",
+    "implType": "0",
+    "x": 96,
+    "y": 480,
+    "xws": 96,
+    "yws": 480
+   },
+   "17": {
+    "actionId": 17,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process Ending Intent",
+    "dependencyOrder": "15",
+    "implType": "0",
+    "x": 1664,
+    "y": 240,
+    "xws": 1664,
+    "yws": 240
+   },
+   "18": {
+    "actionId": 18,
+    "libraryId": "B333DA63-33C8-4297-A58A-E9546CF7F0F2",
+    "name": "SNIPPET",
+    "version": 1,
+    "label": "Process Ending Intent",
+    "dependencyOrder": "16",
+    "implType": "0",
+    "x": 480,
+    "y": 480,
+    "xws": 480,
+    "yws": 480
+   },
+   "19": {
+    "actionId": 19,
+    "libraryId": "CD5E2559-0451-4C75-83BE-597E770F5246",
+    "name": "ASKCALLER",
+    "version": 1,
+    "label": "Askcaller",
+    "dependencyOrder": "-2",
+    "implType": "0",
+    "x": 960,
+    "y": 384,
+    "xws": 960,
+    "yws": 384
+   },
+   "20": {
+    "actionId": 20,
+    "libraryId": "C686275C-6CCC-4651-9F7B-18A7472B9F56",
+    "name": "TextBotExchange_LIBID_c686275c-6ccc-4651-9f7b-18a7472b9f56",
+    "version": 1,
+    "label": "TextBot Exchange",
+    "dependencyOrder": "-3",
+    "implType": "1",
+    "x": 288,
+    "y": 384,
+    "xws": 288,
+    "yws": 384
+   },
+   "21": {
+    "actionId": 21,
+    "libraryId": "C686275C-6CCC-4651-9F7B-18A7472B9F56",
+    "name": "TextBotExchange_LIBID_c686275c-6ccc-4651-9f7b-18a7472b9f56",
+    "version": 1,
+    "label": "TextBot Exchange",
+    "dependencyOrder": "-1",
+    "implType": "1",
+    "x": 1664,
+    "y": 384,
+    "xws": 1664,
+    "yws": 384
+   }
+  },
+  "properties": {
+   "1": {
+    "0": {
+     "name": "RootFolder",
+     "value": ""
+    },
+    "1": {
+     "name": "Application",
+     "value": ""
+    },
+    "2": {
+     "name": "ParamCount",
+     "value": ""
+    },
+    "3": {
+     "name": "Parameters",
+     "value": []
+    }
+   },
+   "2": {
+    "0": {
+     "name": "Data",
+     "value": "DYNAMIC intentInfo\r\nDYNAMIC nextPromptSequence\r\nDYNAMIC nextPromptBehaviors\r\nDYNAMIC customPayload\r\nDYNAMIC botSessionState\r\n\r\n"
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit2K"
+    }
+   },
+   "3": {
+    "0": {
+     "name": "Target",
+     "value": "CallerFromSystem"
+    },
+    "1": {
+     "name": "Text",
+     "value": "{nextPrompt}"
+    }
+   },
+   "4": {
+    "0": {
+     "name": "Data",
+     "value": ""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "5": {
+    "0": {
+     "name": "Data",
+     "value": ""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "6": {
+    "0": {
+     "name": "Data",
+     "value": ""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "7": {
+    "0": {
+     "name": "Data",
+     "value": "DYNAMIC customPayload\r\ncustomPayload.context.id=\"information\"\r\ncustomPayload.context.lifespan=1\r\ncustomPayload.context.parameters.name=\"Demo User\"\r\ncustomPayload.context.parameters.age=\"19\"\r\ncustomPayload.context.parameters.date=\"20201020\"\r\ncustomPayload.lastIntent=\"appointments\"\r\n\r\ncustomPayloadJSON = \"{customPayload.asJSON()}\""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "8": {
+    "0": {
+     "name": "Data",
+     "value": ""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "9": {
+    "0": {
+     "name": "Target",
+     "value": "CallerFromSystem"
+    },
+    "1": {
+     "name": "Text",
+     "value": "{nextPrompt}"
+    }
+   },
+   "10": {
+    "0": {
+     "name": "Target",
+     "value": "CallerFromSystem"
+    },
+    "1": {
+     "name": "Text",
+     "value": "{nextPrompt}"
+    }
+   },
+   "11": {},
+   "12": {},
+   "13": {
+    "0": {
+     "name": "Target",
+     "value": "CallerFromSystem"
+    },
+    "1": {
+     "name": "Text",
+     "value": "{nextPrompt}"
+    }
+   },
+   "14": {
+    "0": {
+     "name": "Data",
+     "value": ""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "15": {},
+   "16": {
+    "0": {
+     "name": "Data",
+     "value": ""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "17": {
+    "0": {
+     "name": "Data",
+     "value": ""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "18": {
+    "0": {
+     "name": "Data",
+     "value": ""
+    },
+    "1": {
+     "name": "MaxStringSize",
+     "value": "Limit32K"
+    }
+   },
+   "19": {
+    "0": {
+     "name": "Message",
+     "value": "{nextPrompt}"
+    },
+    "1": {
+     "name": "ResultVar",
+     "value": "RES"
+    },
+    "2": {
+     "name": "AlertSound",
+     "value": ""
+    },
+    "3": {
+     "name": "TimeoutSec",
+     "value": "0"
+    }
+   },
+   "20": {
+    "0": {
+     "name": "virtualAgentId",
+     "value": "NS"
+    },
+    "1": {
+     "name": "automatedIntent",
+     "value": "WELCOME"
+    },
+    "2": {
+     "name": "userInput",
+     "value": ""
+    },
+    "3": {
+     "name": "customPayload",
+     "value": ""
+    },
+    "4": {
+     "name": "botSessionState",
+     "value": ""
+    },
+    "5": {
+     "name": "nextPromptVarName",
+     "value": "nextPrompt"
+    },
+    "6": {
+     "name": "customPayloadVarName",
+     "value": "customPayloadFromBot"
+    },
+    "7": {
+     "name": "errorDetailsVarName",
+     "value": "errorDetails"
+    },
+    "8": {
+     "name": "intentInfoVarName",
+     "value": "intentInfo"
+    },
+    "9": {
+     "name": "botSessionStateVarName",
+     "value": "botSessionState"
+    },
+    "10": {
+     "name": "actionRestUrl",
+     "value": ""
+    },
+    "11": {
+     "name": "timeoutMS",
+     "value": ""
+    },
+    "12": {
+     "name": "BotExchangeVersion",
+     "value": ""
+    }
+   },
+   "21": {
+    "0": {
+     "name": "virtualAgentId",
+     "value": "NS"
+    },
+    "1": {
+     "name": "automatedIntent",
+     "value": ""
+    },
+    "2": {
+     "name": "userInput",
+     "value": "{RES}"
+    },
+    "3": {
+     "name": "customPayload",
+     "value": "{customPayloadJSON}"
+    },
+    "4": {
+     "name": "botSessionState",
+     "value": "{botSessionState.asJSON()}"
+    },
+    "5": {
+     "name": "nextPromptVarName",
+     "value": "nextPrompt"
+    },
+    "6": {
+     "name": "customPayloadVarName",
+     "value": "customPayloadFromBot"
+    },
+    "7": {
+     "name": "errorDetailsVarName",
+     "value": "errorDetails"
+    },
+    "8": {
+     "name": "intentInfoVarName",
+     "value": "intentInfo"
+    },
+    "9": {
+     "name": "botSessionStateVarName",
+     "value": "botSessionState"
+    },
+    "10": {
+     "name": "actionRestUrl",
+     "value": ""
+    },
+    "11": {
+     "name": "timeoutMS",
+     "value": ""
+    },
+    "12": {
+     "name": "BotExchangeVersion",
+     "value": ""
+    }
+   }
+  },
+  "branches": {
+   "1": [
+    {
+     "to": 2,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "2": [
+    {
+     "to": 20,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "3": [
+    {
+     "to": 15,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "4": [
+    {
+     "to": 19,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "5": [
+    {
+     "to": 21,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "6": [
+    {
+     "to": 21,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "7": [
+    {
+     "to": 21,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "8": [
+    {
+     "to": 19,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "9": [
+    {
+     "to": 15,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "10": [
+    {
+     "to": 11,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "13": [
+    {
+     "to": 12,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "14": [
+    {
+     "to": 13,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "16": [
+    {
+     "to": 9,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "17": [
+    {
+     "to": 10,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "18": [
+    {
+     "to": 3,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "19": [
+    {
+     "to": 7,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 6,
+     "label": "Timeout",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 7,
+     "label": "CallerResponded",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 1,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 5,
+     "label": "Error",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 2,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "20": [
+    {
+     "to": 4,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 4,
+     "label": "PromptAndCollectNextResponse",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 16,
+     "label": "Error",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 1,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 18,
+     "label": "ReturnControlToScript",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 2,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ],
+   "21": [
+    {
+     "to": 8,
+     "label": "",
+     "type": "default",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 8,
+     "label": "PromptAndCollectNextResponse",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 0,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 14,
+     "label": "Error",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 1,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    },
+    {
+     "to": 17,
+     "label": "ReturnControlToScript",
+     "type": "branch",
+     "labelDistance": null,
+     "index": 2,
+     "ports": "c,c",
+     "lineType": "straight",
+     "elbows": []
+    }
+   ]
+  },
+  "isDataLoaded": true,
+  "isDataLoading": false,
+  "isDataSaving": false,
+  "isNewScript": false,
+  "isViewOnlyMode": false,
+  "isLockOverride": false,
+  "isVersionHistoryMode": false,
+  "dataLoadingProgress": 100,
+  "error": null,
+  "issues": {
+   "totalErrors": 0,
+   "totalWarnings": 0,
+   "actions": {},
+   "script": {}
+  },
+  "startTraceOptions": {
+   "skill": "",
+   "skillDescription": "",
+   "simulateInboundCall": false,
+   "phone": "",
+   "dnis": "",
+   "ani": "",
+   "simulateDateTime": false,
+   "dateTime": null,
+   "timezone": "(Business Unit Default)",
+   "parameters": []
+  },
+  "versionHistory": null,
+  "scriptVersions": {},
+  "lastVersionEdited": null,
+  "traceWindowCount": 0,
+  "variables": {
+   "intentinfo": [
+    {
+     "name": "Snippet",
+     "label": "Declare JSON vars",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#CCCC00",
+       "url": "#code"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 2
+    }
+   ],
+   "nextpromptsequence": [
+    {
+     "name": "Snippet",
+     "label": "Declare JSON vars",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#CCCC00",
+       "url": "#code"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 2
+    }
+   ],
+   "nextpromptbehaviors": [
+    {
+     "name": "Snippet",
+     "label": "Declare JSON vars",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#CCCC00",
+       "url": "#code"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 2
+    }
+   ],
+   "custompayload": [
+    {
+     "name": "Snippet",
+     "label": "Process User Input",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#CCCC00",
+       "url": "#code"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 7
+    }
+   ],
+   "botsessionstate": [
+    {
+     "name": "Snippet",
+     "label": "Declare JSON vars",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#CCCC00",
+       "url": "#code"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 2
+    }
+   ],
+   "custompayloadjson": [
+    {
+     "name": "Snippet",
+     "label": "Process User Input",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#CCCC00",
+       "url": "#code"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 7
+    }
+   ],
+   "nextPrompt": [
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 20
+    },
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 21
+    }
+   ],
+   "customPayloadFromBot": [
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 20
+    },
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 21
+    }
+   ],
+   "errorDetails": [
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 20
+    },
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 21
+    }
+   ],
+   "intentInfo": [
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 20
+    },
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 21
+    }
+   ],
+   "botSessionState": [
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 20
+    },
+    {
+     "name": "TextBot Exchange",
+     "label": "TextBot Exchange",
+     "shape": {
+      "type": "rectangle-editor",
+      "icon": {
+       "color": "#31A3A3",
+       "url": "#bot"
+      },
+      "editorIcon": {
+       "url": "#browser"
+      }
+     },
+     "actionId": 21
+    }
+   ]
+  },
+  "compareScript": {},
+  "customConnectorIdentifier": null,
+  "schemaVersion": "1.0.0"
+ }
+}

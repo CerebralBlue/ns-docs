@@ -304,7 +304,7 @@ This feature allows users to filter their log history by date efficiently, inclu
 :::
 
 :::tip[Replay]
-You can also use the Replay feature here, which allows you to "replay" previously logged questions and analyze their Semantic scores. For more information, see [Replay](https://documentation.neuralseek.com/main_features/advanced_features/advanced_features/#replay).
+You can also use the Replay feature here, which allows you to "replay" previously logged questions and analyze their Semantic scores. For more information, see [Replay](/governance/replay/#replay).
 :::
 
 ## mAIstro Governance

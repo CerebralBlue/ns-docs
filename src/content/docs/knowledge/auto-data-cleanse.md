@@ -3,9 +3,14 @@ title: "Auto data cleanse"
 description: "Discover NeuralSeek's Automatic Data Cleansing. Streamline web-scraped content by removing nuisances like banners and cookies, ensuring high-quality, focused information for your organization."
 ---
 
-:::note[Draft]
-This page is part of the new documentation structure and its content is being prepared.
-:::
+**What is it?**
 
-Content will be converted from the existing documentation.
-Source: `features/auto_data_cleanse/index.md` (keep).
+- When using webpages as documentation for the KnowledgeBase, nuisance information such as banners and cookies will deteriorate information relevant to the users organization. The Automatic Data Cleansing feature of NeuralSeek will automatically cleanse the web pages that were scraped, exposing information pertinent to the organization, at the users own pace.
+
+**Why is it important?**
+
+- Condensing and focusing the information, while removing useless wording returned by the KnowledgeBase is critical to high quality answer generation.  Most web content is not great at directly answering questions because of the amount of nuisance webpage language that gets extracted with the core content.
+
+**How does it work?**
+
+- NeuralSeek will identify documents in the KnowledgeBase that come from webscrapes.  NeuralSeek will then run its own algorithm against the full webpage HTML to extract just the core content and remove as much of the extraneous information as possible.

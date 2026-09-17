@@ -1,6 +1,6 @@
 ---
 title: "Databases"
-description: "Connect to supported databases, execute SQL or Cypher queries, and return query results as sentences or CSV."
+description: "Connect to a DB2 database and run a sql query, returning the data."
 ---
 
 ## DB2 Database 
@@ -37,7 +37,7 @@ Connect to a Postgres database and run a sql query, returning the data.
 
 - **query**: The Postgres query
 
-- **uri**: A connection string in the format:  user:pass@example.com:5432/dbname
+- **uri**: A connection string in the format:  user\:pass@example.com:5432/dbname
 
 - **sentences**: Return in sentences (true) or as CSV (false)
 
@@ -57,7 +57,7 @@ Connect to a MariaDB database and run a sql query, returning the data.
 
 - **query**: The MariaDB query
 
-- **uri**: A connection string in the format:  user:pass@example.com:3306/dbname
+- **uri**: A connection string in the format:  user\:pass@example.com:3306/dbname
 
 - **sentences**: Return in sentences (true) or as CSV (false)
 :::
@@ -73,7 +73,7 @@ Connect to a MySQL database and run a sql query, returning the data.
 
 - **query**: The MySQL query
 
-- **uri**: A connection string in the format:  user:pass@example.com:3306/dbname
+- **uri**: A connection string in the format:  user\:pass@example.com:3306/dbname
 
 - **sentences**: Return in sentences (true) or as CSV (false)
 :::
@@ -89,7 +89,7 @@ Connect to a MS SQL database and run a sql query, returning the data.
 
 - **query**: The MS SQL query
 
-- **uri**: A connection string in the format:  user:pass@example.com:1433/dbname
+- **uri**: A connection string in the format:  user\:pass@example.com:1433/dbname
 
 - **sentences**: Return in sentences (true) or as CSV (false)
 :::
@@ -105,7 +105,7 @@ Connect to a Oracle database and run a sql query, returning the data.
 
 - **query**: The Oracle query
 
-- **uri**: A connection string in the format:  user:pass@example.com:1521/dbname
+- **uri**: A connection string in the format:  user\:pass@example.com:1521/dbname
 
 - **sentences**: Return in sentences (true) or as CSV (false)
 :::
@@ -121,7 +121,7 @@ Connect to a Redshift database and run a sql query, returning the data.
 
 - **query**: The redshift query
 
-- **uri**: A connection string in the format:  user:pass@example.com:5432/dbname
+- **uri**: A connection string in the format:  user\:pass@example.com:5432/dbname
 
 - **sentences**: Return in sentences (true) or as CSV (false)
 :::
