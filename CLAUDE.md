@@ -332,7 +332,7 @@ here:
 
 None of this is fixable from inside this repo — it is a NeuralSeek instance/KB task. Instance
 identities, the ingestion state, and the unverified doc-automation side are in
-`_private/chatbot-and-kb.md`.
+`_private/notes/chatbot-and-kb.md`.
 
 ## Old docs (migration source)
 
