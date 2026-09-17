@@ -4,12 +4,12 @@
  *   bun scripts/migration/close-dependency.ts [--source <dir>] [--dry]
  *
  * After every sourced route is converted (check.ts --all exits 0), three things still read
- * the clone: the stale-image check in doc-lint.ts / migrate-gates.ts (sha1 of every old
+ * the clone: the stale-image check in doc-lint.ts (and the archived migrate-gates.ts; sha1 of every old
  * image), the title/description fallback in gen-stubs.ts, and the map's `sourceRoot` path.
  * This script:
  *
  *   1. writes scripts/old-docs-image-hashes.json — sha1 → old path for every old image —
- *      which doc-lint and migrate-gates read instead of walking `sourceRoot`;
+ *      which doc-lint reads instead of walking `sourceRoot`;
  *   2. verifies every sourced route in the map carries a `description` (convert.ts injected
  *      them), so gen-stubs.ts needs no fallback;
  *   3. rewrites the map's `sourceRoot` to the GitHub location of the clone at its commit,
@@ -53,7 +53,7 @@ const hashes: Record<string, string> = {};
 for (const abs of images) hashes[sha1(abs)] = rel(abs, SRC);
 const manifest = {
 	$comment:
-		'sha1 of every image in the old MkDocs docs, so doc-lint.ts and migrate-gates.ts can flag a ' +
+		'sha1 of every image in the old MkDocs docs, so doc-lint.ts can flag a ' +
 		'carried-over screenshot (byte-identical => shows the old UI) without the clone on disk. ' +
 		'Regenerate with `bun scripts/migration/close-dependency.ts --source <clone>/' +
 		OLD_DOCS_SUBDIR +
