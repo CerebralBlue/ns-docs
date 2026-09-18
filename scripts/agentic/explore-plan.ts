@@ -153,7 +153,11 @@ if (verb === 'plan') {
 	for (const c of controlsOf(parseSnapshot(readFileSync(snap, 'utf8')))) {
 		if (todos.length + added.length >= MAX_STATES) break;
 		if (!c.name || NAV_REGIONS.test(c.region)) continue;
-		if (DESTRUCTIVE.test(c.name) || COMMIT_VERBS.test(c.name) || NEVER.test(c.name)) continue;
+		// "Edit Configuration", "Add a Category", "Create…" OPEN something; the commit happens on
+		// the Save inside, which the plan never lists. So an opener wins over COMMIT_VERBS.
+		const opener = /^(edit|add|create|new|configure|manage|view|show|open)\b/i.test(c.name.trim());
+		if (DESTRUCTIVE.test(c.name) || NEVER.test(c.name)) continue;
+		if (!opener && COMMIT_VERBS.test(c.name)) continue;
 		let kind: Todo['kind'] | null = null;
 		if (c.role === 'tab') kind = 'tab';
 		else if (c.role === 'menuitem' || c.role === 'menuitemradio' || c.role === 'menuitemcheckbox')
