@@ -45,17 +45,23 @@ after **Show Advanced Options**. Viewport 1440×900. Paths are
 Area → URL and states (extend when a new area appears; the `neural-config:advanced` state is
 the same page after the Show Advanced Options toggle):
 
-| area                     | url            | states                                                                           |
-| ------------------------ | -------------- | -------------------------------------------------------------------------------- |
-| `seek`                   | `/seek`        | `default`; `answered` = after typing a short question and waiting for the answer |
-| `neural-config`          | `/configure`   | `default`                                                                        |
-| `neural-config:advanced` | `/configure`   | `default` = after clicking **Show Advanced Options**                             |
-| `curate`                 | `/curate`      | `default`                                                                        |
-| `chat`                   | `/chat`        | `default`                                                                        |
-| `knowledge`              | `/knowledge`   | `default`                                                                        |
-| `governance`             | `/go-overview` | `default`                                                                        |
-| `maistro`                | `/maistro`     | `default`                                                                        |
-| `runagent`               | `/runagent`    | `default`                                                                        |
+| area                     | url            | states                                                                                                                                               |
+| ------------------------ | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `home`                   | `/home`        | `default`                                                                                                                                            |
+| `seek`                   | `/seek`        | `default`; `answered` = after typing a short question and waiting for the answer                                                                     |
+| `neural-config`          | `/configure`   | `default`                                                                                                                                            |
+| `neural-config:advanced` | `/configure`   | `default` = after clicking **Show Advanced Options**                                                                                                 |
+| `knowledge`              | `/knowledge`   | `default`                                                                                                                                            |
+| `data-loader`            | `/load`        | `default`                                                                                                                                            |
+| `curate`                 | `/curate`      | `default`                                                                                                                                            |
+| `chat`                   | `/chat`        | `default`                                                                                                                                            |
+| `admin-tools`            | `/integrate`   | `default` (the Admin Tools dropdown's pages: API's & Integration, Chat SDK, Data Loader, Entity Extraction, QA Tools — open the one the route names) |
+| `governance`             | `/go-overview` | `default`                                                                                                                                            |
+| `maistro`                | `/maistro`     | `default`                                                                                                                                            |
+| `runagent`               | `/runagent`    | `default`                                                                                                                                            |
+
+If a URL in this table is wrong on the playground (404 or a different page), find the page
+through the top nav or the Admin Tools dropdown, use what you find, and say so in your result.
 
 ## Procedure, per area (≤ 5 browser calls)
 

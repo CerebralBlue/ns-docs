@@ -8,7 +8,8 @@
       "description": "Discover NeuralSeek, the AI-powered Answers-as-a-Service that enhances virtual agents with precise, fact-checked responses. Explore seamless integrations, cloud options, and hands-on training today!",
       "sources": ["index.md"],
       "action": "rewrite",
-      "status": "auto"
+      "status": "auto",
+      "console": ["home", "seek"]
     },
     "getting-started/quickstart-seek": {
       "title": "Quickstart: Seek",
@@ -49,6 +50,7 @@
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
+      "console": ["home"],
       "gaps": [
         "Renamed from 'Deployment options' per Robert's review (2026-08-04)",
         "Boundary: plans, pricing model and purchasing live here; platform/deployment mechanics live in reference/deployment",
@@ -166,7 +168,8 @@
       "description": "Explore mAIstro, a dynamic platform for retrieval-augmented generation. Seamlessly integrate your preferred LLM, enhance data quality, and enjoy user-friendly content creation with expert guidance.",
       "sources": ["ui/maistro/index.md"],
       "action": "rewrite",
-      "status": "auto"
+      "status": "auto",
+      "console": ["maistro"]
     },
     "maistro/visual-editor": {
       "title": "Visual editor",
@@ -627,7 +630,8 @@
       "description": "Discover how to seamlessly integrate NeuralSeek with virtual agents, APIs, and more with NeuralSeek's Integrate page. Access step-by-step guides, enhance user experience, and optimize performance with comprehensive logging tools.",
       "sources": ["ui/integrate/index.md"],
       "action": "rewrite",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config", "knowledge"]
     },
     "knowledge/supported-knowledgebases": {
       "title": "Supported knowledge bases",
@@ -635,6 +639,7 @@
       "sources": ["ui/integrate/integrations/supported_knowledgebases/supported_knowledgebases.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["neural-config"],
       "gaps": [
         "Six KB types missing from the support matrix: Watson Discovery on CP4D, Postgres, Coveo, Virtual KB, NeuralSeek KB, and No KnowledgeBase"
       ]
@@ -671,14 +676,16 @@
       "description": "Unlock seamless integration with Pinecone as your knowledge base using our step-by-step guide. Learn to configure, upload documents via Node.js, and master its key functionalities.",
       "sources": ["guides/integration/pinecone_configuration/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config"]
     },
     "knowledge/elasticsearch-vector-model": {
       "title": "Elasticsearch vector model",
       "description": "Learn to configure environments, create API keys, set up machine learning, download models, and verify data embeddings seamlessly with NeuralSeek's ElasticSearch Vector Search guide.",
       "sources": ["guides/integration/elasticsearch_vector_model/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config", "neural-config:advanced"]
     },
     "knowledge/load": {
       "title": "Loading documents",
@@ -686,6 +693,7 @@
       "sources": ["ui/load/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "console": ["data-loader", "knowledge"],
       "gaps": [
         "Loader template selector — which mAIstro template processes the upload",
         "Loader Logs — what happened to each uploaded document",
@@ -698,6 +706,7 @@
       "sources": ["ui/extract/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "console": ["admin-tools"],
       "gaps": [
         "Custom Entities tab — define your own entity types",
         "System Entities tab — the built-in entity set, never listed anywhere",
@@ -711,6 +720,7 @@
       "sources": ["features/table_understanding/index.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["knowledge"],
       "gaps": [
         "Guidance is stale: re-crawl and re-load now re-process and cost, but the docs still say crawls are ineligible"
       ]
@@ -720,7 +730,8 @@
       "description": "Discover NeuralSeek's Automatic Data Cleansing. Streamline web-scraped content by removing nuisances like banners and cookies, ensuring high-quality, focused information for your organization.",
       "sources": ["features/auto_data_cleanse/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["knowledge"]
     },
     "knowledge/managed-knowledgebase/overview": {
       "title": "Managed KnowledgeBase overview",
@@ -784,7 +795,8 @@
       "description": "Explore NeuralSeek's supported virtual agents, including watsonx Assistant and AWS Lex. Discover features like fallback search, answer curation, and round-trip monitoring for enhanced chatbot integration.",
       "sources": ["ui/integrate/integrations/supported_virtual_agents/supported_virtual_agents.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["admin-tools"]
     },
     "integrations/virtual-agents/watsonx-assistant": {
       "title": "watsonx Assistant",
@@ -821,21 +833,24 @@
       "description": "Effortlessly train IBM Watson Assistant with NeuralSeek! Auto-generate questions, streamline curation, and integrate seamlessly with Watson and AWS Lex. Boost your virtual agent's efficiency today!",
       "sources": ["guides/integration/training_virtual_agents/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["curate", "admin-tools"]
     },
     "integrations/watsonx-assistant-streaming": {
       "title": "watsonx Assistant streaming",
       "description": "Unlock a dynamic user experience with mAIstro NTL Endpoint and Watsonx Assistant! Learn to enable streaming for faster, interactive chatbot responses. Follow our step-by-step guide to enhance engagement.",
       "sources": ["guides/integration/wa_context_guide/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["admin-tools"]
     },
     "integrations/nice-cxone": {
       "title": "NICE CXone",
       "description": ">",
       "sources": ["guides/integration/nice_cxone_integration/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["admin-tools"]
     },
     "integrations/slack-extension": {
       "title": "Slack extension",
@@ -922,14 +937,16 @@
       "description": "Integrate NeuralSeek's Chat SDK effortlessly into your website! Enable dynamic Q&A with KnowledgeBase content, document uploads, and customizable chat widgets.",
       "sources": ["guides/integration/chat_sdk_integration/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["chat"]
     },
     "integrations/feedback": {
       "title": "Implementing feedback",
       "description": "Enhance user interaction with NeuralSeek by integrating Thumbs Up/Down feedback icons into your virtual agent. Learn to seamlessly embed these icons in watsonx Assistant and track ratings for improved insights.",
       "sources": ["guides/integration/implementing_feedback/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["seek", "curate"]
     },
 
     "configuration/overview": {
@@ -937,7 +954,8 @@
       "description": "Unlock the full potential of NeuralSeek with the Configure tab. Customize settings for optimal performance, explore advanced configurations, and enhance user experience.",
       "sources": ["ui/configure/index.md"],
       "action": "rewrite",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config", "neural-config:advanced"]
     },
     "configuration/neural-config/index": {
       "title": "Neural Config options",
@@ -1189,6 +1207,7 @@
       "sources": ["ui/integrate/integrations/supported_llms/supported_llms.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["neural-config"],
       "gaps": [
         "xAI is missing from the supported-LLM platform list",
         "The model catalogue is stale — around 287 models are offered and the list is roughly two generations behind"
@@ -1199,28 +1218,32 @@
       "description": "Explore the power of multimodal LLMs in mAIstro! Discover how these models process text, images, and audio for intuitive interactions, enhancing applications like visual Q&A and image captioning.",
       "sources": ["features/multi_llm/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config"]
     },
     "configuration/multimodal": {
       "title": "Multimodal LLM configuration",
       "description": "Discover how to configure multimodal LLMs like GPT-4o to process images. Follow step-by-step instructions to set up, test connections, and utilize Maistro for image analysis.",
       "sources": ["guides/models/multimodal/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config"]
     },
     "configuration/semantic-model": {
       "title": "Semantic model tuning",
       "description": "Unlock the full potential of NeuralSeek with our Semantic Model Tuning Guide. Learn to optimize search results, adjust settings, and enhance semantic scores for precise, confident answers.",
       "sources": ["guides/models/semantic_model/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config:advanced"]
     },
     "configuration/language": {
       "title": "Language handling",
       "description": "Discover NeuralSeek's powerful language translation API, supporting numerous languages for seamless multilingual communication. Effortlessly translate text with JSON payloads and explore extensive language options.",
       "sources": ["features/language/index.md", "features/language_indentification/index.md"],
       "action": "merge",
-      "status": "auto"
+      "status": "auto",
+      "console": ["neural-config:advanced"]
     },
     "configuration/backup-restore": {
       "title": "Backup, restore & change logs",
@@ -1228,6 +1251,7 @@
       "sources": ["guides/integration/backup_and_restore/index.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["neural-config"],
       "gaps": [
         "Change Logs per-category tabs — a Default Config tab plus one tab per category",
         "Rollback — revert to a previous configuration version",
@@ -1242,6 +1266,7 @@
       "sources": ["ui/governance/index.md", "reference_material/governance/governance.md"],
       "action": "merge",
       "status": "auto",
+      "console": ["governance"],
       "gaps": [
         "The old standalone governance page is empty — decide what it contributes before merging it in"
       ]
@@ -1333,6 +1358,7 @@
       "sources": ["features/pii_detect/index.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["governance", "neural-config:advanced"],
       "gaps": [
         "Extra PII names list — add personal names a general model will not recognise (PII tab > NeuralSeek PII Detectors)"
       ]
@@ -1356,6 +1382,7 @@
       "sources": ["features/RT_logging/index.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["governance", "neural-config:advanced"],
       "gaps": [
         "Corporate Logging: Logger Service — ElasticSearch, OpenSearch or mAIstro; the choice changes every field below it",
         "Logger username / password — OpenSearch mode uses basic auth, not an API key",
@@ -1381,14 +1408,16 @@
       "description": "Explore NeuralSeek's Replay feature to revisit past Q&As, track documentation changes, and see how answers evolve. Perfect for understanding updates and refining your knowledge.",
       "sources": ["features/replay_feature/index.md", "guides/data/replay_guide/index.md"],
       "action": "merge",
-      "status": "auto"
+      "status": "auto",
+      "console": ["governance"]
     },
     "governance/data-security": {
       "title": "Data security & privacy",
       "description": "NeuralSeek ensures to encrypt, localize, and protect your data, ensuring ownership and confidentiality. Visit to explore our secure solutions.",
       "sources": ["more_about_NS/data_security_and_privacy.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["governance"]
     },
     "governance/analytics/reading-the-dashboards": {
       "title": "Reading the dashboards",
@@ -1504,6 +1533,7 @@
       "sources": ["features/semantic_analytics/index.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["governance", "seek"],
       "gaps": [
         "Absorbs the Seek > Semantic Insights dashboard",
         "Semantic Distribution — histogram of semantic scores",
@@ -1518,6 +1548,7 @@
       "sources": ["features/content_analytics/index.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["governance"],
       "gaps": [
         "Absorbs the Documentation Insights dashboard",
         "Download ratings CSV — export user rating data"
@@ -1528,7 +1559,8 @@
       "description": "Discover NeuralSeek's Sentiment Analysis: Uncover emotional tones in text using advanced NLP. Enhance customer interactions by tailoring responses based on sentiment scores.",
       "sources": ["features/sentiment/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["governance"]
     },
     "governance/intent-categorization": {
       "title": "Intent categorization",
@@ -1536,6 +1568,7 @@
       "sources": ["features/intent_cat/index.md"],
       "action": "keep",
       "status": "auto",
+      "console": ["governance"],
       "gaps": [
         "Absorbs the Neural Config > Intent Categorization panel",
         "Category table — add, edit and delete intent categories",
@@ -1552,7 +1585,8 @@
       "description": "Discover NeuralSeek's Entity Extraction feature, enabling seamless entity detection in text with custom definitions and multilingual support. Integrate effortlessly via REST API to enhance virtual agents.",
       "sources": ["features/entity_extraction/index.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["admin-tools", "governance"]
     },
 
     "reference/changelog": {
@@ -1560,7 +1594,8 @@
       "description": "Discover the latest updates in NeuralSeek's changelog! From new out-of-the-box integrations supporting the market's leading models, to new no-code toolsets for building AI Agents in mAIstro, stay in the know on NeuralSeek's powerful new releases that elevate your AI experience.",
       "sources": ["changelog.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "console": ["home"]
     },
     "reference/deployment": {
       "title": "Deployment",
@@ -1568,6 +1603,7 @@
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
+      "console": ["home"],
       "gaps": [
         "Split out of getting-started/deployment per Robert's review (2026-08-04): mechanics live here, plans and purchasing live in Getting Started",
         "What differs on on-prem: the Document Manager navbar item is hidden, Secrets behave differently",
@@ -1580,6 +1616,7 @@
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
+      "console": ["home"],
       "gaps": [
         "Boundary: this page is the gating reference; purchasing lives in getting-started/how-to-get-neuralseek",
         "'Why can't I see this page?' — the nine plan and deployment conditions that change what appears in the navbar"

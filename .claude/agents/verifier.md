@@ -58,7 +58,9 @@ the browser must be **absolute**.
 1. From the map, pick the area, state and region where the claim's `label` should be. Navigate
    there (a state's `reach` tells you which disclosure to open).
 2. `browser_snapshot` with `filename` = `<repo>/RD/evidence/<id>.yml`. A snapshot you did not
-   save is not evidence.
+   save is not evidence, and a snapshot saved anywhere else (the map-agent's files under
+   `tools/playwright/output/map/`) is not _your_ evidence — the gate looks only in
+   `RD/evidence/`. Take your own, even of a screen the map already shows.
 3. `Grep` that file for the claim's `label` (exact, then case-insensitive). **That grep is the
    evidence** — a label you remember seeing does not count. Record `label_found` from the grep,
    and `sha1` from `sha1sum <file>`. For a `behaviour` claim, take the snapshot **after** the

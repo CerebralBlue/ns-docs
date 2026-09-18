@@ -54,6 +54,23 @@ screenshot survives** — the images gate checks their hashes. Delete every `<!-
 `<!-- STILL TO DOCUMENT -->` and `<!-- ASK: -->` marker; what they asked for is either on the
 page now or in `left_unresolved`.
 
+## Consistency fixes (when the prompt names a `consistency.json`)
+
+After a whole night's sections are written, the `consistency` agent compares your page with its
+neighbours. When the prompt hands you `_private/agentic-v2/night/<id>/consistency/<route
+folder>/consistency.json`, do **only** this, on **your page only** (never a neighbour's, even
+when the neighbour is the one that is wrong — its own fix comes from its own run):
+
+- `contradictions` with `evidence_side: theirs` → say what their evidence says; with `both` or
+  `neither` → keep your sentence and add `:::note[Under review]` naming the other page and the
+  disagreement, so a human decides; with `ours` → nothing.
+- `duplicates` with `keep: theirs` → shrink the section named by `ours_lines` to one sentence
+  plus a link to the owner page; with `keep: ours` → nothing.
+- `missing_links` → add the link where the feature is first named.
+
+Then lint, prettier, and update `RD/write.json` with an `edits` entry per change
+(`{ "id": "consistency", "applied_text": "<a sentence now on the page>" }`).
+
 ## Before you return
 
 1. `bun scripts/doc-lint.ts <route>` — fix every error (warnings on images are fine).

@@ -11,6 +11,11 @@
  *   coverage.json  per route: verdict counts, evidence integrity (every confirmed verdict's
  *                  snapshot exists, its sha1 matches, and its label greps), observed controls
  *                  no claim covers, and the page's h2s — what the IA stage decides on
+ * Site-wide (_private/agentic-v2/index.json): route → the run that last compiled it, so a
+ * later section can read an earlier section's evidence. That is what feeds the "Related
+ * evidence" block in evidence.md: the confirmed/contradicted rows of every route sharing a
+ * console area with this one (≤ 6 routes, ≤ 30 rows each) — a page's facts often live on a
+ * screen another route owns (seek/caching's thresholds are Neural Config settings).
  *
  * Contracts it reads (written by the agents):
  *   docs.json      { route, claims[{id, kind, text, lines, area?, label?}], questions[],
@@ -21,7 +26,18 @@
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { DOCS_DIR, parseArgs, readJson, ROOT, routeDir, runDir, sha1, writeJson } from './lib';
+import {
+	DOCS_DIR,
+	loadMap,
+	parseArgs,
+	readJson,
+	ROOT,
+	routeDir,
+	runDir,
+	sha1,
+	V2_DIR,
+	writeJson,
+} from './lib';
 
 const args = parseArgs(process.argv.slice(2));
 const runId = args.positional[0];
@@ -42,6 +58,40 @@ const routes: string[] = routesFinal
 	? routesFinal.routes.map((r: any) => (typeof r === 'string' ? r : r.route))
 	: queue.routes.map((r: any) => r.route);
 const config = readJson(join(dir, 'section/config.json'));
+const { map } = loadMap();
+const INDEX = join(V2_DIR, 'index.json');
+const index: Record<string, { runId: string; compiledAt: string }> = readJson(INDEX) ?? {};
+
+/** Confirmed + contradicted rows of another route's latest verdicts, for the Related block. */
+function relatedRows(other: string): { rows: string[]; runId: string } | null {
+	const entry = index[other];
+	if (!entry) return null;
+	const rd = routeDir(entry.runId, other);
+	const docs = readJson(join(rd, 'docs.json'));
+	const ver = readJson(join(rd, 'verdicts.json'));
+	const runner = readJson(join(rd, 'runner.json'));
+	const byId = new Map<string, any>((docs?.claims ?? []).map((c: any) => [c.id, c]));
+	const verdicts = [...(ver?.verdicts ?? []), ...(runner?.verdicts ?? [])].filter(
+		(v: any) => v.verdict === 'confirmed' || v.verdict === 'contradicted' || v.verdict === 'missing'
+	);
+	if (!verdicts.length) return null;
+	const rows = verdicts.slice(0, 30).map((v: any) => {
+		const c = byId.get(v.id);
+		const fact = v.verdict === 'confirmed' ? (c?.text ?? '') : (v.actual ?? c?.text ?? '');
+		return `| ${other} | ${c?.kind ?? '?'} | **${v.verdict}** | ${String(fact).replace(/\|/g, '\\|').slice(0, 220)} |`;
+	});
+	return { rows, runId: entry.runId };
+}
+function relatedRoutes(route: string): string[] {
+	const mine = new Set(map.routes[route]?.console ?? []);
+	if (!mine.size) return [];
+	return Object.entries(map.routes)
+		.filter(([r, info]) => r !== route && (info.console ?? []).some((a) => mine.has(a)) && index[r])
+		.map(([r, info]) => ({ r, shared: (info.console ?? []).filter((a) => mine.has(a)).length }))
+		.sort((a, b) => b.shared - a.shared || a.r.localeCompare(b.r))
+		.slice(0, 6)
+		.map((x) => x.r);
+}
 
 const coverage: Record<string, any> = {};
 let compiled = 0;
@@ -157,6 +207,23 @@ for (const route of routes) {
 				)
 			: ['- none']),
 		'',
+		...(() => {
+			const rel = relatedRoutes(route)
+				.map((r) => [r, relatedRows(r)] as const)
+				.filter(([, x]) => x);
+			if (!rel.length) return [];
+			return [
+				'',
+				`## Related evidence — routes sharing a console area (${rel.length})`,
+				'',
+				'Facts verified for neighbouring pages. Use them; do not contradict them; link to the page that owns the surface instead of re-documenting it.',
+				'',
+				'| route | kind | verdict | fact |',
+				'|---|---|---|---|',
+				...rel.flatMap(([, x]) => x!.rows),
+			];
+		})(),
+		'',
 		'## Open questions',
 		'',
 		...[
@@ -197,6 +264,7 @@ for (const route of routes) {
 		'',
 	].join('\n');
 	require('node:fs').writeFileSync(join(rd, 'evidence.md'), md);
+	if (ver || runner) index[route] = { runId, compiledAt: new Date().toISOString() };
 	compiled++;
 
 	coverage[route] = {
@@ -222,6 +290,7 @@ writeJson(join(dir, 'section/coverage.json'), {
 	compiledAt: new Date().toISOString(),
 	routes: coverage,
 });
+writeJson(INDEX, index);
 if (args.flags.has('json'))
 	console.log(
 		JSON.stringify({

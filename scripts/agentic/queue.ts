@@ -30,7 +30,7 @@ import {
 } from './lib';
 
 const args = parseArgs(process.argv.slice(2));
-const prefix = args.positional[0];
+const prefix = args.positional[0] ?? (args.flags.has('all') ? '--all' : undefined);
 if (!prefix) {
 	console.error(
 		'Usage: bun scripts/agentic/queue.ts <route-prefix> [--only <route>] [--run <id>] [--json]'
