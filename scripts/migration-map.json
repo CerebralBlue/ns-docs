@@ -16,6 +16,7 @@
       "description": "Get your first grounded answer from NeuralSeek in about 15 minutes.",
       "sources": [],
       "action": "new",
+      "console": ["home", "seek"],
       "status": "stub"
     },
     "getting-started/quickstart-maistro": {
@@ -23,6 +24,7 @@
       "description": "Build and run your first mAIstro agent.",
       "sources": [],
       "action": "new",
+      "console": ["home", "maistro"],
       "status": "stub"
     },
     "getting-started/concepts": {
@@ -30,6 +32,7 @@
       "description": "The Seek pipeline, mAIstro agents, knowledge bases, and the curation lifecycle — how the pieces fit together.",
       "sources": [],
       "action": "new",
+      "console": ["home"],
       "status": "stub"
     },
     "getting-started/onboarding-wizard": {
@@ -37,6 +40,7 @@
       "description": "The first-run setup flow that walks a new instance through Basics, Data, LLM, About, Tune and Q&A.",
       "sources": [],
       "action": "new",
+      "console": ["home"],
       "status": "stub",
       "gaps": [
         "The six wizard steps: Basics, Data, LLM, About, Tune, Q&A (Admin Tools > QA Tools)",
@@ -176,6 +180,7 @@
       "description": "Build agent flows visually in the mAIstro editor.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub"
     },
     "maistro/inspector": {
@@ -183,6 +188,7 @@
       "description": "Run an agent from the editor and read what happened: the timeline, the output previews, override input and user agents.",
       "sources": [],
       "action": "new",
+      "console": ["runagent", "maistro"],
       "status": "stub",
       "gaps": [
         "Inspector > Timeline — where run time went, per node, for this run",
@@ -196,6 +202,7 @@
       "description": "A call graph of your whole agent fleet, built from every agent's NTL — read it to answer 'what calls this agent?'.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "What the graph is built from and how to read it",
@@ -208,6 +215,7 @@
       "description": "Named pools of agents that Select an Agent and Agent Plan choose from at run time. For the NTL node, see the Agent Registry node reference.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "Create Registry and Edit Registry",
@@ -220,6 +228,7 @@
       "description": "Browse, search and load pre-built agents and starter templates, including agents from external marketplaces.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "Browse experience — search by name, description, audience or capability; filter by type and category",
@@ -232,6 +241,7 @@
       "description": "Run an agent on a schedule: recurrence, parameters, where the output goes, and what happens on failure.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "Recurrence options",
@@ -245,6 +255,7 @@
       "description": "Dashboards of agent tiles for people who never open mAIstro — the same mechanism as Custom Governance dashboards, pointed at doing work rather than watching metrics.",
       "sources": [],
       "action": "new",
+      "console": ["runagent", "maistro"],
       "status": "stub",
       "gaps": [
         "Run Agents vs Custom Governance — same mechanism, 'do work' vs 'watch metrics'",
@@ -260,6 +271,7 @@
       "description": "An AI document editor grounded in your own files, driven by a mAIstro agent.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "What NeuralEdit is and where it lives (NeuralEdit in the navbar)",
@@ -271,6 +283,7 @@
       "description": "Files NeuralEdit reads but never edits — the core concept behind grounding an edit in your own documents.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "What a context file is, how it differs from the file being edited, and how to add one"
@@ -281,6 +294,7 @@
       "description": "Browse or create a file, review the AI's diff before accepting it, and commit the result.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "File Browser and Create File",
@@ -294,6 +308,7 @@
       "description": "NeuralEdit's behaviour is defined by a mAIstro agent that starts with the NeuralEdit input node.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "The NeuralEdit Input node and the shape of a NeuralEdit agent",
@@ -305,6 +320,7 @@
       "description": "The NeuralSeek Template Language: syntax, variables, and how nodes compose into agents.",
       "sources": [],
       "action": "new",
+      "console": ["maistro"],
       "status": "stub",
       "gaps": [
         "TOOLING (not a page): the NTL doc generator has stopped detecting nodes; fixing it closes 103 of 112 node gaps",
@@ -620,6 +636,7 @@
       "description": "The six ways documents reach a NeuralSeek knowledge base, and how to choose between them.",
       "sources": [],
       "action": "new",
+      "console": ["knowledge", "data-loader"],
       "status": "stub",
       "gaps": [
         "Route readers between the six ingestion paths: Load, Crawler, SharePoint sync, KB API, ES KB Add Document node, and connecting an existing index"
@@ -649,6 +666,7 @@
       "description": "Search the indexed documents on your instance, see how many there are, and delete the ones you no longer want retrieved.",
       "sources": [],
       "action": "new",
+      "console": ["knowledge"],
       "status": "stub",
       "gaps": [
         "Where it is: KnowledgeBase in the navbar",
@@ -663,6 +681,7 @@
       "description": "How NeuralSeek queries Elasticsearch and watsonx Discovery indexes — keyword, vector, hybrid and semantic query types, and who computes the query vector.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config", "knowledge"],
       "status": "stub",
       "gaps": [
         "Query Type: Semantic — an Elasticsearch semantic query via an inference endpoint",
@@ -738,6 +757,7 @@
       "description": "What a NeuralSeek-hosted knowledge base is, what it holds, and when you would use one instead of bringing your own index.",
       "sources": [],
       "action": "new",
+      "console": ["knowledge"],
       "status": "stub",
       "gaps": [
         "KnowledgeBase > General (managed plans only) — language and document count",
@@ -749,6 +769,7 @@
       "description": "Crawl a domain into the managed knowledge base, on demand or on a weekly or monthly schedule.",
       "sources": [],
       "action": "new",
+      "console": ["knowledge"],
       "status": "stub",
       "gaps": [
         "Crawl a domain; weekly or monthly recrawl",
@@ -760,6 +781,7 @@
       "description": "Synonym sets that make retrieval treat your organisation's vocabulary as equivalent.",
       "sources": [],
       "action": "new",
+      "console": ["knowledge"],
       "status": "stub",
       "gaps": [
         "Defining synonym sets",
@@ -771,6 +793,7 @@
       "description": "The API surface for the managed KnowledgeBase — the third of NeuralSeek's three API surfaces.",
       "sources": [],
       "action": "new",
+      "console": ["knowledge"],
       "status": "stub",
       "gaps": [
         "KnowledgeBase > API",
@@ -783,6 +806,7 @@
       "description": "One map of every external system NeuralSeek connects to — knowledge bases, LLMs, virtual agents, chat platforms, protocol servers and the APIs — with a link to each setup guide.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Requested by Robert (2026-08-04): a sitemap page that ties every external connection together",
@@ -803,6 +827,7 @@
       "description": "Wire NeuralSeek into watsonx Assistant with the custom extension, and send its logs back for round-trip monitoring.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Watson OpenAPI: two downloads — the full spec file vs the Watson Custom file, and when to use each",
@@ -814,6 +839,7 @@
       "description": "Route the Lex fallback intent to NeuralSeek through a Lambda, and enable round-trip logs.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "LexV2 Lambda — route the Lex fallback intent to NeuralSeek",
@@ -825,6 +851,7 @@
       "description": "Round-trip monitoring of a Kore.ai assistant through event tasks.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": ["KoreAI Logs — round-trip monitoring via Kore.ai event tasks"]
     },
@@ -857,6 +884,7 @@
       "description": "Put NeuralSeek in Slack: credentials, event handler agents, behaviour settings and manifest generation.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Credentials and manifest generation",
@@ -870,6 +898,7 @@
       "description": "Put NeuralSeek in Teams: Azure Bot credentials, the welcome message, and the downloadable app package.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Azure Bot credentials, welcome message, app package download",
@@ -881,6 +910,7 @@
       "description": "Expose your agents as MCP tools over a Bearer-authenticated endpoint, so any MCP client can call them.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Admin Tools > Integrate > MCP Server — endpoint and Bearer auth",
@@ -893,6 +923,7 @@
       "description": "Expose your agents over the Agent-to-Agent protocol.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Admin Tools > Integrate > a2a Server",
@@ -904,6 +935,7 @@
       "description": "Sync SharePoint sites into an index with the four-step wizard, optionally carrying each document's permissions across for per-user filtering.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "The four-step wizard",
@@ -917,6 +949,7 @@
       "description": "The generic inbound entry point — call NeuralSeek from anything that can send an HTTP request.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": ["Admin Tools > Integrate > WebHook — the generic inbound entry point"]
     },
@@ -925,6 +958,7 @@
       "description": "NeuralSeek's three API surfaces — the runtime API, the Console (management) API, and the managed KnowledgeBase API — and which one to reach for.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Console API — the management API for configuration, curation and governance data",
@@ -962,6 +996,7 @@
       "description": "Every Neural Config option, documented as what it is, why it matters, and how it works. Being filled in from the config gap report.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub"
     },
     "configuration/neural-config/using-this-page": {
@@ -969,6 +1004,7 @@
       "description": "The controls that frame every Neural Config panel: Toggle Advanced, Save vs Propose, Version, Change Logs, Add Intent, and the multi-agent routing tree.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "Toggle Advanced — half the settings are hidden until it is on",
@@ -983,6 +1019,7 @@
       "description": "Point NeuralSeek at your knowledge base — the connection fields for each supported store, and what reaches the LLM context.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "Watson Discovery on CP4D — adds an Auth URL field",
@@ -1005,6 +1042,7 @@
       "description": "Shape what retrieval returns before it reaches the LLM: a post-retrieval agent, the expansion window, and score normalisation.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "mAIstro Post-KB Agent — run an agent over retrieved documents before they reach the LLM (cross-link maistro/ntl/pipeline-hooks)",
@@ -1018,6 +1056,7 @@
       "description": "Per-model configuration: which of the 20 LLM functions a model may perform, its model code, context window, cost multiplier and modalities.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "The 20 assignable LLM functions",
@@ -1036,6 +1075,7 @@
       "description": "Pick the NeuralSeek-hosted model and its version.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": ["Choosing the NeuralSeek-hosted model and its version (V1–V2.1)"]
     },
@@ -1044,6 +1084,7 @@
       "description": "Add embedding models and assign them to retrieval, agents or intent matching.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "Adding an embedding model (Neural Config > Toggle Advanced > Embedding Models)",
@@ -1056,6 +1097,7 @@
       "description": "Register external agent marketplaces so their agents appear in the Agent Marketplace.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "Registering an external marketplace: endpoint plus API key for each",
@@ -1067,6 +1109,7 @@
       "description": "Instance-wide behaviour: context timeouts, filter relaxation, save agents, HTML cleansing and streaming preferences.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "Context Timeout — Session: how long a session-based conversation keeps its context",
@@ -1087,6 +1130,7 @@
       "description": "The generation-time sampling settings — temperature, top probability, frequency penalty and token cap — and how they relate to the same parameters on the NTL LLM node.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "Temperature — how much variability the LLM may use",
@@ -1101,6 +1145,7 @@
       "description": "How an incoming question is matched to a known intent, and the conditions under which a cached answer may be served.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "Rebuild Vector Intents — recompute vectors for every intent; expensive",
@@ -1114,6 +1159,7 @@
       "description": "The instance secret store that agent parameters fall back to when `prompt: false` is set.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config"],
       "status": "stub",
       "gaps": [
         "Secrets behave differently on on-prem installs",
@@ -1125,6 +1171,7 @@
       "description": "Create, scope and expire API keys — including per-endpoint scoping and the rule that an unscoped key is an admin key.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Bulk create — 1 to 100 keys at once, auto-numbered from the name you give",
@@ -1141,6 +1188,7 @@
       "description": "The browser-safe credential: a separate header scoped to only the Seek and mAIstro endpoints, meant to ship in frontend code.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Admin Tools > Integrate > Embed Seek & mAIstro",
@@ -1152,6 +1200,7 @@
       "description": "Manage who can reach your instance and what each of the 13 permissions unlocks — including two that grant more than their name suggests.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Users page — manage authorized users and their permissions (avatar > Users)",
@@ -1166,6 +1215,7 @@
       "description": "What a new user gets before an admin touches anything.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": ["avatar > Default Permissions — the baseline every new user starts from"]
     },
@@ -1174,6 +1224,7 @@
       "description": "Point NeuralSeek at a model you host yourself with HuggingFace TGI or vLLM, wired through the Generic platform option.",
       "sources": [],
       "action": "new",
+      "console": [],
       "status": "stub",
       "gaps": [
         "Admin Tools > Integrate > Self-Hosted LLM (BYOLLM plans only)",
@@ -1185,6 +1236,7 @@
       "description": "Self-report installs and users on a Flex plan, download a license file, and size the hardware each instance needs.",
       "sources": [],
       "action": "new",
+      "console": ["admin-tools"],
       "status": "stub",
       "gaps": [
         "Admin Tools > Customize (Flex plan) — self-report installs and users, download a license file",
@@ -1196,6 +1248,7 @@
       "description": "Changing your support plan and how it is billed.",
       "sources": [],
       "action": "new",
+      "console": [],
       "status": "stub",
       "gaps": [
         "Home > Update Support Plan — changing plan bills immediately, then rebills every 30 days"
@@ -1276,6 +1329,7 @@
       "description": "How the ten guardrail tabs relate to each other, and which ones fire before generation versus after it.",
       "sources": [],
       "action": "new",
+      "console": ["governance", "neural-config"],
       "status": "stub",
       "gaps": [
         "How the 10 tabs relate; which fire before vs after generation",
@@ -1287,6 +1341,7 @@
       "description": "The hate/abuse/profanity filter, plus the allow-list and block-list that adjust its built-in corpus.",
       "sources": [],
       "action": "new",
+      "console": ["governance", "neural-config"],
       "status": "stub",
       "gaps": [
         "HAP allow-list — words the profanity filter should ignore",
@@ -1299,6 +1354,7 @@
       "description": "Score, strip and block prompt-injection attempts before they reach the model.",
       "sources": [],
       "action": "new",
+      "console": ["governance", "neural-config"],
       "status": "stub",
       "gaps": [
         "'Try it Out' — score a candidate prompt before setting a threshold",
@@ -1310,6 +1366,7 @@
       "description": "Score how well an answer is supported by its sources, and act on the result.",
       "sources": [],
       "action": "new",
+      "console": ["governance", "neural-config"],
       "status": "stub",
       "gaps": [
         "LLM Decline Penalty — penalty when the answer looks like a refusal (Semantic Model Tuning)",
@@ -1323,6 +1380,7 @@
       "description": "Require answers to stay attributable to their source documents.",
       "sources": [],
       "action": "new",
+      "console": ["governance", "neural-config"],
       "status": "stub",
       "gaps": [
         "Attribution tolerance is 3 discrete levels (Rigid, medium, Standard), not a continuous slider"
@@ -1333,6 +1391,7 @@
       "description": "What happens when NeuralSeek is not confident enough to answer — the fallback agent, fallback URL, and the cost of pre-running them.",
       "sources": [],
       "action": "new",
+      "console": ["governance", "neural-config"],
       "status": "stub",
       "gaps": [
         "Pre-run min confidence agent — runs the fallback agent speculatively for speed, and costs a run every time",
@@ -1344,6 +1403,7 @@
       "description": "The only extension point inside the live request path: agents that can rewrite or block user input before retrieval, and the generated answer after it.",
       "sources": [],
       "action": "new",
+      "console": ["governance", "neural-config"],
       "status": "stub",
       "gaps": [
         "The Custom Governance tab as a whole",
@@ -1368,6 +1428,7 @@
       "description": "Automated adversarial testing of a single agent — planned, executed and graded by agents, across five attack categories.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "Governance > mAIstro Governance > Red Team Testing",
@@ -1397,6 +1458,7 @@
       "description": "Filter retrievable documents per user against your own service — half of NeuralSeek's per-user document-security story.",
       "sources": [],
       "action": "new",
+      "console": ["neural-config", "governance"],
       "status": "stub",
       "gaps": [
         "The assembled filter request URL the page shows inline",
@@ -1424,6 +1486,7 @@
       "description": "How to read any Governance dashboard: the Filter modal, which pages your plan hides, and which setting each metric reflects.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "The Filter modal — slice any dashboard by intent category or by runtime filter",
@@ -1437,6 +1500,7 @@
       "description": "The default Governance landing page and its eleven panels.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "Governance Rings — composite view of guardrail activity",
@@ -1452,6 +1516,7 @@
       "description": "Token consumption and spend for Seek traffic, broken down by model and by runtime filter. BYOLLM instances only.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "LLM Token Intensity — token consumption per model",
@@ -1465,6 +1530,7 @@
       "description": "The per-request Seek log, re-categorising an intent from a log row, and the configuration change history.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "Edit Category from a log row — re-categorise an intent; this trains future categorisation",
@@ -1476,6 +1542,7 @@
       "description": "Fleet-wide agent behaviour and the per-agent drill-down: timing, ranking, latency distribution, guardrail hits and the invocation tree.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "Agent Execution Timeline — when agents ran and for how long",
@@ -1493,6 +1560,7 @@
       "description": "The per-run agent logs behind the Agent Details aggregates, and agent token and cost reporting.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "mAIstro Logs page — per-run agent logs behind the Agent Details aggregates",
@@ -1504,6 +1572,7 @@
       "description": "Run the same Seek or the same agent across your configured models and compare the results side by side.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "Seek Model Comparison — run one Seek across your configured models and compare",
@@ -1515,6 +1584,7 @@
       "description": "Dashboards whose panels are mAIstro agents — the same mechanism behind Custom Governance and Run Agents.",
       "sources": [],
       "action": "new",
+      "console": ["governance"],
       "status": "stub",
       "gaps": [
         "Custom Governance dashboards — panels that are mAIstro agents",
