@@ -66,6 +66,11 @@ cost tokens on a limited instance: at most 5 probed claims per page, the ones th
 
 ## Output — write exactly one file, `docs.json`
 
+**The file is the deliverable, the return value is a copy of it.** Call `Write` on
+`_private/agentic-v2/runs/<runId>/<route folder>/docs.json` _before_ you return — a run where
+the return carried the claims but the file was never written left five routes with nothing to
+verify. Return only after the Write succeeded.
+
 ```json
 {
   "route": "seek/caching",

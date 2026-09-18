@@ -253,12 +253,26 @@ if (mapResult)
   );
 if (gather[1] && gather[1].error)
   log(`config export failed: ${gather[1].error} — config tier is ABSENT this run`);
-const docsOk = new Set(
-  gather
-    .slice(2)
-    .filter(Boolean)
-    .map((d) => d.route)
+const docsResults = gather.slice(2).filter(Boolean);
+// The docs-agent sometimes returns its claims without writing docs.json (5 of 8 routes in one
+// run). The return value is the same JSON, so a wrapper writes the file when it is missing.
+await parallel(
+  docsResults.map(
+    (d) => () =>
+      A(
+        `If the file ${RD(d.route)}/docs.json exists, return {ok: true, json: {existed: true}} and do nothing else. Otherwise create it with the Write tool, its content being exactly this JSON (verbatim, no edits, no reformatting):\n\n${JSON.stringify(d)}\n\nThen return {ok: true, json: {written: true}}.`,
+        {
+          label: `docs-file:${d.route}`,
+          phase: 'Gather',
+          schema: SCRIPT,
+          model: 'haiku',
+          effort: 'low',
+          agentType: 'general-purpose',
+        }
+      )
+  )
 );
+const docsOk = new Set(docsResults.map((d) => d.route));
 
 // ── 2 · Verify (browser, serialized) ∥ Run (MCP probes, parallel) ────────────
 const toVerify = args.routes.filter((r) => docsOk.has(r));
