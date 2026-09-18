@@ -19,7 +19,7 @@
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { COMPONENT_MAP_DIR, parseArgs, readJson, ROOT, runDir, V2_DIR } from './lib';
+import { captureDir, COMPONENT_MAP_DIR, parseArgs, readJson, ROOT, runDir, V2_DIR } from './lib';
 
 const args = parseArgs(process.argv.slice(2));
 const runId = args.positional[0];
@@ -64,12 +64,19 @@ const add = (source: string, text: string) => {
 };
 
 const explore = readJson(join(dir, 'explore.json'));
+const exploreSummary = readJson(join(captureDir(runId), 'explore-summary.json'));
+const plan = readJson(join(captureDir(runId), 'coverage-plan.json'));
 const understand = readJson(join(dir, 'understand.json'));
 const runner = readJson(join(dir, 'runner.json'));
 if (explore?.notes) add(`explorer, ${queue.area}`, explore.notes);
 for (const s of explore?.skipped ?? [])
 	add(`explorer skipped, ${queue.area}`, typeof s === 'string' ? s : `${s.id}: ${s.why}`);
+for (const e of exploreSummary?.excluded ?? [])
+	add(`explorer excluded by policy, ${queue.area}`, String(e));
 if (understand?.notes) add(`understand, ${queue.area}`, understand.notes);
+for (const c of plan?.conflicts ?? [])
+	add(`coverage conflict, ${queue.area}`, `"${c.label}" claimed by ${c.kept} and ${c.dropped}`);
+for (const r of plan?.notInCapture ?? []) add(`not in capture, ${queue.area}`, r);
 for (const q of understand?.questions ?? []) add(`understand question, ${queue.area}`, q);
 if (runner?.notes) add(`runner, ${queue.area}`, runner.notes);
 for (const r of runner?.results ?? [])

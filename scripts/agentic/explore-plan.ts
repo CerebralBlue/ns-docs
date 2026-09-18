@@ -22,9 +22,10 @@
  * (feedback, download, copy, close…), anything the browser hook would refuse anyway.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { basename, join, relative } from 'node:path';
 import {
+	CAPTURES_FILE,
 	COMMIT_VERBS,
 	COMPONENT_MAP_DIR,
 	DESTRUCTIVE,
@@ -68,6 +69,7 @@ type State = {
 	reach: string[];
 	snapshot: string;
 	sha1: string;
+	noChange?: boolean;
 	viewport: string | null;
 	panel: string | null;
 	url?: string;
@@ -148,6 +150,15 @@ if (verb === 'plan') {
 	const seen = new Set<string>([...todos.map((t) => key(t.role, t.label)), ...Object.keys(states)]);
 	const ids = new Set<string>([...todos.map((t) => t.id), ...Object.keys(states)]);
 	const added: Todo[] = [];
+	// What looked openable but was skipped by policy — the report shows it, so a screen the
+	// walk never opened (Save-guarded dialogs, feedback…) is visible instead of silent.
+	const excludedPath = join(dir, 'excluded.json');
+	const excluded: { label: string; role: string; why: string; from: string }[] =
+		readJson(excludedPath) ?? [];
+	const exclude = (c: { role: string; name: string }, why: string) => {
+		if (!excluded.some((e) => e.label === c.name && e.role === c.role))
+			excluded.push({ label: c.name, role: c.role, why, from });
+	};
 	const pages = todos.filter((t) => t.kind === 'page').length;
 	let pageBudget = MAX_PAGES - pages;
 	for (const c of controlsOf(parseSnapshot(readFileSync(snap, 'utf8')))) {
@@ -156,8 +167,18 @@ if (verb === 'plan') {
 		// "Edit Configuration", "Add a Category", "Create…" OPEN something; the commit happens on
 		// the Save inside, which the plan never lists. So an opener wins over COMMIT_VERBS.
 		const opener = /^(edit|add|create|new|configure|manage|view|show|open)\b/i.test(c.name.trim());
-		if (DESTRUCTIVE.test(c.name) || NEVER.test(c.name)) continue;
-		if (!opener && COMMIT_VERBS.test(c.name)) continue;
+		if (DESTRUCTIVE.test(c.name)) {
+			if (c.role === 'button' || c.role === 'generic') exclude(c, 'destructive');
+			continue;
+		}
+		if (NEVER.test(c.name)) {
+			if (c.role === 'button') exclude(c, 'never list (feedback/download/close…)');
+			continue;
+		}
+		if (!opener && COMMIT_VERBS.test(c.name)) {
+			if (c.role === 'button' || c.role === 'generic') exclude(c, 'commit verb (Save/Run/Test…)');
+			continue;
+		}
 		let kind: Todo['kind'] | null = null;
 		if (c.role === 'tab') kind = 'tab';
 		else if (c.role === 'menuitem' || c.role === 'menuitemradio' || c.role === 'menuitemcheckbox')
@@ -191,10 +212,17 @@ if (verb === 'plan') {
 	}
 	todos.push(...added);
 	writeJson(todoPath, todos);
+	writeJson(excludedPath, excluded);
 	const pending = todos.filter((t) => !t.done);
 	if (asJson)
 		console.log(
-			JSON.stringify({ added: added.length, pending, total: todos.length, cap: MAX_STATES })
+			JSON.stringify({
+				added: added.length,
+				pending,
+				total: todos.length,
+				cap: MAX_STATES,
+				excluded: excluded.length,
+			})
 		);
 	else {
 		console.log(
@@ -282,11 +310,14 @@ if (verb === 'record') {
 			.filter((c) => c.name && !had.has(key(c.role, c.name)))
 			.map((c) => ({ role: c.role, name: c.name }));
 	}
+	const noChange =
+		args.flags.has('no-change') || (adds !== undefined && adds.length === 0 && !panel);
 	states[id] = {
 		id,
 		reach,
 		snapshot: relative(ROOT, snap),
 		sha1: sha1(readFileSync(snap)),
+		noChange,
 		viewport: viewport ? '/' + relative(join(ROOT, 'public'), viewport) : null,
 		panel: panel ? '/' + relative(join(ROOT, 'public'), panel) : null,
 		url: args.get('url'),

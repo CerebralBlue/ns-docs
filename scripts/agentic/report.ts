@@ -13,7 +13,8 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { parseArgs, readJson, ROOT, routeDir, runDir, writeJson } from './lib';
+import { readdirSync } from 'node:fs';
+import { captureDir, parseArgs, readJson, ROOT, routeDir, runDir, V2_DIR, writeJson } from './lib';
 
 const args = parseArgs(process.argv.slice(2));
 const runId = args.positional[0];
@@ -31,12 +32,22 @@ const routesFinal = readJson(join(dir, 'routes-final.json'));
 const routes: string[] = routesFinal
 	? routesFinal.routes.map((r: any) => (typeof r === 'string' ? r : r.route))
 	: area.routes.map((r: any) => r.route);
+const RESERVED = new Set(['unowned', 'shared', 'notInCapture', 'emptyRoutes', 'conflicts']);
+const C = captureDir(runId);
+const captureRun = area.captureRun ?? runId;
 const ia = readJson(join(dir, 'ia.json'));
-const explore = readJson(join(dir, 'explore-summary.json'));
+const explore = readJson(join(C, 'explore-summary.json'));
 const understand = readJson(join(dir, 'understand.json'));
 const runner = readJson(join(dir, 'runner.json'));
 const cleanup = readJson(join(dir, 'cleanup.json'));
-const plan = readJson(join(dir, 'coverage-plan.json'));
+const plan = readJson(join(C, 'coverage-plan.json'));
+const states = readJson<Record<string, any>>(join(C, 'states.json')) ?? {};
+const todos = readJson<any[]>(join(C, 'states-todo.json')) ?? [];
+const imgDir = join(ROOT, 'public/img', area.area);
+const imagesOnDisk = existsSync(imgDir)
+	? readdirSync(imgDir).filter((f) => f.endsWith('.png')).length
+	: 0;
+const runStart = area.createdAt ? new Date(area.createdAt).getTime() : 0;
 const halted = existsSync(join(dir, 'HALTED.md'))
 	? readFileSync(join(dir, 'HALTED.md'), 'utf8').split('\n')[0]
 	: null;
@@ -64,7 +75,8 @@ const changed = new Set(
 
 const rows = routes.map((route) => {
 	const rd = routeDir(runId, route);
-	const brief = existsSync(join(rd, 'brief.md'));
+	const brief = existsSync(join(C, 'briefs', route.replace(/\//g, '-'), 'brief.md'));
+	const info = area.routes.find((r: any) => r.route === route);
 	const gates = readJson(join(rd, 'gates.json'));
 	const review = readJson(join(rd, 'review.json'));
 	const write = readJson(join(rd, 'write.json'));
@@ -77,6 +89,7 @@ const rows = routes.map((route) => {
 		: [];
 	let outcome = 'no brief';
 	if (halted) outcome = `halted (${halted})`;
+	else if ((plan?.notInCapture ?? []).includes(route)) outcome = 'not in capture';
 	else if (brief && !write && !gates) outcome = 'briefed, not written';
 	else if (write && !gates) outcome = 'written, not gated';
 	else if (gates && !gates.ok) outcome = `parked: ${failedGates.join(' ')}`;
@@ -96,8 +109,12 @@ const rows = routes.map((route) => {
 		placeholders: write?.placeholders ?? null,
 		faq: write?.faq ?? null,
 		gates: failedGates,
+		linkWarnings: (gates?.gates?.links?.detail ?? []).filter((d: string) =>
+			d.includes('unwritten content')
+		).length,
 		review: review?.verdict ?? null,
 		findings: review?.findings?.length ?? null,
+		crossArea: !!info?.crossArea,
 		outcome,
 		changed: changed.has(page),
 		diff: changed.has(page) ? `git diff -- ${page}` : null,
@@ -107,6 +124,11 @@ const rows = routes.map((route) => {
 const logLines = existsSync(join(dir, 'run.log'))
 	? readFileSync(join(dir, 'run.log'), 'utf8').trim().split('\n').filter(Boolean)
 	: [];
+const byTool: Record<string, number> = {};
+for (const l of logLines) {
+	const t = (l.split('\t')[2] ?? '').replace(/^mcp__neuralseek-ui__browser_/, '');
+	byTool[t] = (byTool[t] ?? 0) + 1;
+}
 const navs = logLines.filter((l) => l.includes('\tbrowser_navigate\t'));
 const hosts = [
 	...new Set(navs.map((l) => (l.split('\t')[3] ?? '').replace(/^[a-z]+:\/\//, '').split('/')[0])),
@@ -131,22 +153,70 @@ const findings = routes.flatMap((r) => {
 	}));
 });
 
+// Changed pages, split: written by this run / stubs regenerated after the IA's gap edits /
+// anything else already dirty in the tree (not this run's doing).
+const writtenPages = new Set(
+	rows.filter((r) => r.changed).map((r) => `src/content/docs/${r.route}.md`)
+);
+const changedPages = [...changed].filter((p) => p.startsWith('src/content/docs/'));
+const { map: mapNow } = { map: readJson<any>(join(ROOT, 'scripts/migration-map.json')) };
+const stubRoutes = new Set(
+	Object.entries(mapNow?.routes ?? {})
+		.filter(([, v]: any) => v.status === 'stub')
+		.map(([k]) => k)
+);
+const regeneratedStubs = changedPages.filter(
+	(p) =>
+		!writtenPages.has(p) &&
+		stubRoutes.has(p.replace(/^src\/content\/docs\//, '').replace(/\.md$/, ''))
+);
+const otherPages = changedPages.filter(
+	(p) => !writtenPages.has(p) && !regeneratedStubs.includes(p)
+);
+const structural = [...changed].filter(
+	(p) =>
+		p === 'astro.config.mjs' ||
+		p === 'scripts/migration-map.json' ||
+		p.startsWith(`public/img/${area.area}/`)
+);
+
 const summary = {
 	runId,
+	captureRun,
+	mode: area.mode ?? 'explore',
 	area: area.area,
 	kind: area.kind,
 	halted,
 	routes: rows,
 	explore: {
-		states: explore?.states ?? Object.keys(readJson(join(dir, 'states.json')) ?? {}).length,
-		images: explore?.images ?? null,
-		notOpened: explore?.pendingTodos ?? [],
+		states: Object.keys(states).length,
+		images: imagesOnDisk,
+		notOpened: [...todos.filter((t) => !t.done).map((t) => t.id), ...(explore?.excluded ?? [])],
+		noChange: Object.values(states)
+			.filter((s: any) => s.noChange)
+			.map((s: any) => s.id),
 		map: explore?.map?.status ?? null,
 		navigations: navs.length,
-		clicks: logLines.length - navs.length,
+		clicks: byTool.click ?? 0,
+		keys: byTool.press_key ?? 0,
 		hosts,
 		denials: denialsByAgent,
 	},
+	coverage: plan
+		? {
+				routes: Object.keys(plan).filter((k) => Array.isArray(plan[k]) && !RESERVED.has(k)).length,
+				owned: Object.entries(plan)
+					.filter(([k, v]) => Array.isArray(v) && !RESERVED.has(k))
+					.reduce((n: number, [, a]: any) => n + a.length, 0),
+				unowned: plan.unowned ?? [],
+				shared: Object.keys(plan.shared ?? {}).length,
+				conflicts: plan.conflicts ?? [],
+				notInCapture: plan.notInCapture ?? [],
+				emptyRoutes: plan.emptyRoutes ?? [],
+			}
+		: null,
+	proposed: (ia?.decisions ?? []).filter((d: any) => d.kind === 'propose'),
+	changed: { written: [...writtenPages], regeneratedStubs, other: otherPages },
 	understand: understand
 		? {
 				controls: understand.controls,
@@ -170,22 +240,30 @@ const summary = {
 		configNotRestored: cleanup?.configNotRestored ?? [],
 	},
 	findings,
-	structuralChanges: [...changed].filter((p) => !p.startsWith('src/content/docs/')),
+	structuralChanges: structural,
 };
 writeJson(join(dir, 'report.json'), summary);
+// index.json: route → the run that last wrote it (and the capture it was written from).
+{
+	const idx = readJson<Record<string, any>>(join(V2_DIR, 'index.json')) ?? {};
+	for (const r of rows)
+		if (existsSync(join(routeDir(runId, r.route), 'write.json')))
+			idx[r.route] = { runId, captureRun, writtenAt: new Date().toISOString() };
+	writeJson(join(V2_DIR, 'index.json'), idx);
+}
 
 const md = [
-	`# Run ${runId} — area ${area.area}${area.kind === 'reference' ? ' (reference kind, no screen)' : ''}`,
+	`# Run ${runId} — area ${area.area}${area.kind === 'reference' ? ' (reference kind, no screen)' : ''}${captureRun !== runId ? ` · write-only from capture ${captureRun}` : ''}`,
 	'',
 	halted ? `**HALTED:** ${halted}\n` : '',
 	'| route | controls | coverage | unconfirmed | images | FAQ | gates | review | outcome |',
 	'|---|---|---|---|---|---|---|---|---|',
 	...rows.map(
 		(r) =>
-			`| ${r.route} | ${r.controls ?? ''} | ${r.coverage ?? ''} | ${r.unconfirmed ?? ''} | ${r.images ?? ''}${r.placeholders ? ` (+${r.placeholders} pending)` : ''} | ${r.faq ?? ''} | ${r.gates.length ? r.gates.join(' ') : r.outcome.startsWith('ready') ? 'PASS' : ''} | ${r.review ?? ''}${r.findings != null ? ` (${r.findings})` : ''} | ${r.outcome} |`
+			`| ${r.route}${r.crossArea ? ' (cross-area)' : ''} | ${r.controls ?? ''} | ${r.coverage ?? ''} | ${r.unconfirmed ?? ''} | ${r.images ?? ''}${r.placeholders ? ` (+${r.placeholders} pending)` : ''} | ${r.faq ?? ''} | ${r.gates.length ? r.gates.join(' ') : r.outcome.startsWith('ready') ? 'PASS' : ''}${r.linkWarnings ? ` (${r.linkWarnings} link warn)` : ''} | ${r.review ?? ''}${r.findings != null ? ` (${r.findings})` : ''} | ${r.outcome} |`
 	),
 	'',
-	`Explore: ${summary.explore.states} states, ${summary.explore.images ?? '?'} images, map ${summary.explore.map ?? 'not rebuilt'}; ${navs.length} navigations, ${logLines.length - navs.length} clicks; hosts: ${hosts.join(', ') || 'none'}. Not opened: ${summary.explore.notOpened.length ? summary.explore.notOpened.join(', ') : 'none'}. Denials: ${
+	`Explore${captureRun !== runId ? ` (capture ${captureRun})` : ''}: ${summary.explore.states} states (${summary.explore.noChange.length} with no visible change), ${summary.explore.images} images on disk, map ${summary.explore.map ?? 'not rebuilt'}; ${navs.length} navigations, ${summary.explore.clicks} clicks, ${summary.explore.keys} key presses; hosts: ${hosts.join(', ') || 'none'}. Not opened: ${summary.explore.notOpened.length ? summary.explore.notOpened.join(', ') : 'none'}. Denials: ${
 		denials.length
 			? Object.entries(denialsByAgent)
 					.map(([a, n]) => `${a} ${n}`)
@@ -193,7 +271,7 @@ const md = [
 			: 'none'
 	}.`,
 	'',
-	`Understand: ${understand ? `${understand.controls?.owned ?? '?'} controls owned, ${understand.controls?.unowned ?? '?'} unowned, ${understand.controls?.shared ?? '?'} shared; empty routes: ${(understand.emptyRoutes ?? []).join(', ') || 'none'}` : 'no understand.json'}. Unowned after IA: ${summary.unowned.length ? summary.unowned.join(', ') : 'none'}.`,
+	`Coverage plan (after IA): ${summary.coverage ? `${summary.coverage.owned} controls on ${summary.coverage.routes} routes, ${summary.coverage.shared} shared, ${summary.coverage.unowned.length} unowned${summary.coverage.unowned.length ? ` (${summary.coverage.unowned.join(', ')})` : ''}, ${summary.coverage.conflicts.length} conflict(s); not in capture: ${summary.coverage.notInCapture.join(', ') || 'none'}; empty routes: ${summary.coverage.emptyRoutes.join(', ') || 'none'}` : 'no coverage-plan.json'}.`,
 	'',
 	`Probes: ${summary.probes.run}/${summary.probes.planned} run (${
 		Object.entries(spendByTool)
@@ -229,6 +307,21 @@ const md = [
 	'## Review the diff',
 	'',
 	...rows.filter((r) => r.diff).map((r) => `- \`${r.diff}\``),
+	...(regeneratedStubs.length
+		? [
+				'',
+				`Stubs regenerated by \`bun run stubs\` after the IA's gap edits (${regeneratedStubs.length}):`,
+				...regeneratedStubs.map((p) => `- \`git diff -- ${p}\``),
+			]
+		: []),
+	...(otherPages.length
+		? [
+				'',
+				`Already dirty before this run, not its doing (${otherPages.length}):`,
+				...otherPages.map((p) => `- \`${p}\``),
+			]
+		: []),
+	'',
 	...summary.structuralChanges.map((p) => `- \`git diff -- ${p}\`  (structural)`),
 	'',
 	'Nothing was committed. `status` was set to `auto` on written routes; `adopted` is yours to set. The playground should be as it was found — check the leftovers line.',

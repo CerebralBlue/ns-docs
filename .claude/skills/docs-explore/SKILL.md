@@ -1,7 +1,7 @@
 ---
 name: docs-explore
 description: Run the NeuralDocs v3 pipeline over ONE console area — explore the screen with the browser (every state, screenshots), understand it (briefs per route, coverage plan, probes), probe behaviour on the playground through the MCP, decide the IA if something is unowned, write every route the area owns (contract + FAQ), gate, review once, build once, report, clean the playground up. Leaves every change as an uncommitted diff. Use when Fabio types /docs-explore; never invoke on your own.
-argument-hint: '<area> [--only <route>]… [--resume <workflow-run-id> --run <ledger-run-id>] [--attempt <n>]'
+argument-hint: '<area> [--write-only] [--all-briefed] [--from <capture-run-id>] [--only <route>]… [--resume <workflow-run-id> --run <ledger-run-id>] [--attempt <n>]'
 disable-model-invocation: false
 allowed-tools: Bash(bun scripts/agentic/*), Bash(git status *), Bash(git diff *), Bash(cat _private/agentic-v2/*), Bash(node -e *), Read, Workflow
 ---
@@ -26,16 +26,25 @@ The design, with the diagram: `_private/agentic-v2/diagrams/architecture.html`.
 - `--only <route>` (repeatable) restricts the routes written. `--resume <workflow-run-id> --run
 <ledger-run-id>` re-launches with `resumeFromRunId`; `--attempt <n>` (default 2 on a resume)
   makes the script wrappers re-run instead of replaying a cached failure.
+- **`--write-only`**: no browser. Reuses the area's latest capture (`_private/agentic-v2/captures.json`,
+  or `--from <capture-run-id>`): its states, images, map and briefs. `--only` may then name
+  **any** route whose controls are on that screen, owned by the area or not (the report marks
+  them cross-area). `--all-briefed` writes every route that has a brief in the capture and no
+  page written by a v3 run yet. The understand step runs only for routes without a brief, in
+  parallel batches of ≤ 8.
+- Without `--write-only` the run explores first (a new capture, which becomes the area's
+  latest) and then writes the routes the area owns (or `--only`).
 
 ## 2. Open the run (unless resuming)
 
 ```
-bun scripts/agentic/queue.ts <area> [--only <route>]… --json
+bun scripts/agentic/queue.ts <area> [--write-only] [--all-briefed] [--from <run>] [--only <route>]… --json
 ```
 
-Read the JSON: `runId`, `routes`, `kind`, `url`, `alsoReads`, `sidebar`, `notInSidebar`. Show
-the route list. If `sidebar` is empty, say so — the IA step has no group to edit, the writers
-still run.
+(Add `--dry-run` to preview without opening a run.) Read the JSON: `runId`, `captureRun`,
+`mode`, `routes`, `crossArea`, `briefed`, `kind`, `url`, `sidebar`, `notInSidebar`. Show the
+route list. If `sidebar` is empty, say so — the IA step has no group to edit, the writers
+still run. A write-only run with routes not yet `briefed` will brief them first (understand).
 
 ## 3. Preconditions — check, do not assume
 
@@ -52,7 +61,7 @@ still run.
 
 Extract the script below to a file (`sed -n '/^```js$/,/^```$/p' .claude/skills/docs-explore/SKILL.md | sed '1d;$d' > <scratchpad>/docs-explore.js`)
 and call the **Workflow** tool with `scriptPath` and
-`args: { "runId": "<runId>", "area": "<area>", "kind": "<kind>", "routes": <routes[]>, "repo": "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs", "attempt": <n or omit> }`.
+`args: { "runId": "<runId>", "captureRun": "<captureRun>", "mode": "<explore|write-only>", "area": "<area>", "kind": "<kind>", "routes": <routes[]>, "repo": "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs", "attempt": <n or omit> }`.
 (This instruction is the opt-in for multi-agent orchestration.) Note the Workflow's own run id
 from the tool result next to the ledger id.
 
@@ -62,8 +71,8 @@ export const meta = {
   description:
     'Explore one console area on the playground, understand it, write every route it owns from the screen — no commits',
   phases: [
-    { title: 'Gather', detail: 'explorer (browser) ∥ config export' },
-    { title: 'Understand', detail: 'briefs per route, coverage plan, probes' },
+    { title: 'Gather', detail: 'explorer (browser, explore mode only) ∥ config export' },
+    { title: 'Understand', detail: 'briefs for routes without one, in parallel batches; merge' },
     { title: 'Probe', detail: 'runner: the listed MCP probes' },
     { title: 'IA', detail: 'only when something is unowned; then bun run stubs' },
     { title: 'Write', detail: 'prepare-write → writer → gates → reviewer, per route' },
@@ -86,6 +95,12 @@ const REPO = args.repo;
 const RUN = args.runId;
 const R = `${REPO}/_private/agentic-v2/runs/${RUN}`;
 const RD = (r) => `${R}/${r.replace(/\//g, '-')}`;
+// The capture this run reads from: itself when it explores, an earlier explore run when
+// --write-only. States, images, map and briefs live there; write.json/gates/review live in R.
+const CAPTURE = args.captureRun || RUN;
+const C = `${REPO}/_private/agentic-v2/runs/${CAPTURE}`;
+const BRIEF = (r) => `${C}/briefs/${r.replace(/\//g, '-')}/brief.md`;
+const writeOnly = args.mode === 'write-only';
 // args.attempt (set on a --resume after a script fix) changes the command text so the cached
 // result of a failed script run is not replayed; the scripts ignore the flag.
 const ATTEMPT = args.attempt ? ` --attempt ${args.attempt}` : '';
@@ -139,6 +154,7 @@ const UNDERSTAND = {
     briefs: { type: 'number' },
     controls: { type: 'object' },
     emptyRoutes: { type: 'array' },
+    notInCapture: { type: 'array' },
     probes: { type: 'number' },
     questions: { type: 'array' },
     notes: { type: 'string' },
@@ -220,6 +236,8 @@ const finish = async (extra) => {
   const learned = await learn();
   return {
     runId: RUN,
+    captureRun: CAPTURE,
+    mode: writeOnly ? 'write-only' : 'explore',
     area: args.area,
     loginHalted,
     cleanup: cleaned,
@@ -233,7 +251,7 @@ const finish = async (extra) => {
 const isReference = args.kind === 'reference';
 const [explore, config] = await parallel([
   () =>
-    isReference
+    isReference || writeOnly
       ? null
       : A(`runId: ${RUN}. Walk the area per your instructions and return the summary.`, {
           agentType: 'explorer',
@@ -257,35 +275,93 @@ if (explore && explore.halt === 'login') {
   );
   return await finish({ stoppedAfter: 'explore' });
 }
-if (!isReference && !explore)
+if (!isReference && !writeOnly && !explore)
   log('explorer returned nothing — understanding from whatever states.json holds');
 if (config && config.error)
   log(`config export failed: ${config.error} — no restore point this run`);
 log(
   explore
     ? `explore: ${explore.states} states, ${explore.images} images, map ${explore.map && explore.map.status}`
-    : 'explore: skipped (reference kind)'
+    : writeOnly
+      ? `explore: skipped — writing from capture ${CAPTURE}`
+      : 'explore: skipped (reference kind)'
 );
 
-// ── 2 · Understand (barrier) ─────────────────────────────────────────────────
-const understood = await A(
-  `runId: ${RUN}. Read everything the explorer captured for this area and write, per your instructions, ${R}/coverage-plan.json, ${R}/probes.json and one brief.md per route under ${R}/<route folder>/.`,
-  {
-    agentType: 'understand',
-    label: `understand:${args.area}`,
-    phase: 'Understand',
-    schema: UNDERSTAND,
+// ── 2 · Understand (barrier): only routes without a brief, in parallel batches ──
+const briefPlan = await run(`bun scripts/agentic/briefs.ts ${RUN} --json`, 'briefs', 'Understand');
+const batches = (briefPlan && briefPlan.json && briefPlan.json.batches) || [args.routes];
+let understood = null;
+if (batches.length && batches[0].length) {
+  const parts = await parallel(
+    batches.map(
+      (routes, i) => () =>
+        A(
+          `runId: ${RUN}. Capture folder C: ${C}. Batch ${i + 1} of ${batches.length}. Your routes: ${routes.join(', ')}. Read everything the explorer captured for this area and write, per your instructions, ${C}/briefs/<route folder>/brief.md for each of your routes, ${C}/coverage-plan.${i + 1}.json, and append your probes to ${R}/probes.json.`,
+          {
+            agentType: 'understand',
+            label: `understand:${args.area}:${i + 1}`,
+            phase: 'Understand',
+            schema: UNDERSTAND,
+          }
+        )
+    )
+  );
+  const merged = await run(
+    `bun scripts/agentic/briefs.ts merge ${RUN} --json`,
+    'briefs:merge',
+    'Understand'
+  );
+  const ok = parts.filter(Boolean);
+  understood = ok.length
+    ? {
+        area: args.area,
+        briefs: ok.reduce((n, p) => n + (p.briefs || 0), 0),
+        probes: ok.reduce((n, p) => n + (p.probes || 0), 0),
+        controls: {
+          owned: (merged && merged.json && merged.json.owned) || 0,
+          unowned: (merged && merged.json && merged.json.unowned) || 0,
+          shared: (merged && merged.json && merged.json.shared) || 0,
+          conflicts: (merged && merged.json && merged.json.conflicts) || 0,
+        },
+        emptyRoutes: (merged && merged.json && merged.json.emptyRoutes) || [],
+        notInCapture: (merged && merged.json && merged.json.notInCapture) || [],
+        questions: ok.flatMap((p) => p.questions || []),
+        notes: ok
+          .map((p) => p.notes || '')
+          .filter(Boolean)
+          .join(' '),
+      }
+    : null;
+  if (understood)
+    await ensureFile(`${R}/understand.json`, understood, 'understand-file', 'Understand');
+  if (!understood) {
+    log('understand returned nothing — no briefs, nothing to write');
+    return await finish({ stoppedAfter: 'understand' });
   }
-);
-if (understood)
-  await ensureFile(`${R}/understand.json`, understood, 'understand-file', 'Understand');
-if (!understood) {
-  log('understand returned nothing — no briefs, nothing to write');
-  return await finish({ stoppedAfter: 'understand' });
+  log(
+    `understand: ${understood.briefs} new brief(s) in ${batches.length} batch(es), ${understood.probes} probes, ${understood.controls.conflicts} conflict(s), empty: ${understood.emptyRoutes.join(', ') || 'none'}, not in capture: ${understood.notInCapture.join(', ') || 'none'}`
+  );
+} else {
+  // Every route already has a brief in the capture: reuse, no understand cost.
+  const plan = await run(`cat ${C}/coverage-plan.json`, 'coverage-plan', 'Understand');
+  const pj = (plan && plan.json) || {};
+  understood = {
+    area: args.area,
+    briefs: 0,
+    probes: 0,
+    controls: {
+      owned: 0,
+      unowned: (pj.unowned || []).length,
+      shared: 0,
+      conflicts: (pj.conflicts || []).length,
+    },
+    emptyRoutes: pj.emptyRoutes || [],
+    notInCapture: pj.notInCapture || [],
+    questions: [],
+  };
+  log(`understand: all ${args.routes.length} route(s) already briefed in ${CAPTURE} — reused`);
 }
-log(
-  `understand: ${understood.briefs} briefs, ${understood.probes || 0} probes, empty routes: ${(understood.emptyRoutes || []).join(', ') || 'none'}`
-);
+const notInCapture = new Set(understood.notInCapture || []);
 
 // ── 3 · Probe (MCP, no browser) ──────────────────────────────────────────────
 const probed =
@@ -304,11 +380,12 @@ if (probed) await ensureFile(`${R}/runner.json`, probed, 'runner-file', 'Probe')
 
 // ── 4 · IA (barrier, conditional) ─────────────────────────────────────────────
 const unowned = (understood.controls && understood.controls.unowned) || 0;
+const conflicts = (understood.controls && understood.controls.conflicts) || 0;
 const empty = (understood.emptyRoutes || []).length;
 let ia = null;
-if (unowned > 0 || empty > 0) {
+if (unowned > 0 || empty > 0 || conflicts > 0) {
   ia = await A(
-    `runId: ${RUN}. The understand step left ${unowned} control(s) unowned and ${empty} route(s) empty. Decide per your instructions, apply, and write ${R}/ia.json and ${R}/routes-final.json.`,
+    `runId: ${RUN}. Capture folder C: ${C}. The understand step left ${unowned} control(s) unowned, ${conflicts} conflict(s) and ${empty} route(s) empty. Decide per your instructions (assign / relabel / reorder / propose — never add a route), apply, and write ${R}/ia.json and ${R}/routes-final.json.`,
     { agentType: 'ia-agent', label: `ia:${args.area}`, phase: 'IA', schema: IA }
   );
   // The ia-agent has no shell: a route it adds to the map exists only once gen-stubs writes
@@ -321,13 +398,17 @@ const finalList = await run(
   'routes-final',
   'IA'
 );
-const finalRoutes =
+const finalRoutes = (
   (finalList &&
     finalList.json &&
     Array.isArray(finalList.json.routes) &&
     finalList.json.routes.length &&
     finalList.json.routes.map((r) => (typeof r === 'string' ? r : r.route))) ||
-  args.routes;
+  args.routes
+).filter((r) => {
+  if (notInCapture.has(r)) log(`skip ${r}: its controls are not in capture ${CAPTURE}`);
+  return !notInCapture.has(r);
+});
 
 // ── 5 · Write → gates → review, per route (parallel across routes) ───────────
 const written = await pipeline(
@@ -336,7 +417,7 @@ const written = await pipeline(
   (p, r) =>
     p && p.ok
       ? A(
-          `runId: ${RUN}. route: ${r}. Write the page from ${RD(r)}/brief.md per your instructions and write ${RD(r)}/write.json.`,
+          `runId: ${RUN}. route: ${r}. Capture folder C: ${C}. Write the page from ${BRIEF(r)} per your instructions — outline first (${RD(r)}/outline.md), then the page with the Write tool — and write ${RD(r)}/write.json.`,
           {
             agentType: 'writer',
             label: `write:${r}`,
@@ -358,9 +439,11 @@ const written = await pipeline(
       );
       return { gates: g.json };
     }
+    // Keep the map's description in step with the page (status stays auto).
+    await run(`bun scripts/agentic/sync-map.ts ${RUN} ${r} --json`, `sync-map:${r}`, 'Write');
     // One review, findings only — no rewrite loop; the report carries the findings.
     const review = await A(
-      `Review the route ${r}. The pipeline's brief is in ${RD(r)}/brief.md; the snapshots in ${R}/states/; what the product did in ${R}/answers.md. Return your findings in your usual format and also write ${RD(r)}/review.json as {route, verdict, findings, questions}.`,
+      `Review the route ${r}. The pipeline's brief is in ${BRIEF(r)}; the writer's outline in ${RD(r)}/outline.md; the snapshots in ${C}/states/; what the product did in ${R}/answers.md. Return your findings in your usual format and also write ${RD(r)}/review.json as {route, verdict, findings, questions}.`,
       { agentType: 'doc-reviewer', label: `review:${r}`, phase: 'Write', schema: REVIEW }
     );
     return { gates: g.json, review };
@@ -389,10 +472,13 @@ return await finish({ buildOk: !!(build && build.json && build.json.buildOk), su
 ## 5. After the run
 
 1. `cat _private/agentic-v2/runs/<runId>/report.md` — the per-route table (controls, coverage,
-   unconfirmed facts, images, FAQ, gates, review, outcome), the explore audit (states, images,
-   what could not be opened, denials), the probes, the IA decisions, the reviewer's findings,
-   the playground line (agents created / deleted / **leftovers**, config restored), the diff
-   commands. A non-empty leftovers list or a NOT restored config is the first thing you say.
+   unconfirmed facts, images, FAQ, gates with link warnings, review, outcome, cross-area
+   marks), the explore audit (states, images on disk, what was not opened or excluded by
+   policy, denials), the coverage plan (unowned, conflicts, not in capture), the probes, the
+   IA decisions and **proposed routes** (never added — your call), the reviewer's findings, the
+   playground line (agents created / deleted / **leftovers**, config restored), the diff
+   commands split into pages written / stubs regenerated / already dirty. A non-empty leftovers
+   list or a NOT restored config is the first thing you say.
 2. If the build was red: `bun run verify` yourself to show the error; the diff still stands.
 3. Put in front of Fabio, in this order: the report; halted or parked routes with reasons; the
    reviewer's findings; the questions from understand/IA; the token figures from the Workflow

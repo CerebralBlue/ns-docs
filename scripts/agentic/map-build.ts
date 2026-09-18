@@ -64,6 +64,7 @@ const screenshots = Object.fromEntries((args.values.screenshot ?? []).map(kv));
 const regions = new Map<string, Map<string, Control>>();
 const states: { id: string; file: string; reach: string[]; controls: number }[] = [];
 
+let unnamedDropped = 0;
 for (const spec of args.values.state) {
 	const [id, file] = kv(spec);
 	if (!existsSync(file)) {
@@ -106,6 +107,14 @@ for (const spec of args.values.state) {
 		if (isTable && node.children.some((c) => c.role === 'table')) return;
 		const region = regionOf(node);
 		const name = isTable ? node.name || 'table' : collapsed.has(node) ? '*' : nameOf(node);
+		// An unnamed control (an icon button with no accessible name and no tooltip parent)
+		// cannot be documented by label and only inflates the map; keep it when it at least
+		// navigates somewhere (a link with a url), else drop it. The unnamed count is still
+		// reported in `summary.unnamed`.
+		if (!isTable && !name && !node.url) {
+			unnamedDropped++;
+			return;
+		}
 		let columns: string[] | undefined;
 		if (isTable) {
 			columns = [];
@@ -174,7 +183,8 @@ const candidate = {
 		controls: regionList.reduce((n, r) => n + r.controls.length, 0),
 		commits: regionList.reduce((n, r) => n + r.controls.filter((c) => c.commits).length, 0),
 		tables: regionList.reduce((n, r) => n + r.controls.filter((c) => c.kind === 'table').length, 0),
-		unnamed: regionList.reduce((n, r) => n + r.controls.filter((c) => !c.name).length, 0),
+		unnamed:
+			unnamedDropped + regionList.reduce((n, r) => n + r.controls.filter((c) => !c.name).length, 0),
 	},
 };
 

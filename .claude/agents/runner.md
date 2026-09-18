@@ -55,7 +55,7 @@ record `sha1` via `sha1sum`, then answer the probe's `question` in `R/answers.md
 ## p01 — <question> (route: seek/caching · tool: seek · file: probes/p01.run.json)
 
 What happened: <one paragraph in plain words: the fields that came back, the values that matter, whether `expect` held>.
-Quote: `<the exact field/value that answers the question>`
+Quote: `<a VERBATIM excerpt of the response JSON — keys and values exactly as returned, e.g. "KBscore":100,"semanticScore":5 — never a paraphrase or a re-labelled summary>`
 Result: confirmed | not shown | failed (<why>)
 ```
 

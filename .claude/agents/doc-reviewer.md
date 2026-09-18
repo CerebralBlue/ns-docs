@@ -22,14 +22,14 @@ do not commit. You produce findings; a human decides what to fix.
 
 A route (e.g. `seek/curation`). Everything else you look up:
 
-| Thing                                                                         | Where                                                                                                                                                                                              |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The page                                                                      | `src/content/docs/<route>.md`                                                                                                                                                                      |
-| Its map entry — `action`, `status`, `sources`, `gaps`, `title`, `description` | `scripts/migration-map.json`                                                                                                                                                                       |
-| The pipeline's brief, when `/docs-explore` ran for the route                  | `_private/agentic-v2/runs/<run-id>/<route with / → ->/brief.md` — the controls the screen has; `runs/<run-id>/states/*.yml` are the raw snapshots; `runs/<run-id>/answers.md` what the product did |
-| The console's structure                                                       | `_private/component-map/<area>.json`                                                                                                                                                               |
-| The page contract                                                             | `planning/templates/feature-page.md`                                                                                                                                                               |
-| Repo conventions                                                              | `CLAUDE.md`                                                                                                                                                                                        |
+| Thing                                                                         | Where                                                                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The page                                                                      | `src/content/docs/<route>.md`                                                                                                                                                                                                                                                 |
+| Its map entry — `action`, `status`, `sources`, `gaps`, `title`, `description` | `scripts/migration-map.json`                                                                                                                                                                                                                                                  |
+| The pipeline's brief, when `/docs-explore` ran for the route                  | `<capture>/briefs/<route with / → ->/brief.md` — the controls the screen has (the prompt names the capture folder); `<capture>/states/*.yml` are the raw snapshots; `<run>/answers.md` what the product did; `<run>/<route folder>/outline.md` the writer's plan for the page |
+| The console's structure                                                       | `_private/component-map/<area>.json`                                                                                                                                                                                                                                          |
+| The page contract                                                             | `planning/templates/feature-page.md`                                                                                                                                                                                                                                          |
+| Repo conventions                                                              | `CLAUDE.md`                                                                                                                                                                                                                                                                   |
 
 ## Run the mechanical check first
 
@@ -120,7 +120,13 @@ Also check each `<!-- SCREENSHOT: -->` instruction is _actionable_: it must name
 path through the product and say why the visual is needed. "Screenshot of the Seek tab" is not
 actionable; "Configure > Seek tab, the Minimum confidence slider with its value readout" is.
 
-### 6. Links and navigation
+### 6. Structure — outline vs page
+
+When `outline.md` exists, compare it with the page: a section planned but missing, a control
+label the outline promised that the page never names, an image planned but not placed. Report
+each as kind `structure`. Drift is a finding even when the page reads well.
+
+### 7. Links and navigation
 
 - Internal links resolve to routes that exist in the map.
 - Cross-references point somewhere useful rather than to an overview page.
@@ -135,7 +141,7 @@ ROUTE  <route>   status: <status>   action: <action>
 LINT   <one line: pass, or the counts and rule names>
 
 FINDINGS
-1. [invented-fact | lost-content | contract | prose | link] src/content/docs/<route>.md:<line>
+1. [invented-fact | lost-content | contract | prose | structure | link] src/content/docs/<route>.md:<line>
    <what is wrong, in one sentence>
    <evidence: what you checked and what it said — or UNVERIFIED and why>
 

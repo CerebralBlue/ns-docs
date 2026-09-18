@@ -18,20 +18,35 @@ your inputs are files, your facts are the brief, and you never open the console.
 
 **Read `_private/agentic-v2/conventions.md` first** (short).
 
-## Inputs (the prompt gives you `runId` and `route`)
+## Inputs (the prompt gives you `runId`, `route` and the capture folder `C`)
 
-`R` = `_private/agentic-v2/runs/<runId>`; `RD` = `R/<route with / → ->/`.
+`R` = `_private/agentic-v2/runs/<runId>` (this run: your `write.json`, `outline.md`); `RD` =
+`R/<route with / → ->/`. `C` = the capture folder the prompt names (states, images, briefs,
+coverage plan — `R` itself when this run explored).
 
-| Thing                    | Where                                                                                                                      | How to use it                                                                                                                                                                                                                            |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **The brief**            | `RD/brief.md`                                                                                                              | Read first, follow its `## Sections`. Every control listed there must appear on the page **by its exact label**; the image next to each control is the one to place. Its FAQ drafts are yours to keep or improve, never fewer than 3.    |
-| The screen, raw          | `R/states/<state>.yml`                                                                                                     | When the brief's quote is not enough: options, help text, table columns, exact values. The snapshot is the truth for labels.                                                                                                             |
-| The images               | `public/img/<area>/<state>[-panel].png`                                                                                    | Read shows them. Place the `-panel` image for a control's section; the viewport image once, at the top of How it works, when it helps orientation.                                                                                       |
-| What the product did     | `R/answers.md` (+ `R/probes/*.run.json`)                                                                                   | For behaviour sentences. Quote the `Quote:` line in a code fence, trimmed, naming the input. Never invent or "improve" an output; never quote a playground secret, id or user name.                                                      |
-| Shared controls          | `R/coverage-plan.json → shared`, brief `## Shared`                                                                         | Name them, link to the owner page (`[…](/<route>/)`, no `/ns-docs`), do not re-explain.                                                                                                                                                  |
-| The old page, background | `src/content/docs/<route>.md` (verbatim old prose or a stub) and `_private/archive/verbatim-migration/previous/<route>.md` | The _why_, the vocabulary, the use cases. **Not a source of facts.** A fact from here that no brief control, snapshot or answer shows may stay only with `<!-- UNCONFIRMED: <the fact> — <where it came from> -->` on the line above it. |
+**You write files with the Write tool and patch them with Edit — never through Bash** (no
+`cat >`, no heredoc, no `sed -i`, no `python3`). The Bash tool is for the three commands below
+only; a hook refuses anything else.
+
+| Thing                    | Where                                                                                                                      | How to use it                                                                                                                                                                                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The brief**            | `C/briefs/<route folder>/brief.md`                                                                                         | Read first, follow its `## Sections`. Every control listed there must appear on the page **by its exact label**; the image next to each control is the one to place. Its FAQ drafts are yours to keep or improve, never fewer than 3.                                        |
+| The screen, raw          | `C/states/<state>.yml`                                                                                                     | When the brief's quote is not enough: options, help text, table columns, exact values. The snapshot is the truth for labels.                                                                                                                                                 |
+| The images               | `public/img/<area>/<state>[-panel].png`                                                                                    | Read shows them. Place the `-panel` image for a control's section; the viewport image once, at the top of How it works, when it helps orientation.                                                                                                                           |
+| What the product did     | `R/answers.md` (+ `R/probes/*.run.json`)                                                                                   | For behaviour sentences. A code fence holds only text copied from `R/probes/<id>.run.json` (the response as returned, trimmed), never the paraphrase in `answers.md`; name the input. Never invent or "improve" an output; never quote a playground secret, id or user name. |
+| Shared controls          | `C/coverage-plan.json → shared`, brief `## Shared`                                                                         | Name them, link to the owner page (`[…](/<route>/)`, no `/ns-docs`), do not re-explain.                                                                                                                                                                                      |
+| The old page, background | `src/content/docs/<route>.md` (verbatim old prose or a stub) and `_private/archive/verbatim-migration/previous/<route>.md` | The _why_, the vocabulary, the use cases. **Not a source of facts.** A fact from here that no brief control, snapshot or answer shows may stay only with `<!-- UNCONFIRMED: <the fact> — <where it came from> -->` on the line above it.                                     |
 
 `status: auto` is already set on the map — do not touch the map.
+
+## Step 0 — the outline, before any prose
+
+Write `RD/outline.md` first: the h2/h3 tree the page will have, and under each h3 the **exact
+control labels** it will name (from the brief), the image it will place, and the FAQ questions.
+Then `bun scripts/agentic/coverage.ts <runId> <route> --outline` — every control the plan
+assigns to the route must already be in the outline. Fix the outline until `missing` is empty
+(or the miss is explained in `left_unresolved`). Only then write the page. The reviewer reads
+the outline too and reports drift between outline and page.
 
 ## Shape
 
@@ -89,4 +104,4 @@ Then lint, prettier, and update `RD/write.json` with an `edits` entry per change
 }
 ```
 
-Write nothing outside your page and `RD/`.
+Write nothing outside your page, `RD/` and (consistency mode) your own `write.json`.

@@ -48,6 +48,8 @@ type Section = {
 	prefix: string; // the area name (field name kept from v2)
 	routes: string[];
 	kind: 'console' | 'reference';
+	/** explore = capture + write the owned routes; write-only = the leftovers sweep from existing captures */
+	mode?: 'explore' | 'write-only';
 	status: 'pending' | 'running' | 'done' | 'halted' | 'failed';
 	ledgerRunId?: string;
 	workflowRunId?: string;
@@ -85,8 +87,24 @@ if (verb === 'plan') {
 			.filter(([, v]) => resolveArea(areas, (v.console ?? [])[0] ?? 'reference') === area)
 			.map(([r]) => r);
 		if (!routes.length) continue;
-		sections.push({ prefix: area, routes, kind: areas[area].kind, status: 'pending' });
+		sections.push({
+			prefix: area,
+			routes,
+			kind: areas[area].kind,
+			mode: 'explore',
+			status: 'pending',
+		});
 	}
+	// After every area is captured, one write-only sweep writes whatever still has no page: routes
+	// another area's capture briefed (cross-area) or routes a run skipped. Its route list is
+	// resolved when it is reached (`next`), from captures.json + index.json.
+	sections.push({
+		prefix: 'leftovers',
+		routes: [],
+		kind: 'console',
+		mode: 'write-only',
+		status: 'pending',
+	});
 	const id = `${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-night`;
 	const state: State = {
 		nightId: id,
@@ -135,12 +153,73 @@ if (verb === 'next') {
 		if (pending.status === 'pending') {
 			pending.status = 'running';
 			pending.startedAt = new Date().toISOString();
+			if (pending.mode === 'write-only' && pending.prefix === 'leftovers') {
+				// Resolve now: every briefed route in any capture with no v3-written page, one
+				// write-only section per capture area (one Workflow each), replacing this placeholder.
+				const index = readJson(join(V2_DIR, 'index.json')) ?? {};
+				const { map } = loadMap();
+				const captures = readJson<Record<string, any>>(join(V2_DIR, 'captures.json')) ?? {};
+				const subs: Section[] = [];
+				for (const [area, cap] of Object.entries(captures)) {
+					const briefsDir = join(V2_DIR, 'runs', cap.runId, 'briefs');
+					if (!existsSync(briefsDir)) continue;
+					const routes = Object.keys(map.routes).filter(
+						(r) => !index[r] && existsSync(join(briefsDir, routeFolder(r), 'brief.md'))
+					);
+					if (routes.length)
+						subs.push({
+							prefix: `leftovers:${area}`,
+							routes,
+							kind: 'console',
+							mode: 'write-only',
+							status: 'pending',
+						});
+				}
+				const at = state.sections.indexOf(pending);
+				if (!subs.length) {
+					pending.status = 'done';
+					pending.result = { note: 'nothing left to write from the captures' };
+					pending.finishedAt = new Date().toISOString();
+					save();
+					// fall through to the consistency pass on the next call
+					console.log(
+						JSON.stringify({
+							nightId: state.nightId,
+							skipped: 'leftovers',
+							reason: 'nothing left',
+							callNextAgain: true,
+						})
+					);
+					process.exit(0);
+				}
+				state.sections.splice(at, 1, ...subs);
+				const first = subs[0];
+				first.status = 'running';
+				first.startedAt = new Date().toISOString();
+				save();
+				console.log(
+					JSON.stringify({
+						nightId: state.nightId,
+						area: first.prefix.replace(/^leftovers:/, ''),
+						section: first.prefix,
+						mode: 'write-only',
+						kind: first.kind,
+						routes: first.routes,
+						alreadyRunning: false,
+						ledgerRunId: null,
+						workflowRunId: null,
+					})
+				);
+				process.exit(0);
+			}
 			save();
 		}
 		console.log(
 			JSON.stringify({
 				nightId: state.nightId,
-				area: pending.prefix,
+				area: pending.prefix.replace(/^leftovers:/, ''),
+				section: pending.prefix,
+				mode: pending.mode ?? 'explore',
 				kind: pending.kind,
 				routes: pending.routes,
 				alreadyRunning: !!running,
@@ -164,6 +243,9 @@ if (verb === 'next') {
 				consistency: true,
 				routes,
 				runIds: Object.fromEntries(routes.map((r) => [r, index[r].runId])),
+				captureRuns: Object.fromEntries(
+					routes.map((r) => [r, index[r].captureRun ?? index[r].runId])
+				),
 				alreadyRunning: state.consistency.status === 'running' && !!state.consistency.workflowRunId,
 			})
 		);
@@ -221,9 +303,11 @@ if (verb === 'report') {
 	const diffs: string[] = [];
 	const questions: string[] = [];
 	const findings: string[] = [];
+	const proposed: string[] = [];
+	const notInCapture: string[] = [];
 	const leftovers: string[] = [];
 	lines.push(
-		'| area | routes | ready | parked | other | tokens | build | status |',
+		'| area (mode) | routes | ready | parked | other | tokens | build | status |',
 		'|---|---|---|---|---|---|---|---|'
 	);
 	for (const s of state.sections) {
@@ -239,12 +323,17 @@ if (verb === 'report') {
 		const ia = s.ledgerRunId ? readJson(join(V2_DIR, 'runs', s.ledgerRunId, 'ia.json')) : null;
 		for (const q of ia?.questions ?? []) questions.push(`${s.prefix}: ${q}`);
 		for (const q of rep?.understand?.questions ?? []) questions.push(`${s.prefix}: ${q}`);
+		for (const p of rep?.proposed ?? [])
+			proposed.push(
+				`${s.prefix}: **${p.route}** — ${p.title ?? ''} (${(p.controls ?? []).join(', ')})`
+			);
+		for (const r of rep?.coverage?.notInCapture ?? []) notInCapture.push(`${s.prefix}: ${r}`);
 		for (const f of rep?.findings ?? [])
 			findings.push(
 				`${f.route}${f.line ? `:${f.line}` : ''} [${f.kind ?? 'finding'}] ${f.what ?? ''}`
 			);
 		lines.push(
-			`| ${s.prefix} | ${s.routes.length} | ${ready} | ${parked} | ${other} | ${s.tokens ? Math.round(s.tokens / 1000) + 'k' : ''} | ${s.result?.buildOk === undefined ? '' : s.result.buildOk ? 'green' : 'red'} | ${s.status}${s.status === 'halted' ? ` — resume: /docs-explore ${s.prefix} --resume ${s.workflowRunId} --run ${s.ledgerRunId}` : ''} |`
+			`| ${s.prefix}${s.mode === 'write-only' ? ' (write-only)' : ''} | ${s.routes.length} | ${ready} | ${parked} | ${other} | ${s.tokens ? Math.round(s.tokens / 1000) + 'k' : ''} | ${s.result?.buildOk === undefined ? '' : s.result.buildOk ? 'green' : 'red'} | ${s.status}${s.status === 'halted' ? ` — resume: /docs-explore ${s.prefix} --resume ${s.workflowRunId} --run ${s.ledgerRunId}` : ''} |`
 		);
 	}
 	lines.push(

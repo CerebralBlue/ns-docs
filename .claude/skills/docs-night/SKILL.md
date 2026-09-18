@@ -31,23 +31,29 @@ area's own Cleanup stage.**
 ## `continue`
 
 1. `bun scripts/agentic/night.ts next --json` →
-   - `{area, kind, routes, alreadyRunning, workflowRunId}`: if `alreadyRunning` and
-     `workflowRunId` is set, a Workflow is (or was) running for it — do not launch another;
-     check `/workflows`; if it is gone, record it `failed` and call `next` again. Otherwise go to 2.
+   - `{area, section, mode, kind, routes, alreadyRunning, workflowRunId}`: if `alreadyRunning`
+     and `workflowRunId` is set, a Workflow is (or was) running for it — do not launch another;
+     check `/workflows`; if it is gone, record it `failed` and call `next` again. Otherwise go
+     to 2. `mode: "explore"` = capture + write the owned routes; `mode: "write-only"` (the
+     `leftovers:<area>` sections after every area is captured) = write from the area's latest
+     capture, no browser. `section` is the name to `record` (it differs from `area` for leftovers).
+   - `{skipped: "leftovers", callNextAgain: true}`: nothing left to write — call `next` again.
    - `{consistency: true, routes, runIds, alreadyRunning}`: go to 3.
    - `{done: true}`: go to `report`.
-2. **Launch an area.** `bun scripts/agentic/queue.ts <area> --json` → `runId` (the routes it
-   prints are the ones the area owns — they match `next`). Record it:
-   `bun scripts/agentic/night.ts record <area> --ledger <runId>`. Extract the docs-explore
+2. **Launch a section.** Explore mode: `bun scripts/agentic/queue.ts <area> --json` (the routes
+   it prints are the ones the area owns — they match `next`). Write-only mode:
+   `bun scripts/agentic/queue.ts <area> --write-only --only <r1> --only <r2> … --json` with the
+   routes `next` listed. Either way → `runId`, `captureRun`, `mode`. Record it:
+   `bun scripts/agentic/night.ts record <section> --ledger <runId>`. Extract the docs-explore
    script to a file (`sed -n '/^```js$/,/^```$/p' .claude/skills/docs-explore/SKILL.md | sed '1d;$d' > <scratchpad>/docs-explore.js`,
    once per night) and call the **Workflow** tool with `scriptPath` and
-   `args: { runId, area, kind, routes, repo: "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs" }`.
-   Then `bun scripts/agentic/night.ts record <area> --workflow <the Workflow run id>`. **Stop
-   the turn** — say which area is running and that the completion notification continues it.
+   `args: { runId, captureRun, mode, area, kind, routes, repo: "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs" }`.
+   Then `bun scripts/agentic/night.ts record <section> --workflow <the Workflow run id>`. **Stop
+   the turn** — say which section is running and that the completion notification continues it.
 3. **Launch the consistency pass.** Extract the script below the same way and call the
-   Workflow tool with `args: { nightId, routes, runIds, repo }`. Record `--workflow`. Stop the turn.
-4. **On a completion notification** (its result JSON is in the notification): for an area,
-   `bun scripts/agentic/night.ts record <area> --status <done|halted> --tokens <subagent_tokens
+   Workflow tool with `args: { nightId, routes, runIds, captureRuns, repo }`. Record `--workflow`. Stop the turn.
+4. **On a completion notification** (its result JSON is in the notification): for a section,
+   `bun scripts/agentic/night.ts record <section> --status <done|halted> --tokens <subagent_tokens
 from the notification's usage> --result '<the result JSON, minified, without the report field>'`
    — `halted` when the result has `loginHalted: true`, else `done`. A failed Workflow (error,
    no result) → `--status failed`. For the consistency pass, `record consistency --status done
@@ -89,6 +95,8 @@ const REPO = args.repo;
 const NIGHT = args.nightId;
 const CD = (r) => `${REPO}/_private/agentic-v2/night/${NIGHT}/consistency/${r.replace(/\//g, '-')}`;
 const RD = (r) => `${REPO}/_private/agentic-v2/runs/${args.runIds[r]}/${r.replace(/\//g, '-')}`;
+const CAP = (r) =>
+  `${REPO}/_private/agentic-v2/runs/${(args.captureRuns && args.captureRuns[r]) || args.runIds[r]}`;
 const SCRIPT = {
   type: 'object',
   properties: { ok: { type: 'boolean' }, json: { type: 'object' }, stderr: { type: 'string' } },
@@ -145,7 +153,7 @@ const results = await pipeline(
       return { route: r, verdict: c.verdict, fixed: false };
     }
     const w = await A(
-      `runId: ${args.runIds[r]}. route: ${r}. Apply the consistency fixes in ${CD(r)}/consistency.json to your page only, per your instructions, and update ${RD(r)}/write.json.`,
+      `runId: ${args.runIds[r]}. route: ${r}. Capture folder C: ${CAP(r)}. Apply the consistency fixes in ${CD(r)}/consistency.json to your page only, per your instructions, and update ${RD(r)}/write.json.`,
       { agentType: 'writer', label: `fix:${r}`, phase: 'Fix', schema: WRITE }
     );
     const g = w

@@ -3,15 +3,24 @@
  * later stage keys on.
  *
  *   bun scripts/agentic/queue.ts <area> [--only <route>]… [--run <id>] [--json]
+ *       explore the area (new capture) and write the routes it OWNS (or --only)
+ *   bun scripts/agentic/queue.ts <area> --write-only [--only <route>]… [--all-briefed]
+ *       [--from <capture-run-id>] [--run <id>] [--json]
+ *   … --dry-run     print what would be queued; write nothing, touch current-run never
+ *       no browser: write from the area's latest capture (captures.json) or --from. --only may
+ *       name ANY non-NTL route — the capture decides, ownership only sets the night's default;
+ *       such routes are marked crossArea. --all-briefed = every route with a brief in the
+ *       capture and no write.json in any v3 run yet.
  *
- * The area comes from _private/agentic-v2/areas.json (url, navPath, entry). The routes are the
- * ones the area OWNS — map routes whose first `console` entry resolves to it — so every route
- * is written by exactly one area; the other areas a route names are extra screens its writer
- * may read (`alsoReads`). `reference` is the pseudo-area for routes with `console: []`.
+ * The area comes from _private/agentic-v2/areas.json (url, navPath, entry). Owned routes are
+ * map routes whose first `console` entry resolves to the area; the other areas a route names
+ * are extra screens its writer may read (`alsoReads`). `reference` is the pseudo-area for
+ * routes with `console: []`.
  *
  * Writes _private/agentic-v2/runs/<run-id>/area.json:
- *   { runId, area, url, navPath, kind, entry, menu, routes[{route, folder, title, status,
- *     gaps, console, alsoReads, page, previous}], sidebar, notInSidebar }
+ *   { runId, captureRun, mode: explore|write-only, area, url, navPath, kind, entry, menu,
+ *     routes[{route, folder, title, status, gaps, console, alsoReads, crossArea, page,
+ *     previous}], sidebar, notInSidebar }
  * plus one folder per route, and _private/agentic-v2/current-run = <run-id> (the hooks log to it).
  * Refuses to run unless .neuralseekrc.json points the MCP at the playground.
  */
@@ -21,15 +30,19 @@ import { loadAreas, resolveArea } from './areas';
 import {
 	CURRENT_RUN_FILE,
 	DOCS_DIR,
+	loadCaptures,
 	loadInstances,
 	loadMap,
 	parseArgs,
 	rcInstance,
+	readJson,
 	ROOT,
 	routeFolder,
 	runDir,
+	RUNS_DIR,
 	writeJson,
 } from './lib';
+import { readdirSync } from 'node:fs';
 
 const args = parseArgs(process.argv.slice(2));
 const areaName = args.positional[0];
@@ -50,6 +63,9 @@ if (!area || area.alias) {
 	process.exit(1);
 }
 const only = args.values.only ?? [];
+const writeOnly = args.flags.has('write-only');
+const dryRun = args.flags.has('dry-run');
+const allBriefed = args.flags.has('all-briefed');
 // The pipeline runs against the playground and nothing else — fail before any agent starts.
 const inst = loadInstances();
 const rc = rcInstance();
@@ -61,6 +77,30 @@ if (rc !== inst.playground) {
 }
 const { map } = loadMap();
 
+// Which capture a write-only run reads from: --from, else the area's latest in captures.json.
+let captureRun: string | null = null;
+if (writeOnly) {
+	captureRun = args.get('from') ?? loadCaptures()[areaName]?.runId ?? null;
+	if (!captureRun || !existsSync(join(RUNS_DIR, captureRun, 'states.json'))) {
+		console.error(
+			`no capture for ${areaName}${captureRun ? ` (${captureRun} has no states.json)` : ''} — run an explore first, or pass --from <run-id>`
+		);
+		process.exit(2);
+	}
+}
+const captureBriefs = captureRun ? join(RUNS_DIR, captureRun, 'briefs') : null;
+const hasBrief = (r: string) =>
+	!!captureBriefs && existsSync(join(captureBriefs, routeFolder(r), 'brief.md'));
+// Routes already written by a v3 run (a write.json in a run that has area.json).
+const writtenByV3 = new Set<string>();
+if (allBriefed && existsSync(RUNS_DIR))
+	for (const id of readdirSync(RUNS_DIR)) {
+		const a = readJson<any>(join(RUNS_DIR, id, 'area.json'));
+		if (!a) continue;
+		for (const r of a.routes ?? [])
+			if (existsSync(join(RUNS_DIR, id, r.folder, 'write.json'))) writtenByV3.add(r.route);
+	}
+
 const routes = Object.entries(map.routes)
 	.filter(([r]) => !r.startsWith('maistro/ntl/'))
 	.map(([route, info]) => ({
@@ -68,8 +108,12 @@ const routes = Object.entries(map.routes)
 		info,
 		owners: (info.console ?? []).map((c) => resolveArea(areas, c)),
 	}))
-	.filter(({ owners }) => (owners[0] ?? 'reference') === areaName)
-	.filter(({ route }) => !only.length || only.includes(route))
+	.filter(({ route, owners }) => {
+		const owned = (owners[0] ?? 'reference') === areaName;
+		if (only.length) return only.includes(route) && (owned || writeOnly);
+		if (allBriefed) return hasBrief(route) && !writtenByV3.has(route);
+		return owned;
+	})
 	.map(({ route, info, owners }) => {
 		const page = join(DOCS_DIR, `${route}.md`);
 		const previous = join(ROOT, '_private/archive/verbatim-migration/previous', `${route}.md`);
@@ -81,13 +125,22 @@ const routes = Object.entries(map.routes)
 			description: info.description ?? '',
 			gaps: info.gaps ?? [],
 			console: info.console ?? [],
-			alsoReads: [...new Set(owners.slice(1))],
+			alsoReads: [...new Set(owners.filter((o) => o !== areaName))],
+			crossArea: (owners[0] ?? 'reference') !== areaName,
+			briefed: hasBrief(route),
 			page: existsSync(page) ? relative(ROOT, page) : null,
 			previous: existsSync(previous) ? relative(ROOT, previous) : null,
 		};
 	});
 if (!routes.length) {
-	console.error(`no routes owned by ${areaName}${only.length ? ` --only ${only.join(',')}` : ''}`);
+	console.error(
+		`no routes ${allBriefed ? 'briefed and unwritten in the capture' : `owned by ${areaName}`}${only.length ? ` --only ${only.join(',')}` : ''}${only.length && !writeOnly ? ' (a route another area owns needs --write-only)' : ''}`
+	);
+	process.exit(1);
+}
+const unknown = only.filter((r) => !map.routes[r]);
+if (unknown.length) {
+	console.error(`not in the map: ${unknown.join(', ')}`);
 	process.exit(1);
 }
 
@@ -136,10 +189,12 @@ const runId =
 	args.get('run') ??
 	`${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${areaName.replace(/[^a-z0-9]+/gi, '-')}`;
 const dir = runDir(runId);
-mkdirSync(join(dir, 'states'), { recursive: true });
-for (const r of routes) mkdirSync(join(dir, r.folder), { recursive: true });
+if (!dryRun && !writeOnly) mkdirSync(join(dir, 'states'), { recursive: true });
+if (!dryRun) for (const r of routes) mkdirSync(join(dir, r.folder), { recursive: true });
 const areaJson = {
 	runId,
+	captureRun: captureRun ?? runId,
+	mode: writeOnly ? 'write-only' : 'explore',
 	area: areaName,
 	url: area.url,
 	navPath: area.navPath,
@@ -154,18 +209,25 @@ const areaJson = {
 	notInSidebar: routes.filter((r) => !inSidebar.has(r.route)).map((r) => r.route),
 	imageDir: `public/img/${areaName}`,
 };
-writeJson(join(dir, 'area.json'), areaJson);
-writeFileSync(CURRENT_RUN_FILE, runId + '\n');
+if (!dryRun) {
+	writeJson(join(dir, 'area.json'), areaJson);
+	writeFileSync(CURRENT_RUN_FILE, runId + '\n');
+}
 
 if (args.flags.has('json'))
 	console.log(
 		JSON.stringify({
 			runId,
+			dryRun,
 			dir: relative(ROOT, dir),
+			captureRun: areaJson.captureRun,
+			mode: areaJson.mode,
 			area: areaName,
 			kind: area.kind,
 			url: area.url,
 			routes: routes.map((r) => r.route),
+			crossArea: routes.filter((r) => r.crossArea).map((r) => r.route),
+			briefed: routes.filter((r) => r.briefed).map((r) => r.route),
 			alsoReads: [...new Set(routes.flatMap((r) => r.alsoReads))],
 			sidebar: sidebar.map((s) => s.label),
 			notInSidebar: areaJson.notInSidebar,
@@ -173,11 +235,11 @@ if (args.flags.has('json'))
 	);
 else {
 	console.log(
-		`run ${runId} → ${relative(ROOT, dir)}  (${areaName} ${area.url ?? 'reference'}, ${routes.length} routes)`
+		`run ${runId} → ${relative(ROOT, dir)}  (${areaName} ${area.url ?? 'reference'}, ${routes.length} routes, ${areaJson.mode}${captureRun ? ` from ${captureRun}` : ''})`
 	);
 	for (const r of routes)
 		console.log(
-			`  ${r.status.padEnd(7)} ${r.route.padEnd(52)} ${r.alsoReads.length ? `also reads: ${r.alsoReads.join(', ')}` : ''}`
+			`  ${r.status.padEnd(7)} ${r.route.padEnd(52)} ${r.crossArea ? 'cross-area ' : ''}${r.briefed ? 'briefed ' : ''}${r.alsoReads.length ? `also reads: ${r.alsoReads.join(', ')}` : ''}`
 		);
 	console.log(
 		`sidebar groups: ${sidebar.map((s) => `"${s.label}"`).join(', ') || 'NONE'}${areaJson.notInSidebar.length ? ` · not in sidebar: ${areaJson.notInSidebar.join(', ')}` : ''}`

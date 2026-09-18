@@ -23,10 +23,10 @@ should link to the one that does rather than repeat it.
   neighbours with the reason each is one (`shares <area>`, `linked`, `sibling`).
 - Your page: `src/content/docs/<route>.md`. Each neighbour's page (`page` in the file).
 - Evidence, when a route was written this night: `_private/agentic-v2/index.json` maps a
-  route to its run; read `_private/agentic-v2/runs/<runId>/<route folder>/brief.md` — its
-  controls (labels, values, options, quoted from the screen) are the truth for that page's
-  screen; `runs/<runId>/states/*.yml` are the raw snapshots if you need to grep a label. A
-  page with no brief is an opinion.
+  route to `{runId, captureRun}`; read `_private/agentic-v2/runs/<captureRun>/briefs/<route
+folder>/brief.md` — its controls (labels, values, options, quoted from the screen) are the
+  truth for that page's screen; `runs/<captureRun>/states/*.yml` are the raw snapshots if you
+  need to grep a label. A page with no brief is an opinion.
 
 ## What to look for (only these; do not review prose quality)
 

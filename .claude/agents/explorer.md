@@ -60,7 +60,8 @@ absolute paths. `mkdir -p` both folders first.
      tells you the container that appeared (`dialog`, `tabpanel`, `region` + ref) — take a
      second screenshot of that element (`element` = its description, `ref` = its ref) →
      `public/img/<area>/<id>-panel.png`. If it says `nothing changed`, the click did nothing:
-     record the state anyway with `--url` and move on (no panel image).
+     record the state with `--no-change` and no images, and move on (a new tab opening
+     counts as a change — close it with `browser_tabs` and note it).
    - Record: `explore-plan.ts record <runId> --state <id> --snapshot … --viewport … [--panel …] --url …`.
    - Look deeper: `explore-plan.ts plan <runId> --snapshot <this yml> --state <id>` adds what
      this state exposes (accordions inside a dialog, tabs inside a panel). Continue with the
@@ -68,8 +69,9 @@ absolute paths. `mkdir -p` both folders first.
    - Leave the state: Escape for a dialog or menu, click the same header again for an
      accordion, `navigate_back` for a page. When unsure, navigate to the area URL.
 3. **Stop** when the pending list is empty, or after 30 recorded states, or after 60 clicks.
-   Then `bun scripts/agentic/explore-plan.ts finish <runId>` — it builds the component map and
-   prints the summary. Return it.
+   Then `bun scripts/agentic/explore-plan.ts finish <runId>` — it builds the component map,
+   indexes this run as the area's latest capture (`captures.json`) and prints the summary,
+   including `excluded` (what the plan skipped by policy: Save/Delete/Run/feedback…). Return it.
 
 ## Rules
 

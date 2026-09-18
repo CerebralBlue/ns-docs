@@ -388,61 +388,81 @@ Open items that affect anyone touching content:
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
 
-## The `/docs-explore` pipeline (agentic workflow v3, screen-first)
+## The `/docs-explore` pipeline (agentic workflow v3.1, screen-first, capture once — write many)
 
-The workflow that writes a section of pages from the **running product's screens**. One run =
-one **console area** (a screen in `_private/agentic-v2/areas.json`); it writes every route the
-area owns. Fabio runs it (`/docs-explore <area> [--only <route>]`) or chains it overnight
+The workflow that writes pages from the **running product's screens**. One run = one **console
+area** (a screen in `_private/agentic-v2/areas.json`). Fabio runs it (`/docs-explore <area>`,
+or `/docs-explore <area> --write-only [--all-briefed] [--only <route>]…`) or chains it overnight
 (`/docs-night start | continue | report`); neither is model-invoked. Design + diagram:
 `_private/agentic-v2/diagrams/architecture.html`. v2 — the claim-verification design that ran
 night 1 (24 routes, ~11M tokens, nothing ready) — is archived in `_private/archive/agentic-v2/`.
 
-- **Stages** — `queue.ts` (area.json: url, navPath, the routes owned) → gather in parallel:
-  `explorer` (browser: walks every state `explore-plan.ts` names — tabs, menus, accordions,
-  dialogs, the SVG tree nodes of Neural Config — saving an a11y snapshot per state into
-  `runs/<id>/states/` and a viewport + cropped-panel screenshot into `public/img/<area>/`,
-  then rebuilds the cached **component map** `_private/component-map/<area>.json`) and
-  `config-export` (packed restore point) → `understand` (opus, the thinking step: one
-  `brief.md` per route with the controls it must document by exact label, `coverage-plan.json`,
-  ≤ 10 `probes.json`) → `runner` (the probes, on the playground through the MCP → `answers.md`)
-  → `ia-agent` (only when a control is unowned or a route is empty; then `bun run stubs`) →
-  per route in parallel: `prepare-write.ts` → `writer` → `gates.ts` → `doc-reviewer` (findings
-  only, no rewrite loop) → `bun run verify` once → `cleanup` (delete `docs-*` agents, on every
-  exit) → `report.ts` → `learn.ts`. Everything lands as an **uncommitted diff**; the pipeline
-  sets `status: auto`, never `adopted`.
+- **Captures are first-class.** An explore run's `states/` (a11y snapshot per UI state),
+  `public/img/<area>/` (viewport + cropped-panel screenshot per state), the rebuilt
+  **component map** `_private/component-map/<area>.json`, and the **briefs**
+  (`runs/<capture>/briefs/<route>/brief.md` + `coverage-plan.json`) are the capture;
+  `_private/agentic-v2/captures.json` indexes the latest per area. A **write-only run**
+  (`area.json.captureRun`) reuses it: no browser, briefs only for routes without one (in
+  parallel batches of ≤ 8, merged by `briefs.ts merge` — first assignment wins, conflicts
+  reported), then writers in parallel. **The capture decides, not ownership**: any route whose
+  controls are on that screen may be written from it (`crossArea` in the report); the map's
+  `console[0]` only sets the night's default. `lib.ts captureDir()`/`briefDir()` resolve paths.
+- **Stages** — `queue.ts` (area.json: url, navPath, routes, captureRun, mode) → gather in
+  parallel: `explorer` (browser: walks every state `explore-plan.ts` names — tabs, menus,
+  accordions, dialogs, the SVG tree nodes of Neural Config; openers like _Edit/Add/Create…_ win
+  over the commit-verb filter; what it skipped by policy is recorded as `excluded`) and
+  `config-export` (packed restore point) → `understand` (opus, the thinking step: brief per
+  route with the controls it must document by exact label, `coverage-plan.<batch>.json`, ≤ 10
+  `probes.json`) → `runner` (the probes, on the playground through the MCP → `answers.md`,
+  verbatim quotes) → `ia-agent` (only when a control is unowned, a route is empty or batches
+  conflict; **assigns, relabels, reorders, proposes — never adds a route**; then `bun run
+stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline first, then the
+  page, **Write/Edit only**) → `gates.ts` → `sync-map.ts` (page description → map) →
+  `doc-reviewer` (findings only, incl. outline drift; no rewrite loop) → `bun run verify` once
+  → `cleanup` (delete `docs-*` agents, on every exit) → `report.ts` (also updates
+  `index.json`: route → {runId, captureRun}) → `learn.ts`. Everything lands as an
+  **uncommitted diff**; the pipeline sets `status: auto`, never `adopted`.
 - **The old prose is background, never a fact.** The writer may read the verbatim-ported page
   for the _why_ and the vocabulary; a fact from it that no snapshot, probe or config shows
   carries `<!-- UNCONFIRMED: … -->` on the line above (the `facts` gate parks a page with more
   than four). Every page ends with `## FAQ` (≥ 3 questions; the `contract` gate checks).
-- **Coverage is the metric.** `gates.ts` = lint · contract · links · images (no old-docs
-  screenshot survives; hashes) · **coverage** (the page names ≥ 90 % of the labels
-  `coverage-plan.json` assigns to it — `coverage.ts`, also the writer's own check) · facts.
+- **Coverage is the metric.** `gates.ts` = lint · contract · links (a link whose sentence
+  promises a topic the still-unwritten target page lacks is a **warning**, never a fail) ·
+  images (no old-docs screenshot survives; hashes) · **coverage** (the page names ≥ 90 % of the
+  labels `coverage-plan.json` assigns to it — `coverage.ts`, also the writer's own check, and
+  `--outline` on the plan before prose) · facts.
 - **Ownership.** A route is written by the first entry of its `console` field in
   `scripts/migration-map.json`; further entries are screens its writer also reads.
   `bun scripts/agentic/areas.ts list` prints the split; `propose`/`apply` seed the field for
-  routes without one (section defaults in `DEFAULTS`). Routes with `console: []` are the
-  `reference` pseudo-area: no screen, written from config/MCP resources/old prose with an
-  `Unverified` caution.
+  routes without one. Routes with `console: []` are the `reference` pseudo-area: no screen,
+  written from config/MCP resources/old prose with an `Unverified` caution.
 - **One instance — the playground — and nothing else.** `_private/agentic-v2/instances.json`
-  names the playground id and the locked ids (production). The hooks enforce it for every
-  caller including the main session, and fail closed: `.claude/hooks/pw-policy.sh` (browser:
-  URL must carry the playground id; a click's `target` ref must resolve in the latest saved
-  snapshot to a non-destructive control; typing only while on the playground; `evaluate`
-  never; snapshots under `runs/`, screenshots under `public/img/`), `mcp-policy.sh` (the
-  `neuralseek-node` MCP: every tool denied unless `.neuralseekrc.json` points at the
-  playground; `delete_agent` only for `docs-*`; run tools logged to `spend.log`),
-  `agent-paths.sh` (per-agent write fences), `nav-log.sh` (audit trail). The explorer never
-  clicks Save / Delete / Run and never types except an area's `entry` input; the runner never
-  changes configuration. Denials go to `runs/<id>/denials.log`.
+  names the playground id and the locked ids (production). Hooks enforce it for every caller
+  including the main session, and fail closed: `.claude/hooks/pw-policy.sh` (browser: URL must
+  carry the playground id; a click's `target` ref must resolve in the latest saved snapshot to
+  a non-destructive control; typing only while on the playground; `evaluate` never; snapshots
+  under `runs/`, screenshots under `public/img/`), `mcp-policy.sh` (the `neuralseek-node` MCP:
+  every tool denied unless `.neuralseekrc.json` points at the playground; `delete_agent` only
+  for `docs-*`; run tools logged to `spend.log`), `agent-paths.sh` (per-agent Edit/Write
+  fences), **`bash-policy.sh`** (the pipeline's named agents may run only the Bash prefixes in
+  their frontmatter — no redirection, heredoc, `sed -i`, `python3`; files go through
+  Write/Edit, so the path fence holds), `nav-log.sh` (audit trail). The explorer never clicks
+  Save / Delete / Run and never types except an area's `entry` input; the runner never changes
+  configuration. Denials go to `runs/<id>/denials.log`.
 - **The only memory is `_private/agentic-v2/conventions.md`.** Agents start blank every run;
   `learn.ts` harvests each run's _structured_ notes (explorer/understand/runner `notes`,
-  skipped states, failed probes, hook denials, map diffs) into that file, verbatim with their
-  source, and five agents read it first. No agent free-writes into it. Prune it by hand.
+  skipped/excluded states, failed probes, coverage conflicts, hook denials, map diffs) into
+  that file, verbatim with their source, and five agents read it first. No agent free-writes
+  into it. Prune it by hand.
 - **Resilience.** Every `agent()` in the Workflow script goes through `A()` (a throw costs one
   route, never the run); an agent's return value is written to its file by a haiku wrapper when
-  the agent forgot; `--attempt <n>` on a resume busts the script-wrapper cache.
+  the agent forgot; `--attempt <n>` on a resume busts the script-wrapper cache. **Never delete a
+  run folder from `current-run`** — `queue.ts --dry-run` previews without opening a run (the
+  first v3 ledger was lost that way and rebuilt from the transcripts; see its `RECOVERED.md`).
 - Ledger: `_private/agentic-v2/runs/<run-id>/` (gitignored). Scripts: `scripts/agentic/`.
-  Night state: `_private/agentic-v2/night/<id>/state.json` (`night.ts plan | next | record | report`).
+  Night: `night.ts plan | next | record | report` — explore each area in order, then one
+  `leftovers:<area>` write-only section per capture for briefed-but-unwritten routes, then the
+  consistency pass, then `REPORT.md` (with proposed routes and "not in any capture").
 
 ## The `neuraldocs-writer` skill
 

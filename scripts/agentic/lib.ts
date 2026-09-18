@@ -96,6 +96,29 @@ export function writeJson(path: string, data: unknown) {
 	mkdirSync(dirname(path), { recursive: true });
 	writeFileSync(path, JSON.stringify(data, null, 2) + '\n');
 }
+/**
+ * Captures are first-class (v3.1): an explore run's states, images, map and BRIEFS are reused
+ * by every later write run of the same area. `area.json.captureRun` names the capture a write
+ * run reads from; an explore run is its own capture. `captures.json` indexes the latest
+ * capture per area.
+ */
+export const CAPTURES_FILE = join(V2_DIR, 'captures.json');
+export type Capture = {
+	runId: string;
+	capturedAt: string;
+	states: number;
+	images: number;
+	mapHash?: string;
+};
+export const loadCaptures = (): Record<string, Capture> => readJson(CAPTURES_FILE) ?? {};
+export function captureRunOf(runId: string): string {
+	const area = readJson<any>(join(RUNS_DIR, runId, 'area.json'));
+	return area?.captureRun ?? runId;
+}
+export const captureDir = (runId: string) => join(RUNS_DIR, captureRunOf(runId));
+/** Where a route's brief lives: with the capture, so every write run of the area shares it. */
+export const briefDir = (runId: string, route: string) =>
+	join(captureDir(runId), 'briefs', routeFolder(route));
 export const sha1 = (data: string | Buffer) => createHash('sha1').update(data).digest('hex');
 
 /** Positional args, `--flag` booleans and `--key value` pairs (repeatable keys collect). */

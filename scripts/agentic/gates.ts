@@ -11,7 +11,9 @@
  *   lint       bun scripts/doc-lint.ts <route> --strict — any ERROR fails
  *   contract   the five h2s in order incl. a FAQ with ≥ 3 entries, title + description present,
  *              no leftover MERGE / STILL TO DOCUMENT / ASK marker
- *   links      every internal ](/…) link resolves to a route, a renamed key, or a file
+ *   links      every internal ](/…) link resolves to a route, a renamed key, or a file; a link
+ *              whose sentence names a **topic** the (unwritten) target page does not mention is
+ *              a warning line, never a FAIL
  *   images     every image exists, is not an old-docs carry-over, and a placeholder is
  *              followed by a SCREENSHOT marker within 3 lines
  *   coverage   the page names ≥ 90 % of the controls coverage-plan.json assigns to it
@@ -129,6 +131,7 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 // ── links ─────────────────────────────────────────────────────────────────────
 {
 	const detail: string[] = [];
+	const warnings: string[] = [];
 	outsideFences((line, i) => {
 		for (const m of line.matchAll(/\]\((\/[^)\s#]*)(#[^)\s]*)?\)/g)) {
 			const target = m[1];
@@ -141,10 +144,39 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 				existsSync(join(DOCS_DIR, `${key}.mdx`)) ||
 				existsSync(join(DOCS_DIR, key, 'index.md')) ||
 				existsSync(join(DOCS_DIR, key, 'index.mdx'));
-			if (!ok) detail.push(`line ${at(i)}: ${target} is not a route`);
+			if (!ok) {
+				detail.push(`line ${at(i)}: ${target} is not a route`);
+				continue;
+			}
+			// A link that promises content ("Rollback is described on …") to a page that is still
+			// a stub or verbatim old prose is a WARNING, never a fail — the target may be written
+			// later tonight; the report counts these and the consistency pass re-checks them.
+			const targetInfo = map.routes[key];
+			if (targetInfo && targetInfo.status !== 'adopted') {
+				const targetPage = [`${key}.md`, `${key}/index.md`]
+					.map((f) => join(DOCS_DIR, f))
+					.find((f) => existsSync(f));
+				// the bold label just before the link (≤ 70 chars back) is what the link promises
+				const topic = (
+					line.slice(Math.max(0, m.index! - 70), m.index).match(/\*\*([^*]{3,60})\*\*/g) ?? []
+				)
+					.map((t) => t.replace(/\*\*/g, ''))
+					.pop();
+				if (
+					targetPage &&
+					topic &&
+					!readFileSync(targetPage, 'utf8')
+						.replace(/<!--[\s\S]*?-->/g, '')
+						.toLowerCase()
+						.includes(topic.toLowerCase())
+				)
+					warnings.push(
+						`line ${at(i)}: link to unwritten content — ${target} (${targetInfo.status}) does not mention "${topic}"`
+					);
+			}
 		}
 	});
-	gate('links', detail.length ? 'FAIL' : 'PASS', detail);
+	gate('links', detail.length ? 'FAIL' : 'PASS', [...detail, ...warnings]);
 }
 // ── images ────────────────────────────────────────────────────────────────────
 {

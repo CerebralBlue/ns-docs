@@ -17,19 +17,24 @@ words, and say "the screen shows" rather than guessing what a setting does.
 
 **Read `_private/agentic-v2/conventions.md` first.**
 
-## Inputs (the prompt gives you `runId`)
+## Inputs (the prompt gives you `runId`, the capture folder `C`, your `routes` and your batch number)
 
-`R` = `_private/agentic-v2/runs/<runId>`.
+`R` = `_private/agentic-v2/runs/<runId>` (this write run). `C` = the CAPTURE folder the prompt
+names (an explore run of the same area — `R` itself when this run explored). Everything you
+read comes from `C`; everything you write goes to `C` too, so later runs reuse it. You may run
+in parallel with sibling batches that hold other routes: write only your routes' briefs and
+your own `C/coverage-plan.<batch>.json`; never touch `C/coverage-plan.json` (a script merges).
 
-- `R/area.json` — the area, its `routes[]` (route, title, status, gaps, alsoReads, page,
-  previous), and `imageDir`.
+- `R/area.json` — the area, its `routes[]` (route, title, status, gaps, alsoReads,
+  crossArea, page, previous), and `imageDir`. Brief only the routes the prompt lists.
+- `C/coverage-plan.json` — if present, the assignments earlier batches or runs already made:
+  read-only; do not re-assign a label that already has an owner, link to it instead.
 - `_private/component-map/<area>.json` — every control by region and state
   (`role`, `name`, `kind`, `commits`, `destructive`, `opens`, `states[]`, table `columns`).
-- `R/states.json` + `R/states/<state>.yml` — one accessibility snapshot per state; the
-  snapshot is the truth for labels, values, options, table columns and help text. `reach` says
-  how the state is reached; `viewport` / `panel` are the images (`/img/<area>/…`).
-- The images themselves: `public/img/<area>/*.png` — Read shows them; look at every panel
-  image at least once, the snapshot does not carry layout or icons.
+- **Read in this order**: `C/states.json` + `C/states/<state>.yml` first (structure: labels,
+  values, options, table columns, help text — the snapshot is the truth), then the images
+  `public/img/<area>/*.png` (layout, icons; Read shows them — every panel image once), then the
+  old page (the _why_). `reach` says how a state is reached; `viewport` / `panel` are the images.
 - `R/section/config.json` — the config export. On this platform it is a packed blob
   (`packed: true`, no keys); when it does carry `keys`, a key's value is the playground's
   current setting. **A value on screen is the playground's current value, not a default** —
@@ -46,15 +51,20 @@ words, and say "the screen shows" rather than guessing what a setting does.
 
 ## What to produce
 
-**1. `R/coverage-plan.json`** — the contract:
+**1. `C/coverage-plan.<batch>.json`** (batch 0 when the prompt gives none) — the contract:
 
 ```json
 {
   "<route>": ["<control label>", "…"],
   "unowned": ["<control label the area shows and no route should document>"],
-  "shared": { "<control label>": ["<route>", "<route>"] }
+  "shared": { "<control label>": ["<route>", "<route>"] },
+  "notInCapture": ["<route in your list whose controls are on no captured screen>"],
+  "emptyRoutes": ["<route with nothing on screen and nothing in the background either>"]
 }
 ```
+
+A route in `notInCapture` gets a one-paragraph `brief.md` saying which screen it needs
+and no sections — the writer is skipped for it and the report lists it.
 
 Every named control in the component map (skip the top navigation, the banner, unnamed icon
 buttons and table rows) appears exactly once as owned, or in `unowned` with a reason in the
@@ -62,7 +72,7 @@ brief. A control that two pages need (a setting one page explains and another pa
 goes to the page that explains it and is listed in `shared` so the other page links there.
 Routes with `console: []` (reference kind) get no controls.
 
-**2. `R/<route folder>/brief.md`** per route, this shape:
+**2. `C/briefs/<route folder>/brief.md`** per route, this shape:
 
 ```md
 # <route> — <title>
@@ -103,7 +113,7 @@ Keep the page-contract order in mind (`.claude/skills/neuraldocs-writer/referenc
 What is it · Why it matters · When to use it · How it works · FAQ. Your `## Sections` are the
 `How it works` subsections; the writer writes the first three from your brief's purpose lines.
 
-**3. `R/probes.json`** — at most 10 for the whole area, only behaviours no screen shows (what
+**3. `R/probes.json`** (append if it exists; batches add their own with ids `p<batch><n>`) — at most 10 for the whole area, only behaviours no screen shows (what
 an answer looks like with a setting on, what an agent returns, what a KB query returns):
 
 ```json
@@ -129,9 +139,10 @@ characters; never a configuration change; never one of the `support_*` demo agen
 - One control, one owner. The stub's `gaps` list and the route `title` tell you what each
   page was meant to cover; the sidebar order is in `area.json.sidebar`.
 - A route that ends up with no controls and no reference material is a `## Open questions`
-  entry in its brief and appears in `unowned`'s twin `emptyRoutes[]` in the coverage plan —
-  the IA step decides what to do with it. Do not invent content for it.
-- Do not write pages. Do not edit the map. Write only under `R/`.
+  entry in its brief and appears in `emptyRoutes[]` in the coverage plan — the IA step decides
+  what to do with it. Do not invent content for it.
+- Do not write pages. Do not edit the map. Write only under `C/` (briefs, your partial plan)
+  and `R/probes.json`. Use the Write tool — never a shell redirection.
 
 ## Output — return this JSON
 
@@ -142,6 +153,7 @@ characters; never a configuration change; never one of the `support_*` demo agen
   "briefs": 31,
   "controls": { "owned": 84, "unowned": 6, "shared": 4 },
   "emptyRoutes": ["configuration/neural-config/using-this-page"],
+  "notInCapture": [],
   "probes": 4,
   "questions": ["…"],
   "notes": "one factual line per thing worth remembering about this screen; no narrative"

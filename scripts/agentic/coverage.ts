@@ -3,16 +3,18 @@
  * understand step assigned to it? Deterministic — a label grep over the page text, the same
  * check gates.ts runs, exposed so the writer can iterate on it before the gate.
  *
- *   bun scripts/agentic/coverage.ts <run-id> <route> [--json]
+ *   bun scripts/agentic/coverage.ts <run-id> <route> [--outline] [--json]
+ *       --outline checks runs/<id>/<route>/outline.md (the writer's plan) instead of the page
  *
- * Reads runs/<id>/coverage-plan.json ({ "<route>": [labels…], unowned, shared }) and the page.
+ * Reads the run's CAPTURE's coverage-plan.json ({ "<route>": [labels…], unowned, shared }) — a
+ * write-only run points at an earlier explore run via area.json.captureRun — and the page.
  * A label counts as covered when the page contains it (case-insensitive, whitespace-collapsed,
  * `&` and `and` interchangeable) outside code fences and HTML comments. Prints
  * { total, covered, missing[], percent }. ABSENT (no plan or no page) is reported, not an error.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DOCS_DIR, parseArgs, readJson, runDir } from './lib';
+import { captureDir, DOCS_DIR, parseArgs, readJson, routeDir } from './lib';
 
 export type Coverage = {
 	status: 'PASS' | 'FAIL' | 'ABSENT';
@@ -22,9 +24,16 @@ export type Coverage = {
 	percent: number;
 	detail?: string;
 };
-export function coverageOf(runId: string, route: string, threshold = 90): Coverage {
-	const plan = readJson<Record<string, any>>(join(runDir(runId), 'coverage-plan.json'));
-	const pagePath = join(DOCS_DIR, `${route}.md`);
+export function coverageOf(
+	runId: string,
+	route: string,
+	threshold = 90,
+	outline = false
+): Coverage {
+	const plan = readJson<Record<string, any>>(join(captureDir(runId), 'coverage-plan.json'));
+	const pagePath = outline
+		? join(routeDir(runId, route), 'outline.md')
+		: join(DOCS_DIR, `${route}.md`);
 	if (!plan)
 		return {
 			status: 'ABSENT',
@@ -41,7 +50,7 @@ export function coverageOf(runId: string, route: string, threshold = 90): Covera
 			covered: 0,
 			missing: [],
 			percent: 0,
-			detail: 'page missing',
+			detail: outline ? 'outline.md missing' : 'page missing',
 		};
 	const labels: string[] = Array.isArray(plan[route]) ? plan[route] : [];
 	if (!labels.length)
@@ -82,8 +91,9 @@ if (import.meta.main) {
 		console.error('Usage: bun scripts/agentic/coverage.ts <run-id> <route> [--json]');
 		process.exit(1);
 	}
-	const c = coverageOf(runId, route);
-	if (args.flags.has('json')) console.log(JSON.stringify({ runId, route, ...c }));
+	const c = coverageOf(runId, route, 90, args.flags.has('outline'));
+	if (args.flags.has('json'))
+		console.log(JSON.stringify({ runId, route, outline: args.flags.has('outline'), ...c }));
 	else {
 		console.log(
 			`${route}  ${c.status}  ${c.covered}/${c.total} (${c.percent}%)${c.detail ? `  — ${c.detail}` : ''}`
