@@ -4,7 +4,7 @@
  *   bun scripts/agentic/map-diff.ts <area> [--apply] [--json]
  *
  * `unchanged` = same structural hash (controls by region/role/name; counts, dates and refs are
- * ignored on purpose). `changed` lists added and removed controls so the map-agent — and the
+ * ignored on purpose). `changed` lists added and removed controls so the explorer — and the
  * report — can say what moved in the console since the last run. `new` = no cache yet.
  * The cache is only replaced with --apply; without it this is a read-only report.
  *

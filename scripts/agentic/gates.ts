@@ -1,8 +1,6 @@
 /**
- * Stage 7 of /docs-verify: the promotion gates for one written route. Deterministic, no model.
- * Lifted from the v1 gate runner (_private/archive/agentic-v1/scripts/migrate-gates.ts) with the
- * ledger moved to runs/<id>/<route>/ and the diff-containment gate dropped — v2 writers
- * reshape a page into the contract, so "only flagged lines changed" no longer applies.
+ * Stage 6 of /docs-explore (agentic v3): the promotion gates for one written route.
+ * Deterministic, no model.
  *
  *   bun scripts/agentic/gates.ts <run-id> <route> [--json]
  *
@@ -11,24 +9,33 @@
  * Result → runs/<id>/<route>/gates.json.
  *
  *   lint       bun scripts/doc-lint.ts <route> --strict — any ERROR fails
- *   contract   the five h2s in order, title + description present
+ *   contract   the five h2s in order incl. a FAQ with ≥ 3 entries, title + description present,
+ *              no leftover MERGE / STILL TO DOCUMENT / ASK marker
  *   links      every internal ](/…) link resolves to a route, a renamed key, or a file
  *   images     every image exists, is not an old-docs carry-over, and a placeholder is
  *              followed by a SCREENSHOT marker within 3 lines
- *   evidence   every non-prose claim has a verdict; no unverifiable param/default claim;
- *              every confirmed ui/behaviour claim rests on a saved snapshot (label greps) or
- *              a run file (the probe's raw output) whose sha1 still matches — re-checked
- *              here, the agents' own flags are not trusted; every contradicted/missing
- *              verdict the writer says it applied has its `actual` text present in the page
- *   write      write.json exists and lists no `left_unresolved` load-bearing claim
+ *   coverage   the page names ≥ 90 % of the controls coverage-plan.json assigns to it
+ *              (coverage.ts — the writer's own check, re-run here)
+ *   facts      ≤ 4 `<!-- UNCONFIRMED: … -->` markers; more means the page is old prose with a
+ *              new coat and Fabio should look at it. Reference-kind routes are exempt.
  *
- * `bun run verify` (the build) is not here: it runs once per pipeline run, after the last
- * writer, from the skill.
+ * `bun run verify` (the build) is not here: it runs once per area run, after the last writer.
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DOCS_DIR, loadMap, parseArgs, readJson, ROOT, routeDir, sha1, writeJson } from './lib';
+import { coverageOf } from './coverage';
+import {
+	DOCS_DIR,
+	loadMap,
+	parseArgs,
+	readJson,
+	ROOT,
+	routeDir,
+	runDir,
+	sha1,
+	writeJson,
+} from './lib';
 
 const args = parseArgs(process.argv.slice(2));
 const [runId, route] = args.positional;
@@ -100,13 +107,23 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 		if (m) h2.push(m[1].toLowerCase());
 	});
 	const positions = CONTRACT.map((s) => h2.indexOf(s.toLowerCase()));
-	// FAQ may be omitted rather than padded (page-contract.md); the other four are required.
-	const missing = CONTRACT.filter((s, i) => positions[i] < 0 && s !== 'FAQ');
+	const missing = CONTRACT.filter((s, i) => positions[i] < 0);
 	if (missing.length) detail.push(`missing h2: ${missing.join(', ')}`);
 	const present = positions.filter((p) => p >= 0);
 	if (present.some((p, i) => i > 0 && p < present[i - 1]))
 		detail.push('contract sections out of order');
 	if (/^#\s/m.test(body)) detail.push('in-body H1');
+	// FAQ: every page ends with ≥ 3 questions (a `### Q` heading or a bold/`**Q**` line ending in `?`).
+	const faqStart = lines.findIndex((l) => /^##\s+FAQ\s*$/i.test(l));
+	if (faqStart >= 0) {
+		const faq = lines.slice(faqStart + 1).join('\n');
+		const questions = (
+			faq.match(/^(###\s+.+\?|\*\*[^*]+\?\*\*|-\s+\*\*Q:?\*\*.+|<details>)\s*$/gm) ?? []
+		).length;
+		if (questions < 3) detail.push(`FAQ has ${questions} question(s); 3 or more required`);
+	}
+	if (/<!--\s*(MERGE|STILL TO DOCUMENT|ASK):/.test(body))
+		detail.push('a MERGE / STILL TO DOCUMENT / ASK marker is still on the page');
 	gate('contract', detail.length ? 'FAIL' : 'PASS', detail);
 }
 // ── links ─────────────────────────────────────────────────────────────────────
@@ -159,87 +176,33 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 	});
 	gate('images', detail.filter((d) => !d.startsWith('note:')).length ? 'FAIL' : 'PASS', detail);
 }
-// ── evidence ──────────────────────────────────────────────────────────────────
-const docs = readJson(join(rd, 'docs.json'));
-const verdicts = readJson(join(rd, 'verdicts.json'));
-const runner = readJson(join(rd, 'runner.json'));
-if (runner?.verdicts?.length) {
-	// Same merge rule as compile.ts: a run settles a claim over a screen.
-	const byId = new Map<string, any>((verdicts?.verdicts ?? []).map((v: any) => [v.id, v]));
-	for (const v of runner.verdicts)
-		if (v.verdict !== 'unverifiable' || !byId.has(v.id)) byId.set(v.id, v);
-	if (verdicts) verdicts.verdicts = [...byId.values()];
-}
-const write = readJson(join(rd, 'write.json'));
+// ── coverage ──────────────────────────────────────────────────────────────────
+const area = readJson<any>(join(runDir(runId), 'area.json'));
+const routeInfo = area?.routes?.find((r: any) => r.route === route);
+const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.console ?? []).length);
 {
-	if (!docs || !verdicts)
-		gate('evidence', 'ABSENT', [!docs ? 'docs.json missing' : 'verdicts.json missing']);
-	else {
-		const detail: string[] = [];
-		const byId = new Map<string, any>((verdicts.verdicts ?? []).map((v: any) => [v.id, v]));
-		const checkable = (docs.claims ?? []).filter((c: any) => c.kind !== 'prose');
-		for (const c of checkable)
-			if (!byId.has(c.id)) detail.push(`${c.id} (${c.kind}) has no verdict`);
-		for (const c of checkable) {
-			const v = byId.get(c.id);
-			if (!v) continue;
-			if (v.verdict === 'unverifiable' && (c.kind === 'param' || c.kind === 'default'))
-				detail.push(`${c.id} (${c.kind}) is unverifiable: ${v.reason ?? ''}`.trim());
-			// A confirmed ui/behaviour claim rests on a saved snapshot (label greps) or a run
-			// file (the probe's raw output), each with a matching sha1; param/default too when
-			// the verifier settled them on screen or by a run.
-			const needsFile =
-				c.kind === 'ui' ||
-				c.kind === 'behaviour' ||
-				((c.kind === 'param' || c.kind === 'default') &&
-					v.tier !== 'config' &&
-					v.tier !== 'portal');
-			if (v.verdict === 'confirmed' && needsFile) {
-				const runFile = v.evidence?.run ? join(rd, v.evidence.run) : '';
-				const snap = v.evidence?.snapshot ? join(rd, v.evidence.snapshot) : '';
-				if (runFile) {
-					if (!existsSync(runFile)) detail.push(`${c.id}: run file missing (${v.evidence.run})`);
-					else if (v.evidence.sha1 && sha1(readFileSync(runFile, 'utf8')) !== v.evidence.sha1)
-						detail.push(`${c.id}: run file sha1 mismatch — evidence changed after the verdict`);
-				} else if (!snap || !existsSync(snap))
-					detail.push(`${c.id}: confirmed ${c.kind} claim without a saved snapshot or run file`);
-				else {
-					const text = readFileSync(snap, 'utf8');
-					if (v.evidence.sha1 && sha1(text) !== v.evidence.sha1)
-						detail.push(`${c.id}: snapshot sha1 mismatch — evidence changed after the verdict`);
-					if (c.kind !== 'behaviour' && (!v.evidence.label || !text.includes(v.evidence.label)))
-						detail.push(
-							`${c.id}: label "${v.evidence?.label ?? ''}" is not in ${v.evidence.snapshot}`
-						);
-				}
-			}
-		}
-		// What the writer says it applied must be visible on the page.
-		for (const e of write?.edits ?? []) {
-			const v = byId.get(e.id);
-			if (!v || !(v.verdict === 'contradicted' || v.verdict === 'missing')) continue;
-			const needle = (e.applied_text ?? v.actual ?? '').trim();
-			if (needle && !raw.includes(needle.slice(0, 60)))
-				detail.push(`${e.id}: applied text not found on the page ("${needle.slice(0, 40)}…")`);
-		}
-		gate('evidence', detail.length ? 'FAIL' : 'PASS', detail);
-	}
+	const c = coverageOf(runId, route);
+	gate(
+		'coverage',
+		c.status,
+		c.status === 'ABSENT'
+			? [c.detail ?? '']
+			: [
+					`${c.covered}/${c.total} controls named (${c.percent}%)`,
+					...c.missing.map((m) => `missing: ${m}`),
+				]
+	);
 }
-// ── write ─────────────────────────────────────────────────────────────────────
+// ── facts ─────────────────────────────────────────────────────────────────────
 {
-	if (!write) gate('write', 'ABSENT', ['write.json missing']);
-	else {
-		const detail: string[] = [];
-		const loadBearing = new Set(['param', 'default', 'endpoint']);
-		const byId = new Map<string, any>((docs?.claims ?? []).map((c: any) => [c.id, c]));
-		for (const id of write.left_unresolved ?? []) {
-			const c = byId.get(typeof id === 'string' ? id : id?.id);
-			if (c && loadBearing.has(c.kind)) detail.push(`${c.id} (${c.kind}) left unresolved`);
-		}
-		if (/<!--\s*(MERGE|STILL TO DOCUMENT|ASK):/.test(body))
-			detail.push('a MERGE / STILL TO DOCUMENT / ASK marker is still on the page');
-		gate('write', detail.length ? 'FAIL' : 'PASS', detail);
-	}
+	const marks = [...raw.matchAll(/<!--\s*UNCONFIRMED:([^]*?)-->/g)].map((m) =>
+		m[1].trim().slice(0, 80)
+	);
+	const limit = isReference ? Infinity : 4;
+	gate('facts', marks.length > limit ? 'FAIL' : 'PASS', [
+		`${marks.length} unconfirmed fact(s)${isReference ? ' (reference kind — no limit)' : ''}`,
+		...marks.map((m) => `unconfirmed: ${m}`),
+	]);
 }
 finish();
 

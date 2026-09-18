@@ -1,15 +1,17 @@
 /**
- * Stage 9 of /docs-verify: what happened to each route, and what Fabio should look at.
+ * Last stage of /docs-explore (agentic v3): what happened to each route of one area run, and
+ * what Fabio should look at.
  *
  *   bun scripts/agentic/report.ts <run-id> [--json]
  *
- * Reads only the run ledger, run.log and denials.log. Prints one row per route (verdict
- * counts, gates, review, outcome), the browser audit (navigations, hosts, denials by agent),
- * the IA decisions, and the exact `git diff` command per changed page. Also written to
- * runs/<id>/section/report.md so the run is readable after the session is gone.
+ * Reads only the run ledger, run.log and denials.log. Prints one row per route (coverage,
+ * unconfirmed facts, images, FAQ, gates, review, outcome), the explore audit (states, images,
+ * navigations, denials), the probes, the IA decisions, the reviewer's findings and the exact
+ * `git diff` command per changed page. Also written to runs/<id>/report.md so the run is
+ * readable after the session is gone.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { parseArgs, readJson, ROOT, routeDir, runDir, writeJson } from './lib';
 
@@ -20,16 +22,21 @@ if (!runId) {
 	process.exit(1);
 }
 const dir = runDir(runId);
-const queue = readJson(join(dir, 'section/queue.json'));
-if (!queue) {
+const area = readJson(join(dir, 'area.json'));
+if (!area) {
 	console.error(`no run ${runId}`);
 	process.exit(1);
 }
-const routesFinal = readJson(join(dir, 'section/routes-final.json'));
+const routesFinal = readJson(join(dir, 'routes-final.json'));
 const routes: string[] = routesFinal
 	? routesFinal.routes.map((r: any) => (typeof r === 'string' ? r : r.route))
-	: queue.routes.map((r: any) => r.route);
-const ia = readJson(join(dir, 'section/ia.json'));
+	: area.routes.map((r: any) => r.route);
+const ia = readJson(join(dir, 'ia.json'));
+const explore = readJson(join(dir, 'explore-summary.json'));
+const understand = readJson(join(dir, 'understand.json'));
+const runner = readJson(join(dir, 'runner.json'));
+const cleanup = readJson(join(dir, 'cleanup.json'));
+const plan = readJson(join(dir, 'coverage-plan.json'));
 const halted = existsSync(join(dir, 'HALTED.md'))
 	? readFileSync(join(dir, 'HALTED.md'), 'utf8').split('\n')[0]
 	: null;
@@ -57,29 +64,37 @@ const changed = new Set(
 
 const rows = routes.map((route) => {
 	const rd = routeDir(runId, route);
-	const ver = readJson(join(rd, 'verdicts.json'));
+	const brief = existsSync(join(rd, 'brief.md'));
 	const gates = readJson(join(rd, 'gates.json'));
 	const review = readJson(join(rd, 'review.json'));
 	const write = readJson(join(rd, 'write.json'));
-	const counts = { confirmed: 0, contradicted: 0, missing: 0, unverifiable: 0 };
-	for (const v of ver?.verdicts ?? []) counts[v.verdict as keyof typeof counts]++;
+	const cov = gates?.gates?.coverage;
+	const covText = cov?.detail?.[0]?.match(/(\d+)\/(\d+) controls named \((\d+)%\)/);
 	const failedGates = gates
 		? Object.entries(gates.gates)
 				.filter(([, g]: any) => g.status !== 'PASS')
 				.map(([k, g]: any) => `${k}:${g.status}`)
 		: [];
-	let outcome = 'not verified';
-	if (ver?.halt) outcome = `halted (${ver.halt})`;
-	else if (ver && !write && !gates) outcome = 'verified';
+	let outcome = 'no brief';
+	if (halted) outcome = `halted (${halted})`;
+	else if (brief && !write && !gates) outcome = 'briefed, not written';
 	else if (write && !gates) outcome = 'written, not gated';
 	else if (gates && !gates.ok) outcome = `parked: ${failedGates.join(' ')}`;
-	else if (gates?.ok && review) outcome = review.verdict === 'ready' ? 'ready' : 'parked: review';
+	else if (gates?.ok && review) outcome = review.verdict === 'ready' ? 'ready' : 'ready, findings';
 	else if (gates?.ok) outcome = 'gated, not reviewed';
 	const page = `src/content/docs/${route}.md`;
 	return {
 		route,
-		counts,
-		navigations: ver?.navigations ?? null,
+		controls: Array.isArray(plan?.[route]) ? plan[route].length : null,
+		coverage: covText ? `${covText[1]}/${covText[2]} (${covText[3]}%)` : (cov?.status ?? null),
+		unconfirmed:
+			write?.unconfirmed ??
+			(gates?.gates?.facts?.detail?.[0]?.match(/^(\d+)/)?.[1]
+				? Number(gates.gates.facts.detail[0].match(/^(\d+)/)[1])
+				: null),
+		images: write?.images?.length ?? null,
+		placeholders: write?.placeholders ?? null,
+		faq: write?.faq ?? null,
 		gates: failedGates,
 		review: review?.verdict ?? null,
 		findings: review?.findings?.length ?? null,
@@ -104,53 +119,73 @@ const spend = existsSync(join(dir, 'spend.log'))
 	: [];
 const spendByTool: Record<string, number> = {};
 for (const l of spend) spendByTool[l.split('\t')[2]] = (spendByTool[l.split('\t')[2]] ?? 0) + 1;
-const cleanup = readJson(join(dir, 'section/cleanup.json'));
-const created = routes.flatMap(
-	(r) => readJson(join(routeDir(runId, r), 'runner.json'))?.created ?? []
-);
-const configChanged = routes.flatMap(
-	(r) => readJson(join(routeDir(runId, r), 'runner.json'))?.configChanged ?? []
-);
+const created: string[] = runner?.created ?? [];
 const denialsByAgent: Record<string, number> = {};
 for (const d of denials)
 	denialsByAgent[d.split('\t')[1]] = (denialsByAgent[d.split('\t')[1]] ?? 0) + 1;
+const findings = routes.flatMap((r) => {
+	const rev = readJson(join(routeDir(runId, r), 'review.json'));
+	return (rev?.findings ?? []).map((f: any) => ({
+		route: r,
+		...(typeof f === 'string' ? { what: f } : f),
+	}));
+});
 
 const summary = {
 	runId,
-	prefix: queue.prefix,
+	area: area.area,
+	kind: area.kind,
 	halted,
 	routes: rows,
-	browser: {
+	explore: {
+		states: explore?.states ?? Object.keys(readJson(join(dir, 'states.json')) ?? {}).length,
+		images: explore?.images ?? null,
+		notOpened: explore?.pendingTodos ?? [],
+		map: explore?.map?.status ?? null,
 		navigations: navs.length,
 		clicks: logLines.length - navs.length,
 		hosts,
 		denials: denialsByAgent,
 	},
-	ia: ia ? { decisions: ia.decisions ?? ia } : null,
+	understand: understand
+		? {
+				controls: understand.controls,
+				emptyRoutes: understand.emptyRoutes ?? [],
+				questions: understand.questions ?? [],
+			}
+		: null,
+	unowned: plan?.unowned ?? [],
+	probes: {
+		planned: (readJson(join(dir, 'probes.json')) ?? []).length,
+		run: runner?.probes ?? 0,
+		byTool: spendByTool,
+		results: runner?.results ?? [],
+	},
+	ia: ia ? { decisions: ia.decisions ?? ia, questions: ia.questions ?? [] } : null,
 	playground: {
-		probes: spendByTool,
 		agentsCreated: created,
 		agentsDeleted: cleanup?.deleted ?? [],
 		leftovers: cleanup?.leftovers ?? created.filter((n) => !(cleanup?.deleted ?? []).includes(n)),
-		configChanged,
 		configRestored: cleanup?.configRestored ?? [],
+		configNotRestored: cleanup?.configNotRestored ?? [],
 	},
+	findings,
 	structuralChanges: [...changed].filter((p) => !p.startsWith('src/content/docs/')),
 };
-writeJson(join(dir, 'section/report.json'), summary);
+writeJson(join(dir, 'report.json'), summary);
 
 const md = [
-	`# Run ${runId} — ${queue.prefix}`,
+	`# Run ${runId} — area ${area.area}${area.kind === 'reference' ? ' (reference kind, no screen)' : ''}`,
 	'',
 	halted ? `**HALTED:** ${halted}\n` : '',
-	'| route | ✓ | ✗ | + | ? | nav | gates | review | outcome |',
+	'| route | controls | coverage | unconfirmed | images | FAQ | gates | review | outcome |',
 	'|---|---|---|---|---|---|---|---|---|',
 	...rows.map(
 		(r) =>
-			`| ${r.route} | ${r.counts.confirmed} | ${r.counts.contradicted} | ${r.counts.missing} | ${r.counts.unverifiable} | ${r.navigations ?? ''} | ${r.gates.length ? r.gates.join(' ') : r.outcome.startsWith('parked') || r.outcome === 'ready' ? 'PASS' : ''} | ${r.review ?? ''}${r.findings != null ? ` (${r.findings})` : ''} | ${r.outcome} |`
+			`| ${r.route} | ${r.controls ?? ''} | ${r.coverage ?? ''} | ${r.unconfirmed ?? ''} | ${r.images ?? ''}${r.placeholders ? ` (+${r.placeholders} pending)` : ''} | ${r.faq ?? ''} | ${r.gates.length ? r.gates.join(' ') : r.outcome.startsWith('ready') ? 'PASS' : ''} | ${r.review ?? ''}${r.findings != null ? ` (${r.findings})` : ''} | ${r.outcome} |`
 	),
 	'',
-	`Browser: ${navs.length} navigations, ${logLines.length - navs.length} clicks/hovers, hosts: ${hosts.join(', ') || 'none'}. Denials: ${
+	`Explore: ${summary.explore.states} states, ${summary.explore.images ?? '?'} images, map ${summary.explore.map ?? 'not rebuilt'}; ${navs.length} navigations, ${logLines.length - navs.length} clicks; hosts: ${hosts.join(', ') || 'none'}. Not opened: ${summary.explore.notOpened.length ? summary.explore.notOpened.join(', ') : 'none'}. Denials: ${
 		denials.length
 			? Object.entries(denialsByAgent)
 					.map(([a, n]) => `${a} ${n}`)
@@ -158,15 +193,38 @@ const md = [
 			: 'none'
 	}.`,
 	'',
-	ia
-		? `IA decisions: ${JSON.stringify(ia.decisions ?? ia).slice(0, 400)}`
-		: 'IA: no decisions recorded.',
+	`Understand: ${understand ? `${understand.controls?.owned ?? '?'} controls owned, ${understand.controls?.unowned ?? '?'} unowned, ${understand.controls?.shared ?? '?'} shared; empty routes: ${(understand.emptyRoutes ?? []).join(', ') || 'none'}` : 'no understand.json'}. Unowned after IA: ${summary.unowned.length ? summary.unowned.join(', ') : 'none'}.`,
 	'',
-	`Playground: ${
+	`Probes: ${summary.probes.run}/${summary.probes.planned} run (${
 		Object.entries(spendByTool)
 			.map(([t, n]) => `${t} ×${n}`)
-			.join(', ') || 'no probes'
-	}. Agents created: ${created.length ? created.join(', ') : 'none'}; deleted: ${(cleanup?.deleted ?? []).length}; **leftovers: ${summary.playground.leftovers.length ? summary.playground.leftovers.join(', ') : 'none'}**. Config branches changed: ${configChanged.length ? configChanged.join(', ') : 'none'}${configChanged.length ? `; restored: ${(cleanup?.configRestored ?? []).join(', ') || 'NOT CONFIRMED'}` : ''}.`,
+			.join(', ') || 'none'
+	}). Agents created: ${created.length ? created.join(', ') : 'none'}; deleted: ${(cleanup?.deleted ?? []).length}; **leftovers: ${summary.playground.leftovers.length ? summary.playground.leftovers.join(', ') : 'none'}**.${summary.playground.configNotRestored.length ? ` **Config NOT restored: ${summary.playground.configNotRestored.join(', ')}**` : ''}`,
+	'',
+	ia
+		? `IA decisions: ${JSON.stringify(ia.decisions ?? ia).slice(0, 600)}`
+		: 'IA: not needed (nothing unowned).',
+	...(understand?.questions?.length || ia?.questions?.length
+		? [
+				'',
+				'## Questions',
+				'',
+				...[...(understand?.questions ?? []), ...(ia?.questions ?? [])].map(
+					(q: string) => `- ${q}`
+				),
+			]
+		: []),
+	...(findings.length
+		? [
+				'',
+				'## Reviewer findings',
+				'',
+				...findings.map(
+					(f: any) =>
+						`- **${f.route}**${f.line ? `:${f.line}` : ''} [${f.kind ?? 'finding'}] ${f.what ?? ''}${f.evidence ? ` — ${f.evidence}` : ''}`
+				),
+			]
+		: []),
 	'',
 	'## Review the diff',
 	'',
@@ -176,10 +234,10 @@ const md = [
 	'Nothing was committed. `status` was set to `auto` on written routes; `adopted` is yours to set. The playground should be as it was found — check the leftovers line.',
 	'',
 ].join('\n');
-require('node:fs').writeFileSync(join(dir, 'section/report.md'), md);
+writeFileSync(join(dir, 'report.md'), md);
 
 if (args.flags.has('json')) console.log(JSON.stringify(summary));
 else {
 	console.log(md);
-	console.log(`(also at ${relative(ROOT, join(dir, 'section/report.md'))})`);
+	console.log(`(also at ${relative(ROOT, join(dir, 'report.md'))})`);
 }

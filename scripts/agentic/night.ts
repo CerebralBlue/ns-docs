@@ -2,40 +2,39 @@
  * The overnight driver's state — one file, four verbs. The /docs-night skill calls these
  * between Workflow launches so nothing about the night lives in the model's memory.
  *
- *   bun scripts/agentic/night.ts plan [--sections a/,b/,…] [--json]     open a night
+ *   bun scripts/agentic/night.ts plan [--areas a,b,…] [--json]          open a night
  *   bun scripts/agentic/night.ts next --json                            what to launch now
- *   bun scripts/agentic/night.ts record <section|consistency> --status done|halted|failed
+ *   bun scripts/agentic/night.ts record <area|consistency> --status done|halted|failed
  *        [--workflow <id>] [--ledger <run-id>] [--tokens <n>] [--result <json>]
  *   bun scripts/agentic/night.ts report                                 REPORT.md
  *
  * State: _private/agentic-v2/night/<night-id>/state.json (+ `current-night` pointer).
- * Scope: every route with sources, except maistro/ntl/* (the NTL generator owns those), in
- * dependency order — evidence flows from Neural Config and KnowledgeBase screens into the
- * sections that cite them. `refreshMap` is set on the first section that touches each area.
- * `next` is idempotent: a section already `running` is returned again, never a second one.
+ * v3: one /docs-explore run per console AREA (areas.json), each writing the routes the area
+ * owns (first `console` entry in the map), in ORDER — screens whose settings other pages cite
+ * come first. `reference` (routes with no screen) runs last. `maistro/ntl/*` is excluded (the
+ * NTL generator owns it). `next` is idempotent: an area already `running` is returned again.
+ * The `sections` field name is kept in state.json so REPORT.md and the skill stay simple —
+ * a "section" is an area.
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import {
-	loadMap,
-	parseArgs,
-	readJson,
-	ROOT,
-	routeDir,
-	routeFolder,
-	V2_DIR,
-	writeJson,
-} from './lib';
+import { loadAreas, resolveArea } from './areas';
+import { loadMap, parseArgs, readJson, ROOT, routeFolder, V2_DIR, writeJson } from './lib';
 
 const ORDER = [
-	'configuration/',
-	'knowledge/',
-	'seek/',
-	'governance/',
-	'integrations/',
-	'maistro/',
-	'getting-started/',
-	'reference/',
+	'neural-config',
+	'knowledge',
+	'data-loader',
+	'seek',
+	'curate',
+	'chat',
+	'governance',
+	'admin-tools',
+	'extract',
+	'maistro',
+	'runagent',
+	'home',
+	'reference',
 ];
 const args = parseArgs(process.argv.slice(2));
 const verb = args.positional[0];
@@ -46,10 +45,9 @@ const statePath = (id: string) => join(NIGHT_DIR, id, 'state.json');
 const asJson = args.flags.has('json');
 
 type Section = {
-	prefix: string;
+	prefix: string; // the area name (field name kept from v2)
 	routes: string[];
-	areas: string[];
-	refreshMap: boolean;
+	kind: 'console' | 'reference';
 	status: 'pending' | 'running' | 'done' | 'halted' | 'failed';
 	ledgerRunId?: string;
 	workflowRunId?: string;
@@ -72,25 +70,22 @@ type State = {
 
 if (verb === 'plan') {
 	const { map } = loadMap();
+	const areas = loadAreas();
 	const wanted =
 		args
-			.get('sections')
+			.get('areas')
 			?.split(',')
 			.map((s) => s.trim())
 			.filter(Boolean) ?? ORDER;
-	const seen = new Set<string>();
 	const sections: Section[] = [];
-	for (const prefix of wanted) {
+	for (const area of wanted) {
+		if (!areas[area] || areas[area].alias) continue;
 		const routes = Object.entries(map.routes)
-			.filter(
-				([r, v]) => r.startsWith(prefix) && v.sources?.length && !r.startsWith('maistro/ntl/')
-			)
+			.filter(([r]) => !r.startsWith('maistro/ntl/'))
+			.filter(([, v]) => resolveArea(areas, (v.console ?? [])[0] ?? 'reference') === area)
 			.map(([r]) => r);
 		if (!routes.length) continue;
-		const areas = [...new Set(routes.flatMap((r) => map.routes[r].console ?? []))];
-		const refreshMap = areas.some((a) => !seen.has(a));
-		for (const a of areas) seen.add(a);
-		sections.push({ prefix, routes, areas, refreshMap, status: 'pending' });
+		sections.push({ prefix: area, routes, kind: areas[area].kind, status: 'pending' });
 	}
 	const id = `${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-night`;
 	const state: State = {
@@ -105,21 +100,17 @@ if (verb === 'plan') {
 		console.log(
 			JSON.stringify({
 				nightId: id,
-				sections: sections.map((s) => ({
-					prefix: s.prefix,
-					routes: s.routes.length,
-					refreshMap: s.refreshMap,
-				})),
+				sections: sections.map((s) => ({ area: s.prefix, routes: s.routes.length, kind: s.kind })),
 				routes: sections.reduce((n, s) => n + s.routes.length, 0),
 			})
 		);
 	else {
 		console.log(
-			`night ${id} — ${sections.reduce((n, s) => n + s.routes.length, 0)} routes in ${sections.length} sections`
+			`night ${id} — ${sections.reduce((n, s) => n + s.routes.length, 0)} routes in ${sections.length} areas`
 		);
 		for (const s of sections)
 			console.log(
-				`  ${s.prefix.padEnd(18)} ${String(s.routes.length).padStart(2)} routes  areas: ${s.areas.join(', ')}${s.refreshMap ? '  (refresh map)' : ''}`
+				`  ${s.prefix.padEnd(16)} ${String(s.routes.length).padStart(3)} routes  ${s.kind}`
 			);
 	}
 	process.exit(0);
@@ -149,10 +140,9 @@ if (verb === 'next') {
 		console.log(
 			JSON.stringify({
 				nightId: state.nightId,
-				section: pending.prefix,
+				area: pending.prefix,
+				kind: pending.kind,
 				routes: pending.routes,
-				areas: pending.areas,
-				refreshMap: pending.refreshMap,
 				alreadyRunning: !!running,
 				ledgerRunId: pending.ledgerRunId ?? null,
 				workflowRunId: pending.workflowRunId ?? null,
@@ -203,7 +193,7 @@ if (verb === 'record') {
 	} else {
 		const s = state.sections.find((x) => x.prefix === what);
 		if (!s) {
-			console.error(`unknown section ${what}`);
+			console.error(`unknown area ${what}`);
 			process.exit(1);
 		}
 		if (args.get('workflow')) s.workflowRunId = args.get('workflow');
@@ -224,35 +214,37 @@ if (verb === 'report') {
 	const lines: string[] = [
 		`# Night ${state.nightId}`,
 		'',
-		`Started ${state.createdAt}. Sections in order; every change is an uncommitted diff.`,
+		`Started ${state.createdAt}. One /docs-explore run per area, in order; every change is an uncommitted diff.`,
 		'',
 	];
 	let totalTokens = 0;
 	const diffs: string[] = [];
 	const questions: string[] = [];
+	const findings: string[] = [];
 	const leftovers: string[] = [];
 	lines.push(
-		'| section | routes | ready | parked | halted/other | tokens | build | status |',
+		'| area | routes | ready | parked | other | tokens | build | status |',
 		'|---|---|---|---|---|---|---|---|'
 	);
 	for (const s of state.sections) {
-		const rep = s.ledgerRunId
-			? readJson(join(V2_DIR, 'runs', s.ledgerRunId, 'section/report.json'))
-			: null;
+		const rep = s.ledgerRunId ? readJson(join(V2_DIR, 'runs', s.ledgerRunId, 'report.json')) : null;
 		const outcomes: string[] = rep?.routes?.map((r: any) => r.outcome) ?? [];
-		const ready = outcomes.filter((o) => o === 'ready').length;
+		const ready = outcomes.filter((o) => o.startsWith('ready')).length;
 		const parked = outcomes.filter((o) => o.startsWith('parked')).length;
 		const other = outcomes.length - ready - parked;
 		totalTokens += s.tokens ?? 0;
 		for (const r of rep?.routes ?? []) if (r.diff) diffs.push(r.diff);
 		for (const p of rep?.structuralChanges ?? []) diffs.push(`git diff -- ${p}`);
 		for (const l of rep?.playground?.leftovers ?? []) leftovers.push(`${s.prefix}: ${l}`);
-		const ia = s.ledgerRunId
-			? readJson(join(V2_DIR, 'runs', s.ledgerRunId, 'section/ia.json'))
-			: null;
-		for (const q of ia?.questions ?? []) questions.push(`${s.prefix} ${q}`);
+		const ia = s.ledgerRunId ? readJson(join(V2_DIR, 'runs', s.ledgerRunId, 'ia.json')) : null;
+		for (const q of ia?.questions ?? []) questions.push(`${s.prefix}: ${q}`);
+		for (const q of rep?.understand?.questions ?? []) questions.push(`${s.prefix}: ${q}`);
+		for (const f of rep?.findings ?? [])
+			findings.push(
+				`${f.route}${f.line ? `:${f.line}` : ''} [${f.kind ?? 'finding'}] ${f.what ?? ''}`
+			);
 		lines.push(
-			`| ${s.prefix} | ${s.routes.length} | ${ready} | ${parked} | ${other} | ${s.tokens ? Math.round(s.tokens / 1000) + 'k' : ''} | ${s.result?.buildOk === undefined ? '' : s.result.buildOk ? 'green' : 'red'} | ${s.status}${s.status === 'halted' ? ` — resume: /docs-verify ${s.prefix} --resume ${s.workflowRunId} --run ${s.ledgerRunId}` : ''} |`
+			`| ${s.prefix} | ${s.routes.length} | ${ready} | ${parked} | ${other} | ${s.tokens ? Math.round(s.tokens / 1000) + 'k' : ''} | ${s.result?.buildOk === undefined ? '' : s.result.buildOk ? 'green' : 'red'} | ${s.status}${s.status === 'halted' ? ` — resume: /docs-explore ${s.prefix} --resume ${s.workflowRunId} --run ${s.ledgerRunId}` : ''} |`
 		);
 	}
 	lines.push(
@@ -293,7 +285,8 @@ if (verb === 'report') {
 		''
 	);
 	if (questions.length)
-		lines.push('## Questions the IA agent raised', '', ...questions.map((q) => `- ${q}`), '');
+		lines.push('## Questions the agents raised', '', ...questions.map((q) => `- ${q}`), '');
+	if (findings.length) lines.push('## Reviewer findings', '', ...findings.map((f) => `- ${f}`), '');
 	lines.push(
 		'## Review the diff',
 		'',

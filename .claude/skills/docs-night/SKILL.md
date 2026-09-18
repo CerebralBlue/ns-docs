@@ -1,67 +1,69 @@
 ---
 name: docs-night
-description: Drive the overnight run of /docs-verify across every sourced section, one Workflow per section in dependency order, then one cross-page consistency pass, then the morning report. State lives in _private/agentic-v2/night/<id>/state.json (scripts/agentic/night.ts); the model only reads it and launches the next step. Use when Fabio types /docs-night start | continue | report; never invoke on your own.
+description: Drive the overnight run of /docs-explore across every console area, one Workflow per area in dependency order, then one cross-page consistency pass, then the morning report. State lives in _private/agentic-v2/night/<id>/state.json (scripts/agentic/night.ts); the model only reads it and launches the next step. Use when Fabio types /docs-night start | continue | report; never invoke on your own.
 argument-hint: 'start | continue | report | status'
-allowed-tools: Bash(bun scripts/agentic/*), Bash(git status *), Bash(cat _private/agentic-v2/*), Read, Workflow
+allowed-tools: Bash(bun scripts/agentic/*), Bash(git status *), Bash(cat _private/agentic-v2/*), Bash(sed *), Bash(node -e *), Read, Workflow
 ---
 
 # /docs-night — the overnight driver
 
 Arguments: `$ARGUMENTS`
 
-You chain Workflows; you do not verify or write anything yourself. Every decision is a script's
+You chain Workflows; you do not explore or write anything yourself. Every decision is a script's
 output — read it, act on it, stop the turn. When a Workflow finishes, its completion
 notification wakes you: record it, ask the script what is next, launch it, stop. Nothing about
 the night is kept in your head — if in doubt, `bun scripts/agentic/night.ts next --json`.
 
 **Nothing is committed. Ever. `adopted` is never set. The playground is cleaned up by every
-section's own Cleanup stage.**
+area's own Cleanup stage.**
 
 ## `start`
 
-1. `bun scripts/agentic/night.ts plan` — prints the sections and routes. If a night is already in
-   progress (`_private/agentic-v2/night/current-night` exists and its state has a `running` or
-   `pending` section), say so and use `continue` instead.
+1. `bun scripts/agentic/night.ts plan` — prints the areas and route counts. If a night is
+   already in progress (`_private/agentic-v2/night/current-night` exists and its state has a
+   `running` or `pending` section), say so and use `continue` instead.
 2. Preconditions, once: `git status --porcelain src/content/docs astro.config.mjs scripts/migration-map.json`
-   empty; `_private/agentic-v2/instances.json` present; the headed Chrome window is logged into
-   the playground (Fabio confirms — a login redirect halts the first section otherwise).
+   empty (or Fabio said the tree is his); `_private/agentic-v2/instances.json` and
+   `areas.json` present; the headed Chrome window is logged into the playground (Fabio
+   confirms — a login redirect halts the first area otherwise).
 3. Then do `continue`.
 
 ## `continue`
 
 1. `bun scripts/agentic/night.ts next --json` →
-   - `{section, routes, areas, refreshMap, alreadyRunning, workflowRunId}`: if `alreadyRunning`
-     and `workflowRunId` is set, a Workflow is (or was) running for it — do not launch another;
+   - `{area, kind, routes, alreadyRunning, workflowRunId}`: if `alreadyRunning` and
+     `workflowRunId` is set, a Workflow is (or was) running for it — do not launch another;
      check `/workflows`; if it is gone, record it `failed` and call `next` again. Otherwise go to 2.
    - `{consistency: true, routes, runIds, alreadyRunning}`: go to 3.
    - `{done: true}`: go to `report`.
-2. **Launch a section.** `bun scripts/agentic/queue.ts <section> --only <r1> --only <r2> … --json` (one `--only` per route from `next` — the section prefix alone would also queue its stubs) → `runId`. Record it:
-   `bun scripts/agentic/night.ts record <section> --ledger <runId>`. Call the **Workflow** tool
-   with the docs-verify script (`.claude/skills/docs-verify/SKILL.md`, the `js` block, verbatim)
-   and `args: { runId, prefix: <section>, routes, areas, noWrite: false, refreshMap: <from next>,
-repo: "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs" }`. Then
-   `bun scripts/agentic/night.ts record <section> --workflow <the Workflow run id>`. **Stop the
-   turn** — say which section is running and that the completion notification continues it.
-3. **Launch the consistency pass.** Call the Workflow tool with the script below and
-   `args: { nightId, routes, runIds, repo }`. Record `--workflow`. Stop the turn.
-4. **On a completion notification** (its result JSON is in the notification): for a section,
-   `bun scripts/agentic/night.ts record <section> --status <done|halted> --tokens <subagent_tokens
-from the notification's usage> --result '<the result JSON, minified>'` — `halted` when the
-   result has `loginHalted: true`, else `done`. A failed Workflow (error, no result) → `--status
-failed`. For the consistency pass, `record consistency --status done --tokens … --result …`.
-   Then go to 1. Do not summarise mid-night; the report does that.
+2. **Launch an area.** `bun scripts/agentic/queue.ts <area> --json` → `runId` (the routes it
+   prints are the ones the area owns — they match `next`). Record it:
+   `bun scripts/agentic/night.ts record <area> --ledger <runId>`. Extract the docs-explore
+   script to a file (`sed -n '/^```js$/,/^```$/p' .claude/skills/docs-explore/SKILL.md | sed '1d;$d' > <scratchpad>/docs-explore.js`,
+   once per night) and call the **Workflow** tool with `scriptPath` and
+   `args: { runId, area, kind, routes, repo: "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs" }`.
+   Then `bun scripts/agentic/night.ts record <area> --workflow <the Workflow run id>`. **Stop
+   the turn** — say which area is running and that the completion notification continues it.
+3. **Launch the consistency pass.** Extract the script below the same way and call the
+   Workflow tool with `args: { nightId, routes, runIds, repo }`. Record `--workflow`. Stop the turn.
+4. **On a completion notification** (its result JSON is in the notification): for an area,
+   `bun scripts/agentic/night.ts record <area> --status <done|halted> --tokens <subagent_tokens
+from the notification's usage> --result '<the result JSON, minified, without the report field>'`
+   — `halted` when the result has `loginHalted: true`, else `done`. A failed Workflow (error,
+   no result) → `--status failed`. For the consistency pass, `record consistency --status done
+--tokens … --result …`. Then go to 1. Do not summarise mid-night; the report does that.
 
-A login halt stops the browser for every later section; `next` will still hand you the next one.
-Launch it anyway only if its areas are all cached (`refreshMap: false`) — the verifier still
-needs the browser, so in practice: record, then **stop and tell Fabio** the resume command
-(`/docs-verify <section> --resume <workflowRunId> --run <ledgerRunId>`), then `/docs-night continue`.
+A login halt stops the browser for every later area. Record it, then **stop and tell Fabio** the
+resume command (`/docs-explore <area> --resume <workflowRunId> --run <ledgerRunId>`), then
+`/docs-night continue`. The `reference` area needs no browser and may still run.
 
 ## `report` / `status`
 
 `bun scripts/agentic/night.ts report` prints and writes `night/<id>/REPORT.md`. Put in front of
-Fabio, in this order: leftovers on the playground (must be none), halted sections with the
-resume command, the per-section table, the consistency findings, the IA questions, the diff
-commands. `status` = `night.ts next --json` without launching anything, plus `/workflows`.
+Fabio, in this order: leftovers on the playground (must be none), halted areas with the
+resume command, the per-area table, the consistency findings, the reviewer findings, the
+questions, the diff commands. `status` = `night.ts next --json` without launching anything,
+plus `/workflows`.
 
 ## The consistency Workflow script
 

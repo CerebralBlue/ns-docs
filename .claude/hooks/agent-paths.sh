@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# PreToolUse guard on Edit / Write / MultiEdit for the docs-verify pipeline's agents.
+# PreToolUse guard on Edit / Write / MultiEdit for the docs-explore pipeline's agents.
 #
 # Each agent may write only where its role says. Nothing here fences the main session or
 # agents outside the pipeline. The map (`scripts/migration-map.json`) is writable by the
 # ia-agent alone; `scripts/`, `.claude/`, `public/` are off-limits to every agent (the
-# verifier's screenshots arrive through the browser hook, not an editor).
+# explorer's screenshots arrive through the browser hook, not an editor).
 set -euo pipefail
 # Fail closed: an unexpected error in this script must deny, never fall through to "allowed".
 trap 'jq -n --arg r "'"$(basename "$0")"' hit an internal error — denied by default" '"'"'{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'"'"'; exit 0' ERR
@@ -29,11 +29,11 @@ deny() {
 }
 
 case "$AGENT" in
-	docs-agent | map-agent | verifier | config-export)
+	explorer | understand | runner | config-export | consistency)
 		case "$FILE" in
-			"$RUNS"/* | "$ROOT"/_private/component-map/* | "$ROOT"/_private/tools/playwright/output/*) exit 0 ;;
+			"$RUNS"/* | "$ROOT"/_private/component-map/* | "$ROOT"/_private/tools/playwright/output/* | "$ROOT"/_private/agentic-v2/night/*) exit 0 ;;
 		esac
-		deny "$AGENT may only write under _private/agentic-v2/runs/ and _private/component-map/; refused: $FILE"
+		deny "$AGENT may only write under _private/agentic-v2/runs/, _private/agentic-v2/night/ and _private/component-map/; refused: $FILE"
 		;;
 	writer)
 		case "$FILE" in

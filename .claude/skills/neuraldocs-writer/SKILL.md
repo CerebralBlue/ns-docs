@@ -52,7 +52,7 @@ The persona is the behaviour, not decoration.
 
 2. **Make sure the route is not `stub` before you edit the page.** `bun run stubs` rewrites
    every `stub` file on each run, so a route left at `stub` can lose an afternoon of writing.
-   `auto` and `adopted` are never regenerated. Inside the `/docs-verify` pipeline the
+   `auto` and `adopted` are never regenerated. Inside the `/docs-explore` pipeline the
    `prepare-write` script has already set `auto` — a pipeline agent never edits the map. Working
    by hand, set `"status": "adopted"` yourself, first, not last. `adopted` is the human's mark:
    only a person sets it.
@@ -127,12 +127,14 @@ failure mode is inventing plausible detail. Guard against it in this order:
 Work down it. Stop at the first tier that actually answers the question, and record which tier it
 was.
 
-**1 — The running product, as evidence.** When the `/docs-verify` pipeline ran for the route,
-its run folder (`_private/agentic-v2/runs/<run-id>/<route with / → ->/`) holds `evidence.md`
-(every claim's verdict), `verdicts.json`, and `evidence/*.yml` — accessibility snapshots of the
-console with the exact labels on screen. A label that greps in a snapshot is a fact; a label you
-remember is not. The console's structure is in `_private/component-map/<area>.json`. **You do not
-open the browser yourself** — that is the verifier's job, and the console is production.
+**1 — The running product, as captured.** When the `/docs-explore` pipeline ran for the route's
+area, its run folder (`_private/agentic-v2/runs/<run-id>/`) holds `<route folder>/brief.md`
+(the controls the screen has, by exact label, with the screenshot that shows each),
+`states/*.yml` — accessibility snapshots of every state of the console screen — and
+`answers.md` (what the product returned to the runner's probes). A label that greps in a
+snapshot is a fact; a label you remember is not. The console's structure is in
+`_private/component-map/<area>.json`. **You do not open the browser yourself** — that is the
+explorer's job, on the playground, behind a hook.
 
 **2 — The instance config export** — `runs/<run-id>/section/config.json` (`keys` = dotted
 path → value, secrets stripped). Defaults, limits and option names live here. For NTL facts:
@@ -181,7 +183,7 @@ bite while writing a page.
   route that is not already in the map means adding it in both places.
 - **Never add a co-author trailer to a commit in this repo**, and keep commit messages short.
   This overrides any global attribution habit.
-- Never open the production console yourself; the verifier does, read-only, behind a hook.
+- Never open a console yourself; the explorer does, on the playground, behind a hook.
 
 ## Visuals — every old screenshot is stale
 

@@ -1,6 +1,6 @@
 /**
- * Last stage of /docs-verify: harvest what a run learned into the conventions file the next
- * run's agents read first. This is the only "memory" the pipeline has — agents themselves
+ * Last stage of /docs-explore: harvest what an area run learned into the conventions file the
+ * next run's agents read first. This is the only "memory" the pipeline has — agents themselves
  * start blank every time.
  *
  *   bun scripts/agentic/learn.ts <run-id> [--json]
@@ -8,11 +8,12 @@
  * Only STRUCTURED fields are harvested, verbatim, with their source named — an agent never
  * free-writes into shared memory (a hallucination there becomes an instruction for every
  * future run). Sources:
- *   verdicts.json → notes, map_gaps[], unverifiable reasons (counted)
- *   runner.json   → notes
- *   map result    → areas that changed (added/removed controls), from map-diff's diff files
- *   denials.log   → the reason text of each denial (what agents keep trying that is refused)
- *   config.json   → absent → "config export unavailable this run"
+ *   explore.json     → notes, skipped[] (what could not be opened and why)
+ *   understand.json  → notes, questions[]
+ *   runner.json      → notes, failed probes (reason)
+ *   map result       → areas that changed (added/removed controls), from map-diff's diff files
+ *   denials.log      → the reason text of each denial (what agents keep trying that is refused)
+ *   config.json      → absent → "config export unavailable this run"
  * Lines already present in conventions.md are not repeated. The file keeps a dated block per
  * run; a human prunes it — the header says so.
  */
@@ -27,13 +28,13 @@ if (!runId) {
 	process.exit(1);
 }
 const dir = runDir(runId);
-const queue = readJson(join(dir, 'section/queue.json'));
+const queue = readJson(join(dir, 'area.json'));
 if (!queue) {
 	console.error(`no run ${runId}`);
 	process.exit(1);
 }
 const FILE = join(V2_DIR, 'conventions.md');
-const HEADER = `# Conventions the pipeline learned (read first by map-agent, verifier, runner, docs-agent, writer)
+const HEADER = `# Conventions the pipeline learned (read first by explorer, understand, runner, writer, consistency)
 
 Harvested by \`scripts/agentic/learn.ts\` from each run's structured notes — never free text from
 an agent. One dated block per run. Prune by hand when a line stops being true; keep it short,
@@ -62,25 +63,17 @@ const add = (source: string, text: string) => {
 	}
 };
 
-const routes: string[] = queue.routes.map((r: any) => r.route);
-const reasons = new Map<string, number>();
-for (const r of routes) {
-	const rd = join(dir, r.replace(/\//g, '-'));
-	const ver = readJson(join(rd, 'verdicts.json'));
-	const runner = readJson(join(rd, 'runner.json'));
-	if (ver?.notes) add(`verifier, ${r}`, ver.notes);
-	for (const g of ver?.map_gaps ?? [])
-		add(
-			`verifier map gap, ${r}`,
-			typeof g === 'string' ? g : `${g.area ?? ''}: ${g.what ?? JSON.stringify(g)}`
-		);
-	for (const v of [...(ver?.verdicts ?? []), ...(runner?.verdicts ?? [])]) {
-		if (v.verdict === 'unverifiable' && v.reason)
-			reasons.set(v.reason, (reasons.get(v.reason) ?? 0) + 1);
-	}
-	if (runner?.notes) add(`runner, ${r}`, runner.notes);
-}
-for (const [reason, n] of reasons) add('unverifiable reason', `${reason}${n > 1 ? ` ×${n}` : ''}`);
+const explore = readJson(join(dir, 'explore.json'));
+const understand = readJson(join(dir, 'understand.json'));
+const runner = readJson(join(dir, 'runner.json'));
+if (explore?.notes) add(`explorer, ${queue.area}`, explore.notes);
+for (const s of explore?.skipped ?? [])
+	add(`explorer skipped, ${queue.area}`, typeof s === 'string' ? s : `${s.id}: ${s.why}`);
+if (understand?.notes) add(`understand, ${queue.area}`, understand.notes);
+for (const q of understand?.questions ?? []) add(`understand question, ${queue.area}`, q);
+if (runner?.notes) add(`runner, ${queue.area}`, runner.notes);
+for (const r of runner?.results ?? [])
+	if (r.result === 'failed' && r.why) add(`probe failed, ${queue.area}`, `${r.id}: ${r.why}`);
 
 // Map changes: the diff files map-diff.ts wrote during this run.
 const cand = join(COMPONENT_MAP_DIR, '.candidates');
@@ -120,7 +113,7 @@ let out = existing;
 if (lines.length)
 	out =
 		existing.trimEnd() +
-		`\n\n## ${queue.createdAt.slice(0, 10)} · run ${runId} · ${queue.prefix}\n\n${lines.join('\n')}\n`;
+		`\n\n## ${queue.createdAt.slice(0, 10)} · run ${runId} · ${queue.area}\n\n${lines.join('\n')}\n`;
 writeFileSync(FILE, out);
 if (args.flags.has('json'))
 	console.log(JSON.stringify({ learned: lines.length, file: relative(ROOT, FILE) }));

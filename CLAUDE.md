@@ -388,47 +388,61 @@ Open items that affect anyone touching content:
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
 
-## The `/docs-verify` pipeline (agentic workflow v2)
+## The `/docs-explore` pipeline (agentic workflow v3, screen-first)
 
-The workflow that turns a verbatim-ported section into verified, contract-shaped pages. Fabio
-runs it (`/docs-verify seek/ [--only <route>] [--no-write] [--refresh-map]`); it is never
-model-invoked. Design + diagram: `_private/agentic-v2/diagrams/architecture.html`.
+The workflow that writes a section of pages from the **running product's screens**. One run =
+one **console area** (a screen in `_private/agentic-v2/areas.json`); it writes every route the
+area owns. Fabio runs it (`/docs-explore <area> [--only <route>]`) or chains it overnight
+(`/docs-night start | continue | report`); neither is model-invoked. Design + diagram:
+`_private/agentic-v2/diagrams/architecture.html`. v2 — the claim-verification design that ran
+night 1 (24 routes, ~11M tokens, nothing ready) — is archived in `_private/archive/agentic-v2/`.
 
-- **Stages** — queue (script) → gather in parallel: `docs-agent` (claims per page),
-  `config-export` (one `backup_instance` call → `config-slice.ts`), `map-agent` (console
-  a11y snapshots → `map-build.ts` / `map-diff.ts` → the cached **component map** in
-  `_private/component-map/<area>.json`) → per route, `verifier` (browser, serialized on the
-  one profile) alongside `runner` (MCP probes, no browser) → `compile.ts` (evidence.md,
-  coverage.json) → `ia-agent` (section barrier: sidebar/route tree, auto-applied) → `designer`
-  (barrier, only when a route needs a page component) → per route `prepare-write.ts` →
-  `writer` → `gates.ts` → `doc-reviewer` (one rewrite loop, then park) → `bun run verify` once
-  → `cleanup` (delete `docs-*` agents, confirm config restored — on every exit) → `report.ts`
-  → `learn.ts`. Everything lands as an **uncommitted diff**; the pipeline sets `status: auto`,
-  never `adopted`.
-- **The only memory is `_private/agentic-v2/conventions.md`.** Agents start blank every run;
-  `learn.ts` harvests each run's _structured_ notes (verifier/runner `notes`, `map_gaps`,
-  unverifiable reasons, hook denials, map diffs) into that file, verbatim with their source, and
-  five agents read it first. No agent free-writes into it — a hallucination there would become
-  an instruction for every future run. Prune it by hand.
-- **Evidence rule** — a claim is `confirmed` only on a file saved into the run's `evidence/`
-  folder: an accessibility snapshot that contains the label (grep) or a probe's raw output
-  (`*.run.json`), sha1 recorded; `gates.ts` re-checks both. Load-bearing facts (defaults,
-  params) with no evidence park the route.
+- **Stages** — `queue.ts` (area.json: url, navPath, the routes owned) → gather in parallel:
+  `explorer` (browser: walks every state `explore-plan.ts` names — tabs, menus, accordions,
+  dialogs, the SVG tree nodes of Neural Config — saving an a11y snapshot per state into
+  `runs/<id>/states/` and a viewport + cropped-panel screenshot into `public/img/<area>/`,
+  then rebuilds the cached **component map** `_private/component-map/<area>.json`) and
+  `config-export` (packed restore point) → `understand` (opus, the thinking step: one
+  `brief.md` per route with the controls it must document by exact label, `coverage-plan.json`,
+  ≤ 10 `probes.json`) → `runner` (the probes, on the playground through the MCP → `answers.md`)
+  → `ia-agent` (only when a control is unowned or a route is empty; then `bun run stubs`) →
+  per route in parallel: `prepare-write.ts` → `writer` → `gates.ts` → `doc-reviewer` (findings
+  only, no rewrite loop) → `bun run verify` once → `cleanup` (delete `docs-*` agents, on every
+  exit) → `report.ts` → `learn.ts`. Everything lands as an **uncommitted diff**; the pipeline
+  sets `status: auto`, never `adopted`.
+- **The old prose is background, never a fact.** The writer may read the verbatim-ported page
+  for the _why_ and the vocabulary; a fact from it that no snapshot, probe or config shows
+  carries `<!-- UNCONFIRMED: … -->` on the line above (the `facts` gate parks a page with more
+  than four). Every page ends with `## FAQ` (≥ 3 questions; the `contract` gate checks).
+- **Coverage is the metric.** `gates.ts` = lint · contract · links · images (no old-docs
+  screenshot survives; hashes) · **coverage** (the page names ≥ 90 % of the labels
+  `coverage-plan.json` assigns to it — `coverage.ts`, also the writer's own check) · facts.
+- **Ownership.** A route is written by the first entry of its `console` field in
+  `scripts/migration-map.json`; further entries are screens its writer also reads.
+  `bun scripts/agentic/areas.ts list` prints the split; `propose`/`apply` seed the field for
+  routes without one (section defaults in `DEFAULTS`). Routes with `console: []` are the
+  `reference` pseudo-area: no screen, written from config/MCP resources/old prose with an
+  `Unverified` caution.
 - **One instance — the playground — and nothing else.** `_private/agentic-v2/instances.json`
-  names the playground id and the locked ids (production). On the playground the agents may
-  type, submit, run Seek, run and create agents (`docs-*` names) and change a setting they
-  restore; every probe is small (inputs ≤ 200 chars, ≤ 10 per route — the instance has a
-  token limit nobody knows). The hooks enforce it for every caller including the main
-  session, and fail closed: `.claude/hooks/pw-policy.sh` (browser: URL must carry the
-  playground id; a click's `ref` must resolve in the latest saved snapshot to a
-  non-destructive control; typing only while on the playground; `evaluate` never),
-  `mcp-policy.sh` (the `neuralseek-node` MCP: every tool denied unless `.neuralseekrc.json`
-  points at the playground; `delete_agent` only for `docs-*`; run tools logged to
-  `spend.log`), `agent-paths.sh` (per-agent write fences), `nav-log.sh` (audit trail).
-  Denials go to `runs/<id>/denials.log`; three for one agent halt the run.
-- **Console areas per route** are the `console` field in `scripts/migration-map.json`
-  (seeded for `seek/*`); routes without one get a proposal file for Fabio, never an agent edit.
+  names the playground id and the locked ids (production). The hooks enforce it for every
+  caller including the main session, and fail closed: `.claude/hooks/pw-policy.sh` (browser:
+  URL must carry the playground id; a click's `target` ref must resolve in the latest saved
+  snapshot to a non-destructive control; typing only while on the playground; `evaluate`
+  never; snapshots under `runs/`, screenshots under `public/img/`), `mcp-policy.sh` (the
+  `neuralseek-node` MCP: every tool denied unless `.neuralseekrc.json` points at the
+  playground; `delete_agent` only for `docs-*`; run tools logged to `spend.log`),
+  `agent-paths.sh` (per-agent write fences), `nav-log.sh` (audit trail). The explorer never
+  clicks Save / Delete / Run and never types except an area's `entry` input; the runner never
+  changes configuration. Denials go to `runs/<id>/denials.log`.
+- **The only memory is `_private/agentic-v2/conventions.md`.** Agents start blank every run;
+  `learn.ts` harvests each run's _structured_ notes (explorer/understand/runner `notes`,
+  skipped states, failed probes, hook denials, map diffs) into that file, verbatim with their
+  source, and five agents read it first. No agent free-writes into it. Prune it by hand.
+- **Resilience.** Every `agent()` in the Workflow script goes through `A()` (a throw costs one
+  route, never the run); an agent's return value is written to its file by a haiku wrapper when
+  the agent forgot; `--attempt <n>` on a resume busts the script-wrapper cache.
 - Ledger: `_private/agentic-v2/runs/<run-id>/` (gitignored). Scripts: `scripts/agentic/`.
+  Night state: `_private/agentic-v2/night/<id>/state.json` (`night.ts plan | next | record | report`).
 
 ## The `neuraldocs-writer` skill
 

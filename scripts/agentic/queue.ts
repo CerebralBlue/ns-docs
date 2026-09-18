@@ -1,21 +1,23 @@
 /**
- * Stage 0 of /docs-verify: open a run and write what every later stage keys on.
+ * Stage 0 of /docs-explore (agentic v3): open a run for ONE console area and write what every
+ * later stage keys on.
  *
- *   bun scripts/agentic/queue.ts <route-prefix> [--only <route>] [--run <id>] [--json]
+ *   bun scripts/agentic/queue.ts <area> [--only <route>]… [--run <id>] [--json]
  *
- * Writes, under _private/agentic-v2/runs/<run-id>/section/:
- *   queue.json     the routes in scope (map order) with title, status, sources, gaps, page +
- *                  previous-copy paths, and the sidebar group block from astro.config.mjs
- *   console.json   route → console areas, from each route's `console` field in the map;
- *                  routes without one get `console-proposals.json` entries for Fabio — an
- *                  agent never writes the field into the map
- * …and _private/agentic-v2/current-run = <run-id>, which the hooks read for their logs.
+ * The area comes from _private/agentic-v2/areas.json (url, navPath, entry). The routes are the
+ * ones the area OWNS — map routes whose first `console` entry resolves to it — so every route
+ * is written by exactly one area; the other areas a route names are extra screens its writer
+ * may read (`alsoReads`). `reference` is the pseudo-area for routes with `console: []`.
  *
- * The run id is the Workflow tool's run id when passed with --run (so the ledger and the
- * Workflow's own state share one name); otherwise a timestamp + prefix.
+ * Writes _private/agentic-v2/runs/<run-id>/area.json:
+ *   { runId, area, url, navPath, kind, entry, menu, routes[{route, folder, title, status,
+ *     gaps, console, alsoReads, page, previous}], sidebar, notInSidebar }
+ * plus one folder per route, and _private/agentic-v2/current-run = <run-id> (the hooks log to it).
+ * Refuses to run unless .neuralseekrc.json points the MCP at the playground.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { loadAreas, resolveArea } from './areas';
 import {
 	CURRENT_RUN_FILE,
 	DOCS_DIR,
@@ -30,10 +32,20 @@ import {
 } from './lib';
 
 const args = parseArgs(process.argv.slice(2));
-const prefix = args.positional[0] ?? (args.flags.has('all') ? '--all' : undefined);
-if (!prefix) {
+const areaName = args.positional[0];
+if (!areaName) {
 	console.error(
-		'Usage: bun scripts/agentic/queue.ts <route-prefix> [--only <route>] [--run <id>] [--json]'
+		'Usage: bun scripts/agentic/queue.ts <area> [--only <route>]… [--run <id>] [--json]'
+	);
+	process.exit(1);
+}
+const areas = loadAreas();
+const area = areas[areaName];
+if (!area || area.alias) {
+	console.error(
+		`unknown area '${areaName}' — one of: ${Object.keys(areas)
+			.filter((a) => !areas[a].alias)
+			.join(', ')}`
 	);
 	process.exit(1);
 }
@@ -50,9 +62,15 @@ if (rc !== inst.playground) {
 const { map } = loadMap();
 
 const routes = Object.entries(map.routes)
-	.filter(([r]) => (prefix === '--all' ? true : r === prefix || r.startsWith(prefix)))
-	.filter(([r]) => !only.length || only.includes(r))
-	.map(([route, info]) => {
+	.filter(([r]) => !r.startsWith('maistro/ntl/'))
+	.map(([route, info]) => ({
+		route,
+		info,
+		owners: (info.console ?? []).map((c) => resolveArea(areas, c)),
+	}))
+	.filter(({ owners }) => (owners[0] ?? 'reference') === areaName)
+	.filter(({ route }) => !only.length || only.includes(route))
+	.map(({ route, info, owners }) => {
 		const page = join(DOCS_DIR, `${route}.md`);
 		const previous = join(ROOT, '_private/archive/verbatim-migration/previous', `${route}.md`);
 		return {
@@ -60,32 +78,30 @@ const routes = Object.entries(map.routes)
 			folder: routeFolder(route),
 			title: info.title,
 			status: info.status,
-			action: info.action,
-			sources: info.sources ?? [],
+			description: info.description ?? '',
 			gaps: info.gaps ?? [],
 			console: info.console ?? [],
+			alsoReads: [...new Set(owners.slice(1))],
 			page: existsSync(page) ? relative(ROOT, page) : null,
 			previous: existsSync(previous) ? relative(ROOT, previous) : null,
 		};
 	});
 if (!routes.length) {
-	console.error(`no routes match ${prefix}${only.length ? ` --only ${only.join(',')}` : ''}`);
+	console.error(`no routes owned by ${areaName}${only.length ? ` --only ${only.join(',')}` : ''}`);
 	process.exit(1);
 }
 
-// The sidebar group that holds these routes, quoted from astro.config.mjs as text.
+// The sidebar groups that hold these routes, quoted from astro.config.mjs as text (the IA
+// step edits them; the report attributes changes to this run).
 const config = readFileSync(join(ROOT, 'astro.config.mjs'), 'utf8');
 const slugs = new Set(routes.map((r) => r.route));
-let sidebar: {
+const sidebar: {
 	label: string;
-	startLine: number;
-	endLine: number;
+	lines: [number, number];
 	items: { label: string; slug: string }[];
-	text: string;
-} | null = null;
+}[] = [];
 {
 	const lines = config.split('\n');
-	// Find the innermost `{ label: '…', items: [` block whose items include one of our slugs.
 	for (let i = 0; i < lines.length; i++) {
 		const m = lines[i].match(/^\s*label:\s*'([^']*)',\s*$/);
 		if (!m || !/^\s*items:\s*\[/.test(lines[i + 1] ?? '')) continue;
@@ -100,66 +116,45 @@ let sidebar: {
 		}
 		if (end < 0) continue;
 		const block = lines.slice(i - 1, end + 2).join('\n');
-		const items = [...block.matchAll(/\{\s*label:\s*'([^']*)',\s*slug:\s*'([^']*)'\s*\}/g)].map(
+		const items = [...block.matchAll(/\{\s*label:\s*'([^']*)',\s*slug:\s*'([^']*)',?\s*\}/g)].map(
 			(x) => ({ label: x[1], slug: x[2] })
 		);
+		// innermost group only: skip a group that contains another matching group
 		if (
 			items.some((it) => slugs.has(it.slug)) &&
-			(!sidebar || items.length < sidebar.items.length)
-		) {
-			sidebar = { label: m[1], startLine: i, endLine: end + 2, items, text: block };
-		}
+			!sidebar.some((s) => s.lines[0] > i && s.lines[1] < end)
+		)
+			sidebar.push({ label: m[1], lines: [i, end + 2], items });
 	}
 }
+// Starlight's slug for `<dir>/index.md` is `<dir>`; the map keys it `<dir>/index`.
+const inSidebar = new Set(
+	sidebar.flatMap((s) => s.items.flatMap((it) => [it.slug, `${it.slug}/index`]))
+);
 
 const runId =
 	args.get('run') ??
-	`${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${prefix.replace(/[^a-z0-9]+/gi, '-').replace(/-$/, '')}`;
+	`${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}-${areaName.replace(/[^a-z0-9]+/gi, '-')}`;
 const dir = runDir(runId);
-mkdirSync(join(dir, 'section'), { recursive: true });
-for (const r of routes) mkdirSync(join(dir, r.folder, 'evidence'), { recursive: true });
-
-const questionsFile = join(
-	ROOT,
-	'_private/archive',
-	`${prefix.replace(/\/$/, '')}-migration-questions.md`
-);
-const queue = {
+mkdirSync(join(dir, 'states'), { recursive: true });
+for (const r of routes) mkdirSync(join(dir, r.folder), { recursive: true });
+const areaJson = {
 	runId,
-	prefix,
+	area: areaName,
+	url: area.url,
+	navPath: area.navPath,
+	kind: area.kind,
+	entry: area.entry ?? null,
+	menu: (area as any).menu ?? null,
+	note: area.note ?? null,
 	instance: { host: inst.host, id: inst.playground },
 	createdAt: new Date().toISOString(),
 	routes,
-	sidebar: sidebar
-		? { label: sidebar.label, lines: [sidebar.startLine, sidebar.endLine], items: sidebar.items }
-		: null,
-	sidebarBlock: sidebar?.text ?? null,
-	openQuestions: existsSync(questionsFile) ? relative(ROOT, questionsFile) : null,
-	auditHints: existsSync(join(ROOT, '_private/archive/verbatim-migration/audit-review.md'))
-		? '_private/archive/verbatim-migration/audit-review.md'
-		: null,
-	notInSidebar: routes
-		.filter((r) => !sidebar?.items.some((it) => it.slug === r.route))
-		.map((r) => r.route),
+	sidebar,
+	notInSidebar: routes.filter((r) => !inSidebar.has(r.route)).map((r) => r.route),
+	imageDir: `public/img/${areaName}`,
 };
-writeJson(join(dir, 'section/queue.json'), queue);
-
-const consoleMap: Record<string, string[]> = {};
-const proposals: Record<string, string[]> = {};
-for (const r of routes) {
-	if (r.console.length) consoleMap[r.route] = r.console;
-	else {
-		// Best guess for Fabio to confirm: the section's own console area. Never written to the map here.
-		consoleMap[r.route] = [];
-		proposals[r.route] = [prefix.replace(/\/$/, '').split('/').pop() ?? prefix];
-	}
-}
-writeJson(join(dir, 'section/console.json'), {
-	areas: [...new Set(Object.values(consoleMap).flat())],
-	byRoute: consoleMap,
-});
-if (Object.keys(proposals).length)
-	writeJson(join(dir, 'section/console-proposals.json'), proposals);
+writeJson(join(dir, 'area.json'), areaJson);
 writeFileSync(CURRENT_RUN_FILE, runId + '\n');
 
 if (args.flags.has('json'))
@@ -167,22 +162,24 @@ if (args.flags.has('json'))
 		JSON.stringify({
 			runId,
 			dir: relative(ROOT, dir),
+			area: areaName,
+			kind: area.kind,
+			url: area.url,
 			routes: routes.map((r) => r.route),
-			areas: [...new Set(Object.values(consoleMap).flat())],
-			proposals: Object.keys(proposals),
-			sidebar: sidebar?.label ?? null,
-			notInSidebar: queue.notInSidebar,
+			alsoReads: [...new Set(routes.flatMap((r) => r.alsoReads))],
+			sidebar: sidebar.map((s) => s.label),
+			notInSidebar: areaJson.notInSidebar,
 		})
 	);
 else {
-	console.log(`run ${runId} → ${relative(ROOT, dir)}`);
-	console.log(`routes (${routes.length}):`);
+	console.log(
+		`run ${runId} → ${relative(ROOT, dir)}  (${areaName} ${area.url ?? 'reference'}, ${routes.length} routes)`
+	);
 	for (const r of routes)
 		console.log(
-			`  ${r.status.padEnd(7)} ${r.route.padEnd(36)} console: ${r.console.join(', ') || '— (proposal written)'}${r.previous ? '  previous ✓' : ''}`
+			`  ${r.status.padEnd(7)} ${r.route.padEnd(52)} ${r.alsoReads.length ? `also reads: ${r.alsoReads.join(', ')}` : ''}`
 		);
 	console.log(
-		`sidebar group: ${sidebar ? `"${sidebar.label}" (${sidebar.items.length} items)` : 'NOT FOUND'}${queue.notInSidebar.length ? ` · not in sidebar: ${queue.notInSidebar.join(', ')}` : ''}`
+		`sidebar groups: ${sidebar.map((s) => `"${s.label}"`).join(', ') || 'NONE'}${areaJson.notInSidebar.length ? ` · not in sidebar: ${areaJson.notInSidebar.join(', ')}` : ''}`
 	);
-	if (queue.openQuestions) console.log(`open questions: ${queue.openQuestions}`);
 }

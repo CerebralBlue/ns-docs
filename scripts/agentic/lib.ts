@@ -1,5 +1,5 @@
 /**
- * Shared helpers for the docs-verify pipeline scripts (scripts/agentic/*.ts).
+ * Shared helpers for the docs-explore pipeline scripts (scripts/agentic/*.ts).
  *
  * Paths, the map file, the run ledger, and the parser for Playwright MCP accessibility
  * snapshots (`browser_snapshot` saved to a .yml). Everything here is deterministic; the
@@ -44,7 +44,7 @@ export function rcInstance(): string | null {
 export const consoleUrl = (inst: Instances, page: string) =>
 	`https://${inst.host}/${inst.playground}/${page.replace(/^\//, '')}`;
 
-/** A control whose name matches commits an action — information for the verifier (click deliberately, keep it small). */
+/** A control whose name matches commits an action — information for the explorer (never clicked by the walk). */
 export const COMMIT_VERBS =
 	/\b(save|run|submit|delete|remove|apply|update|test|send|generate|regenerate|upload|merge|train|enhance|import|export|reset|clear|confirm|ok|yes|create|add|edit|publish|deploy|start|stop|execute|sign out|log ?out)\b/i;
 

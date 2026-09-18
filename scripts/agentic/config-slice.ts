@@ -10,7 +10,7 @@
  * it posts to the UI and gets a 401/302 — verified 2026-09-17.)
  *
  * Output: runs/<id>/section/config.json. When the export is JSON:
- *   keys   every dotted path → scalar value, secrets stripped, sorted — what the verifier greps
+ *   keys   every dotted path → scalar value, secrets stripped, sorted — what the understand step reads
  *   tree   the export minus secrets, for a writer who needs the shape
  * When it is the packed blob packConfig actually returns (opaque hex, not JSON — the normal
  * case), config.json carries only {source, sha1, packed: true}: the file is a RESTORE point for
