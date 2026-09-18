@@ -76,6 +76,13 @@ export const meta = {
     { title: 'Fix', detail: 'writer (own page only) + gates, only when needs-fix' },
   ],
 };
+const A = (prompt, opts) =>
+  agent(prompt, opts).catch((e) => {
+    log(
+      `agent failed (${(opts && opts.label) || '?'}): ${String(e && e.message ? e.message : e).slice(0, 160)}`
+    );
+    return null;
+  });
 const REPO = args.repo;
 const NIGHT = args.nightId;
 const CD = (r) => `${REPO}/_private/agentic-v2/night/${NIGHT}/consistency/${r.replace(/\//g, '-')}`;
@@ -86,7 +93,7 @@ const SCRIPT = {
   required: ['ok'],
 };
 const run = (cmd, label, phase) =>
-  agent(
+  A(
     `From ${REPO}, run exactly this command and nothing else:\n\n${cmd}\n\nReturn {ok: <exit code was 0>, json: <the JSON it printed, parsed>, stderr: <stderr if any>}. Do not fix anything, do not run anything else.`,
     { label, phase, schema: SCRIPT, model: 'haiku', effort: 'low', agentType: 'general-purpose' }
   );
@@ -123,7 +130,7 @@ const results = await pipeline(
     ),
   (n, r) =>
     n && n.ok
-      ? agent(
+      ? A(
           `nightId: ${NIGHT}. route: ${r}. Compare this page with its neighbours per your instructions and write ${CD(r)}/consistency.json.`,
           { agentType: 'consistency', label: `compare:${r}`, phase: 'Compare', schema: CONSISTENCY }
         )
@@ -135,7 +142,7 @@ const results = await pipeline(
       log(`${r}: needs-fix but no run to write against — skipped`);
       return { route: r, verdict: c.verdict, fixed: false };
     }
-    const w = await agent(
+    const w = await A(
       `runId: ${args.runIds[r]}. route: ${r}. Apply the consistency fixes in ${CD(r)}/consistency.json to your page only, per your instructions, and update ${RD(r)}/write.json.`,
       { agentType: 'writer', label: `fix:${r}`, phase: 'Fix', schema: WRITE }
     );

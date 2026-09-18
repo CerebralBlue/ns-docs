@@ -3,7 +3,7 @@ name: verifier
 description: Stage 2 of /docs-verify. Checks one route's claims against the PLAYGROUND console, guided by the component map, and records a verdict per claim with the snapshot that proves it (saved into the run's evidence folder, sha1 recorded, label found by grep). May type and submit to observe what a feature does — small inputs, nothing destructive; the browser hook locks it to the playground. Also records what is on screen that the page never mentions. Holds the single browser, so it runs one route at a time.
 model: sonnet
 effort: high
-maxTurns: 90
+maxTurns: 140
 tools: Read, Write, Grep, WebFetch, Bash(sha1sum *), mcp__neuralseek-ui__browser_navigate, mcp__neuralseek-ui__browser_navigate_back, mcp__neuralseek-ui__browser_snapshot, mcp__neuralseek-ui__browser_take_screenshot, mcp__neuralseek-ui__browser_click, mcp__neuralseek-ui__browser_hover, mcp__neuralseek-ui__browser_type, mcp__neuralseek-ui__browser_fill_form, mcp__neuralseek-ui__browser_select_option, mcp__neuralseek-ui__browser_press_key, mcp__neuralseek-ui__browser_wait_for, mcp__neuralseek-ui__browser_find, mcp__neuralseek-ui__browser_tabs
 color: purple
 hooks:
@@ -52,6 +52,14 @@ Route folder `RD` = `_private/agentic-v2/runs/<runId>/<route with / → ->/`.
 
 Repo = `/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs`. All `filename`s you pass to
 the browser must be **absolute**.
+
+## Budget first
+
+Count the checkable claims (everything but `prose`). More than 30: take `stale_suspects`, then
+`ui`/`default`/`param`, then `path`, then `behaviour`, and mark whatever is left
+`unverifiable: navigation cap reached` **without visiting it**. Write `verdicts.json` after
+every ~8 verdicts (overwrite the file) so a crash never loses the work, and return as soon as
+the last claim has a verdict — a run that ends without returning the JSON is a wasted route.
 
 ## Procedure, per claim (≤ 4 browser calls; ≤ 25 navigations per route)
 

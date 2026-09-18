@@ -76,6 +76,15 @@ export const meta = {
   ],
 };
 
+// A subagent that dies (context exhausted before StructuredOutput, API error) must cost one
+// route, not the run: every agent call goes through A(), which turns a throw into null.
+const A = (prompt, opts) =>
+  agent(prompt, opts).catch((e) => {
+    log(
+      `agent failed (${(opts && opts.label) || '?'}): ${String(e && e.message ? e.message : e).slice(0, 160)}`
+    );
+    return null;
+  });
 const REPO = args.repo;
 const RUN = args.runId;
 const RD = (r) => `${REPO}/_private/agentic-v2/runs/${RUN}/${r.replace(/\//g, '-')}`;
@@ -87,7 +96,7 @@ const SCRIPT = {
   required: ['ok'],
 };
 const run = (cmd, label, phase) =>
-  agent(
+  A(
     `From ${REPO}, run exactly this command and nothing else:\n\n${cmd}\n\nReturn {ok: <exit code was 0>, json: <the JSON it printed, parsed>, stderr: <stderr if any>}. Do not fix anything, do not run anything else.`,
     { label, phase, schema: SCRIPT, model: 'haiku', effort: 'low', agentType: 'general-purpose' }
   );
@@ -196,7 +205,7 @@ const withBrowser = (fn) => {
 };
 const learn = () => run(`bun scripts/agentic/learn.ts ${RUN} --json`, 'learn', 'Learn');
 const cleanup = () =>
-  agent(
+  A(
     `runId: ${RUN}. Leave the playground as the run found it per your instructions and write section/cleanup.json.`,
     { agentType: 'cleanup', label: 'cleanup', phase: 'Cleanup', schema: CLEANUP }
   );
@@ -211,13 +220,13 @@ const halt = (why) => {
 const gather = await parallel([
   () =>
     withBrowser(() =>
-      agent(
+      A(
         `runId: ${RUN}. refreshMap: ${!!args.refreshMap}. Areas: ${args.areas.join(', ')}. Bring the component map current for these areas per your instructions.`,
         { agentType: 'map-agent', label: 'map', phase: 'Gather', schema: MAP }
       )
     ),
   () =>
-    agent(`runId: ${RUN}. Export the instance config and slice it per your instructions.`, {
+    A(`runId: ${RUN}. Export the instance config and slice it per your instructions.`, {
       agentType: 'config-export',
       label: 'config',
       phase: 'Gather',
@@ -225,7 +234,7 @@ const gather = await parallel([
     }),
   ...args.routes.map(
     (r) => () =>
-      agent(
+      A(
         `runId: ${RUN}. route: ${r}. Decompose this page into claims per your instructions and write ${RD(r)}/docs.json.`,
         { agentType: 'docs-agent', label: `docs:${r}`, phase: 'Gather', schema: DOCS }
       )
@@ -262,7 +271,7 @@ const verified = await pipeline(toVerify, (r) =>
       }
       return withBrowser(async () => {
         if (loginHalted) return null;
-        const v = await agent(
+        const v = await A(
           `runId: ${RUN}. route: ${r}. Verify the claims in ${RD(r)}/docs.json against the playground console per your instructions and write ${RD(r)}/verdicts.json.`,
           { agentType: 'verifier', label: `verify:${r}`, phase: 'Verify', schema: VERDICTS }
         );
@@ -271,7 +280,7 @@ const verified = await pipeline(toVerify, (r) =>
       });
     },
     () =>
-      agent(
+      A(
         `runId: ${RUN}. route: ${r}. Run the probes named in ${RD(r)}/docs.json on the playground per your instructions and write ${RD(r)}/runner.json.`,
         { agentType: 'runner', label: `run:${r}`, phase: 'Verify', schema: RUNNER }
       ),
@@ -300,7 +309,7 @@ if (args.noWrite || loginHalted) {
 }
 
 // ── 4 · IA (barrier) ──────────────────────────────────────────────────────────
-const ia = await agent(
+const ia = await A(
   `runId: ${RUN}. section: ${args.prefix}. Decide the section's tree per your instructions, apply it, and write section/ia.json and section/routes-final.json.`,
   { agentType: 'ia-agent', label: 'ia', phase: 'IA', schema: IA }
 );
@@ -321,7 +330,7 @@ const flagged = finalRoutes.filter((r) => {
   return c && c.needsComponent;
 });
 if (flagged.length) {
-  await agent(
+  await A(
     `runId: ${RUN}. Flagged routes: ${flagged.join(', ')}. Decide and deliver per your instructions.`,
     { agentType: 'designer', label: 'design', phase: 'Design', schema: DESIGN }
   );
@@ -333,7 +342,7 @@ const written = await pipeline(
   (r) => run(`bun scripts/agentic/prepare-write.ts ${RUN} ${r} --json`, `prepare:${r}`, 'Write'),
   (p, r) =>
     p && p.ok
-      ? agent(
+      ? A(
           `runId: ${RUN}. route: ${r}. Write the page from ${RD(r)}/evidence.md per your instructions and write ${RD(r)}/write.json.`,
           { agentType: 'writer', label: `write:${r}`, phase: 'Write', schema: WRITE }
         )
@@ -351,13 +360,13 @@ const written = await pipeline(
       );
       return { gates: g.json };
     }
-    const review = await agent(
+    const review = await A(
       `Review the route ${r}. The pipeline's evidence is in ${RD(r)}/ — read verdicts.json and evidence.md first. Return your findings in your usual format and also write ${RD(r)}/review.json as {route, verdict, findings, questions}.`,
       { agentType: 'doc-reviewer', label: `review:${r}`, phase: 'Write', schema: REVIEW }
     );
     if (!review || review.verdict === 'ready') return { gates: g.json, review };
     // One writer loop, then park.
-    const w2 = await agent(
+    const w2 = await A(
       `runId: ${RUN}. route: ${r}. The reviewer returned needs-work: ${JSON.stringify(review.findings).slice(0, 2000)}. Address every finding you can from the evidence, update ${RD(r)}/write.json, and leave what you cannot in left_unresolved.`,
       { agentType: 'writer', label: `rewrite:${r}`, phase: 'Write', schema: WRITE }
     );
@@ -366,7 +375,7 @@ const written = await pipeline(
       : null;
     const review2 =
       g2 && g2.json && g2.json.ok
-        ? await agent(
+        ? await A(
             `Second review of ${r} after one rewrite; evidence in ${RD(r)}/. Write ${RD(r)}/review.json.`,
             { agentType: 'doc-reviewer', label: `review2:${r}`, phase: 'Write', schema: REVIEW }
           )
