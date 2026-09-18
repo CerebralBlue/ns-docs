@@ -35,7 +35,7 @@ section's own Cleanup stage.**
      check `/workflows`; if it is gone, record it `failed` and call `next` again. Otherwise go to 2.
    - `{consistency: true, routes, runIds, alreadyRunning}`: go to 3.
    - `{done: true}`: go to `report`.
-2. **Launch a section.** `bun scripts/agentic/queue.ts <section> --json` → `runId`. Record it:
+2. **Launch a section.** `bun scripts/agentic/queue.ts <section> --only <r1> --only <r2> … --json` (one `--only` per route from `next` — the section prefix alone would also queue its stubs) → `runId`. Record it:
    `bun scripts/agentic/night.ts record <section> --ledger <runId>`. Call the **Workflow** tool
    with the docs-verify script (`.claude/skills/docs-verify/SKILL.md`, the `js` block, verbatim)
    and `args: { runId, prefix: <section>, routes, areas, noWrite: false, refreshMap: <from next>,
