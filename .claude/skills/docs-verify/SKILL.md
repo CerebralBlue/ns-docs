@@ -313,6 +313,9 @@ const ia = await A(
   `runId: ${RUN}. section: ${args.prefix}. Decide the section's tree per your instructions, apply it, and write section/ia.json and section/routes-final.json.`,
   { agentType: 'ia-agent', label: 'ia', phase: 'IA', schema: IA }
 );
+// The ia-agent has no shell: a route it adds to the map exists only once gen-stubs writes
+// its page, and a sidebar slug without a page fails the build.
+await run(`bun run stubs > /dev/null 2>&1 && echo '{"stubs":true}'`, 'stubs', 'IA');
 const recompiled = await run(
   `bun scripts/agentic/compile.ts ${RUN} --routes-final --json`,
   'compile:final',
