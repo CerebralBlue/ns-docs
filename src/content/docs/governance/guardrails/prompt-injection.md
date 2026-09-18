@@ -13,4 +13,5 @@ This page is brand new for the restructured docs.
 
 - 'Try it Out' — score a candidate prompt before setting a threshold
 - How the two thresholds interact: removal runs first, then the block threshold is evaluated
+- The tab's controls by label: 'Blocked Word Action' selector (value seen: Remove from the input), the blocked-words list, and the two sliders Prompt Injection Removal Threshold / Prompt Injection Threshold (Disable … 1)
 

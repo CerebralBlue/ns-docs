@@ -985,11 +985,14 @@
 
     "configuration/overview": {
       "title": "Configuration overview",
-      "description": "Unlock the full potential of NeuralSeek with the Configure tab. Customize settings for optimal performance, explore advanced configurations, and enhance user experience.",
+      "description": "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that route matched questions to Seek or to a mAIstro agent, and Guardrails nodes — this page maps the screen and links each part to its own page.",
       "sources": ["ui/configure/index.md"],
       "action": "rewrite",
       "status": "auto",
-      "console": ["neural-config", "neural-config:advanced"]
+      "console": ["neural-config", "neural-config:advanced"],
+      "gaps": [
+        "The routing tree itself (Default Config root, Answers (N), Add Intent, Category Routing, Guardrails nodes) and the Edit Category dialog — owned here (IA 2026-09-18); using-this-page owns the framing controls (Toggle Advanced, Save vs Propose, Add Intent modal, Default Action, Delete Configuration)"
+      ]
     },
     "configuration/neural-config/index": {
       "title": "Neural Config options",
@@ -1001,7 +1004,7 @@
     },
     "configuration/neural-config/using-this-page": {
       "title": "Using the Neural Config page",
-      "description": "The controls that frame every Neural Config panel: Toggle Advanced, Save vs Propose, Version, Change Logs, Add Intent, and the multi-agent routing tree.",
+      "description": "The controls that frame every Neural Config panel: Toggle Advanced, Save vs Propose, Version, Change Logs, the Add Intent modal and the Default Action node. The routing tree and categories are on the Configuration overview.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1309,7 +1312,9 @@
         "Change Logs per-category tabs — a Default Config tab plus one tab per category",
         "Rollback — revert to a previous configuration version",
         "Activate / Delete Proposal — the proposal lifecycle (legacy but supported)",
-        "Propose Changes — save a configuration change without applying it (legacy but supported)"
+        "Propose Changes — save a configuration change without applying it (legacy but supported)",
+        "Backup & Restore button on the Neural Config toolbar (bottom-right, beside Change Logs) — the Backup and Restore dialog: Download Settings, Upload Settings (Choose File), Backup, Restore; the old 'Show advanced options' path on this page is stale",
+        "Change Log table — columns Proposal ID / Configuration Date, User, Version (can carry a free-text label instead of 'Version N'), Action; a row expands to the changed keys plus a note, and carries a Rollback icon"
       ]
     },
 
@@ -1333,7 +1338,9 @@
       "status": "stub",
       "gaps": [
         "How the 10 tabs relate; which fire before vs after generation",
-        "This is the map page for the whole governance/guardrails/ subtree"
+        "This is the map page for the whole governance/guardrails/ subtree",
+        "Min Text tab (no route of its own — assigned here by IA 2026-09-18): 'Minimum Words in a question' slider (Unlimited … 10), the mAIstro template picker (ex_Minimum_Text_Message on the playground) and the reply text",
+        "Max Length tab (same): 'Maximum Words in a question' slider (0 … Unlimited; 100 removes the limit), the mAIstro template picker (ex_Maximum_Words_Message) and the reply text"
       ]
     },
     "governance/guardrails/profanity-hap": {
@@ -1346,7 +1353,8 @@
       "gaps": [
         "HAP allow-list — words the profanity filter should ignore",
         "HAP block-list — words to block on top of the built-in corpus",
-        "The HAP lists and the prompt-injection blocked words are different tabs with different purposes"
+        "The HAP lists and the prompt-injection blocked words are different tabs with different purposes",
+        "'Enable the profanity Filter' selector — 'Use the LLM Filter if available or the NeuralSeek filter' and its alternatives; the reply text returned to the user"
       ]
     },
     "governance/guardrails/prompt-injection": {
@@ -1358,7 +1366,8 @@
       "status": "stub",
       "gaps": [
         "'Try it Out' — score a candidate prompt before setting a threshold",
-        "How the two thresholds interact: removal runs first, then the block threshold is evaluated"
+        "How the two thresholds interact: removal runs first, then the block threshold is evaluated",
+        "The tab's controls by label: 'Blocked Word Action' selector (value seen: Remove from the input), the blocked-words list, and the two sliders Prompt Injection Removal Threshold / Prompt Injection Threshold (Disable … 1)"
       ]
     },
     "governance/guardrails/semantic-scoring": {
@@ -1372,7 +1381,8 @@
         "LLM Decline Penalty — penalty when the answer looks like a refusal (Semantic Model Tuning)",
         "The five sub-toggles are disabled until the semantic model is switched on",
         "Cross Language silently disables semantic scoring",
-        "Cross-link: configuration/semantic-model, governance/semantic-analytics"
+        "Cross-link: configuration/semantic-model, governance/semantic-analytics",
+        "The six checkboxes by label: Enable the Semantic Score Model; Use Semantic Score as the basis for Warning & Minimum confidence; Rerank the search results based on the Semantic Match; Check document titles as part of the Semantic Match; Check document URL's as part of the Semantic Match; Remove sentences containing hallucinated key words"
       ]
     },
     "governance/guardrails/attribution-protection": {
@@ -1395,7 +1405,9 @@
       "status": "stub",
       "gaps": [
         "Pre-run min confidence agent — runs the fallback agent speculatively for speed, and costs a run every time",
-        "URL Fallback > Category — resolve the fallback URL from the matched intent category"
+        "URL Fallback > Category — resolve the fallback URL from the matched intent category",
+        "The Min Confidence tab's controls by label: the fallback agent picker (ex_Minimum_Confidence_Message on the playground), Minimum Confidence % and 'Minimum Confidence% to display a URL' sliders, the reply text and the Fallback URL",
+        "Warning Confidence tab (assigned here by IA 2026-09-18 — the console pairs 'Warning & Minimum confidence'): 'Confidence % for warning' slider (Disable … 100) and the prepend text (\"I'm not an expert in this, but\")"
       ]
     },
     "governance/guardrails/custom-governance-agents": {
@@ -1420,7 +1432,8 @@
       "status": "auto",
       "console": ["governance", "neural-config:advanced"],
       "gaps": [
-        "Extra PII names list — add personal names a general model will not recognise (PII tab > NeuralSeek PII Detectors)"
+        "Extra PII names list — add personal names a general model will not recognise (PII tab > NeuralSeek PII Detectors)",
+        "The PII tab's controls by label: 'Action to take when PII is found on user input' (Mask …), 'Trust words found in source docs to not be PII' (True/False), the NeuralSeek PII Detectors list (each Enabled/Disabled), the Pre-LLM PII Filters regex table, the LLM-Based PII Filters example table, Try it Out"
       ]
     },
     "governance/red-team-testing": {

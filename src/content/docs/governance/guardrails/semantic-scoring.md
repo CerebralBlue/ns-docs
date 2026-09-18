@@ -15,4 +15,5 @@ This page is brand new for the restructured docs.
 - The five sub-toggles are disabled until the semantic model is switched on
 - Cross Language silently disables semantic scoring
 - Cross-link: configuration/semantic-model, governance/semantic-analytics
+- The six checkboxes by label: Enable the Semantic Score Model; Use Semantic Score as the basis for Warning & Minimum confidence; Rerank the search results based on the Semantic Match; Check document titles as part of the Semantic Match; Check document URL's as part of the Semantic Match; Remove sentences containing hallucinated key words
 

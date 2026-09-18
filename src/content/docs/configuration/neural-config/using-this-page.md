@@ -1,6 +1,6 @@
 ---
 title: "Using the Neural Config page"
-description: "The controls that frame every Neural Config panel: Toggle Advanced, Save vs Propose, Version, Change Logs, Add Intent, and the multi-agent routing tree."
+description: "The controls that frame every Neural Config panel: Toggle Advanced, Save vs Propose, Version, Change Logs, the Add Intent modal and the Default Action node. The routing tree and categories are on the Configuration overview."
 ---
 
 :::note[Draft]

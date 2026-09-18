@@ -14,4 +14,5 @@ This page is brand new for the restructured docs.
 - HAP allow-list — words the profanity filter should ignore
 - HAP block-list — words to block on top of the built-in corpus
 - The HAP lists and the prompt-injection blocked words are different tabs with different purposes
+- 'Enable the profanity Filter' selector — 'Use the LLM Filter if available or the NeuralSeek filter' and its alternatives; the reply text returned to the user
 

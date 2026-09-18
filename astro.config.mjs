@@ -222,10 +222,6 @@ export default defineConfig({
 								{ label: 'Managed LLM Details', slug: 'configuration/neural-config/managed-llm' },
 								{ label: 'Embedding models', slug: 'configuration/neural-config/embedding-models' },
 								{
-									label: 'mAIstro Configuration',
-									slug: 'configuration/neural-config/maistro-configuration',
-								},
-								{
 									label: 'Platform Preferences',
 									slug: 'configuration/neural-config/platform-preferences',
 								},
@@ -236,6 +232,10 @@ export default defineConfig({
 								{
 									label: 'Intent Matching & Cache',
 									slug: 'configuration/neural-config/intent-matching-caching',
+								},
+								{
+									label: 'mAIstro Configuration',
+									slug: 'configuration/neural-config/maistro-configuration',
 								},
 								{ label: 'Secrets', slug: 'configuration/neural-config/secrets' },
 							],

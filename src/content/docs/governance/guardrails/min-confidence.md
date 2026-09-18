@@ -13,4 +13,6 @@ This page is brand new for the restructured docs.
 
 - Pre-run min confidence agent — runs the fallback agent speculatively for speed, and costs a run every time
 - URL Fallback > Category — resolve the fallback URL from the matched intent category
+- The Min Confidence tab's controls by label: the fallback agent picker (ex_Minimum_Confidence_Message on the playground), Minimum Confidence % and 'Minimum Confidence% to display a URL' sliders, the reply text and the Fallback URL
+- Warning Confidence tab (assigned here by IA 2026-09-18 — the console pairs 'Warning & Minimum confidence'): 'Confidence % for warning' slider (Disable … 100) and the prepend text ("I'm not an expert in this, but")
 
