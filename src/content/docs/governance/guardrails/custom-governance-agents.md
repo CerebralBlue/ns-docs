@@ -15,4 +15,5 @@ This page is brand new for the restructured docs.
 - Pre-LLM custom governance agent — rewrite or block user input before retrieval and generation
 - Post-LLM custom governance agent — rewrite or block the generated answer
 - Useless without its NTL nodes: Pre-llm Governance In/Out and Governance Input/Output (cross-link maistro/ntl/pipeline-hooks)
+- The tab's two controls by label (IA 2026-09-18, run 1715): the 'Pre-LLM custom governance agent' and 'Post-LLM custom governance agent' pickers, both reading Disabled on the playground
 

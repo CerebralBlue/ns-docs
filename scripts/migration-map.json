@@ -1340,7 +1340,8 @@
         "How the 10 tabs relate; which fire before vs after generation",
         "This is the map page for the whole governance/guardrails/ subtree",
         "Min Text tab (no route of its own — assigned here by IA 2026-09-18): 'Minimum Words in a question' slider (Unlimited … 10), the mAIstro template picker (ex_Minimum_Text_Message on the playground) and the reply text",
-        "Max Length tab (same): 'Maximum Words in a question' slider (0 … Unlimited; 100 removes the limit), the mAIstro template picker (ex_Maximum_Words_Message) and the reply text"
+        "Max Length tab (same): 'Maximum Words in a question' slider (0 … Unlimited; 100 removes the limit), the mAIstro template picker (ex_Maximum_Words_Message) and the reply text",
+        "The Guardrails dialog itself (IA 2026-09-18, run 1715): opened from the Guardrails node under Default Config and under each Custom Configuration category; title 'Guardrails: <configuration>'; a scrolling tab strip in this order — Semantic Scoring, Prompt Injection, PII, Profanity (HAP), Attribution Protection, Warning Confidence, Min Confidence, Min Text, Max Length, Custom Governance — and one Save footer for all tabs"
       ]
     },
     "governance/guardrails/profanity-hap": {
@@ -1407,7 +1408,8 @@
         "Pre-run min confidence agent — runs the fallback agent speculatively for speed, and costs a run every time",
         "URL Fallback > Category — resolve the fallback URL from the matched intent category",
         "The Min Confidence tab's controls by label: the fallback agent picker (ex_Minimum_Confidence_Message on the playground), Minimum Confidence % and 'Minimum Confidence% to display a URL' sliders, the reply text and the Fallback URL",
-        "Warning Confidence tab (assigned here by IA 2026-09-18 — the console pairs 'Warning & Minimum confidence'): 'Confidence % for warning' slider (Disable … 100) and the prepend text (\"I'm not an expert in this, but\")"
+        "Warning Confidence tab (assigned here by IA 2026-09-18 — the console pairs 'Warning & Minimum confidence'): 'Confidence % for warning' slider (Disable … 100) and the prepend text (\"I'm not an expert in this, but\")",
+        "Values seen on the playground (IA 2026-09-18, run 1715): 'Pre-run min confidence agent for faster speed' selector = true; 'URL Fallback on minimum' selector = None, with the Fallback URL box disabled (placeholder http://myco.com) while it is None"
       ]
     },
     "governance/guardrails/custom-governance-agents": {
@@ -1421,7 +1423,8 @@
         "The Custom Governance tab as a whole",
         "Pre-LLM custom governance agent — rewrite or block user input before retrieval and generation",
         "Post-LLM custom governance agent — rewrite or block the generated answer",
-        "Useless without its NTL nodes: Pre-llm Governance In/Out and Governance Input/Output (cross-link maistro/ntl/pipeline-hooks)"
+        "Useless without its NTL nodes: Pre-llm Governance In/Out and Governance Input/Output (cross-link maistro/ntl/pipeline-hooks)",
+        "The tab's two controls by label (IA 2026-09-18, run 1715): the 'Pre-LLM custom governance agent' and 'Post-LLM custom governance agent' pickers, both reading Disabled on the playground"
       ]
     },
     "governance/pii-detection": {

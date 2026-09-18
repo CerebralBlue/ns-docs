@@ -15,4 +15,5 @@ This page is brand new for the restructured docs.
 - This is the map page for the whole governance/guardrails/ subtree
 - Min Text tab (no route of its own — assigned here by IA 2026-09-18): 'Minimum Words in a question' slider (Unlimited … 10), the mAIstro template picker (ex_Minimum_Text_Message on the playground) and the reply text
 - Max Length tab (same): 'Maximum Words in a question' slider (0 … Unlimited; 100 removes the limit), the mAIstro template picker (ex_Maximum_Words_Message) and the reply text
+- The Guardrails dialog itself (IA 2026-09-18, run 1715): opened from the Guardrails node under Default Config and under each Custom Configuration category; title 'Guardrails: <configuration>'; a scrolling tab strip in this order — Semantic Scoring, Prompt Injection, PII, Profanity (HAP), Attribution Protection, Warning Confidence, Min Confidence, Min Text, Max Length, Custom Governance — and one Save footer for all tabs
 

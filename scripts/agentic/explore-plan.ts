@@ -396,19 +396,36 @@ if (verb === 'finish') {
 	} catch {
 		diff = { raw: (d.stdout || '') + (d.stderr || '') };
 	}
+	const imgDir = join(ROOT, 'public/img', area.area);
+	const imagesOnDisk = existsSync(imgDir)
+		? readdirSync(imgDir).filter((f) => f.endsWith('.png')).length
+		: 0;
+	const excluded = readJson<any[]>(join(dir, 'excluded.json')) ?? [];
 	const summary = {
 		area: area.area,
 		states: ids.length,
 		pendingTodos: todos.filter((t) => !t.done).map((t) => t.id),
-		images:
-			ids.filter((i) => states[i].viewport).length + ids.filter((i) => states[i].panel).length,
+		noChange: ids.filter((i) => states[i].noChange),
+		excluded: excluded.map((e) => `${e.label} (${e.why})`),
+		images: imagesOnDisk,
 		map: diff,
 	};
 	writeJson(join(dir, 'explore-summary.json'), summary);
+	// The capture index: the latest explore of each area, which write-only runs read from.
+	const captures = readJson<Record<string, any>>(CAPTURES_FILE) ?? {};
+	captures[area.area] = {
+		runId: run,
+		capturedAt: new Date().toISOString(),
+		states: ids.length,
+		images: imagesOnDisk,
+		mapHash: diff?.hash?.candidate ?? diff?.hash?.cached ?? null,
+		notOpened: summary.pendingTodos,
+	};
+	writeJson(CAPTURES_FILE, captures);
 	console.log(
 		asJson
 			? JSON.stringify(summary)
-			: `${ids.length} states, ${summary.images} images, ${summary.pendingTodos.length} not opened; map ${diff?.status ?? '?'}`
+			: `${ids.length} states, ${summary.images} images, ${summary.pendingTodos.length} not opened, ${summary.excluded.length} excluded by policy; map ${diff?.status ?? '?'}; capture indexed`
 	);
 	process.exit(0);
 }
