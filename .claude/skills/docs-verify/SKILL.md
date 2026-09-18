@@ -95,9 +95,12 @@ const SCRIPT = {
   properties: { ok: { type: 'boolean' }, json: { type: 'object' }, stderr: { type: 'string' } },
   required: ['ok'],
 };
+// args.attempt (set on a --resume after a script fix) changes the command text so the cached
+// result of a failed script run is not replayed; the scripts ignore the flag.
+const ATTEMPT = args.attempt ? ` --attempt ${args.attempt}` : '';
 const run = (cmd, label, phase) =>
   A(
-    `From ${REPO}, run exactly this command and nothing else:\n\n${cmd}\n\nReturn {ok: <exit code was 0>, json: <the JSON it printed, parsed>, stderr: <stderr if any>}. Do not fix anything, do not run anything else.`,
+    `From ${REPO}, run exactly this command and nothing else:\n\n${cmd}${cmd.startsWith('bun scripts/agentic/') ? ATTEMPT : ''}\n\nReturn {ok: <exit code was 0>, json: <the JSON it printed, parsed>, stderr: <stderr if any>}. Do not fix anything, do not run anything else.`,
     { label, phase, schema: SCRIPT, model: 'haiku', effort: 'low', agentType: 'general-purpose' }
   );
 
@@ -335,8 +338,13 @@ const recompiled = await run(
   'compile:final',
   'IA'
 );
-const finalRoutes =
-  (recompiled && recompiled.json && Object.keys(recompiled.json.routes || {})) || verifiedRoutes;
+// A failed or empty recompile must not silently write nothing: fall back to the verified list.
+const finalKeys =
+  recompiled && recompiled.ok && recompiled.json && recompiled.json.routes
+    ? Object.keys(recompiled.json.routes)
+    : [];
+const finalRoutes = finalKeys.length ? finalKeys : verifiedRoutes;
+if (!finalKeys.length) log('compile:final gave no routes — writing the verified routes instead');
 log(
   `IA: ${ia && ia.decisions ? ia.decisions.length : 0} decision(s); ${finalRoutes.length} route(s) to write`
 );

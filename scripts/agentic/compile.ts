@@ -39,6 +39,11 @@ import {
 	writeJson,
 } from './lib';
 
+// A docs-agent occasionally emits a string or null where the contract says array — a run
+// must not die on it. One string becomes a one-item list; anything else non-array is empty.
+const asList = (x: any): any[] =>
+	Array.isArray(x) ? x : typeof x === 'string' && x.trim() ? [x] : [];
+
 const args = parseArgs(process.argv.slice(2));
 const runId = args.positional[0];
 if (!runId) {
@@ -227,23 +232,23 @@ for (const route of routes) {
 		'## Open questions',
 		'',
 		...[
-			...(docs?.questions ?? []),
+			...asList(docs?.questions),
 			...(merged?.verdicts ?? [])
 				.filter((v: any) => v.verdict === 'unverifiable')
 				.map((v: any) => `${v.id}: ${v.reason ?? 'unverifiable'}`),
 		].map((q: string) => `- ${q}`),
-		...(docs?.stale_suspects?.length
+		...(asList(docs?.stale_suspects).length
 			? [
 					'',
 					'## Suspected stale (docs-agent)',
 					'',
-					...docs.stale_suspects.map(
+					...asList(docs?.stale_suspects).map(
 						(s: any) => `- ${typeof s === 'string' ? s : `${s.claim} — ${s.why}`}`
 					),
 				]
 			: []),
-		...(docs?.faq_candidates?.length
-			? ['', '## FAQ candidates', '', ...docs.faq_candidates.map((s: string) => `- ${s}`)]
+		...(asList(docs?.faq_candidates).length
+			? ['', '## FAQ candidates', '', ...asList(docs?.faq_candidates).map((s: any) => `- ${s}`)]
 			: []),
 		...(configFacts.length
 			? [
