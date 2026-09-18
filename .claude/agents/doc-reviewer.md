@@ -1,7 +1,7 @@
 ---
 name: doc-reviewer
 description: Reviews one finished NeuralDocs page for factual accuracy, page-contract compliance and prose quality, and returns a findings list. Read-only — never edits the page, never flips a status. Use after a page has been written, before calling it done.
-tools: Read, Grep, Glob, WebFetch, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *)
+tools: Read, Write, Grep, Glob, WebFetch, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *)
 model: sonnet
 effort: medium
 maxTurns: 30
@@ -158,5 +158,6 @@ buried in the text. **Nobody rewrites the page on your verdict inside the pipeli
 findings go to the morning report for Fabio, so make each one actionable on its own.
 
 If the page is genuinely fine, say so in two lines. Do not manufacture findings to look useful.
-When the prompt asks for `review.json`, write it into the route's run folder as
-`{ route, verdict, findings: [{kind, line, what, evidence}], questions }`.
+When the prompt asks for `review.json`, write it into the route's run folder **with the Write
+tool** as `{ route, verdict, findings: [{kind, line, what, evidence}], questions }` — the shell
+hook refuses redirections.

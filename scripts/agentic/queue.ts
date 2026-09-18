@@ -6,6 +6,8 @@
  *       explore the area (new capture) and write the routes it OWNS (or --only)
  *   bun scripts/agentic/queue.ts <area> --write-only [--only <route>]… [--all-briefed]
  *       [--from <capture-run-id>] [--run <id>] [--json]
+ *   bun scripts/agentic/queue.ts <area> --capture-only [--only <route>]… [--json]
+ *       explore + brief the owned routes, write no pages (a capture for later --write-only runs)
  *   … --dry-run     print what would be queued; write nothing, touch current-run never
  *       no browser: write from the area's latest capture (captures.json) or --from. --only may
  *       name ANY non-NTL route — the capture decides, ownership only sets the night's default;
@@ -64,6 +66,7 @@ if (!area || area.alias) {
 }
 const only = args.values.only ?? [];
 const writeOnly = args.flags.has('write-only');
+const captureOnly = args.flags.has('capture-only');
 const dryRun = args.flags.has('dry-run');
 const allBriefed = args.flags.has('all-briefed');
 // The pipeline runs against the playground and nothing else — fail before any agent starts.
@@ -194,7 +197,7 @@ if (!dryRun) for (const r of routes) mkdirSync(join(dir, r.folder), { recursive:
 const areaJson = {
 	runId,
 	captureRun: captureRun ?? runId,
-	mode: writeOnly ? 'write-only' : 'explore',
+	mode: writeOnly ? 'write-only' : captureOnly ? 'capture-only' : 'explore',
 	area: areaName,
 	url: area.url,
 	navPath: area.navPath,

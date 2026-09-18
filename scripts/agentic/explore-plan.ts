@@ -133,13 +133,8 @@ const controlsOf = (nodes: SnapNode[]) => {
 	return out;
 };
 
-if (verb === 'plan') {
-	const snap = args.get('snapshot');
-	if (!snap || !existsSync(snap)) {
-		console.error('plan needs --snapshot <abs.yml>');
-		process.exit(1);
-	}
-	const from = args.get('state') ?? 'default';
+/** What one snapshot exposes that is worth opening; appends to states-todo.json + excluded.json. */
+function planFrom(snap: string, from: string) {
 	const parent =
 		from === 'default'
 			? { reach: [] as string[], depth: 0 }
@@ -213,6 +208,16 @@ if (verb === 'plan') {
 	todos.push(...added);
 	writeJson(todoPath, todos);
 	writeJson(excludedPath, excluded);
+	return { added, excluded };
+}
+
+if (verb === 'plan') {
+	const snap = args.get('snapshot');
+	if (!snap || !existsSync(snap)) {
+		console.error('plan needs --snapshot <abs.yml>');
+		process.exit(1);
+	}
+	const { added, excluded } = planFrom(snap, args.get('state') ?? 'default');
 	const pending = todos.filter((t) => !t.done);
 	if (asJson)
 		console.log(
@@ -226,7 +231,7 @@ if (verb === 'plan') {
 		);
 	else {
 		console.log(
-			`+${added.length} from ${from} → ${pending.length} pending of ${todos.length} (cap ${MAX_STATES})`
+			`+${added.length} from ${args.get('state') ?? 'default'} → ${pending.length} pending of ${todos.length} (cap ${MAX_STATES})`
 		);
 		for (const t of pending)
 			console.log(`  ${t.id.padEnd(32)} ${t.kind.padEnd(7)} ${t.reach.join(' → ')}`);
@@ -327,20 +332,27 @@ if (verb === 'record') {
 	if (todo) todo.done = true;
 	writeJson(statesPath, states);
 	writeJson(todoPath, todos);
-	const pending = todos.filter((t) => !t.done).length;
+	// Look deeper automatically: what this state exposes (accordions in a dialog, tabs in a
+	// panel) joins the todo list now — the agent does not have to remember to plan.
+	const deeper = noChange ? { added: [] as Todo[] } : planFrom(snap, id);
+	const pendingList = todos.filter((t) => !t.done);
 	if (asJson)
 		console.log(
 			JSON.stringify({
 				recorded: id,
 				adds: adds?.length ?? null,
-				pending,
+				deeper: deeper.added.map((t) => t.id),
+				pending: pendingList.map((t) => ({ id: t.id, reach: t.reach })),
 				states: Object.keys(states).length,
 			})
 		);
-	else
+	else {
 		console.log(
-			`recorded ${id} (${adds?.length ?? '?'} new controls) — ${pending} pending, ${Object.keys(states).length} states`
+			`recorded ${id} (${adds?.length ?? '?'} new controls, +${deeper.added.length} deeper) — ${pendingList.length} pending, ${Object.keys(states).length} states`
 		);
+		for (const t of pendingList)
+			console.log(`  ${t.id.padEnd(32)} ${t.kind.padEnd(7)} ${t.reach.join(' → ')}`);
+	}
 	process.exit(0);
 }
 

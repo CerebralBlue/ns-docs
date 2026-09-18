@@ -63,12 +63,16 @@ absolute paths. `mkdir -p` both folders first.
      record the state with `--no-change` and no images, and move on (a new tab opening
      counts as a change — close it with `browser_tabs` and note it).
    - Record: `explore-plan.ts record <runId> --state <id> --snapshot … --viewport … [--panel …] --url …`.
-   - Look deeper: `explore-plan.ts plan <runId> --snapshot <this yml> --state <id>` adds what
-     this state exposes (accordions inside a dialog, tabs inside a panel). Continue with the
-     printed pending list — it includes the new ones.
+     It also looks deeper by itself — what this state exposes (accordions inside a dialog,
+     tabs inside a panel, the **Edit Configuration** button inside a tree-node dialog) joins
+     the list — and prints the pending states with their `reach`. **Continue with that printed
+     list until it is empty.** A state whose reach has two or three steps is reached by
+     replaying them from the default screen; nested states are the ones the writers need most.
    - Leave the state: Escape for a dialog or menu, click the same header again for an
      accordion, `navigate_back` for a page. When unsure, navigate to the area URL.
-3. **Stop** when the pending list is empty, or after 30 recorded states, or after 60 clicks.
+3. **Stop only when the pending list is empty**, or after 30 recorded states, or after 60
+   clicks — never because the first level is done. The previous run left
+   `add-custom-configuration-edit` and the whole Edit Configuration accordion unopened.
    Then `bun scripts/agentic/explore-plan.ts finish <runId>` — it builds the component map,
    indexes this run as the area's latest capture (`captures.json`) and prints the summary,
    including `excluded` (what the plan skipped by policy: Save/Delete/Run/feedback…). Return it.

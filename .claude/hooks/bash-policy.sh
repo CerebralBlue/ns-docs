@@ -9,8 +9,9 @@
 # and must not redirect, pipe into a file, or run an interpreter. Files are written with the
 # Write tool and patched with Edit — that is what the denial says.
 #
-# The main session and the `general-purpose` wrappers are not fenced (they run the pipeline's
-# own commands). Fails closed. Denials → the current run's denials.log.
+# Read-only shell (cat, ls, grep, head, jq, git diff…) and `mkdir -p` are allowed for every
+# pipeline agent — looking is not writing. The main session and the `general-purpose` wrappers
+# are not fenced (they run the pipeline's own commands). Fails closed. Denials → denials.log.
 set -euo pipefail
 trap 'jq -n --arg r "bash-policy.sh hit an internal error — denied by default" '"'"'{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'"'"'; exit 0' ERR
 
@@ -44,27 +45,33 @@ esac
 
 # Strip a leading `cd <repo> &&` — agents do that; it is harmless.
 BODY=$(printf '%s' "$CMD" | sed -E "s#^cd +[^&;|]+ *(&&|;) *##")
+# Redirections that do not write a file are fine: 2>&1, >/dev/null, 2>/dev/null.
+CLEAN=$(printf '%s' "$BODY" | sed -E 's#[0-9]?>&[0-9]##g; s#[0-9]?>>?[[:space:]]*/dev/null##g')
 # No writing through the shell, for any pipeline agent.
-if printf '%s' "$BODY" | grep -Eq '(^|[^<>])>{1,2}[^>]|<<|\btee\b|\bsed +-i|\bpython3?\b|\bnode +-e\b|\bperl\b|\bawk +.*>|\bmv\b|\bcp\b|\brm\b|\btruncate\b|\bdd\b'; then
-	deny "$AGENT writes files with the Write tool and patches them with Edit — not through the shell (refused: $(printf "%s" "$BODY" | head -1 | head -c 80))"
+if printf '%s' "$CLEAN" | grep -Eq '(^|[^<>|])>{1,2}[^>]|<<|\btee\b|\bsed +-i|\bpython3?\b|\bnode +-e\b|\bperl\b|\bmv\b|\bcp\b|\brm\b|\btruncate\b|\bdd\b|\bchmod\b|\bgit +(add|commit|checkout|reset|push|stash|rm|mv)\b'; then
+	deny "$AGENT writes files with the Write tool and patches them with Edit — not through the shell (refused: $(printf '%s' "$BODY" | head -1 | head -c 80))"
 fi
-# Only the agent's own prefixes, one command (no chaining into something else).
-if [ -z "$PREFIXES" ]; then
-	deny "$AGENT has no Bash commands in its tools list — use Read/Grep/Glob/Write/Edit (refused: $(printf '%s' "$BODY" | head -c 80))"
-fi
-IFS='|' read -r -a LIST <<<"$PREFIXES"
-OK=0
-for P in "${LIST[@]}"; do
-	case "$BODY" in "$P"*) OK=1 ;; esac
+# Read-only shell is allowed for every pipeline agent (looking is not writing), plus mkdir -p.
+READONLY='cat|ls|find|grep|rg|head|tail|wc|jq|sha1sum|sort|uniq|cut|tr|diff|stat|test|echo|printf|file|realpath|basename|dirname|date|true|mkdir -p|git diff|git status|git log|git show'
+allowed_segment() {
+	local SEG
+	SEG=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//')
+	[ -z "$SEG" ] && return 0
+	if printf '%s' "$SEG" | grep -Eq "^($READONLY)( |$)"; then return 0; fi
+	if [ -n "$PREFIXES" ]; then
+		local P
+		IFS='|' read -r -a LIST <<<"$PREFIXES"
+		for P in "${LIST[@]}"; do case "$SEG" in "$P"*) return 0 ;; esac; done
+	fi
+	return 1
+}
+# Every segment of a chain (&&, ;, ||, |) must be read-only or one of the agent's prefixes.
+REST="$CLEAN"
+while [ -n "$REST" ]; do
+	SEG=$(printf '%s' "$REST" | sed -E 's/(&&|\|\||;|\|).*$//')
+	allowed_segment "$SEG" || deny "$AGENT may only run read-only shell (cat, ls, grep, head, jq…)${PREFIXES:+ and: ${PREFIXES//|/ · }} (refused: $(printf '%s' "$SEG" | head -1 | head -c 80))"
+	NEXT=$(printf '%s' "$REST" | sed -E 's/^[^&;|]*(&&|\|\||;|\|)//')
+	[ "$NEXT" = "$REST" ] && break
+	REST="$NEXT"
 done
-[ "$OK" = 1 ] || deny "$AGENT may only run: ${PREFIXES//|/ · } (refused: $(printf '%s' "$BODY" | head -c 80))"
-if printf '%s' "$BODY" | grep -Eq '(&&|\|\||;|\|)'; then
-	# Allow only chaining two allowed commands (e.g. lint && prettier); anything else is refused.
-	REST=$(printf '%s' "$BODY" | sed -E 's/^[^&;|]+(&&|;|\|\||\|) *//')
-	OK=0
-	for P in "${LIST[@]}"; do
-		case "$REST" in "$P"*) OK=1 ;; esac
-	done
-	[ "$OK" = 1 ] || deny "$AGENT may not chain into '$(printf '%s' "$REST" | head -c 60)' — one allowed command at a time"
-fi
 exit 0

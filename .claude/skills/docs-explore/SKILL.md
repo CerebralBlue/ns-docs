@@ -1,7 +1,7 @@
 ---
 name: docs-explore
 description: Run the NeuralDocs v3 pipeline over ONE console area — explore the screen with the browser (every state, screenshots), understand it (briefs per route, coverage plan, probes), probe behaviour on the playground through the MCP, decide the IA if something is unowned, write every route the area owns (contract + FAQ), gate, review once, build once, report, clean the playground up. Leaves every change as an uncommitted diff. Use when Fabio types /docs-explore; never invoke on your own.
-argument-hint: '<area> [--write-only] [--all-briefed] [--from <capture-run-id>] [--only <route>]… [--resume <workflow-run-id> --run <ledger-run-id>] [--attempt <n>]'
+argument-hint: '<area> [--capture-only | --write-only [--all-briefed] [--from <capture-run-id>]] [--only <route>]… [--resume <workflow-run-id> --run <ledger-run-id>] [--attempt <n>]'
 disable-model-invocation: false
 allowed-tools: Bash(bun scripts/agentic/*), Bash(git status *), Bash(git diff *), Bash(cat _private/agentic-v2/*), Bash(node -e *), Read, Workflow
 ---
@@ -32,13 +32,16 @@ The design, with the diagram: `_private/agentic-v2/diagrams/architecture.html`.
   them cross-area). `--all-briefed` writes every route that has a brief in the capture and no
   page written by a v3 run yet. The understand step runs only for routes without a brief, in
   parallel batches of ≤ 8.
-- Without `--write-only` the run explores first (a new capture, which becomes the area's
-  latest) and then writes the routes the area owns (or `--only`).
+- **`--capture-only`**: explore + understand only — a fresh capture with briefs for every
+  route the area owns (or `--only`), no probes, no IA, no pages. The investment a later
+  `--write-only --all-briefed` run spends. Nothing lands in `src/`.
+- Without either flag the run explores first (a new capture, which becomes the area's latest)
+  and then writes the routes the area owns (or `--only`).
 
 ## 2. Open the run (unless resuming)
 
 ```
-bun scripts/agentic/queue.ts <area> [--write-only] [--all-briefed] [--from <run>] [--only <route>]… --json
+bun scripts/agentic/queue.ts <area> [--capture-only | --write-only [--all-briefed] [--from <run>]] [--only <route>]… --json
 ```
 
 (Add `--dry-run` to preview without opening a run.) Read the JSON: `runId`, `captureRun`,
@@ -61,7 +64,7 @@ still run. A write-only run with routes not yet `briefed` will brief them first 
 
 Extract the script below to a file (`sed -n '/^```js$/,/^```$/p' .claude/skills/docs-explore/SKILL.md | sed '1d;$d' > <scratchpad>/docs-explore.js`)
 and call the **Workflow** tool with `scriptPath` and
-`args: { "runId": "<runId>", "captureRun": "<captureRun>", "mode": "<explore|write-only>", "area": "<area>", "kind": "<kind>", "routes": <routes[]>, "repo": "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs", "attempt": <n or omit> }`.
+`args: { "runId": "<runId>", "captureRun": "<captureRun>", "mode": "<explore|write-only|capture-only>", "area": "<area>", "kind": "<kind>", "routes": <routes[]>, "repo": "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs", "attempt": <n or omit> }`.
 (This instruction is the opt-in for multi-agent orchestration.) Note the Workflow's own run id
 from the tool result next to the ledger id.
 
@@ -101,6 +104,9 @@ const CAPTURE = args.captureRun || RUN;
 const C = `${REPO}/_private/agentic-v2/runs/${CAPTURE}`;
 const BRIEF = (r) => `${C}/briefs/${r.replace(/\//g, '-')}/brief.md`;
 const writeOnly = args.mode === 'write-only';
+// capture-only: explore + understand (briefs for every owned route), no probes, no IA, no
+// writers — the investment a later --write-only run spends.
+const captureOnly = args.mode === 'capture-only';
 // args.attempt (set on a --resume after a script fix) changes the command text so the cached
 // result of a failed script run is not replayed; the scripts ignore the flag.
 const ATTEMPT = args.attempt ? ` --attempt ${args.attempt}` : '';
@@ -363,6 +369,11 @@ if (batches.length && batches[0].length) {
 }
 const notInCapture = new Set(understood.notInCapture || []);
 
+if (captureOnly) {
+  log(`capture-only: ${understood.briefs} brief(s) written to ${C}; no pages written`);
+  return await finish({ stoppedAfter: 'understand', captureOnly: true });
+}
+
 // ── 3 · Probe (MCP, no browser) ──────────────────────────────────────────────
 const probed =
   understood.probes > 0
@@ -446,6 +457,7 @@ const written = await pipeline(
       `Review the route ${r}. The pipeline's brief is in ${BRIEF(r)}; the writer's outline in ${RD(r)}/outline.md; the snapshots in ${C}/states/; what the product did in ${R}/answers.md. Return your findings in your usual format and also write ${RD(r)}/review.json as {route, verdict, findings, questions}.`,
       { agentType: 'doc-reviewer', label: `review:${r}`, phase: 'Write', schema: REVIEW }
     );
+    if (review) await ensureFile(`${RD(r)}/review.json`, review, `review-file:${r}`, 'Write');
     return { gates: g.json, review };
   }
 );
