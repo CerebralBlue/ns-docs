@@ -1,218 +1,256 @@
 ---
-title: "Tuning answers"
-description: "Enhance your NeuralSeek KnowledgeBase with our comprehensive tuning guide. Learn best practices, auto-generate questions, and improve answer quality with semantic scores and hybrid search methods."
+title: 'Tuning answers'
+description: 'Tuning a NeuralSeek agent means controlling which documentation reaches the LLM and how the LLM is told to use it — diagnosed on the Seek tab and changed in the Edit Configuration dialog.'
 ---
 
-## Overview
-This guide provides information on improving answers from the connected KnowledgeBase - Your **ground truth**. 
+## What is it
 
-Use this guide to help get started, improve answers, and learn about some best practices.
+Tuning is the work of getting better answers out of a KnowledgeBase that is already connected.
+The KnowledgeBase is the ground truth: everything Seek generates is built from the passages it
+returns, so tuning is mostly about controlling _which_ documentation reaches the LLM and _how
+much_ of it, plus a small number of settings that tell the LLM how to write what comes back.
 
-## Bootstrapping your Agent
+It happens in two places. You diagnose on the [Seek](/seek/overview/) tab, where an answer
+arrives with its scores and the source documents that produced it. You change settings in the
+**Edit Configuration** dialog on the Neural Config screen, in the accordions named below.
 
-NeuralSeek aims to make bulk-tuning easy, offering different methods for Subject-Matter Experts (SMEs) to collaborate and curate answers.
+## Why it matters
 
-![Click_to_insert](/img/seek/tuning/ns-home.png)
+An LLM asked a question with poor source material still answers. The failure is quiet: a fluent,
+plausible, wrong response. Most answer-quality problems in a NeuralSeek deployment are retrieval
+problems wearing a generation problem's clothes — the model wrote a reasonable paragraph out of
+the wrong documents.
 
-To bootstrap your agent, you may find these options on the home screen.
+The controls here also carry trade-offs in both directions. More documents per Seek is not
+better, and a longer answer is not better. Each lever has a direction that helps a given
+deployment and a direction that hurts it, which is why the product asks you to look at a real
+answer before moving anything.
 
-- Auto-Generate Questions: This will run a query against your connected KnowledgeBase and attempt to generate a list of relevant questions to your subject matter, and then mimics the below option
-- Manually Input Questions: Accepts a list of newline-separated questions, and will perform a Seek action with each question. This populates the Curate tab, while also generating a report spreadsheet that can be distributed among SMEs to weigh in on answers and make edits. (you can also export a similar spreadsheet from the Curate tab)
+## When to use it
 
-Finally, you can upload the resulting edits via the "Upload Curated Q&A" option. Congratulations! You've quick-tuned your agent to your most important or relevant subjects.
+- A new instance whose answers have never been reviewed.
+- Answers that are irrelevant or inaccurate, or that vary between identical questions.
+- A semantic score that is low, or high on an answer that is visibly wrong.
+- Answers that are too long, too short, or that drift away from your own documentation.
 
-## Improving Answers
+## How it works
 
-There are many ways to improve generated answers. This can include:
+Every setting on this page lives in one dialog. On the Neural Config screen, select the
+**Default Config** node on the routing tree, then **Edit Configuration**. The dialog opens with
+one accordion per configuration section, and its footer carries **Propose Changes** and
+**Save** — nothing you change takes effect until you select **Save**. See
+[Using this page](/configuration/neural-config/using-this-page/) for how saving and proposals
+behave, and [Neural Config overview](/configuration/overview/) for the routing tree itself.
 
-- Utilizing Semantic Scores to monitor or block low-quality answers
-- Updating or improving documentation - Answers are only as good as the ground truth!
-- Controlling the amount of information sent to the LLM and "force" answers from the KnowledgeBase
-- Choosing Lucene VS Vector search (we also support a Hybrid mode!)
+![The Edit Configuration dialog for Default Config, listing its accordion sections](/img/neural-config/edit-configuration.png)
 
-### Understanding Generated Answers
+### Start with the answer, not the settings
 
-A common issue with LLMs: giving answers that are irrelevant or inaccurate. NeuralSeek makes it easier to handle these cases.
+The **KnowledgeBase Tuning** section states the product's own tuning loop, and it is the right
+order of work:
 
-To reduce low quality answers, start on the Seek tab: Ask a question. 
+> Tuning your Knowledgebase is an important part of creating a well performing system. Start by
+> entering a seek on the seek tab, and looking at the documentation in the accordions below the
+> answer. For an answer that is not good - is the top document correct and complete? If not
+> adjust snippet size and use the slider bars to do pushdown KB training on supported KB's. Are
+> you bringing back more than you need (irrelevant docs) - set a max docs per seek or lower
+> document score window.
 
-To help analyze your answers, take a look at the following:
+Two things follow from that. First, the source documentation is checked before any slider is
+touched: if the passage the KnowledgeBase returned does not answer the question, no setting on
+this page will make the answer correct. Second, the fix for a bad answer is usually a retrieval
+fix, not a prompt fix.
 
-**Review the Semantic Score**
+### Reading the scores
 
-- Is it low? (below 20%) - Perhaps your documentation does not compare well to the question posed, or there is many source jumps / unattributed terms
-- Is it high? (above 60%) - If the answer is low quality - does your documentation have conflicting answers, or very similar terminology to the given query?
+<!-- UNCONFIRMED: what the Seek tab shows beside an answer (semantic score, semantic analysis text, KnowledgeBase coverage and confidence) — the Seek tab was not captured for this page; the source accordions are the part the product's own tuning paragraph names -->
 
-**Understand the Semantic Analysis text**
+A Seek answer comes back with a semantic score, a short semantic analysis, KnowledgeBase scoring
+and the source documents in expandable accordions. What to look at, in order:
 
-- This is meant to offer insight into the scores given - e.g. a lot of terms from many documents, or primarily one source of documentation.
+- **The source accordions.** Expand them to see exactly what the KnowledgeBase sent to the LLM.
+  This is the single most informative thing on the screen — everything else describes it.
+- **The semantic score.** It measures how well the generated answer is attributed back to those
+  sources. The penalties that shape it (missing key search terms, source jumps, LLM declines)
+  are described on [Semantic model tuning](/configuration/semantic-model/); whether the score
+  blocks or warns is set in [Semantic scoring](/governance/guardrails/semantic-scoring/).
+- **The semantic analysis text.** The explanation beside the score says whether the answer drew
+  terms from many documents or leaned on one.
+- **KnowledgeBase coverage and confidence.** Low coverage means few documents matched the
+  question; high coverage means many matched, or a few matched exactly. Low confidence means the
+  KnowledgeBase does not think it found good matches; high confidence means it found good
+  matches, which is not the same as matches that answer the question.
 
-**Review the KB scores**
+<!-- UNCONFIRMED: the "below 20% / above 60%" semantic-score thresholds — from the previous MkDocs tuning guide; no captured screen states them -->
 
-- Low Coverage - There is not many documents matching the query
-- High Coverage - There are many documents matching the query, or few documents that match exactly
-- Low Confidence - The source KB thinks we do not have good matches to the query
-- High Confidence - The source KB has found good query matches, but may not answer the query directly
+As rules of thumb from the previous tuning guide, a semantic score below about 20% points at
+documentation that does not compare well with the question, while a score above about 60% on a
+bad answer points the other way: conflicting content, or source wording that mirrors the
+question without answering it. Treat both as starting points for investigation, not as product
+thresholds.
 
-**Review the documentation sources**
+### Retrieval: how much documentation reaches the LLM
 
-- Expand the accordions below to see the actual source documentation provided by the KnowledgeBase. This is what is sent to the LLM for language generation.
-- Improve the documentation: If the source documentation does not directly answer the question, updating the source content will almost always help.
-- Adjust the Document Score Range: This widens, or shrinks, the top % of documents that will be considered.
-- Adjust the Snippet Size: This can help narrow passages out of blocks of unrelated text, or widen the scope for large paragraphs that only mention the subject of your query once.
-- Narrow the Max Documents per Seek: This can help target only the best scoring/matching documents, and avoid confusing some LLMs with a slew of information.
+These sliders live in the **KnowledgeBase Tuning** accordion and are documented on
+[KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/). In tuning terms:
 
-To give some examples: Here, we've set the maximum allowed documents to one with snippet size set to 2000 (the largest):
+- **Document Score Range** — widens or narrows the top share of scored documents considered.
+- **Max Documents per Seek** — caps how many documents reach the LLM, so a good answer is not
+  diluted by near-misses.
+- **Document Date Penalty** — downweights older documents.
+- **Expansion Window** — how many chunks to grab before and after the target chunk.
 
-![Click_to_insert](/img/seek/tuning/1_doc_2000_snippet_size.png)
-![Click_to_insert](/img/seek/tuning/seek_with_1_doc_max.png)
+For most deployments, a few high-quality documents beat many low-quality or loosely related
+ones. If an answer stitches together unrelated material, lower **Max Documents per Seek** before
+anything else.
 
-Some things to notice:
+<!-- UNCONFIRMED: "Snippet Size" as a configurable control — named in the KnowledgeBase Tuning paragraph above and in the previous MkDocs guide, but no such control appears in the captured KnowledgeBase Tuning section; it may exist only for some KnowledgeBase types -->
 
-- There is only one document result
-- The semantic score is high
-- If you expand the document accordion - there is a lot of text returned in this passage
+The tuning paragraph above mentions adjusting snippet size. No **Snippet Size** control appears
+in the KnowledgeBase Tuning section captured for this page, so check your own instance for it —
+it may be specific to certain KnowledgeBase types. See
+[Supported knowledge bases](/knowledge/supported-knowledgebases/).
 
-In the next example, we've set the maximum allowed documents to three with snippet size set to 400 (relatively small):
+### Answer shape — verbosity and grounding
 
-![Click_to_insert](/img/seek/tuning/3_doc_400_snippet_size.png)
-![Click_to_insert](/img/seek/tuning/seek_with_2_doc_max.png)
+Two controls in the **Answer Engineering & Preferences** accordion decide how long an average
+answer is and how strictly it must come from your documentation.
 
-We now have:
+![The Answer Engineering & Preferences section, with the verbosity slider, Force Answers from the Knowledgebase, and the regular-expression replacement table](/img/neural-config/intent-matching-cache-configuration.png)
 
-- One additional document (total of 2)
-- A lower semantic score
-- More source jumps in the answer
+**How verbose should an average answer be?** is a slider running from `Very Concise` to
+`Very Verbose`. It carries no numeric readout — you set a position, not a value. On the instance
+captured here the handle sits left of centre, toward the concise end. Move it toward
+`Very Concise` when answers are long, padded or slow to arrive; move it toward `Very Verbose`
+when answers are too clipped to be useful. The setting also decides how much there is to
+generate: the **Prompt Engineering** section describes NeuralSeek's requested maximum tokens as a
+baseline that "varies per answer verbosity", so a more concise setting is one of the levers to
+reach for when answers are arriving late or cut short. See
+[Platform Preferences](/configuration/neural-config/platform-preferences/) for the language
+generation timeout itself.
 
-Generally speaking, and for most use cases, it is better to provide a few top quality documents, versus many low quality or unrelated documents, to the LLM for answer generation. Using these settings can help focus or widen the documentation as needed per use-case.
+**Force Answers from the Knowledgebase** is a list with the value `True` on the instance
+captured here. It is the control to check first when the LLM is answering from general knowledge
+instead of from your documents. The label is the whole of its on-screen description; there is no
+help text beside it.
 
-**Replay a Seek**
+### Rewriting text on the way out
 
-Users can also go into Logs and pull previous answers by using our Replay feature. This requires enabling Corporate Logging with an instance of Elasticsearch. For more information, refer to our [Replay article](/governance/replay/) section.
+The same accordion holds a replacement table, described on screen as:
 
-### Optimal Settings
+> Answer Engineering uses Javascript Regular Expressions to selectivley replace text in both the
+> KnowledgeBase training data and the live generated answer. Use this to remove or swap phone
+> numbers, emails, etc...
 
-For most use-cases, the combination of settings that we get the best results with are close to:
+Each row pairs a **Regular Expression** with a **Replacement**, and the control at the end of
+the row adds another (its tooltip reads **Add a new row.**). The table carries no filled-in rows
+on the instance captured here. Because the expression is applied to the training data as well as to the
+generated answer, a broad pattern changes what the LLM sees, not only what the reader sees —
+keep the patterns narrow and specific.
 
-**In KB Tuning:**
-
-- Document Score Range: `0.6 - 0.8`
-- Max Documents per Seek: `4 - 5`
-- Snippet Size: If your documents are mostly filled with unrelated small paragraphs (2-3 sentences) - like an faq document - then `400 - 600` is appropriate. Note it is always best to break up documents containing unrelated information into multiple documents. If your documents are large reference manuals that contain long passages - use the max snippet size available to you.
-
-**In Answer Engineering:**
-
-- `Answer Verbosity` slider favoring the "Very Concise" side
-- Enable `Force Answers from the KnowledgeBase`
-
-**In Governance and Guardrails:**
-
-- `Warning Confidence` around +/- 20%
-- `Minimum Confidence` around +/- 10-20%
-- `Minimum Text` around 1-3 words
-- `Maximum Length` around 20 words
-
-### Improving Source Documentation
-
-One of the best ways to directly improve answer generation! Here's an example:
-
-- A customer had a very large document, with an Acronym and a definition that was near the top of the document. The acronym was used hundreds of times across many pages. The source KB typically returned the paragraph with the most uses (matches) of the acronym, despite the overall snippet not answering the question directly. To improve the results, we split the document by pages, increased the score range and lowered the snippet size, allowing the KB to effortlessly bring back the relevant document passages while enabling the customer to control the amount of documentation fed to the LLM.
-
-Generally speaking, the best practice for source documentation formatting is to have **individual documents that speak directly to the subject you want to answer**.
-
-### Hybrid and Vector Search
-
-NeuralSeek supports Vector searching on some KnowledgeBase platforms. (see the Supported KnowledgeBases page for details)
-
-![Click_to_insert](/img/seek/tuning/hybrid_vector.png)
-
-Vector Similarity searching is finding "similar" words, where Lucene is "exact matching" terms. For example, if you search for `Animal` you could also get results like `Cat, Dog, Mouse, Lizard`. It's not recommended to use only vector search for corporate-based RAG, as the chance of hallucination is incredibly high. For example - a user searches for `8.1.0`. Lucene will bring back only results with the exact term, where vector similarity may also return `8.0.1`, `8.10`, or similar.
-
-Choosing the Hybrid implementation is recommended if using vector similarity - NeuralSeek will boost the Lucene results, offering Vector results as a sort of "fallback". This can help some use cases. Pure vector serach is not reccomended in any RAG pattern as any vector search increases the likelihood of halucinations.
-
-### Answer Variations
-
-Generative AI often times will generate small variations for the same query.
-
-Two ways to combat this:
-
-- Set the "edited" answer cache setting to 1, and edit the answer on the curate tab.
-- Set the "normal" answer cache setting to 1. 
-
-Both of these options will cause NeuralSeek to output consistent, identical answers. This also reduces the amount of language generation calls.
-
-:::note
-Edited answers always return a Semantic Score of 100%.  
+:::caution
+This is a text substitution, not a redaction guarantee. For detecting and masking personal data,
+use [PII detection](/governance/pii-detection/) rather than a regular expression here.
 :::
 
-## Filtering Documentation
-Many times there is a large amount of documents, or many data sources / types, to manage. Filtering can narrow down results in a large pool of data.
+### Telling the LLM who you are
 
-You may filter on any metadata field available from the KB. Simply set the desired field in the KnowledgeBase Connection settings, and pass a value for which to filter in the Seek call. 
+The **Company / Organization Preferences** accordion adds standing context to every Seek, which
+is why it belongs to tuning: it changes answers without changing retrieval.
 
-For example - Using `metadata.document_type` as the field, and `PDF` as the value, will return only documents with this field set to PDF. Use comma-separated values for an `OR` filter.
+![The Company / Organization Preferences section, with the display name, Company Response Affinity and Stump Speech fields](/img/neural-config/company-org-preferences.png)
 
-:::note[Watson Discovery users]
-To filter by Collection ID: Under KnowledgeBase Connection, enable the Advanced Schema, and manually input `collection_id` in the filter field
+- **Enter the company or organization display name** — the name the answers speak as. The
+  instance captured here holds `Neuralseek`.
+- **Company Response Affinity** — on screen, "add affinity to the company on top of any affinity
+  that may be already present in your KnowledgeBase and Stump Speeches". The value seen here is
+  `Do not add affinity`.
+- **Stump Speech** — on screen, "A block of text that will be passed to the LLM on every single
+  seek as part of the provided documentation". It is empty on this instance, with a placeholder
+  showing the shape of one.
 
-DQL_Pushdown is also an option for Discovery users - Select this option, and pass [DQL syntax](https://cloud.ibm.com/docs/discovery-data?topic=discovery-data-query-dql-overview) in the filter value on Seek calls.
-:::
+Because the stump speech is passed on every single Seek, it consumes context on every call. Keep
+it to facts the model must never get wrong — not a marketing paragraph.
 
-Another tool to help target the best quality documentation available is to utilize the "Re-Sort values list" option. This allows you to prioritize certain documents over others - maybe use a collection ID to prioritize internal uploaded documentation over a general company website scrape, or perhaps PDFs have more concise data than your DOCX files. **This allows you to prioritize values without entirely excluding other values.**
+### Settings that work for most deployments
 
-## Avoiding Timeouts
+<!-- UNCONFIRMED: the recommended ranges below (score range 0.6-0.8, 4-5 documents, 10-20% confidence) — carried over from the previous MkDocs tuning guide; no captured screen or probe states them as product defaults or recommendations -->
 
-NeuralSeek has a limited amount of time to generate a response, as well as a context window that the LLM dictates. Sometimes, the LLM generates large answers and cannot finish its thought before the space runs out, we exceed the chatbot platform timeout, or we exceed the KB's timeout. This will occasionally cause the generated answer to have a dangling sentence near the end - NeuralSeek looks for these dangling responses and trims them back to a logical sentence.
+These are starting points carried over from the previous tuning guide, not product defaults.
+The values on your instance will differ.
 
-Contributing factors can include:
+| Setting                                  | Where                                                                       | Starting point        |
+| ---------------------------------------- | --------------------------------------------------------------------------- | --------------------- |
+| Document Score Range                     | [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/)   | `0.6` – `0.8`         |
+| Max Documents per Seek                   | [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/)   | `4` – `5`             |
+| How verbose should an average answer be? | Answer Engineering & Preferences                                             | toward `Very Concise` |
+| Force Answers from the Knowledgebase     | Answer Engineering & Preferences                                             | `True`                |
+| Warning and minimum confidence           | [Minimum confidence](/governance/guardrails/min-confidence/)                 | around 10–20%         |
 
-- KnowledgeBase retrieval speed
-- LLM generation speed
-- Chatbot settings - timeout settings, etc
-- Network latency
+Change one at a time and re-ask the same question on the Seek tab. Changing three settings
+together tells you nothing about which one moved the answer.
 
-Some settings that may help:
+### What is tuned elsewhere
 
-- Reducing the maximum number of documents returned from the KB
-- Using a faster LLM
-- Reducing LLM verbosity in the NeuralSeek Configuration
-- Increasing the chatbot timeout threshold
-- Provisioning services in the same regions
+Several things people reach for while tuning are documented on their own pages:
 
-:::note
-When adjusting the verbosity setting, for shorter answers change the verbosity setting to "more concise". For longer/more descriptive answers change the verbosity setting to "more verbose".
-:::
+- Generating and curating questions and answers in bulk — [Answer curation](/seek/curation/).
+- Serving one consistent answer instead of small wording variations —
+  [Caching](/seek/caching/) and
+  [Intent matching & caching](/configuration/neural-config/intent-matching-caching/).
+- Narrowing a large corpus by metadata — [Dynamic filters](/seek/dynamic-filters/).
+- Lucene, vector and hybrid retrieval —
+  [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/) and
+  [Supported knowledge bases](/knowledge/supported-knowledgebases/).
+- Answering in a language your documents are not written in —
+  [Language](/configuration/language/).
+- Timeouts, context turns and other platform-wide behaviour —
+  [Platform Preferences](/configuration/neural-config/platform-preferences/).
+- Re-running a previous answer against new settings — [Replay](/governance/replay/).
+- Exporting a saved configuration to run a call against different settings —
+  [Backup & restore](/configuration/backup-restore/).
 
-## KnowledgeBase Translation
-It can be challenging to work with multiple languages. For example - you want the LLM to respond in Spanish, but the source documentation is in English. NeuralSeek can solve this: In the Platform Preferences configuration, enable `Translate into KB Language`, and set the desired output language. 
+## FAQ
 
-![Click_to_insert](/img/seek/tuning/platform_preferences.png)
+### My answers are too long. What do I change?
 
-This allows NeuralSeek to:
+**How verbose should an average answer be?**, in the **Answer Engineering & Preferences**
+accordion of the Edit Configuration dialog. It is a slider from `Very Concise` to
+`Very Verbose` with no numeric value, so move the handle toward `Very Concise`, select **Save**,
+and re-ask the same question. The verbosity setting also drives the maximum tokens NeuralSeek
+requests, so a more concise answer is less to generate.
 
-- Accept a question in Spanish (for example)
-- Translate to English (source documentation language)
-- Perform a KB search in English
-- Generate an Answer in English
-- Translate the Answer to Spanish
+### The LLM is answering from general knowledge instead of my documents. What now?
 
-:::caution[For Bring-your-own LLM users]
-When using the cross-language feature of NeuralSeek, some LLMs will not excel at this. You will need to use a powerful model like GPT, Llama 70b, or Mixtral.
-:::
+Check **Force Answers from the Knowledgebase** in the same accordion — it is `True` on the
+instance documented here. If it is already set and the answer still drifts, the problem is
+upstream: expand the source accordions under the answer and see whether the KnowledgeBase
+returned anything that answers the question at all.
 
-You can set NeuralSeek's output language to "Match Input" to respond in the same language as the query. Another choice is to have the chatbot control the language returned. Some chatbots support passing the language dynamically as a context variable to the NeuralSeek API. The source of the context variable can be the web browser language or part of the chatbot's URL that tells you the user's language.
+### Too many irrelevant documents reach the LLM. Which control?
 
-Example from watsonx Assistant:
+Lower **Max Documents per Seek** or narrow **Document Score Range**, both in the
+**KnowledgeBase Tuning** accordion — this is the product's own first advice for bringing back
+more than you need. See
+[KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/).
 
-![Click_to_insert](/img/seek/tuning/extension_config.png)
+### Where do I start when an answer is bad?
 
-## Using Multiple Data Sources
-NeuralSeek allows you to use multiple configurations on-demand, effectively overriding any settings currently in the Configure tab. This is useful if you want to use multiple KB sources, project IDs, or similarly exceed the UI limitations.
+On the Seek tab. Ask the failing question, open the documentation accordions under the answer,
+and read what the KnowledgeBase actually returned. If the top document is neither correct nor
+complete, fix the documentation first — it is the ground truth, and it is the highest-leverage
+change available.
 
-![download settings](/img/seek/tuning/download_settings.png)
+### Does tuning change the score or the answer?
 
-Simply configure NeuralSeek with the desired parameters, save, and then "Download Settings" as pictured.
+Both, but not with the same controls. The retrieval settings change what reaches the LLM, so
+they change the answer and the score with it. The semantic-model settings on
+[Semantic model tuning](/configuration/semantic-model/) change only how an answer is scored —
+useful when the answers are fine and the scores are not.
 
-This will download a `.dat` file, containing an encoded string of all current settings - including KB details, project IDs, LLMs, etc.
+### What does the Stump Speech do that the KnowledgeBase cannot?
 
-On Seek API calls, set `options.override` to this encoded string - Effectively using these saved settings for this Seek call, ignoring "current" settings in the UI.
+It passes a fixed block of text to the LLM on every single Seek, as part of the provided
+documentation, without it having to be retrieved. That makes it suitable for a small amount of
+standing context the model must always have. It costs context on every call, so it is a poor
+substitute for a document in the KnowledgeBase.
