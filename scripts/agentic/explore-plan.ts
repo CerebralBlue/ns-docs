@@ -651,22 +651,44 @@ if (verb === 'attach') {
 		const t = c.options.find((x) => x.id === oid);
 		// The open menu, when the a11y tree exposes it: `option` roles, or a listbox/menu with
 		// several short-named children. Empty means the image is the only evidence.
+		// Carbon's open menu (verified 2026-09-19): under the widget's `listbox` a second `listbox`
+		// appears holding `generic: <option>` items (one wrapper generic deep), next to the
+		// `button "<value>" [expanded]`. Read it from the expanded button's parent; fall back
+		// to `option` roles or any listbox/menu whose children are all short texts.
 		const otree = parseSnapshot(readFileSync(yml, 'utf8'));
 		let values: string[] = [];
+		const textsOf = (n: SnapNode): string[] => {
+			const out: string[] = [];
+			walkSnapshot([n], (d) => {
+				if (
+					d !== n &&
+					(d.role === 'generic' || d.role === 'option' || d.role === 'listitem') &&
+					(d.name || d.text) &&
+					!d.children.length
+				)
+					out.push((d.name || d.text || '').trim().replace(/^"(.*)"$/, '$1')); // the tree quotes "Yes"/"5"
+			});
+			return out.filter((x) => x && x.length <= 60);
+		};
 		walkSnapshot(otree, (n) => {
-			if (n.role === 'option' && n.name) values.push(n.name);
+			if (values.length) return;
+			if (n.role === 'button' && n.attrs.includes('expanded') && n.parent?.role === 'listbox') {
+				const menu = n.parent.children.find(
+					(k) => k !== n && (k.role === 'listbox' || k.role === 'menu' || k.role === 'list')
+				);
+				if (menu) values = textsOf(menu);
+			}
 		});
 		if (!values.length)
 			walkSnapshot(otree, (n) => {
+				if (n.role === 'option' && n.name) values.push(n.name);
+			});
+		if (!values.length)
+			walkSnapshot(otree, (n) => {
 				if (values.length) return;
-				if (
-					(n.role === 'listbox' || n.role === 'menu' || n.role === 'list') &&
-					n.children.length >= 2
-				) {
-					const names = n.children
-						.map((k) => k.name || k.text || '')
-						.filter((x) => x && x.length <= 60);
-					if (names.length >= 2 && names.length === n.children.length) values = names;
+				if ((n.role === 'listbox' || n.role === 'menu') && n.children.length >= 1) {
+					const names = textsOf(n);
+					if (names.length >= 2) values = names;
 				}
 			});
 		st.options[oid] = {
