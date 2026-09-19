@@ -254,28 +254,48 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 	else {
 		const detail: string[] = [];
 		// split the body into ### sections (outside fences)
+		// Only the ### sections under "How it works" are illustrated sections; the FAQ and the
+		// contract's first three h2s are prose. A section passes with its own real image, or when
+		// every control it names is already illustrated by a crop elsewhere on the page (a
+		// "Staleness" paragraph about a slider shown two sections up needs no second picture).
 		let cur: { title: string; start: number; text: string[] } | null = null;
 		const sections: { title: string; start: number; text: string[] }[] = [];
+		let inHow = false;
 		outsideFences((line, i) => {
+			const h2 = line.match(/^##\s+(.+?)\s*$/);
+			if (h2) {
+				inHow = /^how it works$/i.test(h2[1]);
+				cur = null;
+				return;
+			}
 			const m = line.match(/^###\s+(.+?)\s*$/);
-			if (m) {
+			if (m && inHow) {
 				cur = { title: m[1], start: at(i), text: [] };
 				sections.push(cur);
 			} else if (cur) cur.text.push(line);
 		});
-		for (const sec of sections) {
-			const body = (sec.title + '\n' + sec.text.join('\n'))
+		const normT = (t: string) =>
+			t
 				.toLowerCase()
 				.replace(/&/g, ' and ')
 				.replace(/[^a-z0-9]+/g, ' ');
-			const names = labels.filter((l) => l && body.includes(l));
+		// every real image on the page: its path slug + alt text, normalised
+		const illustrated = [
+			...body.matchAll(/!\[([^\]]*)\]\((\/img\/(?!_placeholder\.svg)[^)\s]+)\)/g),
+		].map((m) => normT(`${m[1]} ${m[2].replace(/[-_/.]/g, ' ')}`));
+		const isIllustrated = (label: string) => illustrated.some((t) => t.includes(label));
+		for (const sec of sections) {
+			const text = normT(sec.title + '\n' + sec.text.join('\n'));
+			const names = labels.filter((l) => l && text.includes(l));
 			if (!names.length) continue;
 			const hasImage = sec.text.some((l) =>
 				/!\[[^\]]*\]\(\/img\/(?!_placeholder\.svg)[^)\s]+\)/.test(l)
 			);
-			if (!hasImage)
+			if (hasImage) continue;
+			const missing = names.filter((l) => !isIllustrated(l));
+			if (missing.length)
 				detail.push(
-					`line ${sec.start}: "${sec.title}" names ${names.length} control(s) and has no real image`
+					`line ${sec.start}: "${sec.title}" names ${names.length} control(s), has no image, and ${missing.length} of them (${missing.slice(0, 3).join(', ')}) is illustrated nowhere on the page`
 				);
 		}
 		gate(

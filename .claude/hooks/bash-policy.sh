@@ -45,23 +45,28 @@ esac
 
 # Strip a leading `cd <repo> &&` — agents do that; it is harmless.
 BODY=$(printf '%s' "$CMD" | sed -E "s#^cd +[^&;|]+ *(&&|;) *##")
-# Redirections that do not write a file are fine: 2>&1, >/dev/null, 2>/dev/null.
-CLEAN=$(printf '%s' "$BODY" | sed -E 's#[0-9]?>&[0-9]##g; s#[0-9]?>>?[[:space:]]*/dev/null##g')
+# Leading VAR=value assignments are harmless; drop them before matching prefixes.
+BODY=$(printf '%s' "$BODY" | sed -E 's#^([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]+[[:space:]]+)+##')
+# Redirections that do not write a file are fine: 2>&1, >/dev/null, 2>/dev/null. Text inside
+# quotes is data (a grep pattern with | or >), not shell — blank it before looking for writes
+# and chains, but keep the quotes so a heredoc/redirect outside them is still seen.
+CLEAN=$(printf '%s' "$BODY" | sed -E "s#'[^']*'#''#g; s#\"[^\"]*\"#\"\"#g" | sed -E 's#[0-9]?>&[0-9]##g; s#[0-9]?>>?[[:space:]]*/dev/null##g')
 # No writing through the shell, for any pipeline agent.
 if printf '%s' "$CLEAN" | grep -Eq '(^|[^<>|])>{1,2}[^>]|<<|\btee\b|\bsed +-i|\bpython3?\b|\bnode +-e\b|\bperl\b|\bmv\b|\bcp\b|\brm\b|\btruncate\b|\bdd\b|\bchmod\b|\bgit +(add|commit|checkout|reset|push|stash|rm|mv)\b'; then
 	deny "$AGENT writes files with the Write tool and patches them with Edit — not through the shell (refused: $(printf '%s' "$BODY" | head -1 | head -c 80))"
 fi
 # Read-only shell is allowed for every pipeline agent (looking is not writing), plus mkdir -p.
-READONLY='cat|ls|find|grep|rg|head|tail|wc|jq|sha1sum|sort|uniq|cut|tr|diff|stat|test|echo|printf|file|realpath|basename|dirname|date|true|mkdir -p|git diff|git status|git log|git show'
+READONLY='cat|ls|find|grep|rg|head|tail|wc|jq|sha1sum|sort|uniq|cut|tr|diff|stat|test|echo|printf|file|realpath|basename|dirname|date|true|mkdir -p|sed -n|sed -E|awk|xargs|git diff|git status|git log|git show|bun scripts/agentic/values.ts|bun scripts/agentic/coverage.ts|bun scripts/doc-lint.ts'
 allowed_segment() {
 	local SEG
 	SEG=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//')
 	[ -z "$SEG" ] && return 0
 	if printf '%s' "$SEG" | grep -Eq "^($READONLY)( |$)"; then return 0; fi
 	if [ -n "$PREFIXES" ]; then
-		local P
+		local P REL
+		REL=$(printf '%s' "$SEG" | sed -E "s#$ROOT/##g")
 		IFS='|' read -r -a LIST <<<"$PREFIXES"
-		for P in "${LIST[@]}"; do case "$SEG" in "$P"*) return 0 ;; esac; done
+		for P in "${LIST[@]}"; do case "$SEG" in "$P"*) return 0 ;; esac; case "$REL" in "$P"*) return 0 ;; esac; done
 	fi
 	return 1
 }

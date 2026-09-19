@@ -74,6 +74,12 @@ export function unbackedValues(
 			const n = norm(f.text).replace(/^(the|a|an) /, '');
 			if (!n || n.length < 3) continue;
 			if (haystack.includes(n)) continue;
+			// "Default Config / Answer Generation" — a path of labels: every part must be on screen
+			const parts = f.text
+				.split(/\s*[\/›>→]\s*/)
+				.map(norm)
+				.filter((x) => x.length >= 3);
+			if (parts.length > 1 && parts.every((x) => haystack.includes(x))) continue;
 			if (marked) continue;
 			unbacked.push({ line: offset + i + 1, text: f.text, kind: f.kind });
 		}
