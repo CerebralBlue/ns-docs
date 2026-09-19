@@ -47,12 +47,6 @@ case "$AGENT" in
 		esac
 		deny "ia-agent may only edit astro.config.mjs, scripts/migration-map.json, new stub pages and its run folder; refused: $FILE"
 		;;
-	designer)
-		case "$FILE" in
-			"$RUNS"/* | "$ROOT"/_private/agentic-v2/designs/* | "$ROOT"/src/plugins/* | "$ROOT"/src/components/* | "$ROOT"/src/styles/* | "$ROOT"/src/content/docs/directives-test.md) exit 0 ;;
-		esac
-		deny "designer may only edit src/plugins, src/components, src/styles, directives-test.md, _private/agentic-v2/designs/ and its run folder; refused: $FILE"
-		;;
 	doc-reviewer)
 		case "$FILE" in
 			"$RUNS"/*) exit 0 ;;

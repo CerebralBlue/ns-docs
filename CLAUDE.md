@@ -395,7 +395,8 @@ area** (a screen in `_private/agentic-v2/areas.json`). Fabio runs it (`/docs-exp
 or `/docs-explore <area> --write-only [--all-briefed] [--only <route>]…`) or chains it overnight
 (`/docs-night start | continue | report`); neither is model-invoked. Design + diagram:
 `_private/agentic-v2/diagrams/architecture.html`. v2 — the claim-verification design that ran
-night 1 (24 routes, ~11M tokens, nothing ready) — is archived in `_private/archive/agentic-v2/`.
+night 1 (24 routes, ~11M tokens, nothing ready) — and v1 were deleted on 2026-09-19; v2's last
+state is in git at `6fbb837^`, nothing else of them survives.
 
 - **Captures are first-class.** An explore run's `states/` (a11y snapshot per UI state),
   `public/img/<area>/` (per state: viewport, panel crop, **one crop per section** —
