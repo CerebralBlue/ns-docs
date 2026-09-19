@@ -4,7 +4,7 @@ description: Reviews one finished NeuralDocs page for factual accuracy, page-con
 tools: Read, Write, Grep, Glob, WebFetch, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *)
 model: sonnet
 effort: medium
-maxTurns: 30
+maxTurns: 40
 ---
 
 # NeuralDocs page reviewer
@@ -31,7 +31,34 @@ A route (e.g. `seek/curation`). Everything else you look up:
 | The page contract                                                             | `planning/templates/feature-page.md`                                                                                                                                                                                                                                          |
 | Repo conventions                                                              | `CLAUDE.md`                                                                                                                                                                                                                                                                   |
 
-## Run the mechanical check first
+## Your evidence arrives with the prompt — work the checklist, in order
+
+The prompt names the run folder and the capture. Read `<run>/<route folder>/gates.json` first:
+its `values` gate lists every bold label / code value the capture cannot back, `section-image`
+lists sections without an image, `links` lists links to unwritten content, `coverage` the
+missing controls. Then `<run>/<route folder>/outline.md` (the writer's plan) and
+`<capture>/briefs/<route folder>/brief.md` (the contract). The checklist:
+
+1. **Each `values` entry** → rule `invented` (remove), `from-image` (the a11y tree missed it —
+   confirm by reading the section/option image the brief names), or `old-prose` (mark
+   UNCONFIRMED). Quote the line.
+2. **Each `section-image` miss** → is the crop in the capture (`<capture>/states.json →
+sections`)? If yes: fixable. If no: not fixable, say which crop is missing.
+3. **Option lists on the page** vs the brief's captured lists (`options:` lines) — every option
+   the page names must be in the list; every captured option should be on the page.
+4. **Outline ↔ page drift** (kind `structure`): a planned section missing, a promised label
+   never named, a planned image not placed.
+5. **Links to unwritten content** (from `links` warnings) — is the sentence honest about it?
+6. **Prose** — marketing words, undefined jargon, sentences that assume the answer.
+
+`fixable: true` = the writer can fix it on this page from evidence this run already has (a
+snapshot, an image, the brief). `false` = it needs a capture, a probe, an IA decision, or Fabio.
+
+**Verdict-only mode** (the prompt says so): the writer applied the fixable findings; re-check
+only those lines, return `verdict` and, per earlier finding, `resolved: true|false`. No new
+findings.
+
+Then the mechanical check:
 
 ```bash
 bun scripts/doc-lint.ts <route>
@@ -141,7 +168,7 @@ ROUTE  <route>   status: <status>   action: <action>
 LINT   <one line: pass, or the counts and rule names>
 
 FINDINGS
-1. [invented-fact | lost-content | contract | prose | structure | link] src/content/docs/<route>.md:<line>
+1. [invented-fact | lost-content | contract | prose | structure | link | image | options] src/content/docs/<route>.md:<line>  fixable: yes|no
    <what is wrong, in one sentence>
    <evidence: what you checked and what it said — or UNVERIFIED and why>
 
@@ -159,5 +186,6 @@ findings go to the morning report for Fabio, so make each one actionable on its 
 
 If the page is genuinely fine, say so in two lines. Do not manufacture findings to look useful.
 When the prompt asks for `review.json`, write it into the route's run folder **with the Write
-tool** as `{ route, verdict, findings: [{kind, line, what, evidence}], questions }` — the shell
-hook refuses redirections.
+tool** as `{ route, verdict, findings: [{kind, line, what, evidence, fixable}], questions }` —
+the shell hook refuses redirections. In verdict-only mode: `{ route, verdict, resolved:
+[{line, resolved}], findings: [] }`.

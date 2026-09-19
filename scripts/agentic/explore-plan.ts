@@ -12,6 +12,15 @@
  *   bun scripts/agentic/explore-plan.ts record <run> --state <id> --snapshot <abs.yml>
  *       --viewport <abs.png> [--panel <abs.png>] [--reach "<step>" …] [--url <landed url>] [--json]
  *       one captured state → states.json (sha1s recorded), the todo marked done
+ *   bun scripts/agentic/explore-plan.ts crops  <run> --state <id> [--snapshot <abs.yml>] [--json]
+ *       what to photograph in a recorded state: the panel (dialog / tabpanel / expanded
+ *       accordion item), one crop per SECTION (a field group with a heading, or a labelled
+ *       row), and every dropdown (listbox) whose option list must be opened. `record` prints
+ *       this list itself; the explorer shoots each `ref` and attaches the files.
+ *   bun scripts/agentic/explore-plan.ts attach <run> --state <id> [--section <id>=<abs.png>]…
+ *       [--options <id>=<abs.yml>:<abs.png>]… [--json]
+ *       the section crops and option captures of a state → states.json (option values parsed
+ *       from the options snapshot when the a11y tree exposes the open menu)
  *   bun scripts/agentic/explore-plan.ts finish <run> [--json]
  *       states.json → map-build.ts (candidate) → map-diff.ts --apply; prints the summary
  *
@@ -44,7 +53,8 @@ import {
 	type SnapNode,
 } from './lib';
 
-const MAX_STATES = 30;
+const MAX_STATES = 40; // openable states; section crops and option captures are not counted
+const MAX_SECTIONS = 20;
 const MAX_PAGES = 10;
 const MAX_DEPTH = 3;
 /** Opening these documents nothing or has a side effect the walk must not cause. */
@@ -64,6 +74,14 @@ type Todo = {
 	url?: string;
 	done?: boolean;
 };
+type Section = { label: string; image: string };
+type OptionCapture = {
+	label: string;
+	value: string;
+	snapshot: string;
+	image: string | null;
+	values: string[];
+};
 type State = {
 	id: string;
 	reach: string[];
@@ -72,6 +90,8 @@ type State = {
 	noChange?: boolean;
 	viewport: string | null;
 	panel: string | null;
+	sections?: Record<string, Section>;
+	options?: Record<string, OptionCapture>;
 	url?: string;
 	adds?: { role: string; name: string }[];
 	capturedAt: string;
@@ -82,7 +102,7 @@ const verb = args.positional[0];
 const run = args.positional[1];
 const asJson = args.flags.has('json');
 if (!verb || !run) {
-	console.error('Usage: explore-plan.ts plan|diff|record|finish <run> …');
+	console.error('Usage: explore-plan.ts plan|diff|record|crops|attach|finish <run> …');
 	process.exit(1);
 }
 const dir = runDir(run);
@@ -211,6 +231,147 @@ function planFrom(snap: string, from: string) {
 	return { added, excluded };
 }
 
+/**
+ * What to photograph in one state. The Carbon console has a stable anatomy:
+ *   accordion item   listitem > button "<name>" [expanded] + generic (content)
+ *   field group      generic > generic(heading level=5 + text) + generic(slider | listbox …)
+ *   labelled row     generic > listbox/textbox/slider + generic: "<label>" (+ status)
+ *   dropdown         listbox [cursor=pointer] > button "<current value>"
+ * A SECTION is the outermost node (with a ref) that holds exactly one heading and ≥ 1 control,
+ * or — where there are no headings — a labelled row. Outer wins: once a node is a section the
+ * walk does not descend into it. Every dropdown inside the panel is an OPTION target.
+ */
+type CropTarget = { id: string; ref: string; label: string; kind: 'panel' | 'section' };
+type OptionTarget = { id: string; ref: string; listboxRef: string; label: string; value: string };
+const VALUE_LIKE = /^("?\d+(\.\d+)?"?|disabled|enabled|true|false|yes|no|none|-)$/i;
+const hasControl = (n: SnapNode): boolean => INTERACTIVE.has(n.role) || n.children.some(hasControl);
+const headingsIn = (n: SnapNode): SnapNode[] => {
+	const out: SnapNode[] = [];
+	walkSnapshot(n.children, (d) => {
+		if (d.role === 'heading') out.push(d);
+	});
+	return out;
+};
+const labelOf = (n: SnapNode): string => {
+	if (n.name && !VALUE_LIKE.test(n.name) && n.name !== 'Slider value') return n.name;
+	for (const c of n.children) {
+		if (c.role === 'generic' && c.text && !c.ref && !VALUE_LIKE.test(c.text)) return c.text;
+		if (c.role === 'generic' && c.text && !VALUE_LIKE.test(c.text) && !hasControl(c)) return c.text;
+	}
+	return '';
+};
+function cropsOf(snapshotYaml: string, stateId: string, stateLabel: string) {
+	const tree = parseSnapshot(snapshotYaml);
+	// 1. the panel
+	// Several accordion items can be [expanded] at once (the walk does not collapse the previous
+	// one): the state's own item is the one whose button name matches the state, else the last
+	// expanded item in document order (the most recently opened).
+	let panel: SnapNode | null = null;
+	const expanded: SnapNode[] = [];
+	walkSnapshot(tree, (n) => {
+		if (
+			n.role === 'button' &&
+			n.attrs.includes('expanded') &&
+			n.parent?.role === 'listitem' &&
+			n.parent.ref
+		)
+			expanded.push(n);
+	});
+	const want = slug(stateLabel);
+	const match =
+		expanded.find((b) => slug(b.name) === want || slug(b.name) === stateId) ??
+		expanded.find(
+			(b) =>
+				want.startsWith(slug(b.name).slice(0, 12)) || slug(b.name).startsWith(want.slice(0, 12))
+		);
+	if (match) panel = match.parent;
+	else if (expanded.length) panel = expanded[expanded.length - 1].parent;
+	if (!panel)
+		walkSnapshot(tree, (n) => {
+			if (panel) return;
+			if ((n.role === 'tabpanel' || n.role === 'dialog' || n.role === 'alertdialog') && n.ref)
+				panel = n;
+		});
+	const root: SnapNode[] = panel ? [panel] : tree;
+	// 2. sections, outer wins
+	const sections: CropTarget[] = [];
+	const usedIds = new Set<string>();
+	const uniq = (base: string) => {
+		let id = slug(base);
+		for (let n = 2; usedIds.has(id); n++) id = `${slug(base)}-${n}`;
+		usedIds.add(id);
+		return id;
+	};
+	const visit = (n: SnapNode, depth: number) => {
+		if (sections.length >= MAX_SECTIONS) return;
+		if (n === panel) {
+			for (const c of n.children) visit(c, depth + 1);
+			return;
+		}
+		if (LANDMARKS.has(n.role) && n.role !== 'region' && n.role !== 'group') {
+			for (const c of n.children) visit(c, depth + 1);
+			return;
+		}
+		const isBox =
+			n.role === 'generic' || n.role === 'group' || n.role === 'region' || n.role === 'listitem';
+		if (isBox && n.ref && hasControl(n) && !INTERACTIVE.has(n.role)) {
+			const hs = headingsIn(n);
+			if (hs.length === 1) {
+				const label = hs[0].name || labelOf(n);
+				if (label) {
+					sections.push({ id: uniq(label), ref: n.ref, label, kind: 'section' });
+					return;
+				}
+			}
+			if (hs.length === 0) {
+				const label = labelOf(n);
+				if (label && !NEVER.test(label)) {
+					sections.push({ id: uniq(label), ref: n.ref, label, kind: 'section' });
+					return;
+				}
+			}
+		}
+		for (const c of n.children) visit(c, depth + 1);
+	};
+	for (const r of root) visit(r, 0);
+	// 3. dropdowns
+	const options: OptionTarget[] = [];
+	walkSnapshot(root, (n) => {
+		if (n.role !== 'listbox' || !n.ref) return;
+		const btn = n.children.find((c) => c.role === 'button');
+		if (!btn || !btn.ref) return;
+		let label = '';
+		if (n.parent) label = labelOf(n.parent);
+		if (!label) {
+			const sec = sections.find((s) => s.ref === (n.parent?.ref ?? ''));
+			label = sec?.label ?? '';
+		}
+		if (!label || NEVER.test(label)) return;
+		options.push({
+			id: `options-${slug(label)}`,
+			ref: btn.ref,
+			listboxRef: n.ref,
+			label,
+			value: btn.name,
+		});
+	});
+	const seen = new Set<string>();
+	const dedupOptions = options.filter((o) => !seen.has(o.id) && seen.add(o.id));
+	return {
+		state: stateId,
+		panel: panel
+			? {
+					id: stateId,
+					ref: (panel as SnapNode).ref,
+					label: (panel as SnapNode).name || stateLabel,
+					kind: 'panel' as const,
+				}
+			: null,
+		sections,
+		options: dedupOptions,
+	};
+}
+
 if (verb === 'plan') {
 	const snap = args.get('snapshot');
 	if (!snap || !existsSync(snap)) {
@@ -336,12 +497,18 @@ if (verb === 'record') {
 	// panel) joins the todo list now — the agent does not have to remember to plan.
 	const deeper = noChange ? { added: [] as Todo[] } : planFrom(snap, id);
 	const pendingList = todos.filter((t) => !t.done);
+	// What to photograph in THIS state before moving on: the panel, one crop per section,
+	// every dropdown's option list. The agent shoots each ref and calls `attach`.
+	const crops = noChange
+		? { panel: null, sections: [], options: [] }
+		: cropsOf(readFileSync(snap, 'utf8'), id, todo?.label ?? id);
 	if (asJson)
 		console.log(
 			JSON.stringify({
 				recorded: id,
 				adds: adds?.length ?? null,
 				deeper: deeper.added.map((t) => t.id),
+				crops,
 				pending: pendingList.map((t) => ({ id: t.id, reach: t.reach })),
 				states: Object.keys(states).length,
 			})
@@ -350,9 +517,130 @@ if (verb === 'record') {
 		console.log(
 			`recorded ${id} (${adds?.length ?? '?'} new controls, +${deeper.added.length} deeper) — ${pendingList.length} pending, ${Object.keys(states).length} states`
 		);
+		if (crops.panel || crops.sections.length || crops.options.length) {
+			console.log(
+				`  PHOTOGRAPH NOW (target=ref → public/img/<area>/${id}--<id>.png), then: explore-plan.ts attach ${run} --state ${id} --section <id>=<png> … --options <id>=<yml>:<png> …`
+			);
+			if (crops.panel)
+				console.log(
+					`    panel    ${id.padEnd(40)} ${crops.panel.ref.padEnd(12)} ${crops.panel.label}`
+				);
+			for (const x of crops.sections)
+				console.log(`    section  ${x.id.padEnd(40)} ${x.ref.padEnd(12)} ${x.label}`);
+			for (const o of crops.options)
+				console.log(
+					`    options  ${o.id.padEnd(40)} click ${o.ref.padEnd(12)} ${o.label} = ${o.value}  (snapshot + crop listbox ${o.listboxRef}, then Escape)`
+				);
+		}
+		console.log('  PENDING STATES:');
 		for (const t of pendingList)
 			console.log(`  ${t.id.padEnd(32)} ${t.kind.padEnd(7)} ${t.reach.join(' → ')}`);
 	}
+	process.exit(0);
+}
+
+if (verb === 'crops') {
+	const id = args.get('state');
+	const snap =
+		args.get('snapshot') ?? (id && states[id] ? join(ROOT, states[id].snapshot) : undefined);
+	if (!id || !snap || !existsSync(snap)) {
+		console.error(
+			'crops needs --state <id> [--snapshot <abs.yml>] (a recorded state, or a snapshot file)'
+		);
+		process.exit(1);
+	}
+	const todo = todos.find((t) => t.id === id);
+	const c = cropsOf(readFileSync(snap, 'utf8'), id, todo?.label ?? id);
+	if (asJson) console.log(JSON.stringify(c));
+	else {
+		console.log(
+			`${id}: panel ${c.panel ? `${c.panel.ref} (${c.panel.label})` : 'none'}, ${c.sections.length} section(s), ${c.options.length} dropdown(s)`
+		);
+		for (const x of c.sections)
+			console.log(`  section  ${x.id.padEnd(40)} ${x.ref.padEnd(12)} ${x.label}`);
+		for (const o of c.options)
+			console.log(`  options  ${o.id.padEnd(40)} ${o.ref.padEnd(12)} ${o.label} = ${o.value}`);
+	}
+	process.exit(0);
+}
+
+if (verb === 'attach') {
+	const id = args.get('state');
+	if (!id || !states[id]) {
+		console.error('attach needs --state <recorded id>');
+		process.exit(1);
+	}
+	const st = states[id];
+	st.sections ??= {};
+	st.options ??= {};
+	const c = cropsOf(readFileSync(join(ROOT, st.snapshot), 'utf8'), id, id);
+	const kv = (x: string) => {
+		const i = x.indexOf('=');
+		return [x.slice(0, i), x.slice(i + 1)] as const;
+	};
+	for (const spec of args.values.section ?? []) {
+		const [sid, png] = kv(spec);
+		if (!existsSync(png)) {
+			console.error(`missing section image ${png}`);
+			process.exit(1);
+		}
+		const t = c.sections.find((x) => x.id === sid);
+		st.sections[sid] = { label: t?.label ?? sid, image: '/' + relative(join(ROOT, 'public'), png) };
+	}
+	for (const spec of args.values.options ?? []) {
+		const [oid, rest] = kv(spec);
+		const [yml, png] = rest.split(':');
+		if (!yml || !existsSync(yml)) {
+			console.error(`missing options snapshot for ${oid}: ${yml}`);
+			process.exit(1);
+		}
+		const t = c.options.find((x) => x.id === oid);
+		// The open menu, when the a11y tree exposes it: `option` roles, or a listbox/menu with
+		// several short-named children. Empty means the image is the only evidence.
+		const otree = parseSnapshot(readFileSync(yml, 'utf8'));
+		let values: string[] = [];
+		walkSnapshot(otree, (n) => {
+			if (n.role === 'option' && n.name) values.push(n.name);
+		});
+		if (!values.length)
+			walkSnapshot(otree, (n) => {
+				if (values.length) return;
+				if (
+					(n.role === 'listbox' || n.role === 'menu' || n.role === 'list') &&
+					n.children.length >= 2
+				) {
+					const names = n.children
+						.map((k) => k.name || k.text || '')
+						.filter((x) => x && x.length <= 60);
+					if (names.length >= 2 && names.length === n.children.length) values = names;
+				}
+			});
+		st.options[oid] = {
+			label: t?.label ?? oid,
+			value: t?.value ?? '',
+			snapshot: relative(ROOT, yml),
+			image: png && existsSync(png) ? '/' + relative(join(ROOT, 'public'), png) : null,
+			values: [...new Set(values)],
+		};
+	}
+	writeJson(statesPath, states);
+	const summary = {
+		state: id,
+		sections: Object.keys(st.sections).length,
+		options: Object.fromEntries(
+			Object.entries(st.options).map(([k, v]) => [
+				k,
+				v.values.length ? v.values : `(no a11y values — image ${v.image ? 'kept' : 'missing'})`,
+			])
+		),
+		missingSections: c.sections.filter((x) => !st.sections![x.id]).map((x) => x.id),
+		missingOptions: c.options.filter((x) => !st.options![x.id]).map((x) => x.id),
+	};
+	console.log(
+		asJson
+			? JSON.stringify(summary)
+			: `${id}: ${summary.sections} section crop(s), ${Object.keys(st.options).length} option capture(s); still missing: ${[...summary.missingSections, ...summary.missingOptions].join(', ') || 'none'}`
+	);
 	process.exit(0);
 }
 
@@ -379,6 +667,8 @@ if (verb === 'finish') {
 		if (states[id].reach.length) argv.push('--reach', `${id}=${states[id].reach.join(' → ')}`);
 		if (states[id].viewport)
 			argv.push('--screenshot', `${id}=${join(ROOT, 'public', states[id].viewport!)}`);
+		for (const o of Object.values(states[id].options ?? {}))
+			if (o.values.length) argv.push('--options', `${o.label}=${o.values.join('|')}`);
 	}
 	mkdirSync(join(COMPONENT_MAP_DIR, '.candidates'), { recursive: true });
 	const b = spawnSync(argv[0], argv.slice(1), { cwd: ROOT, encoding: 'utf8' });
@@ -429,5 +719,5 @@ if (verb === 'finish') {
 	);
 	process.exit(0);
 }
-console.error('Usage: explore-plan.ts plan|diff|record|finish <run> …');
+console.error('Usage: explore-plan.ts plan|diff|record|crops|attach|finish <run> …');
 process.exit(1);

@@ -34,7 +34,11 @@ your own `C/coverage-plan.<batch>.json`; never touch `C/coverage-plan.json` (a s
 - **Read in this order**: `C/states.json` + `C/states/<state>.yml` first (structure: labels,
   values, options, table columns, help text — the snapshot is the truth), then the images
   `public/img/<area>/*.png` (layout, icons; Read shows them — every panel image once), then the
-  old page (the _why_). `reach` says how a state is reached; `viewport` / `panel` are the images.
+  old page (the _why_). Per state, `states.json` holds `viewport`, `panel`, **`sections`**
+  (`{id: {label, image}}` — one crop per field group; these are the images the pages use) and
+  **`options`** (`{id: {label, value, values[], image, snapshot}}` — every dropdown's option
+  list; `values[]` empty means the a11y tree did not expose the menu — **Read the image and
+  transcribe the options from it**, and say so in the brief: `options (from image): …`).
 - `R/section/config.json` — the config export. On this platform it is a packed blob
   (`packed: true`, no keys); when it does carry `keys`, a key's value is the playground's
   current setting. **A value on screen is the playground's current value, not a default** —
@@ -84,17 +88,25 @@ Screen: <area> (<url>). Also reads: <areas>. Status today: <stub|auto>. Kind: co
 ### <h2 the page should have>
 
 Purpose: one sentence — what the reader does here.
+Image: `/img/<area>/<state>--<section id>.png` — the section crop that shows these controls (required whenever the section lists a control; `Image: none — <why>` only if no crop exists).
 Controls:
 
-- **<label exactly as on screen>** (<role>; state `<id>`; image `/img/<area>/<state>-panel.png`) — what the screen says it is / does (quote help text); current value `<value>`; options: `a | b | c`; opens: <what>. Default: <only if the screen says so>.
+- **<label exactly as on screen>** (<role>; state `<id>`; section `<section id>`) — what the screen says it is / does (quote help text); current value `<value>`; options: `Exact Match | Vector Similarity | Fuzzy Match | Keyword Match | Fuzzy Keyword Match` (from `options[].values`, or `options (from image <path>): …`); opens: <what>. Default: <only if the screen says so>.
 - …
   Behaviour to confirm: <probe id> — <what the MCP should show>, or "none".
 
 ### …
 
-## Shared / link instead of repeat
+## Shared — explained here for this feature, owned elsewhere
 
-- **<label>** is documented on <route> — link `[…](/<route>/)`.
+(Feature pages only — e.g. `seek/caching` depends on Intent Match Tolerance, owned by
+`configuration/neural-config/intent-matching-caching`.) One `###`-style block per shared control,
+in the same shape as a section: `Image:` (the same section crop), the control with its options,
+and **what each option means for this feature** ("Vector Similarity lets a rephrased question hit
+the same cached answer…" — from the help text and the option names, marked unconfirmed where
+you infer). The owner page gets the full control; this page gets the feature's angle plus a link
+`[…](/<owner route>/)`. List every shared control in `coverage-plan.shared` under BOTH routes —
+coverage counts them on both.
 
 ## From the old page (background — unconfirmed unless a control above shows it)
 
@@ -136,8 +148,14 @@ characters; never a configuration change; never one of the `support_*` demo agen
 ## Rules
 
 - Quote labels **exactly** (case, punctuation, `&`). The coverage gate greps the page for them.
-- One control, one owner. The stub's `gaps` list and the route `title` tell you what each
-  page was meant to cover; the sidebar order is in `area.json.sidebar`.
+- One control, one owner — but a feature page that depends on a setting lists it in `shared`
+  and explains it for the feature. A console-kind page must end with ≥ 1 owned or shared
+  control; if you cannot find one on any captured screen, it is `emptyRoutes`, never a page of
+  prose.
+- Every section that lists a control names its `Image:`; pick the section crop whose label
+  matches (states.json → sections). Never point a section at the viewport image.
+- The stub's `gaps` list and the route `title` tell you what each page was meant to cover; the
+  sidebar order is in `area.json.sidebar`.
 - A route that ends up with no controls and no reference material is a `## Open questions`
   entry in its brief and appears in `emptyRoutes[]` in the coverage plan — the IA step decides
   what to do with it. Do not invent content for it.

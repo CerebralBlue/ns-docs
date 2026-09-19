@@ -87,15 +87,35 @@ const rows = routes.map((route) => {
 				.filter(([, g]: any) => g.status !== 'PASS')
 				.map(([k, g]: any) => `${k}:${g.status}`)
 		: [];
+	const page = `src/content/docs/${route}.md`;
+	const pageChanged = changed.has(page);
 	let outcome = 'no brief';
 	if (halted) outcome = `halted (${halted})`;
 	else if ((plan?.notInCapture ?? []).includes(route)) outcome = 'not in capture';
-	else if (brief && !write && !gates) outcome = 'briefed, not written';
+	else if (brief && !write && !gates)
+		outcome = pageChanged ? 'written, not gated (no write.json)' : 'briefed, not written';
 	else if (write && !gates) outcome = 'written, not gated';
 	else if (gates && !gates.ok) outcome = `parked: ${failedGates.join(' ')}`;
 	else if (gates?.ok && review) outcome = review.verdict === 'ready' ? 'ready' : 'ready, findings';
 	else if (gates?.ok) outcome = 'gated, not reviewed';
-	const page = `src/content/docs/${route}.md`;
+	// images on the page, by kind
+	const pageText = existsSync(join(ROOT, page)) ? readFileSync(join(ROOT, page), 'utf8') : '';
+	const imgs = [...pageText.matchAll(/!\[[^\]]*\]\((\/img\/[^)\s]+)\)/g)].map((m) => m[1]);
+	const imageKinds = {
+		sections: imgs.filter((i) => /--(?!options-)[^/]+\.png$/.test(i)).length,
+		options: imgs.filter((i) => /--options-[^/]+\.png$/.test(i)).length,
+		panel: imgs.filter((i) => /-panel\.png$/.test(i)).length,
+		viewport: imgs.filter((i) => /\/[^/]+\.png$/.test(i) && !/--|-panel/.test(i)).length,
+		placeholders: imgs.filter((i) => i.endsWith('_placeholder.svg')).length,
+	};
+	const valuesGate = gates?.gates?.values;
+	const unbacked = valuesGate?.detail?.[0]?.match(/^(\d+) unbacked/)?.[1];
+	const sectionMiss = (gates?.gates?.['section-image']?.detail ?? []).filter((d: string) =>
+		/no real image/.test(d)
+	).length;
+	const passes = review?.resolved ? 2 : 1;
+	const fixed =
+		write?.fixed ?? (review?.resolved ? review.resolved.filter((x: any) => x.resolved).length : 0);
 	return {
 		route,
 		controls: Array.isArray(plan?.[route]) ? plan[route].length : null,
@@ -105,8 +125,13 @@ const rows = routes.map((route) => {
 			(gates?.gates?.facts?.detail?.[0]?.match(/^(\d+)/)?.[1]
 				? Number(gates.gates.facts.detail[0].match(/^(\d+)/)[1])
 				: null),
-		images: write?.images?.length ?? null,
-		placeholders: write?.placeholders ?? null,
+		images: imgs.length - imageKinds.placeholders,
+		imageKinds,
+		placeholders: imageKinds.placeholders,
+		sectionsWithoutImage: sectionMiss,
+		unbacked: unbacked != null ? Number(unbacked) : null,
+		passes,
+		fixed,
 		faq: write?.faq ?? null,
 		gates: failedGates,
 		linkWarnings: (gates?.gates?.links?.detail ?? []).filter((d: string) =>
@@ -190,6 +215,19 @@ const summary = {
 	routes: rows,
 	explore: {
 		states: Object.keys(states).length,
+		sections: Object.values(states).reduce(
+			(n: number, st: any) => n + Object.keys(st.sections ?? {}).length,
+			0
+		),
+		optionLists: Object.values(states).reduce(
+			(n: number, st: any) => n + Object.keys(st.options ?? {}).length,
+			0
+		),
+		optionListsWithValues: Object.values(states).reduce(
+			(n: number, st: any) =>
+				n + Object.values(st.options ?? {}).filter((o: any) => (o.values ?? []).length).length,
+			0
+		),
 		images: imagesOnDisk,
 		notOpened: [...todos.filter((t) => !t.done).map((t) => t.id), ...(explore?.excluded ?? [])],
 		noChange: Object.values(states)
@@ -256,14 +294,14 @@ const md = [
 	`# Run ${runId} — area ${area.area}${area.kind === 'reference' ? ' (reference kind, no screen)' : ''}${captureRun !== runId ? ` · write-only from capture ${captureRun}` : ''}`,
 	'',
 	halted ? `**HALTED:** ${halted}\n` : '',
-	'| route | controls | coverage | unconfirmed | images | FAQ | gates | review | outcome |',
-	'|---|---|---|---|---|---|---|---|---|',
+	'| route | controls | coverage | images (sect/opt/panel/view) | no-image sections | unbacked | unconfirmed | FAQ | gates | review | loop | outcome |',
+	'|---|---|---|---|---|---|---|---|---|---|---|---|',
 	...rows.map(
 		(r) =>
-			`| ${r.route}${r.crossArea ? ' (cross-area)' : ''} | ${r.controls ?? ''} | ${r.coverage ?? ''} | ${r.unconfirmed ?? ''} | ${r.images ?? ''}${r.placeholders ? ` (+${r.placeholders} pending)` : ''} | ${r.faq ?? ''} | ${r.gates.length ? r.gates.join(' ') : r.outcome.startsWith('ready') ? 'PASS' : ''}${r.linkWarnings ? ` (${r.linkWarnings} link warn)` : ''} | ${r.review ?? ''}${r.findings != null ? ` (${r.findings})` : ''} | ${r.outcome} |`
+			`| ${r.route}${r.crossArea ? ' (cross-area)' : ''} | ${r.controls ?? ''} | ${r.coverage ?? ''} | ${r.images}${r.placeholders ? ` (+${r.placeholders} pending)` : ''} (${r.imageKinds.sections}/${r.imageKinds.options}/${r.imageKinds.panel}/${r.imageKinds.viewport}) | ${r.sectionsWithoutImage} | ${r.unbacked ?? ''} | ${r.unconfirmed ?? ''} | ${r.faq ?? ''} | ${r.gates.length ? r.gates.join(' ') : r.outcome.startsWith('ready') ? 'PASS' : ''}${r.linkWarnings ? ` (${r.linkWarnings} link warn)` : ''} | ${r.review ?? ''}${r.findings != null ? ` (${r.findings})` : ''} | ${r.passes}${r.fixed ? ` (fixed ${r.fixed})` : ''} | ${r.outcome} |`
 	),
 	'',
-	`Explore${captureRun !== runId ? ` (capture ${captureRun})` : ''}: ${summary.explore.states} states (${summary.explore.noChange.length} with no visible change), ${summary.explore.images} images on disk, map ${summary.explore.map ?? 'not rebuilt'}; ${navs.length} navigations, ${summary.explore.clicks} clicks, ${summary.explore.keys} key presses; hosts: ${hosts.join(', ') || 'none'}. Not opened: ${summary.explore.notOpened.length ? summary.explore.notOpened.join(', ') : 'none'}. Denials: ${
+	`Explore${captureRun !== runId ? ` (capture ${captureRun})` : ''}: ${summary.explore.states} states (${summary.explore.noChange.length} with no visible change), ${summary.explore.sections} section crops, ${summary.explore.optionLists} option lists (${summary.explore.optionListsWithValues} with a11y values), ${summary.explore.images} images on disk, map ${summary.explore.map ?? 'not rebuilt'}; ${navs.length} navigations, ${summary.explore.clicks} clicks, ${summary.explore.keys} key presses; hosts: ${hosts.join(', ') || 'none'}. Not opened: ${summary.explore.notOpened.length ? summary.explore.notOpened.join(', ') : 'none'}. Denials: ${
 		denials.length
 			? Object.entries(denialsByAgent)
 					.map(([a, n]) => `${a} ${n}`)

@@ -3,7 +3,7 @@ name: writer
 description: Stage 5 of /docs-explore (agentic v3). Writes one page from the understand step's brief — the controls the screen has, the explorer's screenshots, the runner's answers — into the page contract, with a FAQ, and marks any fact taken from the old prose that no screen or probe shows as UNCONFIRMED. Writes the page and its own write.json; never the map, never another page. Many writers run in parallel on distinct pages; also applies the night's consistency fixes to its own page.
 model: opus
 effort: high
-maxTurns: 40
+maxTurns: 70
 tools: Read, Edit, Write, Grep, Glob, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *), Bash(bunx prettier --write src/content/docs/*)
 skills:
   - neuraldocs-writer
@@ -65,6 +65,18 @@ background section, the answers and the MCP resources the runner saved; open the
 `:::caution[Unverified]` saying the page is not yet checked against the product, and mark the
 facts as above. It is honest, not pretty.
 
+## Fix mode (when the prompt hands you `review.json` findings)
+
+The reviewer read your page against the capture and returned findings marked `fixable: true` —
+each names a line and what is wrong (an unbacked value, a section without its image, an option
+list that does not match the capture, outline drift, a link to unwritten content). **Fix exactly
+those, in place, with Edit**: no re-outline, no rewrite of untouched sections, no new claims.
+An unbacked value is fixed by (a) replacing it with what the snapshot/image shows, (b) adding
+`<!-- UNCONFIRMED: … -->` above it when it is old-prose knowledge worth keeping, or (c) deleting
+it. Then lint + prettier, append an `edits` entry per fix to `RD/write.json` (`{ "id":
+"review:<n>", "applied_text": "…" }`), and return the same JSON with `fixed: <n>`. This runs
+once; what you cannot fix goes in `left_unresolved` with the reason.
+
 ## Consistency fixes (when the prompt names a `consistency.json`)
 
 After a whole night's areas are written, the `consistency` agent compares your page with its
@@ -83,10 +95,13 @@ Then lint, prettier, and update `RD/write.json` with an `edits` entry per change
 ## Before you return
 
 1. `bun scripts/agentic/coverage.ts <runId> <route>` — every control in `missing[]` goes on the
-   page, by its label. Repeat until `missing` is empty or you can say why in `left_unresolved`.
-2. `bun scripts/doc-lint.ts <route>` — fix every error (warnings on images are fine).
-3. `bunx prettier --write src/content/docs/<route>.md`.
-4. Re-read the page once against the contract as a reader who has never seen the product.
+   page, by its label (shared controls count too). Repeat until `missing` is empty or you can
+   say why in `left_unresolved`.
+1. Every `###` that names a control has its section crop; option lists on the page match the
+   brief's captured lists word for word.
+1. `bun scripts/doc-lint.ts <route>` — fix every error (warnings on images are fine).
+1. `bunx prettier --write src/content/docs/<route>.md`.
+1. Re-read the page once against the contract as a reader who has never seen the product.
 
 ## Output — write `RD/write.json`, return the same JSON
 

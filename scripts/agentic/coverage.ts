@@ -14,7 +14,7 @@
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { captureDir, DOCS_DIR, parseArgs, readJson, routeDir } from './lib';
+import { captureDir, DOCS_DIR, parseArgs, readJson, routeDir, runDir } from './lib';
 
 export type Coverage = {
 	status: 'PASS' | 'FAIL' | 'ABSENT';
@@ -52,16 +52,31 @@ export function coverageOf(
 			percent: 0,
 			detail: outline ? 'outline.md missing' : 'page missing',
 		};
-	const labels: string[] = Array.isArray(plan[route]) ? plan[route] : [];
-	if (!labels.length)
+	// Owned controls plus the SHARED ones that name this route (a feature page must explain the
+	// settings it depends on, even when a config page owns them). Zero on a console route is a
+	// FAIL, not a free pass — the understand step left the page with nothing to cover.
+	const owned: string[] = Array.isArray(plan[route]) ? plan[route] : [];
+	const shared: string[] = Object.entries(plan.shared ?? {})
+		.filter(([, routes]) => Array.isArray(routes) && (routes as string[]).includes(route))
+		.map(([label]) => label);
+	const labels = [...new Set([...owned, ...shared])];
+	if (!labels.length) {
+		const area =
+			readJson<any>(join(captureDir(runId), 'area.json')) ??
+			readJson<any>(join(runDir(runId), 'area.json'));
+		const info = area?.routes?.find((r: any) => r.route === route);
+		const reference = area?.kind === 'reference' || (info && !(info.console ?? []).length);
 		return {
-			status: 'PASS',
+			status: reference ? 'PASS' : 'FAIL',
 			total: 0,
 			covered: 0,
 			missing: [],
-			percent: 100,
-			detail: 'no controls assigned',
+			percent: reference ? 100 : 0,
+			detail: reference
+				? 'reference kind — no screen'
+				: 'no controls assigned (owned or shared) — the brief gave this page nothing to cover',
 		};
+	}
 	const norm = (s: string) =>
 		s
 			.toLowerCase()
@@ -81,6 +96,7 @@ export function coverageOf(
 		covered,
 		missing,
 		percent,
+		detail: shared.length ? `${owned.length} owned + ${shared.length} shared` : undefined,
 	};
 }
 

@@ -31,7 +31,7 @@ this instance.
 
 ## Inputs (the prompt gives you `runId`)
 
-`R` = `_private/agentic-v2/runs/<runId>`. `R/probes.json` is the whole job:
+`R` = `_private/agentic-v2/runs/<runId>`. The probes file the prompt names (`R/probes.json`, or the capture's `probes.json` on a write-only run) is the whole job:
 `[{id, route, question, tool, input, repeat?, expect}]`. Nothing else is probed.
 
 - `list_agents` when a probe names an agent, to confirm it exists and is small.

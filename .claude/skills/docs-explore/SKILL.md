@@ -1,7 +1,7 @@
 ---
 name: docs-explore
 description: Run the NeuralDocs v3 pipeline over ONE console area — explore the screen with the browser (every state, screenshots), understand it (briefs per route, coverage plan, probes), probe behaviour on the playground through the MCP, decide the IA if something is unowned, write every route the area owns (contract + FAQ), gate, review once, build once, report, clean the playground up. Leaves every change as an uncommitted diff. Use when Fabio types /docs-explore; never invoke on your own.
-argument-hint: '<area> [--capture-only | --write-only [--all-briefed] [--from <capture-run-id>]] [--only <route>]… [--resume <workflow-run-id> --run <ledger-run-id>] [--attempt <n>]'
+argument-hint: '<area> [--capture-only | --write-only [--all-briefed [--rewrite]] [--from <capture-run-id>]] [--only <route>]… [--resume <workflow-run-id> --run <ledger-run-id>] [--attempt <n>]'
 disable-model-invocation: false
 allowed-tools: Bash(bun scripts/agentic/*), Bash(git status *), Bash(git diff *), Bash(cat _private/agentic-v2/*), Bash(node -e *), Read, Workflow
 ---
@@ -30,7 +30,8 @@ The design, with the diagram: `_private/agentic-v2/diagrams/architecture.html`.
   or `--from <capture-run-id>`): its states, images, map and briefs. `--only` may then name
   **any** route whose controls are on that screen, owned by the area or not (the report marks
   them cross-area). `--all-briefed` writes every route that has a brief in the capture and no
-  page written by a v3 run yet. The understand step runs only for routes without a brief, in
+  page written by a v3 run yet (`--rewrite` ignores that and re-writes them too — after a
+  fresh capture, for instance). The understand step runs only for routes without a brief, in
   parallel batches of ≤ 8.
 - **`--capture-only`**: explore + understand only — a fresh capture with briefs for every
   route the area owns (or `--only`), no probes, no IA, no pages. The investment a later
@@ -41,7 +42,7 @@ The design, with the diagram: `_private/agentic-v2/diagrams/architecture.html`.
 ## 2. Open the run (unless resuming)
 
 ```
-bun scripts/agentic/queue.ts <area> [--capture-only | --write-only [--all-briefed] [--from <run>]] [--only <route>]… --json
+bun scripts/agentic/queue.ts <area> [--capture-only | --write-only [--all-briefed [--rewrite]] [--from <run>]] [--only <route>]… --json
 ```
 
 (Add `--dry-run` to preview without opening a run.) Read the JSON: `runId`, `captureRun`,
@@ -78,7 +79,10 @@ export const meta = {
     { title: 'Understand', detail: 'briefs for routes without one, in parallel batches; merge' },
     { title: 'Probe', detail: 'runner: the listed MCP probes' },
     { title: 'IA', detail: 'only when something is unowned; then bun run stubs' },
-    { title: 'Write', detail: 'prepare-write → writer → gates → reviewer, per route' },
+    {
+      title: 'Write',
+      detail: 'prepare-write → writer → gates → reviewer ⟲ fix (once) → verdict, per route',
+    },
     { title: 'Report', detail: 'bun run verify once, report.ts' },
     { title: 'Cleanup', detail: 'delete docs-* agents, confirm config restored' },
     { title: 'Learn', detail: 'learn.ts → conventions.md' },
@@ -196,6 +200,7 @@ const WRITE = {
     placeholders: { type: 'number' },
     unconfirmed: { type: 'number' },
     faq: { type: 'number' },
+    fixed: { type: 'number' },
     left_unresolved: { type: 'array' },
     asks: { type: 'array' },
     lint: { type: 'string' },
@@ -208,6 +213,7 @@ const REVIEW = {
     route: { type: 'string' },
     verdict: { type: 'string', enum: ['ready', 'needs-work'] },
     findings: { type: 'array' },
+    resolved: { type: 'array' },
     questions: { type: 'array' },
   },
   required: ['route', 'verdict', 'findings'],
@@ -348,13 +354,20 @@ if (batches.length && batches[0].length) {
     `understand: ${understood.briefs} new brief(s) in ${batches.length} batch(es), ${understood.probes} probes, ${understood.controls.conflicts} conflict(s), empty: ${understood.emptyRoutes.join(', ') || 'none'}, not in capture: ${understood.notInCapture.join(', ') || 'none'}`
   );
 } else {
-  // Every route already has a brief in the capture: reuse, no understand cost.
+  // Every route already has a brief in the capture: reuse, no understand cost. The capture's
+  // probes.json still has to RUN (a capture-only run never runs the runner).
   const plan = await run(`cat ${C}/coverage-plan.json`, 'coverage-plan', 'Understand');
   const pj = (plan && plan.json) || {};
+  const probeList = await run(
+    `test -f ${C}/probes.json && cat ${C}/probes.json || echo '[]'`,
+    'probes-list',
+    'Understand'
+  );
+  const nProbes = Array.isArray(probeList && probeList.json) ? probeList.json.length : 0;
   understood = {
     area: args.area,
     briefs: 0,
-    probes: 0,
+    probes: nProbes,
     controls: {
       owned: 0,
       unowned: (pj.unowned || []).length,
@@ -375,10 +388,11 @@ if (captureOnly) {
 }
 
 // ── 3 · Probe (MCP, no browser) ──────────────────────────────────────────────
+const PROBES = writeOnly ? `${C}/probes.json` : `${R}/probes.json`;
 const probed =
   understood.probes > 0
     ? await A(
-        `runId: ${RUN}. Run the probes in ${R}/probes.json per your instructions and write ${R}/answers.md and ${R}/runner.json.`,
+        `runId: ${RUN}. Run the probes in ${PROBES} per your instructions and write ${R}/answers.md and ${R}/runner.json.`,
         {
           agentType: 'runner',
           label: `probe:${args.area}`,
@@ -421,44 +435,83 @@ const finalRoutes = (
   return !notInCapture.has(r);
 });
 
-// ── 5 · Write → gates → review, per route (parallel across routes) ───────────
+// ── 5 · Write → gates → review ⟲ fix (once) → gates → verdict, per route ─────
+// Evaluator = gates (deterministic) + reviewer (checklist over the gates' evidence).
+// Optimizer = the writer in fix mode, once, on the fixable findings only. Max 2 writer passes.
+const gatesFor = (r, label) =>
+  run(`bun scripts/agentic/gates.ts ${RUN} ${r} --json`, label, 'Write');
+const parkedText = (g) =>
+  Object.entries(g.gates)
+    .filter(([, x]) => x.status !== 'PASS')
+    .map(([k]) => k)
+    .join(', ');
 const written = await pipeline(
   finalRoutes,
   (r) => run(`bun scripts/agentic/prepare-write.ts ${RUN} ${r} --json`, `prepare:${r}`, 'Write'),
-  (p, r) =>
-    p && p.ok
-      ? A(
-          `runId: ${RUN}. route: ${r}. Capture folder C: ${C}. Write the page from ${BRIEF(r)} per your instructions — outline first (${RD(r)}/outline.md), then the page with the Write tool — and write ${RD(r)}/write.json.`,
-          {
-            agentType: 'writer',
-            label: `write:${r}`,
-            phase: 'Write',
-            schema: WRITE,
-          }
-        )
-      : null,
-  (w, r) =>
-    w ? run(`bun scripts/agentic/gates.ts ${RUN} ${r} --json`, `gates:${r}`, 'Write') : null,
-  async (g, r) => {
-    if (!g || !g.json) return null;
-    if (!g.json.ok) {
-      log(
-        `parked ${r}: ${Object.entries(g.json.gates)
-          .filter(([, x]) => x.status !== 'PASS')
-          .map(([k]) => k)
-          .join(', ')}`
-      );
-      return { gates: g.json };
+  async (p, r) => {
+    if (!(p && p.ok)) return null;
+    const w = await A(
+      `runId: ${RUN}. route: ${r}. Capture folder C: ${C}. Write the page from ${BRIEF(r)} per your instructions — outline first (${RD(r)}/outline.md), then the page with the Write tool, every section with its Image — and write ${RD(r)}/write.json.`,
+      { agentType: 'writer', label: `write:${r}`, phase: 'Write', schema: WRITE }
+    );
+    if (w) return { w, wrote: true };
+    // The writer died without returning (turn cap, API error) but may have written the page:
+    // a page that differs from before.md still goes through the gates and the review.
+    const changed = await run(
+      `cmp -s ${RD(r)}/before.md ${REPO}/src/content/docs/${r}.md && echo '{"changed":false}' || echo '{"changed":true}'`,
+      `changed:${r}`,
+      'Write'
+    );
+    if (changed && changed.json && changed.json.changed) {
+      log(`${r}: writer returned nothing but the page changed — gating it anyway (no write.json)`);
+      return { w: null, wrote: true, noWriteJson: true };
     }
-    // Keep the map's description in step with the page (status stays auto).
+    return null;
+  },
+  (x, r) => (x && x.wrote ? gatesFor(r, `gates:${r}`).then((g) => ({ ...x, g })) : null),
+  async (x, r) => {
+    if (!x || !x.g || !x.g.json) return null;
+    const noWriteJson = !!x.noWriteJson;
+    let g = x.g.json;
+    if (!g.ok) {
+      log(`parked ${r}: ${parkedText(g)}`);
+      return { gates: g, noWriteJson, passes: 1 };
+    }
     await run(`bun scripts/agentic/sync-map.ts ${RUN} ${r} --json`, `sync-map:${r}`, 'Write');
-    // One review, findings only — no rewrite loop; the report carries the findings.
+    // Evaluate.
     const review = await A(
-      `Review the route ${r}. The pipeline's brief is in ${BRIEF(r)}; the writer's outline in ${RD(r)}/outline.md; the snapshots in ${C}/states/; what the product did in ${R}/answers.md. Return your findings in your usual format and also write ${RD(r)}/review.json as {route, verdict, findings, questions}.`,
+      `Review the route ${r}. Run folder: ${R}. Capture folder: ${C}. Read ${RD(r)}/gates.json (its values / section-image / links / coverage evidence) and ${RD(r)}/outline.md first, then the brief at ${BRIEF(r)} and the snapshots in ${C}/states/; what the product did is in ${R}/answers.md. Work your checklist, mark each finding fixable or not, and write ${RD(r)}/review.json as {route, verdict, findings: [{kind, line, what, evidence, fixable}], questions}.`,
       { agentType: 'doc-reviewer', label: `review:${r}`, phase: 'Write', schema: REVIEW }
     );
     if (review) await ensureFile(`${RD(r)}/review.json`, review, `review-file:${r}`, 'Write');
-    return { gates: g.json, review };
+    const fixable = ((review && review.findings) || []).filter((f) => f && f.fixable);
+    if (!review || review.verdict === 'ready' || !fixable.length)
+      return { gates: g, review, noWriteJson, passes: 1, fixed: 0 };
+    // Optimize, once.
+    const fix = await A(
+      `runId: ${RUN}. route: ${r}. Capture folder C: ${C}. Fix mode: the reviewer returned these fixable findings — ${JSON.stringify(fixable).slice(0, 4000)}. Fix exactly those on the page with Edit, per your Fix mode instructions, update ${RD(r)}/write.json and return it with fixed: <n>.`,
+      { agentType: 'writer', label: `fix:${r}`, phase: 'Write', schema: WRITE }
+    );
+    const g2 = await gatesFor(r, `gates2:${r}`);
+    g = (g2 && g2.json) || g;
+    if (!g.ok) {
+      log(`parked ${r} after fix: ${parkedText(g)}`);
+      return { gates: g, review, noWriteJson, passes: 2, fixed: (fix && fix.fixed) || 0 };
+    }
+    await run(`bun scripts/agentic/sync-map.ts ${RUN} ${r} --json`, `sync-map2:${r}`, 'Write');
+    const verdict = await A(
+      `Verdict-only mode for the route ${r}. Run folder: ${R}. Capture folder: ${C}. The writer applied these findings: ${JSON.stringify(fixable.map((f) => ({ line: f.line, what: f.what }))).slice(0, 3000)}. Re-check only those lines against the capture and write ${RD(r)}/review.json as {route, verdict, resolved: [{line, resolved}], findings: [], questions: []}.`,
+      { agentType: 'doc-reviewer', label: `verdict:${r}`, phase: 'Write', schema: REVIEW }
+    );
+    if (verdict) await ensureFile(`${RD(r)}/review.json`, verdict, `verdict-file:${r}`, 'Write');
+    return {
+      gates: g,
+      review: verdict || review,
+      firstReview: review,
+      noWriteJson,
+      passes: 2,
+      fixed: (fix && fix.fixed) || fixable.length,
+    };
   }
 );
 
@@ -475,7 +528,10 @@ const summary = finalRoutes.map((r, i) => {
   else if (w && w.review) outcome = 'ready, findings';
   else if (w && w.gates && !w.gates.ok) outcome = 'parked: gates';
   else if (w && w.gates) outcome = 'gated';
-  return `${outcome.padEnd(16)} ${r}`;
+  const tag = w
+    ? ` (passes ${w.passes || 1}${w.fixed ? `, fixed ${w.fixed}` : ''}${w.noWriteJson ? ', no write.json' : ''})`
+    : '';
+  return `${outcome.padEnd(16)} ${r}${tag}`;
 });
 log(summary.join('\n'));
 return await finish({ buildOk: !!(build && build.json && build.json.buildOk), summary });

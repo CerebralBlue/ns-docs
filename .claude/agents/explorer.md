@@ -1,9 +1,9 @@
 ---
 name: explorer
-description: Stage 1 of /docs-explore (agentic v3). Walks ONE console area of the playground with the browser — opens every panel, dialog, tab and accordion explore-plan.ts names, saves an accessibility snapshot and screenshots (viewport + cropped panel) per state into the run and public/img/<area>/, then rebuilds the area's component map. Mechanical by design — the script decides what to open, the agent clicks and captures. Holds the single browser, so it runs alone. Locked to the playground by the browser hook.
+description: Stage 1 of /docs-explore (agentic v3.2). Walks ONE console area of the playground with the browser — opens every panel, dialog, tab and accordion explore-plan.ts names, saves an accessibility snapshot per state, photographs the panel, EVERY SECTION (field group) and EVERY DROPDOWN'S option list into public/img/<area>/, then rebuilds the area's component map. Mechanical by design — the script decides what to open, the agent clicks and captures. Holds the single browser, so it runs alone. Locked to the playground by the browser hook.
 model: sonnet
 effort: medium
-maxTurns: 200
+maxTurns: 300
 tools: Read, Grep, Bash(bun scripts/agentic/explore-plan.ts *), Bash(mkdir -p *), mcp__neuralseek-ui__browser_navigate, mcp__neuralseek-ui__browser_navigate_back, mcp__neuralseek-ui__browser_snapshot, mcp__neuralseek-ui__browser_take_screenshot, mcp__neuralseek-ui__browser_click, mcp__neuralseek-ui__browser_hover, mcp__neuralseek-ui__browser_type, mcp__neuralseek-ui__browser_select_option, mcp__neuralseek-ui__browser_press_key, mcp__neuralseek-ui__browser_wait_for, mcp__neuralseek-ui__browser_find, mcp__neuralseek-ui__browser_tabs
 color: cyan
 hooks:
@@ -63,15 +63,28 @@ absolute paths. `mkdir -p` both folders first.
      record the state with `--no-change` and no images, and move on (a new tab opening
      counts as a change — close it with `browser_tabs` and note it).
    - Record: `explore-plan.ts record <runId> --state <id> --snapshot … --viewport … [--panel …] --url …`.
-     It also looks deeper by itself — what this state exposes (accordions inside a dialog,
-     tabs inside a panel, the **Edit Configuration** button inside a tree-node dialog) joins
-     the list — and prints the pending states with their `reach`. **Continue with that printed
-     list until it is empty.** A state whose reach has two or three steps is reached by
-     replaying them from the default screen; nested states are the ones the writers need most.
+     It looks deeper by itself (what this state exposes joins the pending list) **and prints
+     `PHOTOGRAPH NOW`** — the panel, one crop per **section** (a field group: heading +
+     description + control, or a labelled row) and every **dropdown** in the state. Do all of
+     it before leaving the state:
+     - each `section` line → `browser_take_screenshot` with `target=<ref>`, `element=<label>`
+       → `public/img/<area>/<state>--<section id>.png`. If the section is below the fold,
+       `browser_hover` its ref first (the console scrolls it into view), then screenshot.
+     - each `options` line → click the value button (`target=<ref>`), **snapshot at once to
+       `R/states/<state>--<options id>.yml` — do not run `diff`, do not wait**, screenshot
+       `target=<listbox ref>` → `public/img/<area>/<state>--<options id>.png`, press
+       `Escape`, snapshot to `R/states/_nav.yml` to confirm it closed. The open menu is what
+       we want; a "nothing changed" verdict is expected here and means nothing.
+     - then `explore-plan.ts attach <runId> --state <id> --section <sid>=<abs png> … --options <oid>=<abs yml>:<abs png> …`
+       — it records the files and says which crops are still missing. Sections and dropdowns
+       are not states: they never count against the cap, so never skip them to save budget.
+       **Continue with the printed pending list until it is empty.** A state whose reach has two
+       or three steps is reached by replaying them from the default screen; nested states are
+       the ones the writers need most.
    - Leave the state: Escape for a dialog or menu, click the same header again for an
      accordion, `navigate_back` for a page. When unsure, navigate to the area URL.
-3. **Stop only when the pending list is empty**, or after 30 recorded states, or after 60
-   clicks — never because the first level is done. The previous run left
+3. **Stop only when the pending list is empty**, or after 40 recorded states — never because
+   the first level is done; clicks spent on sections and option lists do not count. The previous run left
    `add-custom-configuration-edit` and the whole Edit Configuration accordion unopened.
    Then `bun scripts/agentic/explore-plan.ts finish <runId>` — it builds the component map,
    indexes this run as the area's latest capture (`captures.json`) and prints the summary,
@@ -86,8 +99,8 @@ absolute paths. `mkdir -p` both folders first.
   capturing; then press Escape or click its Cancel/Close. Never confirm.
 - Every screenshot is a documentation image: full viewport at the default window size, no
   hover tooltips open, the panel image tight on the container.
-- Selected values in dropdowns are settings — do not change them. A `select` state means: open
-  the dropdown, snapshot (the options are what we want), Escape.
+- Selected values in dropdowns are settings — **never pick an option**: open, snapshot,
+  screenshot, Escape. If Escape leaves the menu open, click the same value button again.
 - Denied by the hook = it was not to be clicked; note it in `notes`, do not retry.
 
 ## Output — return this JSON (the files are the deliverable; `finish` wrote `R/explore-summary.json`)
@@ -103,7 +116,10 @@ absolute paths. `mkdir -p` both folders first.
   ],
   "map": { "status": "changed", "added": 18, "removed": 0 },
   "navigations": 9,
-  "notes": "one factual line per thing the next run should know about this screen (e.g. 'Edit Configuration is a dialog reached from the Default Config tree node; the tree is an SVG, its nodes are generic[cursor=pointer]'); no narrative"
+  "sections": 61,
+  "optionLists": 19,
+  "optionValuesInA11y": true,
+  "notes": "one factual line per thing the next run should know about this screen (e.g. 'Edit Configuration is a dialog reached from the Default Config tree node; the tree is an SVG, its nodes are generic[cursor=pointer]'; 'open Carbon listboxes DO / DO NOT appear in the a11y snapshot'); no narrative"
 }
 ```
 

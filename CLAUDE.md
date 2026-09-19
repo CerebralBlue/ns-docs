@@ -388,7 +388,7 @@ Open items that affect anyone touching content:
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
 
-## The `/docs-explore` pipeline (agentic workflow v3.1, screen-first, capture once — write many)
+## The `/docs-explore` pipeline (agentic workflow v3.2, screen-first, capture once — write many)
 
 The workflow that writes pages from the **running product's screens**. One run = one **console
 area** (a screen in `_private/agentic-v2/areas.json`). Fabio runs it (`/docs-explore <area>`,
@@ -398,8 +398,12 @@ or `/docs-explore <area> --write-only [--all-briefed] [--only <route>]…`) or c
 night 1 (24 routes, ~11M tokens, nothing ready) — is archived in `_private/archive/agentic-v2/`.
 
 - **Captures are first-class.** An explore run's `states/` (a11y snapshot per UI state),
-  `public/img/<area>/` (viewport + cropped-panel screenshot per state), the rebuilt
-  **component map** `_private/component-map/<area>.json`, and the **briefs**
+  `public/img/<area>/` (per state: viewport, panel crop, **one crop per section** —
+  `<state>--<section>.png`, a field group with its heading/label — and **every dropdown's open
+  option list** `<state>--options-<label>.yml/.png`; `explore-plan.ts crops` decides the
+  targets from the a11y anatomy, `record` prints them, `attach` files them into
+  `states.json[].sections/options`), the rebuilt **component map**
+  `_private/component-map/<area>.json` (with option lists), and the **briefs**
   (`runs/<capture>/briefs/<route>/brief.md` + `coverage-plan.json`) are the capture;
   `_private/agentic-v2/captures.json` indexes the latest per area. A **write-only run**
   (`area.json.captureRun`) reuses it: no browser, briefs only for routes without one (in
@@ -429,8 +433,12 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
 - **Coverage is the metric.** `gates.ts` = lint · contract · links (a link whose sentence
   promises a topic the still-unwritten target page lacks is a **warning**, never a fail) ·
   images (no old-docs screenshot survives; hashes) · **coverage** (the page names ≥ 90 % of the
-  labels `coverage-plan.json` assigns to it — `coverage.ts`, also the writer's own check, and
-  `--outline` on the plan before prose) · facts.
+  labels `coverage-plan.json` assigns to it — **owned ∪ shared-for-route**; zero on a console
+  route FAILs; `coverage.ts`, also the writer's own check, and `--outline` on the plan before
+  prose) · **section-image** (a `###` that names an assigned control must carry a real image)
+  · facts · **values** (WARN: `values.ts` lists every bold label / code value the capture's
+  snapshots do not contain and no UNCONFIRMED marker covers — the reviewer rules on each:
+  invented / from-image / old-prose).
 - **Ownership.** A route is written by the first entry of its `console` field in
   `scripts/migration-map.json`; further entries are screens its writer also reads.
   `bun scripts/agentic/areas.ts list` prints the split; `propose`/`apply` seed the field for

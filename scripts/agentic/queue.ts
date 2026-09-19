@@ -12,7 +12,7 @@
  *       no browser: write from the area's latest capture (captures.json) or --from. --only may
  *       name ANY non-NTL route — the capture decides, ownership only sets the night's default;
  *       such routes are marked crossArea. --all-briefed = every route with a brief in the
- *       capture and no write.json in any v3 run yet.
+ *       capture and no write.json in any v3 run yet; --rewrite drops that second condition.
  *
  * The area comes from _private/agentic-v2/areas.json (url, navPath, entry). Owned routes are
  * map routes whose first `console` entry resolves to the area; the other areas a route names
@@ -69,6 +69,7 @@ const writeOnly = args.flags.has('write-only');
 const captureOnly = args.flags.has('capture-only');
 const dryRun = args.flags.has('dry-run');
 const allBriefed = args.flags.has('all-briefed');
+const rewrite = args.flags.has('rewrite'); // --all-briefed ignores index.json / earlier write.json
 // The pipeline runs against the playground and nothing else — fail before any agent starts.
 const inst = loadInstances();
 const rc = rcInstance();
@@ -96,7 +97,7 @@ const hasBrief = (r: string) =>
 	!!captureBriefs && existsSync(join(captureBriefs, routeFolder(r), 'brief.md'));
 // Routes already written by a v3 run (a write.json in a run that has area.json).
 const writtenByV3 = new Set<string>();
-if (allBriefed && existsSync(RUNS_DIR))
+if (allBriefed && !rewrite && existsSync(RUNS_DIR))
 	for (const id of readdirSync(RUNS_DIR)) {
 		const a = readJson<any>(join(RUNS_DIR, id, 'area.json'));
 		if (!a) continue;

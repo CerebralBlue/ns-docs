@@ -3,7 +3,7 @@
  *
  *   bun scripts/agentic/map-build.ts --area seek --url https://…/seek --nav "Seek" \
  *       --state default=<abs>.yml [--state advanced=<abs>.yml --reach advanced="click Show Advanced Options"] \
- *       [--screenshot default=<abs>.png] [--json]
+ *       [--screenshot default=<abs>.png] [--options "<label>=<v1>|<v2>|…"]… [--json]
  *
  * Writes _private/component-map/.candidates/<area>.json — a CANDIDATE. map-diff.ts compares it
  * with the cached map and promotes it (or reports `unchanged`). Deterministic: the same
@@ -48,6 +48,7 @@ type Control = {
 	commits: boolean;
 	destructive: boolean;
 	opens?: string;
+	options?: string[];
 	columns?: string[];
 	states: string[];
 	count: number;
@@ -60,6 +61,16 @@ const kv = (s: string) => {
 };
 const reach = Object.fromEntries((args.values.reach ?? []).map(kv));
 const screenshots = Object.fromEntries((args.values.screenshot ?? []).map(kv));
+// Captured option lists (agentic v3.2): label → values, attached to the matching listbox control.
+const optionLists = Object.fromEntries(
+	(args.values.options ?? []).map(kv).map(([k, v]) => [
+		k.toLowerCase(),
+		v
+			.split('|')
+			.map((x) => x.trim())
+			.filter(Boolean),
+	])
+);
 
 const regions = new Map<string, Map<string, Control>>();
 const states: { id: string; file: string; reach: string[]; controls: number }[] = [];
@@ -141,6 +152,17 @@ for (const spec of args.values.state) {
 				commits: !isTable && node.role !== 'link' && COMMIT_VERBS.test(name),
 				destructive: !isTable && DESTRUCTIVE.test(name),
 				opens: node.url,
+				// a listbox's captured option list, keyed by the label beside it (its parent's label text)
+				options:
+					node.role === 'listbox'
+						? optionLists[
+								(
+									node.parent?.children.find(
+										(c) => c.role === 'generic' && c.text && !c.children.length
+									)?.text ?? ''
+								).toLowerCase()
+							]
+						: undefined,
 				columns,
 				states: [id],
 				count: 1,

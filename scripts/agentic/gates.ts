@@ -16,8 +16,13 @@
  *              a warning line, never a FAIL
  *   images     every image exists, is not an old-docs carry-over, and a placeholder is
  *              followed by a SCREENSHOT marker within 3 lines
- *   coverage   the page names ≥ 90 % of the controls coverage-plan.json assigns to it
+ *   coverage   the page names ≥ 90 % of the controls coverage-plan.json assigns to it — owned
+ *              plus the shared ones naming the route; zero on a console route FAILs
  *              (coverage.ts — the writer's own check, re-run here)
+ *   section-image  every ### section that names an assigned control carries a real image
+ *              (the capture has a crop per section; a placeholder there is a writer omission)
+ *   values     WARN: bold labels / code values on the page that no snapshot of the capture
+ *              contains and no UNCONFIRMED marker covers (values.ts) — the reviewer rules on each
  *   facts      ≤ 4 `<!-- UNCONFIRMED: … -->` markers; more means the page is old prose with a
  *              new coat and Fabio should look at it. Reference-kind routes are exempt.
  *
@@ -27,7 +32,9 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { coverageOf } from './coverage';
+import { unbackedValues } from './values';
 import {
+	captureDir,
 	DOCS_DIR,
 	loadMap,
 	parseArgs,
@@ -225,7 +232,60 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 				]
 	);
 }
-// ── facts ─────────────────────────────────────────────────────────────────────
+// ── section-image ─────────────────────────────────────────────────────────
+{
+	const c = coverageOf(runId, route);
+	const plan = readJson<Record<string, any>>(join(captureDir(runId), 'coverage-plan.json')) ?? {};
+	const owned: string[] = Array.isArray(plan[route]) ? plan[route] : [];
+	const shared: string[] = Object.entries(plan.shared ?? {})
+		.filter(([, r]) => Array.isArray(r) && (r as string[]).includes(route))
+		.map(([l]) => l);
+	const labels = [...new Set([...owned, ...shared])].map((l) =>
+		l
+			.toLowerCase()
+			.replace(/&/g, ' and ')
+			.replace(/[^a-z0-9]+/g, ' ')
+			.trim()
+	);
+	if (c.status === 'ABSENT' || isReference)
+		gate('section-image', c.status === 'ABSENT' ? 'ABSENT' : 'PASS', [
+			c.status === 'ABSENT' ? (c.detail ?? '') : 'reference kind',
+		]);
+	else {
+		const detail: string[] = [];
+		// split the body into ### sections (outside fences)
+		let cur: { title: string; start: number; text: string[] } | null = null;
+		const sections: { title: string; start: number; text: string[] }[] = [];
+		outsideFences((line, i) => {
+			const m = line.match(/^###\s+(.+?)\s*$/);
+			if (m) {
+				cur = { title: m[1], start: at(i), text: [] };
+				sections.push(cur);
+			} else if (cur) cur.text.push(line);
+		});
+		for (const sec of sections) {
+			const body = (sec.title + '\n' + sec.text.join('\n'))
+				.toLowerCase()
+				.replace(/&/g, ' and ')
+				.replace(/[^a-z0-9]+/g, ' ');
+			const names = labels.filter((l) => l && body.includes(l));
+			if (!names.length) continue;
+			const hasImage = sec.text.some((l) =>
+				/!\[[^\]]*\]\(\/img\/(?!_placeholder\.svg)[^)\s]+\)/.test(l)
+			);
+			if (!hasImage)
+				detail.push(
+					`line ${sec.start}: "${sec.title}" names ${names.length} control(s) and has no real image`
+				);
+		}
+		gate(
+			'section-image',
+			detail.length ? 'FAIL' : 'PASS',
+			detail.length ? detail : [`${sections.length} section(s) checked`]
+		);
+	}
+}
+// ── facts ─────────────────────────────────────────────────────────────────
 {
 	const marks = [...raw.matchAll(/<!--\s*UNCONFIRMED:([^]*?)-->/g)].map((m) =>
 		m[1].trim().slice(0, 80)
@@ -234,6 +294,19 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 	gate('facts', marks.length > limit ? 'FAIL' : 'PASS', [
 		`${marks.length} unconfirmed fact(s)${isReference ? ' (reference kind — no limit)' : ''}`,
 		...marks.map((m) => `unconfirmed: ${m}`),
+	]);
+}
+// ── values (WARN — never parks; the reviewer rules on each) ───────────────
+{
+	const v = unbackedValues(runId, route);
+	gate('values', v.status === 'ABSENT' ? 'ABSENT' : 'PASS', [
+		v.status === 'ABSENT'
+			? (v.detail ?? '')
+			: `${v.unbacked.length} unbacked of ${v.checked} checked`,
+		...v.unbacked.map(
+			(u) =>
+				`line ${u.line}: ${u.kind} "${u.text}" is in no snapshot and carries no UNCONFIRMED marker`
+		),
 	]);
 }
 finish();
