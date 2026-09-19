@@ -176,6 +176,10 @@ function planFrom(snap: string, from: string) {
 	};
 	const pages = todos.filter((t) => t.kind === 'page').length;
 	let pageBudget = MAX_PAGES - pages;
+	// A focused capture (area.json.states): only the listed state ids are walked. Ancestors on
+	// the path must be listed too (queue.ts --states default-config-answer-generation,edit-configuration-edit,…).
+	const filter: string[] | null =
+		Array.isArray(area.states) && area.states.length ? area.states : null;
 	for (const c of controlsOf(parseSnapshot(readFileSync(snap, 'utf8')))) {
 		if (todos.length + added.length >= MAX_STATES) break;
 		if (!c.name || NAV_REGIONS.test(c.region)) continue;
@@ -212,6 +216,7 @@ function planFrom(snap: string, from: string) {
 		seen.add(k);
 		let id = slug(c.name);
 		for (let n = 2; ids.has(id); n++) id = `${slug(c.name)}-${n}`;
+		if (filter && !filter.some((f) => id === f || id.startsWith(f) || f.startsWith(id))) continue;
 		ids.add(id);
 		added.push({
 			id,
@@ -242,7 +247,7 @@ function planFrom(snap: string, from: string) {
  * walk does not descend into it. Every dropdown inside the panel is an OPTION target.
  */
 type CropTarget = { id: string; ref: string; label: string; kind: 'panel' | 'section' };
-type OptionTarget = { id: string; ref: string; listboxRef: string; label: string; value: string };
+type OptionTarget = { id: string; ref: string; listboxRef: string; label: string; value: string }; // listboxRef = the crop target (the group)
 const VALUE_LIKE = /^("?\d+(\.\d+)?"?|disabled|enabled|true|false|yes|no|none|-)$/i;
 const hasControl = (n: SnapNode): boolean => INTERACTIVE.has(n.role) || n.children.some(hasControl);
 const headingsIn = (n: SnapNode): SnapNode[] => {
@@ -302,6 +307,45 @@ function cropsOf(snapshotYaml: string, stateId: string, stateLabel: string) {
 		usedIds.add(id);
 		return id;
 	};
+	// A row's own box is often just the 200px widget (the label sits under it): the image a
+	// reader needs is the GROUP — the nearest ancestor that also holds a paragraph/heading or
+	// sibling rows, without being the whole panel. Count controls to stay below "the form".
+	const countControls = (n: SnapNode) => {
+		let c = 0;
+		walkSnapshot([n], (d) => {
+			if (INTERACTIVE.has(d.role)) c++;
+		});
+		return c;
+	};
+	const contextOf = (n: SnapNode): SnapNode => {
+		let best = n;
+		// Carbon wraps rows in ref-less generics; the context (a paragraph beside the row) often
+		// sits in such a wrapper, and the photograph must target its nearest ref'd ancestor.
+		let pendingContext = false;
+		for (let p = n.parent; p && p !== panel; p = p.parent) {
+			const kids = p.children;
+			const hasContext =
+				pendingContext ||
+				kids.some(
+					(k) =>
+						k.role === 'paragraph' ||
+						k.role === 'heading' ||
+						(k.role === 'text' && (k.text ?? '').length > 40)
+				);
+			if (!p.ref) {
+				pendingContext = hasContext;
+				continue;
+			}
+			const controls = countControls(p);
+			if (controls > 14) break;
+			if (hasContext || kids.length >= 2) {
+				best = p;
+				if (hasContext) break;
+			}
+			pendingContext = false;
+		}
+		return best;
+	};
 	const visit = (n: SnapNode, depth: number) => {
 		if (sections.length >= MAX_SECTIONS) return;
 		if (n === panel) {
@@ -326,7 +370,14 @@ function cropsOf(snapshotYaml: string, stateId: string, stateLabel: string) {
 			if (hs.length === 0) {
 				const label = labelOf(n);
 				if (label && !NEVER.test(label)) {
-					sections.push({ id: uniq(label), ref: n.ref, label, kind: 'section' });
+					const ctx = contextOf(n);
+					// several rows sharing one context box collapse into one section (their labels joined)
+					const dup = sections.find((x) => x.ref === ctx.ref);
+					if (dup) {
+						dup.label = `${dup.label} · ${label}`;
+						return;
+					}
+					sections.push({ id: uniq(label), ref: ctx.ref, label, kind: 'section' });
 					return;
 				}
 			}
@@ -347,10 +398,11 @@ function cropsOf(snapshotYaml: string, stateId: string, stateLabel: string) {
 			label = sec?.label ?? '';
 		}
 		if (!label || NEVER.test(label)) return;
+		const ctx = n.parent ? contextOf(n.parent) : n;
 		options.push({
 			id: `options-${slug(label)}`,
 			ref: btn.ref,
-			listboxRef: n.ref,
+			listboxRef: ctx.ref || n.ref, // what to photograph with the menu open: the group, not the widget
 			label,
 			value: btn.name,
 		});
@@ -559,7 +611,9 @@ if (verb === 'crops') {
 		for (const x of c.sections)
 			console.log(`  section  ${x.id.padEnd(40)} ${x.ref.padEnd(12)} ${x.label}`);
 		for (const o of c.options)
-			console.log(`  options  ${o.id.padEnd(40)} ${o.ref.padEnd(12)} ${o.label} = ${o.value}`);
+			console.log(
+				`  options  ${o.id.padEnd(40)} click ${o.ref.padEnd(12)} crop ${o.listboxRef.padEnd(12)} ${o.label} = ${o.value}`
+			);
 	}
 	process.exit(0);
 }

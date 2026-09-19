@@ -48,7 +48,10 @@ absolute paths. `mkdir -p` both folders first.
    and `bun scripts/agentic/explore-plan.ts plan <runId> --snapshot <abs yml>` — it prints the
    pending states with their `reach` (the clicks from default).
    If the page is a login screen or redirects to Auth0: return `{halt: "login"}` immediately.
-2. **Each pending state**, in the printed order:
+2. **Each pending state**, in the printed order (**use the printed todo id as the state id**
+   in every file name and `record --state` — never invent a shorter one; the filters and the
+   briefs key on it). If `area.json.states` is non-empty this is a focused capture: the plan
+   already lists only those states — walk exactly them.
    - Get to it. Start from the default screen (navigate to the area URL again if a dialog or
      page is still open and Escape did not close it). For every step in `reach`: snapshot to
      `R/states/_nav.yml` (the hook needs the click target in the latest saved snapshot), find
