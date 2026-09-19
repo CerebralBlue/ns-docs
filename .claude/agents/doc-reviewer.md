@@ -52,7 +52,19 @@ sections`)? If yes: fixable. If no: not fixable, say which crop is missing.
 6. **Prose** — marketing words, undefined jargon, sentences that assume the answer.
 
 `fixable: true` = the writer can fix it on this page from evidence this run already has (a
-snapshot, an image, the brief). `false` = it needs a capture, a probe, an IA decision, or Fabio.
+snapshot, an image, the brief). `false` = it needs something this run does not have — then say
+**who**: `needs: { kind: "capture", target: "<area>", what: "<screen/state/interaction to photograph>" }`
+(the next explorer of that area does it), `{ kind: "route", target: "<route>" }` (another page must
+cover it — e.g. `seek/curation` must explain how edited answers feed the Edited answer cache),
+`{ kind: "probe", target: "<area>" }` (a behaviour the runner should show), or `{ kind: "fabio" }`
+(a decision). A non-fixable finding without `needs` goes nowhere. Questions carry `needs` too.
+
+**Memory of the last review.** The prompt names the previous `review.json` of this route when
+one exists (`_private/agentic-v2/index.json` → the last run) and the open backlog entries that
+target this route (`bun scripts/agentic/backlog.ts list --target route:<route>`). Re-check each:
+a previous finding or backlog entry the page now satisfies goes into `resolvedBacklog: [<id>]`
+(backlog ids) / is simply not repeated; one still open is repeated with the same wording so the
+report shows it as recurring, not new.
 
 **Verdict-only mode** (the prompt says so): the writer applied the fixable findings; re-check
 only those lines, return `verdict` and, per earlier finding, `resolved: true|false`. No new
@@ -186,6 +198,6 @@ findings go to the morning report for Fabio, so make each one actionable on its 
 
 If the page is genuinely fine, say so in two lines. Do not manufacture findings to look useful.
 When the prompt asks for `review.json`, write it into the route's run folder **with the Write
-tool** as `{ route, verdict, findings: [{kind, line, what, evidence, fixable}], questions }` —
-the shell hook refuses redirections. In verdict-only mode: `{ route, verdict, resolved:
-[{line, resolved}], findings: [] }`.
+tool** as `{ route, verdict, findings: [{kind, line, what, evidence, fixable, needs?}], questions:
+[{what, needs?}], resolvedBacklog: [<backlog id>] }` — the shell hook refuses redirections. In
+verdict-only mode: `{ route, verdict, resolved: [{line, resolved}], findings: [], resolvedBacklog }`.

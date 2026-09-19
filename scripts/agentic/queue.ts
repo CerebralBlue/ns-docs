@@ -30,6 +30,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { loadAreas, resolveArea } from './areas';
+import { buildCatalog, CATALOG_FILE } from './catalog';
 import {
 	CURRENT_RUN_FILE,
 	DOCS_DIR,
@@ -223,6 +224,8 @@ const areaJson = {
 if (!dryRun) {
 	writeJson(join(dir, 'area.json'), areaJson);
 	writeFileSync(CURRENT_RUN_FILE, runId + '\n');
+	// The planner plans against the pipeline as it is now, never a stale picture of it.
+	writeJson(CATALOG_FILE, buildCatalog());
 }
 
 if (args.flags.has('json'))

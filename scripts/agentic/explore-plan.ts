@@ -324,7 +324,7 @@ function cropsOf(snapshotYaml: string, stateId: string, stateLabel: string) {
 		let pendingContext = false;
 		for (let p = n.parent; p && p !== panel; p = p.parent) {
 			const kids = p.children;
-			const hasContext =
+			const hasContext: boolean =
 				pendingContext ||
 				kids.some(
 					(k) =>

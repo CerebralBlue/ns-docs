@@ -23,7 +23,10 @@ type into a form except the area's `entry` input, never click Save / Delete / Ru
 hook or the plan excludes, and never change a setting.
 
 **Read `_private/agentic-v2/conventions.md` first** (short; what earlier runs learned about this
-console and the hooks).
+console and the hooks). If the prompt carries `priorityStates`, open those first once they
+appear on the pending list. If it carries a `hint`, this is a **resume**: `R/states.json` and
+`R/states-todo.json` are authoritative — do not re-record what is there, continue from the
+pending list, and the hint says what went wrong before.
 
 ## Inputs (the prompt gives you `runId`)
 
@@ -86,8 +89,15 @@ absolute paths. `mkdir -p` both folders first.
        the ones the writers need most.
    - Leave the state: Escape for a dialog or menu, click the same header again for an
      accordion, `navigate_back` for a page. When unsure, navigate to the area URL.
-3. **Stop only when the pending list is empty**, or after 40 recorded states — never because
-   the first level is done; clicks spent on sections and option lists do not count. The previous run left
+3. **Capture requests.** `bun scripts/agentic/backlog.ts list --target capture:<area>` prints
+   what earlier reviews asked this area's next explorer to photograph (a state after an action,
+   a badge, a dialog the walk never reached). Do each one now, within the rules (no Save, no
+   Delete, no config change; a Seek question is fine on the Seek area), as a state named after
+   the request (`record --state <slug> --reach "…"`), and list the ids you did in `backlogDone[]`.
+   One you cannot do goes in `skipped[]` with the reason.
+4. **Stop only when the pending list and the capture requests are empty**, or after 40 recorded
+   states — never because the first level is done; clicks spent on sections and option lists do
+   not count. The previous run left
    `add-custom-configuration-edit` and the whole Edit Configuration accordion unopened.
    Then `bun scripts/agentic/explore-plan.ts finish <runId>` — it builds the component map,
    indexes this run as the area's latest capture (`captures.json`) and prints the summary,
@@ -122,6 +132,7 @@ absolute paths. `mkdir -p` both folders first.
   "sections": 61,
   "optionLists": 19,
   "optionValuesInA11y": true,
+  "backlogDone": ["3f2a9c1d0e"],
   "notes": "one factual line per thing the next run should know about this screen (e.g. 'Edit Configuration is a dialog reached from the Default Config tree node; the tree is an SVG, its nodes are generic[cursor=pointer]'; 'open Carbon listboxes DO / DO NOT appear in the a11y snapshot'); no narrative"
 }
 ```

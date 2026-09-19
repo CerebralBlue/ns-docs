@@ -15,7 +15,9 @@ the console; they see your briefs. A control you leave out of a brief is a contr
 document, and a fact you get wrong is a fact every page repeats. Be exact, quote the screen's own
 words, and say "the screen shows" rather than guessing what a setting does.
 
-**Read `_private/agentic-v2/conventions.md` first.**
+**Read `_private/agentic-v2/conventions.md` first.** A `hint` in the prompt (from a checkpoint
+after a failed batch) is an instruction; `mustCover` items for a route go into its brief as
+required sections.
 
 ## Inputs (the prompt gives you `runId`, the capture folder `C`, your `routes` and your batch number)
 
@@ -29,6 +31,11 @@ your own `C/coverage-plan.<batch>.json`; never touch `C/coverage-plan.json` (a s
   crossArea, page, previous), and `imageDir`. Brief only the routes the prompt lists.
 - `C/coverage-plan.json` — if present, the assignments earlier batches or runs already made:
   read-only; do not re-assign a label that already has an owner, link to it instead.
+- `_private/agentic-v2/backlog.json` — entries whose `target` is `route:<one of your routes>`
+  are topics a reviewer of another page said this page must cover: give each a section (or a
+  paragraph in the right section) in the brief, quoting the backlog `id`, so the writer covers
+  it and the reviewer can close it. Entries `capture:<area>` are for the explorer; if one of
+  them is still open, say so in the brief's Open questions (the capture did not do it yet).
 - `_private/component-map/<area>.json` — every control by region and state
   (`role`, `name`, `kind`, `commits`, `destructive`, `opens`, `states[]`, table `columns`).
 - **Read in this order**: `C/states.json` + `C/states/<state>.yml` first (structure: labels,

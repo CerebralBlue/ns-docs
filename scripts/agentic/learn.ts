@@ -77,7 +77,7 @@ if (understand?.notes) add(`understand, ${queue.area}`, understand.notes);
 for (const c of plan?.conflicts ?? [])
 	add(`coverage conflict, ${queue.area}`, `"${c.label}" claimed by ${c.kept} and ${c.dropped}`);
 for (const r of plan?.notInCapture ?? []) add(`not in capture, ${queue.area}`, r);
-for (const q of understand?.questions ?? []) add(`understand question, ${queue.area}`, q);
+
 if (runner?.notes) add(`runner, ${queue.area}`, runner.notes);
 for (const r of runner?.results ?? [])
 	if (r.result === 'failed' && r.why) add(`probe failed, ${queue.area}`, `${r.id}: ${r.why}`);
@@ -96,31 +96,33 @@ if (existsSync(cand)) {
 	}
 }
 
-const denials = existsSync(join(dir, 'denials.log'))
-	? readFileSync(join(dir, 'denials.log'), 'utf8').trim().split('\n').filter(Boolean)
-	: [];
-const seenDenial = new Set<string>();
-for (const l of denials) {
-	const [, agent, tool, reason] = l.split('\t');
-	const key = `${agent}|${tool}|${(reason ?? '').slice(0, 60)}`;
-	if (seenDenial.has(key)) continue;
-	seenDenial.add(key);
-	add(
-		`hook denied ${agent}`,
-		`${tool.replace(/^mcp__neuralseek-(ui|node)__/, '')}: ${(reason ?? '').replace(/\(got '.*'\)/, '').trim()}`
-	);
-}
+// Hook denials and script refusals are pipeline defects (fixed in code), not facts about the
+// product — they stay in denials.log and the report, never in the agents' memory. Questions
+// for Fabio go to backlog.json now, not here.
 if (!existsSync(join(dir, 'section/config.json')))
-	add(
-		'config-export',
-		'config export unavailable this run (backup_instance failed or was not run) — config tier ABSENT'
-	);
+	add('config-export', 'config export unavailable this run — no restore point');
 
 let out = existing;
 if (lines.length)
 	out =
 		existing.trimEnd() +
 		`\n\n## ${queue.createdAt.slice(0, 10)} · run ${runId} · ${queue.area}\n\n${lines.join('\n')}\n`;
+// Prune: an area's dated blocks older than its newest one are exhaust — the newest capture
+// re-learned whatever still held. Standing blocks (no run id in the heading) always stay.
+{
+	const parts = out.split(/\n(?=## )/);
+	const head = parts.shift() ?? '';
+	const dated = parts.map((p) => ({
+		p,
+		m: p.match(/^## (\d{4}-\d{2}-\d{2}) · run (\S+) · (\S+)/),
+	}));
+	const newestByArea = new Map<string, string>();
+	for (const d of dated) if (d.m) newestByArea.set(d.m[3], d.m[2]);
+	out = [
+		head,
+		...dated.filter((d) => !d.m || newestByArea.get(d.m[3]) === d.m[2]).map((d) => d.p),
+	].join('\n');
+}
 writeFileSync(FILE, out);
 if (args.flags.has('json'))
 	console.log(JSON.stringify({ learned: lines.length, file: relative(ROOT, FILE) }));

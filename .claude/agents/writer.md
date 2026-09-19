@@ -34,10 +34,17 @@ only; a hook refuses anything else.
 | The screen, raw          | `C/states/<state>.yml`                                                                                                     | When the brief's quote is not enough: options, help text, table columns, exact values. The snapshot is the truth for labels.                                                                                                                                                 |
 | The images               | `public/img/<area>/<state>[-panel].png`                                                                                    | Read shows them. Place the `-panel` image for a control's section; the viewport image once, at the top of How it works, when it helps orientation.                                                                                                                           |
 | What the product did     | `R/answers.md` (+ `R/probes/*.run.json`)                                                                                   | For behaviour sentences. A code fence holds only text copied from `R/probes/<id>.run.json` (the response as returned, trimmed), never the paraphrase in `answers.md`; name the input. Never invent or "improve" an output; never quote a playground secret, id or user name. |
+| **Owed by this page**    | `bun scripts/agentic/backlog.ts list --target route:<route>` (the prompt lists them too)                                   | Topics another page's reviewer said THIS page must cover (e.g. "explain how edited answers feed the Edited answer cache"). Each gets a paragraph in the right section; quote the backlog id in `write.json.backlog[]` so the reviewer can close it.                          |
 | Shared controls          | `C/coverage-plan.json → shared`, brief `## Shared`                                                                         | Name them, link to the owner page (`[…](/<route>/)`, no `/ns-docs`), do not re-explain.                                                                                                                                                                                      |
 | The old page, background | `src/content/docs/<route>.md` (verbatim old prose or a stub) and `_private/archive/verbatim-migration/previous/<route>.md` | The _why_, the vocabulary, the use cases. **Not a source of facts.** A fact from here that no brief control, snapshot or answer shows may stay only with `<!-- UNCONFIRMED: <the fact> — <where it came from> -->` on the line above it.                                     |
 
 `status: auto` is already set on the map — do not touch the map.
+
+**From the orchestrator.** The prompt may carry `mustCover` (topics this page must address —
+backlog ids or control names; each becomes a paragraph or a section, and its id goes in
+`write.json.backlog[]`), `expectedImages` (state/section ids whose crops the page is expected
+to place), and, on a retry, a `hint` — an instruction from the checkpoint about what went wrong
+last time ("the outline exists — write the page from it"). A hint is followed, not weighed.
 
 ## Step 0 — the outline, before any prose
 
@@ -113,7 +120,18 @@ Then lint, prettier, and update `RD/write.json` with an `edits` entry per change
   "placeholders": 0,
   "unconfirmed": 1,
   "faq": 4,
-  "left_unresolved": [{ "control": "Test Connection", "why": "no state captured it" }],
+  "left_unresolved": [
+    {
+      "control": "Test Connection",
+      "why": "no state captured it",
+      "needs": {
+        "kind": "capture",
+        "target": "neural-config",
+        "what": "LLM Details → Test button pressed: the result banner"
+      }
+    }
+  ],
+  "backlog": ["3f2a9c1d0e"],
   "asks": ["…for Fabio…"],
   "lint": "clean"
 }

@@ -278,6 +278,63 @@ const summary = {
 		configNotRestored: cleanup?.configNotRestored ?? [],
 	},
 	findings,
+	plan: (() => {
+		const pl = readJson<any>(join(dir, 'plan.normalised.json'));
+		if (!pl) return null;
+		return {
+			defaults: !!pl.defaults,
+			reasoning: pl.reasoning ?? '',
+			routes: pl.routes.map(
+				(r: any) => `${r.order}. ${r.action} ${r.route}${r.reason ? ` — ${r.reason}` : ''}`
+			),
+			added: pl.added ?? [],
+			stages: pl.stages ?? {},
+			fallbacks: pl.fallbacks ?? [],
+		};
+	})(),
+	decisions: (() => {
+		const p = join(dir, 'decisions.jsonl');
+		if (!existsSync(p)) return [];
+		return readFileSync(p, 'utf8')
+			.trim()
+			.split('\n')
+			.filter(Boolean)
+			.map((l) => JSON.parse(l))
+			.map((d: any) => ({
+				stage: d.stage,
+				verdict: d.verdict,
+				asked: d.decision,
+				taken: d.taken,
+				agent: d.agent,
+				routes: d.routes,
+				reason: d.reason,
+				hint: d.hint,
+				overridden: d.overridden,
+			}));
+	})(),
+	subtasks: (() => {
+		const v = readJson<any>(join(dir, 'subtasks.normalised.json'));
+		const res = readJson<any[]>(join(dir, 'subtasks.results.json')) ?? [];
+		return v
+			? { proposed: (v.subtasks ?? []).length, dropped: v.dropped ?? [], results: res }
+			: null;
+	})(),
+	backlog: (() => {
+		const b = readJson<any>(join(V2_DIR, 'backlog.json'))?.entries ?? [];
+		const open = b.filter((e: any) => !e.closedAt);
+		return {
+			open: open.length,
+			closedThisRun: b.filter((e: any) => e.closedBy === runId).length,
+			openedThisRun: b
+				.filter((e: any) => e.from?.run === runId)
+				.map((e: any) => `${e.target}: ${e.what.slice(0, 120)}`),
+			fabio: open.filter((e: any) => e.target === 'fabio').map((e: any) => e.what.slice(0, 160)),
+			byTarget: open.reduce(
+				(m: Record<string, number>, e: any) => ((m[e.target] = (m[e.target] ?? 0) + 1), m),
+				{}
+			),
+		};
+	})(),
 	structuralChanges: structural,
 };
 writeJson(join(dir, 'report.json'), summary);
@@ -340,6 +397,53 @@ const md = [
 						`- **${f.route}**${f.line ? `:${f.line}` : ''} [${f.kind ?? 'finding'}] ${f.what ?? ''}${f.evidence ? ` — ${f.evidence}` : ''}`
 				),
 			]
+		: []),
+	'',
+	...(summary.plan
+		? [
+				`## Plan — ${summary.plan.defaults ? 'defaults (no planner)' : `${summary.plan.routes.length} route(s), ${summary.plan.added.length} added`}`,
+				'',
+				...(summary.plan.reasoning ? [summary.plan.reasoning, ''] : []),
+				...summary.plan.routes.map((r: string) => `- ${r}`),
+				...(summary.plan.fallbacks.length
+					? [
+							'',
+							`Fallbacks (${summary.plan.fallbacks.length}): ${summary.plan.fallbacks.join(' · ')}`,
+						]
+					: []),
+				'',
+			]
+		: []),
+	...(summary.decisions.length
+		? [
+				`## Checkpoints — ${summary.decisions.length} decision(s), ${summary.decisions.filter((d: any) => d.taken === 'retry').length} retr${summary.decisions.filter((d: any) => d.taken === 'retry').length === 1 ? 'y' : 'ies'}`,
+				'',
+				...summary.decisions.map(
+					(d: any) =>
+						`- ${d.stage}${d.routes && d.routes.length ? ` (${d.routes.join(', ')})` : ''}: ${d.verdict ?? 'ok'} → ${d.taken}${d.agent && d.taken === 'retry' ? ` ${d.agent}` : ''}${d.overridden ? ` (asked ${d.asked}; ${d.overridden})` : ''}${d.reason ? ` — ${d.reason}` : ''}`
+				),
+				'',
+			]
+		: []),
+	...(summary.subtasks
+		? [
+				`## Subtasks — ${summary.subtasks.proposed} run, ${summary.subtasks.dropped.length} dropped`,
+				'',
+				...summary.subtasks.results.map(
+					(r: any) =>
+						`- ${r.kind}${r.route ? ` ${r.route}` : ''}: ${r.ok ? 'done' : 'failed'}${r.gatesOk === false ? ' (gates FAIL)' : ''}${r.backlog && r.backlog.length ? ` — backlog ${r.backlog.join(', ')}` : ''}`
+				),
+				...(summary.subtasks.dropped.length
+					? [`Dropped: ${summary.subtasks.dropped.join(' · ')}`]
+					: []),
+				'',
+			]
+		: []),
+	`## Backlog — ${summary.backlog.open} open (${summary.backlog.closedThisRun} closed this run, ${summary.backlog.openedThisRun.length} opened)`,
+	'',
+	...Object.entries(summary.backlog.byTarget).map(([t, n]) => `- ${t}: ${n}`),
+	...(summary.backlog.fabio.length
+		? ['', '**For you:**', ...summary.backlog.fabio.map((w: string) => `- ${w}`)]
 		: []),
 	'',
 	'## Review the diff',

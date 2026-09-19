@@ -388,7 +388,7 @@ Open items that affect anyone touching content:
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
 
-## The `/docs-explore` pipeline (agentic workflow v3.2, screen-first, capture once — write many)
+## The `/docs-explore` pipeline (agentic workflow v3.3, screen-first, capture once — write many, a bounded orchestrator)
 
 The workflow that writes pages from the **running product's screens**. One run = one **console
 area** (a screen in `_private/agentic-v2/areas.json`). Fabio runs it (`/docs-explore <area>`,
@@ -462,11 +462,33 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
   skipped/excluded states, failed probes, coverage conflicts, hook denials, map diffs) into
   that file, verbatim with their source, and five agents read it first. No agent free-writes
   into it. Prune it by hand.
+- **The orchestrator (v3.3) is a bounded planner** — `.claude/agents/planner.md`, one agent in
+  three modes. _Plan_ (opus, once): reads the generated tool catalog (`catalog.ts` →
+  `_private/agentic-v2/catalog.json`: agents, scripts, stages, LIMITS), the backlog, `index.json`,
+  `captures.json`, the area's last reports and `conventions.md`, writes `plan.json` (routes in
+  order with `mustCover`/`expectedImages`, skips with reasons, routes **added** only if briefed
+  in this capture, capture priorities/requests, probe priorities/additions, stage flags,
+  per-stage expectations); `plan.ts validate` normalises it and lists `fallbacks`. _Review_
+  (sonnet, after Gather/Understand/Probe/IA and a dead writer): reads `digest.ts <run> <stage>`
+  and returns one decision — `continue | retry <agent> + hint | skip <routes> | halt`;
+  `orchestrate.ts decide` applies the budget (`LIMITS` in `lib.ts`: 1 retry per agent per
+  stage, 3 per run, the explorer once and only in explore mode) and appends every decision to
+  `decisions.jsonl`, overridden or not. _Delegate_ (opus, after Write): the open backlog → ≤ 5
+  subtasks (`fix-page` → writer fix mode → gates → verdict → `backlog.ts resolve`; `rebrief` →
+  understand for one route; `probe` → runner); `orchestrate.ts subtasks --validate` drops a
+  second fix on a page, unbriefed routes, captures. **The script executes; the planner decides
+  what and in which order; hooks, gates and limits decide whether.** `--no-plan` = pure v3.2.
 - **Resilience.** Every `agent()` in the Workflow script goes through `A()` (a throw costs one
-  route, never the run); an agent's return value is written to its file by a haiku wrapper when
-  the agent forgot; `--attempt <n>` on a resume busts the script-wrapper cache. **Never delete a
-  run folder from `current-run`** — `queue.ts --dry-run` previews without opening a run (the
-  first v3 ledger was lost that way and rebuilt from the transcripts; see its `RECOVERED.md`).
+  route, never the run — and is recorded for the checkpoint's digest); an agent's return value
+  is written to its file by a haiku wrapper when the agent forgot; `--attempt <n>` on a resume
+  busts the script-wrapper cache. **Never delete a run folder from `current-run`** —
+  `queue.ts --dry-run` previews without opening a run (the first v3 ledger was lost that way
+  and rebuilt from the transcripts; see its `RECOVERED.md`).
+- **The cross-run feedback loop is `_private/agentic-v2/backlog.json`** (`backlog.ts`):
+  non-fixable review findings, reviewer questions and writer `left_unresolved` that carry a
+  `needs {kind, target}` are routed to `capture:<area>` (next explorer), `route:<route>` (next
+  writer of that page), `probe:<area>` (next runner) or `fabio`; the reviewer gets the route's
+  previous review and closes entries via `resolvedBacklog[]`; the report lists what is open.
 - Ledger: `_private/agentic-v2/runs/<run-id>/` (gitignored). Scripts: `scripts/agentic/`.
   Night: `night.ts plan | next | record | report` — explore each area in order, then one
   `leftovers:<area>` write-only section per capture for briefed-but-unwritten routes, then the

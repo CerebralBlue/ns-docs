@@ -121,6 +121,29 @@ export const briefDir = (runId: string, route: string) =>
 	join(captureDir(runId), 'briefs', routeFolder(route));
 export const sha1 = (data: string | Buffer) => createHash('sha1').update(data).digest('hex');
 
+/**
+ * The numeric bounds of the pipeline (agentic v3.3). Code, not prompt: the orchestrator plans
+ * inside them and orchestrate.ts refuses a decision that would cross one. Exported into
+ * catalog.json so the planner sees exactly what it may ask for.
+ */
+export const LIMITS = {
+	retriesPerAgentStage: 1,
+	retriesPerRun: 3,
+	explorerRetries: 1,
+	subtasksPerRun: 5,
+	fixPassesPerPage: 1, // beyond the evaluator-optimizer loop's own pass
+	writerPassesPerRoute: 2,
+	states: 40,
+	sectionsPerState: 20,
+	probesPerArea: 10,
+	probeInputChars: 200,
+	understandBatch: 8,
+	plannerCalls: { plan: 1, delegate: 1, reviewPerStage: 1 },
+} as const;
+export const BACKLOG_TARGETS = ['capture', 'route', 'probe', 'fabio'] as const;
+export const SUBTASK_KINDS = ['fix-page', 'rebrief', 'probe'] as const;
+export const DECISIONS = ['continue', 'retry', 'skip', 'halt'] as const;
+
 /** Positional args, `--flag` booleans and `--key value` pairs (repeatable keys collect). */
 export function parseArgs(argv: string[]) {
 	const positional: string[] = [];

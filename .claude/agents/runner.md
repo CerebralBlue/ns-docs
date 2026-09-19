@@ -34,7 +34,12 @@ this instance.
 `R` = `_private/agentic-v2/runs/<runId>`. The probes file the prompt names (`R/probes.json`, or the capture's `probes.json` on a write-only run) is the whole job:
 `[{id, route, question, tool, input, repeat?, expect}]`. Nothing else is probed.
 
+- `bun scripts/agentic/backlog.ts list --target probe:<area>` — behaviours earlier reviews asked
+  this area's runner to show. Turn each into a probe of the same shape (id `b<backlog id>`,
+  input ≤ 200 chars, no config change) and run it with the others; list the ids in `backlogDone[]`.
 - `list_agents` when a probe names an agent, to confirm it exists and is small.
+- The prompt may carry `priority` (probe ids to run first) and `add` (extra probes from the
+  orchestrator, same shape) — run those too, within the same limits.
 - NTL syntax, if a probe asks for a tiny agent: `ntl://reference` and `ntl://node-catalog` via
   `ReadMcpResourceTool` (deferred — `ToolSearch("select:ReadMcpResourceTool")` first).
 
@@ -71,6 +76,7 @@ clearer with a setting flipped: write `not shown — needs setting X on` and mov
   "probes": 4,
   "results": [{ "id": "p01", "result": "confirmed", "file": "probes/p01.run.json", "sha1": "…" }],
   "created": ["docs-seek-personalize"],
+  "backlogDone": ["381fbbda33"],
   "notes": "one factual line per thing worth remembering about the MCP or this instance; no narrative"
 }
 ```

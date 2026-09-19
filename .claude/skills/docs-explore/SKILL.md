@@ -33,6 +33,8 @@ The design, with the diagram: `_private/agentic-v2/diagrams/architecture.html`.
   page written by a v3 run yet (`--rewrite` ignores that and re-writes them too — after a
   fresh capture, for instance). The understand step runs only for routes without a brief, in
   parallel batches of ≤ 8.
+- **`--no-plan`**: run pure v3.2 — no planner, no checkpoints, no delegation (the defaults
+  the planner would otherwise override). Pass `"noPlan": true` in the Workflow args.
 - **`--capture-only`**: explore + understand only — a fresh capture with briefs for every
   route the area owns (or `--only`), no probes, no IA, no pages. The investment a later
   `--write-only --all-briefed` run spends. Nothing lands in `src/`.
@@ -65,7 +67,7 @@ still run. A write-only run with routes not yet `briefed` will brief them first 
 
 Extract the script below to a file (`sed -n '/^```js$/,/^```$/p' .claude/skills/docs-explore/SKILL.md | sed '1d;$d' > <scratchpad>/docs-explore.js`)
 and call the **Workflow** tool with `scriptPath` and
-`args: { "runId": "<runId>", "captureRun": "<captureRun>", "mode": "<explore|write-only|capture-only>", "area": "<area>", "kind": "<kind>", "routes": <routes[]>, "repo": "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs", "attempt": <n or omit> }`.
+`args: { "runId": "<runId>", "captureRun": "<captureRun>", "mode": "<explore|write-only|capture-only>", "area": "<area>", "kind": "<kind>", "routes": <routes[]>, "repo": "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs", "attempt": <n or omit>, "noPlan": <true only with --no-plan> }`.
 (This instruction is the opt-in for multi-agent orchestration.) Note the Workflow's own run id
 from the tool result next to the ledger id.
 
@@ -75,6 +77,10 @@ export const meta = {
   description:
     'Explore one console area on the playground, understand it, write every route it owns from the screen — no commits',
   phases: [
+    {
+      title: 'Plan',
+      detail: 'planner: backlog + index + reports + catalog → plan.json (skippable)',
+    },
     { title: 'Gather', detail: 'explorer (browser, explore mode only) ∥ config export' },
     { title: 'Understand', detail: 'briefs for routes without one, in parallel batches; merge' },
     { title: 'Probe', detail: 'runner: the listed MCP probes' },
@@ -82,6 +88,11 @@ export const meta = {
     {
       title: 'Write',
       detail: 'prepare-write → writer → gates → reviewer ⟲ fix (once) → verdict, per route',
+    },
+    {
+      title: 'Delegate',
+      detail:
+        'planner: open backlog → ≤ 5 subtasks (fix-page · rebrief · probe), executed under the same gates',
     },
     { title: 'Report', detail: 'bun run verify once, report.ts' },
     { title: 'Cleanup', detail: 'delete docs-* agents, confirm config restored' },
@@ -91,11 +102,12 @@ export const meta = {
 
 // A subagent that dies (context exhausted before StructuredOutput, API error) must cost one
 // route, not the run: every agent call goes through A(), which turns a throw into null.
+const failures = [];
 const A = (prompt, opts) =>
   agent(prompt, opts).catch((e) => {
-    log(
-      `agent failed (${(opts && opts.label) || '?'}): ${String(e && e.message ? e.message : e).slice(0, 160)}`
-    );
+    const msg = `agent failed (${(opts && opts.label) || '?'}): ${String(e && e.message ? e.message : e).slice(0, 160)}`;
+    log(msg);
+    failures.push(msg);
     return null;
   });
 const REPO = args.repo;
@@ -133,6 +145,86 @@ const ensureFile = (path, data, label, phase) =>
     `If the file ${path} exists, return {ok: true, json: {existed: true}} and do nothing else. Otherwise create it with the Write tool, its content being exactly this JSON (verbatim, no edits, no reformatting):\n\n${JSON.stringify(data)}\n\nThen return {ok: true, json: {written: true}}.`,
     { label, phase, schema: SCRIPT, model: 'haiku', effort: 'low', agentType: 'general-purpose' }
   );
+
+// ── the orchestrator (v3.3): a bounded planner ───────────────────────────────
+// plan.json decides what and in which order; checkpoints decide continue/retry/skip/halt
+// inside the budget orchestrate.ts enforces; delegate turns the backlog into ≤ 5 subtasks.
+// --no-plan (args.noPlan) runs pure v3.2: no planner calls, defaults everywhere.
+const PLAN_ON = !args.noPlan;
+const DECISION = {
+  type: 'object',
+  properties: {
+    stage: { type: 'string' },
+    verdict: { type: 'string', enum: ['ok', 'degraded', 'failed'] },
+    decision: { type: 'string', enum: ['continue', 'retry', 'skip', 'halt'] },
+    agent: { type: 'string' },
+    routes: { type: 'array' },
+    hint: { type: 'string' },
+    reason: { type: 'string' },
+    backlog: { type: 'array' },
+  },
+  required: ['stage', 'decision'],
+};
+const PLAN = {
+  type: 'object',
+  properties: {
+    run: { type: 'string' },
+    mode: { type: 'string' },
+    reasoning: { type: 'string' },
+    routes: { type: 'array' },
+    added: { type: 'array' },
+    capture: { type: 'object' },
+    probes: { type: 'object' },
+    stages: { type: 'object' },
+    checkpoints: { type: 'object' },
+  },
+  required: ['run', 'routes'],
+};
+const SUBTASKS = {
+  type: 'object',
+  properties: { subtasks: { type: 'array' } },
+  required: ['subtasks'],
+};
+let plan = null; // normalised plan (plan.ts validate), or defaults
+const planRoute = (r) => (plan && plan.routes.find((x) => x.route === r)) || {};
+const stageFlag = (k, dflt) => (plan && plan.stages && plan.stages[k]) || dflt;
+// The checkpoint: review the stage, apply the budget, return what to do.
+const checkpoint = async (stage, result, extra) => {
+  if (!PLAN_ON) return { do: 'continue' };
+  const dg = await run(
+    `bun scripts/agentic/digest.ts ${RUN} ${stage}${extra && extra.route ? ` --route ${extra.route}` : ''} --json`,
+    `digest:${stage}${extra && extra.route ? ':' + extra.route : ''}`,
+    'Plan'
+  );
+  const digest = (dg && dg.json) || {};
+  digest.agentFailures = [...(digest.agentFailures || []), ...failures.slice(-6)];
+  const expectation =
+    (plan && plan.checkpoints && plan.checkpoints[stage]) || 'the stage produced its files';
+  const review = await A(
+    `mode: review. runId: ${RUN}. stage: ${stage}. Expectation from the plan: ${JSON.stringify(expectation)}. Agent result: ${JSON.stringify(result).slice(0, 3000)}. Digest: ${JSON.stringify(digest).slice(0, 5000)}. Catalog: _private/agentic-v2/catalog.json (read the entry for ${(extra && extra.agent) || stage}). Return one decision per your REVIEW mode.`,
+    {
+      agentType: 'planner',
+      model: 'sonnet',
+      effort: 'medium',
+      label: `checkpoint:${stage}${extra && extra.route ? ':' + extra.route : ''}`,
+      phase: 'Plan',
+      schema: DECISION,
+    }
+  );
+  if (!review) return { do: 'continue' };
+  const applied = await run(
+    `bun scripts/agentic/orchestrate.ts decide ${RUN} ${stage} --decision '${JSON.stringify(review).replace(/'/g, "'\\''")}' --json`,
+    `decide:${stage}`,
+    'Plan'
+  );
+  const d = (applied && applied.json) || { do: 'continue' };
+  if (d.overridden) log(`checkpoint ${stage}: ${review.decision} → ${d.do} (${d.overridden})`);
+  else if (d.do !== 'continue')
+    log(
+      `checkpoint ${stage}: ${d.do}${d.agent ? ' ' + d.agent : ''}${review.reason ? ' — ' + review.reason : ''}`
+    );
+  return d;
+};
 
 const EXPLORE = {
   type: 'object',
@@ -259,13 +351,37 @@ const finish = async (extra) => {
   };
 };
 
+// ── 0 · Plan ─────────────────────────────────────────────────────────────────
+if (PLAN_ON) {
+  await run(`bun scripts/agentic/catalog.ts --json`, 'catalog', 'Plan');
+  const planned = await A(
+    `mode: plan. runId: ${RUN}. Capture folder C: ${C}. Read the catalog, area.json, the backlog, index.json, captures.json, the last reports of this area and conventions.md per your PLAN mode, write ${R}/plan.json and return it.`,
+    { agentType: 'planner', label: `plan:${args.area}`, phase: 'Plan', schema: PLAN }
+  );
+  if (planned) await ensureFile(`${R}/plan.json`, planned, 'plan-file', 'Plan');
+}
+const validated = await run(
+  `bun scripts/agentic/plan.ts validate ${RUN} --json`,
+  'plan:validate',
+  'Plan'
+);
+const normalised = await run(`cat ${R}/plan.normalised.json`, 'plan:read', 'Plan');
+plan = (normalised && normalised.json) || null;
+if (validated && validated.json)
+  log(
+    `plan: ${validated.json.defaults ? 'defaults (no plan.json)' : `${validated.json.routes} route(s), ${validated.json.skipped} skipped, ${(validated.json.added || []).length} added`}${(validated.json.fallbacks || []).length ? ` · fallbacks: ${validated.json.fallbacks.length}` : ''}`
+  );
+
 // ── 1 · Gather: explorer (browser) ∥ config export ───────────────────────────
 const isReference = args.kind === 'reference';
-const [explore, config] = await parallel([
+const exploreStage = stageFlag('explore', 'run');
+const explorerPrompt = (hint, attempt) =>
+  `runId: ${RUN}. Walk the area per your instructions — including the capture requests \`bun scripts/agentic/backlog.ts list --target capture:${args.area}\` prints${plan && plan.capture && plan.capture.priorityStates && plan.capture.priorityStates.length ? `; priorityStates: ${plan.capture.priorityStates.join(', ')}` : ''}${hint ? `. RESUME (attempt ${attempt}) — hint from the checkpoint: ${hint}` : ''} — and return the summary.`;
+const [explore0, config] = await parallel([
   () =>
-    isReference || writeOnly
+    isReference || writeOnly || exploreStage === 'skip'
       ? null
-      : A(`runId: ${RUN}. Walk the area per your instructions and return the summary.`, {
+      : A(explorerPrompt('', 1), {
           agentType: 'explorer',
           label: `explore:${args.area}`,
           phase: 'Gather',
@@ -279,6 +395,23 @@ const [explore, config] = await parallel([
       schema: CONFIG,
     }),
 ]);
+let explore = explore0;
+// checkpoint: gather (the explorer may be resumed once, in explore mode only)
+if (!isReference && !writeOnly && exploreStage !== 'skip') {
+  const d = await checkpoint('gather', explore, { agent: 'explorer' });
+  if (d.do === 'retry' && d.agent === 'explorer') {
+    explore =
+      (await A(explorerPrompt(d.hint, d.attempt || 2), {
+        agentType: 'explorer',
+        label: `explore:${args.area}:retry`,
+        phase: 'Gather',
+        schema: EXPLORE,
+      })) || explore;
+  } else if (d.do === 'halt') {
+    log(`HALT by checkpoint: ${d.hint || ''}`);
+    return await finish({ stoppedAfter: 'gather', haltedBy: 'checkpoint' });
+  }
+}
 if (explore) await ensureFile(`${R}/explore.json`, explore, 'explore-file', 'Gather');
 if (explore && explore.halt === 'login') {
   loginHalted = true;
@@ -301,23 +434,52 @@ log(
 
 // ── 2 · Understand (barrier): only routes without a brief, in parallel batches ──
 const briefPlan = await run(`bun scripts/agentic/briefs.ts ${RUN} --json`, 'briefs', 'Understand');
-const batches = (briefPlan && briefPlan.json && briefPlan.json.batches) || [args.routes];
+const batches =
+  stageFlag('understand', 'run') === 'skip'
+    ? []
+    : (briefPlan && briefPlan.json && briefPlan.json.batches) || [args.routes];
 let understood = null;
+const understandPrompt = (routes, i, n, hint, attempt) =>
+  `runId: ${RUN}. Capture folder C: ${C}. Batch ${i + 1} of ${n}. Your routes: ${routes.join(', ')}.${routes.some((r) => (planRoute(r).mustCover || []).length) ? ` mustCover: ${JSON.stringify(Object.fromEntries(routes.map((r) => [r, planRoute(r).mustCover || []])))}.` : ''}${hint ? ` RETRY (attempt ${attempt}) — hint from the checkpoint: ${hint}.` : ''} Read everything the explorer captured for this area, plus the backlog entries targeting your routes (bun scripts/agentic/backlog.ts list --target route:<route>), and write, per your instructions, ${C}/briefs/<route folder>/brief.md for each of your routes, ${C}/coverage-plan.${i + 1}.json, and append your probes to ${R}/probes.json.`;
 if (batches.length && batches[0].length) {
-  const parts = await parallel(
+  let parts = await parallel(
     batches.map(
       (routes, i) => () =>
-        A(
-          `runId: ${RUN}. Capture folder C: ${C}. Batch ${i + 1} of ${batches.length}. Your routes: ${routes.join(', ')}. Read everything the explorer captured for this area and write, per your instructions, ${C}/briefs/<route folder>/brief.md for each of your routes, ${C}/coverage-plan.${i + 1}.json, and append your probes to ${R}/probes.json.`,
-          {
-            agentType: 'understand',
-            label: `understand:${args.area}:${i + 1}`,
-            phase: 'Understand',
-            schema: UNDERSTAND,
-          }
-        )
+        A(understandPrompt(routes, i, batches.length, '', 1), {
+          agentType: 'understand',
+          label: `understand:${args.area}:${i + 1}`,
+          phase: 'Understand',
+          schema: UNDERSTAND,
+        })
     )
   );
+  // checkpoint: understand — a retry re-runs only the batches whose routes the decision names
+  {
+    const d = await checkpoint(
+      'understand',
+      parts.map((p, i) => ({ batch: i + 1, ok: !!p, briefs: p && p.briefs })),
+      { agent: 'understand' }
+    );
+    if (d.do === 'retry' && d.agent === 'understand') {
+      const want = new Set(d.routes || []);
+      const idx = batches
+        .map((b, i) => i)
+        .filter((i) => !parts[i] || b.some((r) => want.has(r)) || !want.size);
+      const again = await parallel(
+        idx.map(
+          (i) => () =>
+            A(understandPrompt(batches[i], i, batches.length, d.hint, d.attempt || 2), {
+              agentType: 'understand',
+              label: `understand:${args.area}:${i + 1}:retry`,
+              phase: 'Understand',
+              schema: UNDERSTAND,
+            })
+        )
+      );
+      idx.forEach((i, k) => (parts[i] = again[k] || parts[i]));
+    } else if (d.do === 'halt')
+      return await finish({ stoppedAfter: 'understand', haltedBy: 'checkpoint' });
+  }
   const merged = await run(
     `bun scripts/agentic/briefs.ts merge ${RUN} --json`,
     'briefs:merge',
@@ -389,18 +551,34 @@ if (captureOnly) {
 
 // ── 3 · Probe (MCP, no browser) ──────────────────────────────────────────────
 const PROBES = writeOnly ? `${C}/probes.json` : `${R}/probes.json`;
-const probed =
-  understood.probes > 0
-    ? await A(
-        `runId: ${RUN}. Run the probes in ${PROBES} per your instructions and write ${R}/answers.md and ${R}/runner.json.`,
-        {
-          agentType: 'runner',
-          label: `probe:${args.area}`,
-          phase: 'Probe',
-          schema: RUNNER,
-        }
-      )
+const planProbes = (plan && plan.probes) || {};
+const runnerPrompt = (hint, attempt) =>
+  `runId: ${RUN}. Run the probes in ${PROBES} per your instructions${planProbes.priority && planProbes.priority.length ? `; priority: ${planProbes.priority.join(', ')}` : ''}${planProbes.add && planProbes.add.length ? `; add these probes from the orchestrator: ${JSON.stringify(planProbes.add).slice(0, 2500)}` : ''}${hint ? `. RETRY (attempt ${attempt}) — hint from the checkpoint: ${hint}` : ''} and write ${R}/answers.md and ${R}/runner.json.`;
+let probed =
+  stageFlag('probe', 'run') !== 'skip' &&
+  (understood.probes > 0 || (planProbes.add && planProbes.add.length))
+    ? await A(runnerPrompt('', 1), {
+        agentType: 'runner',
+        label: `probe:${args.area}`,
+        phase: 'Probe',
+        schema: RUNNER,
+      })
     : null;
+if (
+  stageFlag('probe', 'run') !== 'skip' &&
+  (understood.probes > 0 || (planProbes.add && planProbes.add.length))
+) {
+  const d = await checkpoint('probe', probed, { agent: 'runner' });
+  if (d.do === 'retry' && d.agent === 'runner')
+    probed =
+      (await A(runnerPrompt(d.hint, d.attempt || 2), {
+        agentType: 'runner',
+        label: `probe:${args.area}:retry`,
+        phase: 'Probe',
+        schema: RUNNER,
+      })) || probed;
+  else if (d.do === 'halt') return await finish({ stoppedAfter: 'probe', haltedBy: 'checkpoint' });
+}
 if (probed) await ensureFile(`${R}/runner.json`, probed, 'runner-file', 'Probe');
 
 // ── 4 · IA (barrier, conditional) ─────────────────────────────────────────────
@@ -408,7 +586,8 @@ const unowned = (understood.controls && understood.controls.unowned) || 0;
 const conflicts = (understood.controls && understood.controls.conflicts) || 0;
 const empty = (understood.emptyRoutes || []).length;
 let ia = null;
-if (unowned > 0 || empty > 0 || conflicts > 0) {
+const iaFlag = stageFlag('ia', 'auto');
+if (iaFlag === 'run' || (iaFlag === 'auto' && (unowned > 0 || empty > 0 || conflicts > 0))) {
   ia = await A(
     `runId: ${RUN}. Capture folder C: ${C}. The understand step left ${unowned} control(s) unowned, ${conflicts} conflict(s) and ${empty} route(s) empty. Decide per your instructions (assign / relabel / reorder / propose — never add a route), apply, and write ${R}/ia.json and ${R}/routes-final.json.`,
     { agentType: 'ia-agent', label: `ia:${args.area}`, phase: 'IA', schema: IA }
@@ -417,23 +596,37 @@ if (unowned > 0 || empty > 0 || conflicts > 0) {
   // its page, and a sidebar slug without a page fails the build.
   await run(`bun run stubs > /dev/null 2>&1 && echo '{"stubs":true}'`, 'stubs', 'IA');
   log(`IA: ${ia && ia.decisions ? ia.decisions.length : 0} decision(s)`);
-} else log('IA: nothing unowned — skipped');
+  const d = await checkpoint('ia', ia, { agent: 'ia-agent' });
+  if (d.do === 'halt') return await finish({ stoppedAfter: 'ia', haltedBy: 'checkpoint' });
+} else log(iaFlag === 'skip' ? 'IA: skipped by the plan' : 'IA: nothing unowned — skipped');
 const finalList = await run(
   `test -f ${R}/routes-final.json && cat ${R}/routes-final.json || echo '{"routes":${JSON.stringify(args.routes)}}'`,
   'routes-final',
   'IA'
 );
-const finalRoutes = (
+const iaRoutes =
   (finalList &&
     finalList.json &&
     Array.isArray(finalList.json.routes) &&
     finalList.json.routes.length &&
     finalList.json.routes.map((r) => (typeof r === 'string' ? r : r.route))) ||
-  args.routes
-).filter((r) => {
-  if (notInCapture.has(r)) log(`skip ${r}: its controls are not in capture ${CAPTURE}`);
-  return !notInCapture.has(r);
+  args.routes;
+// The plan decides order, skips and additions; the IA's list and notInCapture still filter.
+const planned = plan
+  ? plan.routes.filter((x) => x.action !== 'skip').map((x) => x.route)
+  : iaRoutes;
+const skippedByCheckpoint = new Set();
+const finalRoutes = planned.filter((r) => {
+  if (notInCapture.has(r)) {
+    log(`skip ${r}: its controls are not in capture ${CAPTURE}`);
+    return false;
+  }
+  if (plan && !plan.defaults && !iaRoutes.includes(r) && !(plan.added || []).includes(r))
+    return false;
+  return true;
 });
+for (const x of (plan && plan.routes) || [])
+  if (x.action === 'skip') log(`skip ${x.route} (plan): ${x.reason || ''}`);
 
 // ── 5 · Write → gates → review ⟲ fix (once) → gates → verdict, per route ─────
 // Evaluator = gates (deterministic) + reviewer (checklist over the gates' evidence).
@@ -450,10 +643,33 @@ const written = await pipeline(
   (r) => run(`bun scripts/agentic/prepare-write.ts ${RUN} ${r} --json`, `prepare:${r}`, 'Write'),
   async (p, r) => {
     if (!(p && p.ok)) return null;
-    const w = await A(
-      `runId: ${RUN}. route: ${r}. Capture folder C: ${C}. Write the page from ${BRIEF(r)} per your instructions — outline first (${RD(r)}/outline.md), then the page with the Write tool, every section with its Image — and write ${RD(r)}/write.json.`,
-      { agentType: 'writer', label: `write:${r}`, phase: 'Write', schema: WRITE }
-    );
+    const pr = planRoute(r);
+    const writerPrompt = (hint, attempt) =>
+      `runId: ${RUN}. route: ${r}. Capture folder C: ${C}.${(pr.mustCover || []).length ? ` mustCover: ${JSON.stringify(pr.mustCover)}.` : ''}${(pr.expectedImages || []).length ? ` expectedImages: ${JSON.stringify(pr.expectedImages)}.` : ''}${hint ? ` RETRY (attempt ${attempt}) — hint from the checkpoint: ${hint}.` : ''} Write the page from ${BRIEF(r)} per your instructions — outline first (${RD(r)}/outline.md), then the page with the Write tool, every section with its Image — and write ${RD(r)}/write.json.`;
+    let w = await A(writerPrompt('', 1), {
+      agentType: 'writer',
+      label: `write:${r}`,
+      phase: 'Write',
+      schema: WRITE,
+    });
+    if (!w) {
+      // checkpoint: a dead writer may be retried once with a hint, before the gates
+      const d = await checkpoint('write', null, { agent: 'writer', route: r });
+      if (d.do === 'retry' && d.agent === 'writer')
+        w = await A(writerPrompt(d.hint, d.attempt || 2), {
+          agentType: 'writer',
+          label: `write:${r}:retry`,
+          phase: 'Write',
+          schema: WRITE,
+        });
+      else if (d.do === 'skip') {
+        skippedByCheckpoint.add(r);
+        return null;
+      } else if (d.do === 'halt') {
+        loginHalted = true;
+        return null;
+      }
+    }
     if (w) return { w, wrote: true };
     // The writer died without returning (turn cap, API error) but may have written the page:
     // a page that differs from before.md still goes through the gates and the review.
@@ -478,15 +694,42 @@ const written = await pipeline(
       return { gates: g, noWriteJson, passes: 1 };
     }
     await run(`bun scripts/agentic/sync-map.ts ${RUN} ${r} --json`, `sync-map:${r}`, 'Write');
-    // Evaluate.
+    // Evaluate — with memory: the route's previous review (index.json → last run) and the
+    // open backlog entries that target it, so recurring findings read as recurring.
+    const prev = await run(
+      `bun scripts/agentic/backlog.ts list --target route:${r} --json`,
+      `backlog:${r}`,
+      'Write'
+    );
+    const prevReview = await run(
+      `P=$(jq -r '.["${r}"].runId // empty' ${REPO}/_private/agentic-v2/index.json); test -n "$P" && test -f ${REPO}/_private/agentic-v2/runs/$P/${r.replace(/\//g, '-')}/review.json && echo "{\"path\":\"${REPO}/_private/agentic-v2/runs/$P/${r.replace(/\//g, '-')}/review.json\"}" || echo '{"path":null}'`,
+      `prev-review:${r}`,
+      'Write'
+    );
+    const prevPath = prevReview && prevReview.json && prevReview.json.path;
+    const openForRoute = (prev && prev.json && prev.json.entries) || [];
     const review = await A(
-      `Review the route ${r}. Run folder: ${R}. Capture folder: ${C}. Read ${RD(r)}/gates.json (its values / section-image / links / coverage evidence) and ${RD(r)}/outline.md first, then the brief at ${BRIEF(r)} and the snapshots in ${C}/states/; what the product did is in ${R}/answers.md. Work your checklist, mark each finding fixable or not, and write ${RD(r)}/review.json as {route, verdict, findings: [{kind, line, what, evidence, fixable}], questions}.`,
+      `Review the route ${r}. Run folder: ${R}. Capture folder: ${C}. Read ${RD(r)}/gates.json (its values / section-image / links / coverage evidence) and ${RD(r)}/outline.md first, then the brief at ${BRIEF(r)} and the snapshots in ${C}/states/; what the product did is in ${R}/answers.md.${prevPath ? ` The previous review of this route is ${prevPath} — re-check its findings and do not rediscover them.` : ''}${openForRoute.length ? ` Open backlog entries this page owes: ${JSON.stringify(openForRoute.map((e) => ({ id: e.id, what: e.what }))).slice(0, 2500)} — close the ones the page now satisfies via resolvedBacklog.` : ''} Work your checklist, mark each finding fixable or not with needs {kind, target, what} on the non-fixable ones, and write ${RD(r)}/review.json as {route, verdict, findings: [{kind, line, what, evidence, fixable, needs}], questions: [{what, needs}], resolvedBacklog: [ids]}.`,
       { agentType: 'doc-reviewer', label: `review:${r}`, phase: 'Write', schema: REVIEW }
     );
     if (review) await ensureFile(`${RD(r)}/review.json`, review, `review-file:${r}`, 'Write');
+    const settle = async () => {
+      await run(
+        `bun scripts/agentic/backlog.ts add ${RUN} ${r} --json`,
+        `backlog-add:${r}`,
+        'Write'
+      );
+      await run(
+        `bun scripts/agentic/backlog.ts resolve ${RUN} ${r} --json`,
+        `backlog-resolve:${r}`,
+        'Write'
+      );
+    };
     const fixable = ((review && review.findings) || []).filter((f) => f && f.fixable);
-    if (!review || review.verdict === 'ready' || !fixable.length)
+    if (!review || review.verdict === 'ready' || !fixable.length) {
+      await settle();
       return { gates: g, review, noWriteJson, passes: 1, fixed: 0 };
+    }
     // Optimize, once.
     const fix = await A(
       `runId: ${RUN}. route: ${r}. Capture folder C: ${C}. Fix mode: the reviewer returned these fixable findings — ${JSON.stringify(fixable).slice(0, 4000)}. Fix exactly those on the page with Edit, per your Fix mode instructions, update ${RD(r)}/write.json and return it with fixed: <n>.`,
@@ -496,6 +739,7 @@ const written = await pipeline(
     g = (g2 && g2.json) || g;
     if (!g.ok) {
       log(`parked ${r} after fix: ${parkedText(g)}`);
+      await settle();
       return { gates: g, review, noWriteJson, passes: 2, fixed: (fix && fix.fixed) || 0 };
     }
     await run(`bun scripts/agentic/sync-map.ts ${RUN} ${r} --json`, `sync-map2:${r}`, 'Write');
@@ -504,6 +748,7 @@ const written = await pipeline(
       { agentType: 'doc-reviewer', label: `verdict:${r}`, phase: 'Write', schema: REVIEW }
     );
     if (verdict) await ensureFile(`${RD(r)}/review.json`, verdict, `verdict-file:${r}`, 'Write');
+    await settle();
     return {
       gates: g,
       review: verdict || review,
@@ -514,6 +759,105 @@ const written = await pipeline(
     };
   }
 );
+
+// ── 5b · Delegate: the open backlog → ≤ 5 subtasks, executed under the same gates ──
+let subtaskResults = [];
+if (PLAN_ON && !loginHalted && !captureOnly) {
+  const proposed = await A(
+    `mode: delegate. runId: ${RUN}. Capture folder C: ${C}. Routes written this run: ${finalRoutes.join(', ')}. Read the open backlog, this run's per-route gates/review/write files and ${R}/answers.md per your DELEGATE mode, write ${R}/subtasks.json and return {subtasks: [...]}.`,
+    { agentType: 'planner', label: `delegate:${args.area}`, phase: 'Delegate', schema: SUBTASKS }
+  );
+  if (proposed)
+    await ensureFile(`${R}/subtasks.json`, proposed.subtasks || [], 'subtasks-file', 'Delegate');
+  const valid = await run(
+    `bun scripts/agentic/orchestrate.ts subtasks ${RUN} --validate --json`,
+    'subtasks:validate',
+    'Delegate'
+  );
+  const subtasks = (valid && valid.json && valid.json.subtasks) || [];
+  if (valid && valid.json && valid.json.dropped && valid.json.dropped.length)
+    log(
+      `delegate: ${valid.json.dropped.length} subtask(s) dropped — ${valid.json.dropped.join('; ').slice(0, 400)}`
+    );
+  log(`delegate: ${subtasks.length} subtask(s)`);
+  subtaskResults = await parallel(
+    subtasks.map((t) => async () => {
+      if (t.kind === 'probe') {
+        const rr = await A(
+          `runId: ${RUN}. Run exactly these probes from the orchestrator (append to ${R}/answers.md and ${R}/runner.json; ids as given): ${JSON.stringify(t.probes).slice(0, 3000)}. Backlog ids they answer: ${t.backlog.join(', ')}.`,
+          { agentType: 'runner', label: `subtask:probe`, phase: 'Delegate', schema: RUNNER }
+        );
+        return { kind: 'probe', ok: !!rr, backlog: t.backlog };
+      }
+      if (t.kind === 'rebrief') {
+        const u = await A(
+          understandPrompt([t.route], 0, 1, `re-brief this route: ${t.instructions}`, 1),
+          {
+            agentType: 'understand',
+            label: `subtask:rebrief:${t.route}`,
+            phase: 'Delegate',
+            schema: UNDERSTAND,
+          }
+        );
+        await run(
+          `bun scripts/agentic/briefs.ts merge ${RUN} --json`,
+          `subtask:merge:${t.route}`,
+          'Delegate'
+        );
+        return { kind: 'rebrief', route: t.route, ok: !!u, backlog: t.backlog };
+      }
+      // fix-page: writer fix mode → gates → reviewer verdict → backlog resolve
+      await run(
+        `bun scripts/agentic/prepare-write.ts ${RUN} ${t.route} --json`,
+        `subtask:prepare:${t.route}`,
+        'Delegate'
+      );
+      const fx = await A(
+        `runId: ${RUN}. route: ${t.route}. Capture folder C: ${C}. Fix mode, from the orchestrator: ${t.instructions} Backlog ids this closes: ${t.backlog.join(', ')} — quote them in write.json.backlog. Edit the page in place per your Fix mode instructions, update ${RD(t.route)}/write.json and return it with fixed: <n>.`,
+        { agentType: 'writer', label: `subtask:fix:${t.route}`, phase: 'Delegate', schema: WRITE }
+      );
+      const g = await gatesFor(t.route, `subtask:gates:${t.route}`);
+      const ok = !!(g && g.json && g.json.ok);
+      if (ok) {
+        await run(
+          `bun scripts/agentic/sync-map.ts ${RUN} ${t.route} --json`,
+          `subtask:sync:${t.route}`,
+          'Delegate'
+        );
+        const v = await A(
+          `Verdict-only mode for the route ${t.route}. Run folder: ${R}. Capture folder: ${C}. The orchestrator asked the writer to: ${t.instructions} (backlog ${t.backlog.join(', ')}). Re-check the page for exactly that and write ${RD(t.route)}/review.json as {route, verdict, resolved: [{line, resolved}], resolvedBacklog: [ids], findings: [], questions: []}.`,
+          {
+            agentType: 'doc-reviewer',
+            label: `subtask:verdict:${t.route}`,
+            phase: 'Delegate',
+            schema: REVIEW,
+          }
+        );
+        if (v)
+          await ensureFile(
+            `${RD(t.route)}/review.json`,
+            v,
+            `subtask:verdict-file:${t.route}`,
+            'Delegate'
+          );
+        await run(
+          `bun scripts/agentic/backlog.ts resolve ${RUN} ${t.route} --json`,
+          `subtask:resolve:${t.route}`,
+          'Delegate'
+        );
+      } else
+        log(
+          `subtask fix-page ${t.route}: gates ${g && g.json ? parkedText(g.json) : 'absent'} — page kept, not resolved`
+        );
+      return { kind: 'fix-page', route: t.route, ok: !!fx, gatesOk: ok, backlog: t.backlog };
+    })
+  );
+  await run(
+    `echo '${JSON.stringify(subtaskResults).replace(/'/g, "'\\''")}' > ${R}/subtasks.results.json`,
+    'subtasks:results',
+    'Delegate'
+  );
+}
 
 // ── 6 · Build once, report, cleanup, learn ───────────────────────────────────
 const build = await run(
@@ -534,7 +878,21 @@ const summary = finalRoutes.map((r, i) => {
   return `${outcome.padEnd(16)} ${r}${tag}`;
 });
 log(summary.join('\n'));
-return await finish({ buildOk: !!(build && build.json && build.json.buildOk), summary });
+return await finish({
+  buildOk: !!(build && build.json && build.json.buildOk),
+  summary,
+  plan: plan
+    ? {
+        defaults: !!plan.defaults,
+        routes: plan.routes.length,
+        skipped: plan.routes.filter((x) => x.action === 'skip').length,
+        added: plan.added || [],
+        fallbacks: plan.fallbacks || [],
+      }
+    : null,
+  skippedByCheckpoint: [...skippedByCheckpoint],
+  subtasks: subtaskResults,
+});
 ```
 
 ## 5. After the run
