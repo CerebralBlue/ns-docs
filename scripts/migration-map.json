@@ -81,7 +81,7 @@
     },
     "seek/tuning": {
       "title": "Tuning answers",
-      "description": "Enhance your NeuralSeek KnowledgeBase with our comprehensive tuning guide. Learn best practices, auto-generate questions, and improve answer quality with semantic scores and hybrid search methods.",
+      "description": "Tuning a NeuralSeek agent means controlling which documentation reaches the LLM and how the LLM is told to write from it — diagnosed on the Seek tab and changed in the Edit Configuration dialog of Neural Config.",
       "sources": ["guides/data/tuning_guide/index.md"],
       "action": "keep",
       "status": "auto",
@@ -109,7 +109,7 @@
     },
     "seek/conversational-context": {
       "title": "Conversational context",
-      "description": "Discover how NeuralSeek enhances user interactions by maintaining conversational context with advanced NLP models. Keep conversations focused and relevant with seamless session tracking.",
+      "description": "NeuralSeek resolves a follow-up question against the earlier turns of a conversation when the seek request carries a constant session_id or user_id; the Platform Preferences settings — Context Turns, Context Timeout - Session, Context Timeout - User Only, Context detection and Force carry context — decide how much is carried and for how long.",
       "sources": [
         "features/convo_context/index.md",
         "guides/integration/providing_context/index.md"
@@ -649,7 +649,7 @@
     },
     "knowledge/connect-a-kb": {
       "title": "Connect a knowledge base",
-      "description": "Discover how to seamlessly integrate NeuralSeek with virtual agents, APIs, and more with NeuralSeek's Integrate page. Access step-by-step guides, enhance user experience, and optimize performance with comprehensive logging tools.",
+      "description": "Step-by-step walkthrough for admins connecting a knowledge base to NeuralSeek: open the KnowledgeBase Connection section of Neural Config, pick the KnowledgeBase Type, set the KnowledgeBase Language, save, and confirm with a Seek.",
       "sources": ["ui/integrate/index.md"],
       "action": "rewrite",
       "status": "auto",
@@ -657,7 +657,7 @@
     },
     "knowledge/supported-knowledgebases": {
       "title": "Supported knowledge bases",
-      "description": "Which knowledge base stores NeuralSeek can retrieve from, and which retrieval features — relevance tuning, dynamic filter querying, vector search, external embedding models — each store supports.",
+      "description": "NeuralSeek's KnowledgeBase Type selector offers fifteen stores — Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery, OpenSearch, Kendra, Bedrock, Pinecone, Milvus, Postgres, Virtual KB, NeuralSeek KB, No KnowledgeBase and ChromaDB — and this page lists them with the retrieval features each is known to support.",
       "sources": ["ui/integrate/integrations/supported_knowledgebases/supported_knowledgebases.md"],
       "action": "keep",
       "status": "auto",
@@ -1017,9 +1017,9 @@
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
-        "Toggle Advanced — half the settings are hidden until it is on",
+        "Toggle Advanced — half the settings are hidden until it is on (no control by that name exists in any of the 34 states of the 2026-09-19 capture; confirm the build has it before writing, and if it does not, say so instead of describing it — IA 2026-09-19)",
         "Save vs Propose Changes, Version, Change Logs",
         "Add Intent modal — create an intent answered by Seek or by a mAIstro agent",
         "Default Action on the routing root — hand everything to one agent; the product warns against it",
@@ -1053,7 +1053,7 @@
     },
     "configuration/neural-config/knowledgebase-tuning": {
       "title": "KnowledgeBase Tuning",
-      "description": "KnowledgeBase Tuning is the section of Neural Config that shapes what retrieval hands the LLM — how many documents a seek returns, how strictly they are scored, how much text comes with each match, how long results are cached, and whether a mAIstro agent runs over them first.",
+      "description": "KnowledgeBase Tuning is the Neural Config section that shapes what retrieval hands the LLM: how many documents a Seek returns, how they are scored, how many neighbouring chunks come with a match, how long query results are cached, and whether a mAIstro agent runs over them first.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1101,7 +1101,7 @@
       "console": ["neural-config"],
       "status": "auto",
       "gaps": [
-        "Adding an embedding model (Neural Config > Toggle Advanced > Embedding Models)",
+        "Adding an embedding model (Neural Config > Default Config > Edit Configuration > Embedding Models — the 2026-09-19 capture has no Toggle Advanced control; the section is a plain accordion header)",
         "Assigning a model to retrieval, agents or intent matching",
         "Dimension/model must match the index used at query time",
         "Embedding Functions has exactly three checkboxes — KB Search, mAIstro and Vector Intent. The 'mAIstro' checkbox belongs to this section; LLM Details spells its own function 'maistro' in lower case, which is a different control (IA 2026-09-19, conflict fix)"
@@ -1121,7 +1121,7 @@
     },
     "configuration/neural-config/platform-preferences": {
       "title": "Platform Preferences",
-      "description": "Platform Preferences is the section of Neural Config that sets instance-wide request behaviour: the generation timeout, how much conversation context is carried, language and filter handling, the output format for exported virtual agents, HTML and stopword cleansing, and the mAIstro agents NeuralSeek triggers on save and after each Seek.",
+      "description": "Platform Preferences is the section of the Edit Configuration dialog in Neural Config that sets instance-wide request behaviour: the generation timeout, how much conversation context is carried and for how long, cross-language and default output language, filter relaxation, plan streaming and logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords and HTML cleansing, and the mAIstro agents run on save and after each Seek.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1172,7 +1172,7 @@
     },
     "configuration/neural-config/secrets": {
       "title": "Secrets",
-      "description": "Secrets is the last section of the Edit Configuration dialog in Neural Config: a Name / Value store for values an agent needs but should not contain.",
+      "description": "Secrets is the last section of the Edit Configuration dialog in Neural Config: a Name / Value table for values mAIstro flows use as variables without carrying them in the agent.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1272,7 +1272,7 @@
     },
     "configuration/supported-llms": {
       "title": "Supported LLMs",
-      "description": "Explore NeuralSeek's extensive support for LLMs from top providers like Amazon, Azure, Google, and OpenAI. Discover how to integrate and configure these models for seamless AI experiences.",
+      "description": "Which language models NeuralSeek can use is decided by the Add an LLM dialog in LLM Details on your own instance, not by a fixed list; this page explains how to read that list, what a Managed model card is, and where each model's settings live.",
       "sources": ["ui/integrate/integrations/supported_llms/supported_llms.md"],
       "action": "keep",
       "status": "auto",
@@ -1292,7 +1292,7 @@
     },
     "configuration/multimodal": {
       "title": "Multimodal LLM configuration",
-      "description": "Discover how to configure multimodal LLMs like GPT-4o to process images. Follow step-by-step instructions to set up, test connections, and utilize Maistro for image analysis.",
+      "description": "NeuralSeek records which model can produce or transform media through six checkboxes on each LLM Details card — Image Generation, Image Edits, Video, Speech, Music and Speech to Text — and greys out the ones a model cannot do.",
       "sources": ["guides/models/multimodal/index.md"],
       "action": "keep",
       "status": "auto",
@@ -1300,15 +1300,18 @@
     },
     "configuration/semantic-model": {
       "title": "Semantic model tuning",
-      "description": "Unlock the full potential of NeuralSeek with our Semantic Model Tuning Guide. Learn to optimize search results, adjust settings, and enhance semantic scores for precise, confident answers.",
+      "description": "The Semantic Scoring tab of a configuration's Guardrails dialog switches NeuralSeek's semantic score model on, decides whether that score drives the Warning and Minimum confidence guardrails and reranking, and opens the Semantic Model Tuning modal that holds its penalties and weights.",
       "sources": ["guides/models/semantic_model/index.md"],
       "action": "keep",
       "status": "auto",
-      "console": ["neural-config:advanced"]
+      "console": ["neural-config:advanced"],
+      "gaps": [
+        "This page owns the Semantic Model Tuning modal (the button on the Guardrails > Semantic Scoring tab; never opened in the 2026-09-19 capture). The six toggles on that tab — Enable the Semantic Score Model, Use Semantic Score as the basis for Warning & Minimum confidence., Rerank the search results based on the Semantic Match, Check document titles / URL's as part of the Semantic Match, Remove sentences containing hallucinated key words — belong to governance/guardrails/semantic-scoring; name them here as the way in and link there rather than describing each (IA 2026-09-19)"
+      ]
     },
     "configuration/language": {
       "title": "Language handling",
-      "description": "Discover NeuralSeek's powerful language translation API, supporting numerous languages for seamless multilingual communication. Effortlessly translate text with JSON payloads and explore extensive language options.",
+      "description": "Where NeuralSeek's three language settings live — KnowledgeBase Language, Default Output Language and Cross Language — how they decide which language a question is retrieved and answered in, and which LLM card handles translation and language identification.",
       "sources": ["features/language/index.md", "features/language_indentification/index.md"],
       "action": "merge",
       "status": "auto",
@@ -1322,7 +1325,7 @@
       "status": "auto",
       "console": ["neural-config"],
       "gaps": [
-        "Change Logs per-category tabs — a Default Config tab plus one tab per category",
+        "Change Logs per-category tabs — a Default Config tab plus one tab per category (the tab shares its name with the routing tree's root node, which configuration/overview owns; this page documents the tab only — IA 2026-09-19)",
         "Rollback — revert to a previous configuration version",
         "Activate / Delete Proposal — the proposal lifecycle (legacy but supported)",
         "Propose Changes — save a configuration change without applying it (legacy but supported)",
@@ -1397,7 +1400,8 @@
         "The five sub-toggles are disabled until the semantic model is switched on",
         "Cross Language silently disables semantic scoring",
         "Cross-link: configuration/semantic-model, governance/semantic-analytics",
-        "The six checkboxes by label: Enable the Semantic Score Model; Use Semantic Score as the basis for Warning & Minimum confidence; Rerank the search results based on the Semantic Match; Check document titles as part of the Semantic Match; Check document URL's as part of the Semantic Match; Remove sentences containing hallucinated key words"
+        "The six checkboxes by label: Enable the Semantic Score Model; Use Semantic Score as the basis for Warning & Minimum confidence; Rerank the search results based on the Semantic Match; Check document titles as part of the Semantic Match; Check document URL's as part of the Semantic Match; Remove sentences containing hallucinated key words",
+        "Ownership direction (IA 2026-09-19): this page owns the six toggles of the Guardrails > Semantic Scoring tab; the Semantic Model Tuning modal opened from the same tab is owned by configuration/semantic-model — link there for the sliders and allow-terms, do not describe them here"
       ]
     },
     "governance/guardrails/attribution-protection": {
@@ -1488,7 +1492,7 @@
     },
     "governance/corporate-document-filter": {
       "title": "Corporate document filter",
-      "description": "The corporate document filter asks an external rules engine, on every request, which of the retrieved documents a user is allowed to see — anything the engine does not return is blocked.",
+      "description": "The corporate document filter sends the ids of the documents NeuralSeek found, plus the user's id, to an endpoint you run on every request — any id the endpoint does not return is blocked.",
       "sources": [],
       "action": "new",
       "console": ["neural-config", "governance"],

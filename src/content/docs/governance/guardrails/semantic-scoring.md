@@ -16,4 +16,5 @@ This page is brand new for the restructured docs.
 - Cross Language silently disables semantic scoring
 - Cross-link: configuration/semantic-model, governance/semantic-analytics
 - The six checkboxes by label: Enable the Semantic Score Model; Use Semantic Score as the basis for Warning & Minimum confidence; Rerank the search results based on the Semantic Match; Check document titles as part of the Semantic Match; Check document URL's as part of the Semantic Match; Remove sentences containing hallucinated key words
+- Ownership direction (IA 2026-09-19): this page owns the six toggles of the Guardrails > Semantic Scoring tab; the Semantic Model Tuning modal opened from the same tab is owned by configuration/semantic-model — link there for the sliders and allow-terms, do not describe them here
 

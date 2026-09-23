@@ -22,9 +22,9 @@ they share a panel because the second one depends on the first:
 - **Answer caching.** "NeuralSeek can serve cached answers to user questions in order to speed
   up response times or produce more consistent results." Two thresholds — the
   **Edited answer cache** and the **Normal answer cache** — say when that is allowed, and two
-  Yes/No settings add conditions on top.
+  Yes/No selectors add conditions on top.
 
-The concepts behind the caches, including the third cache that is not on this panel, are on
+The behaviour of the caches, including the third cache that is not on this panel, is on
 [Caching](/seek/caching/). This page is the settings.
 
 ## Why it matters
@@ -35,7 +35,7 @@ served from cache at all — so **Intent Match Tolerance** decides how much cach
 get, not only how questions are grouped for reporting.
 
 The caches then trade freshness for speed and consistency. The normal answer cache guards the
-generated side itself — it serves a recent answer only while the relevant documentation has not
+generated side — it serves a recent answer only while the relevant documentation has not
 changed — but nothing guards the edited side. The product says so in the panel itself:
 
 > Edited answers are retained until updated or deleted, even if the source documentation changes - so
@@ -58,126 +58,194 @@ Leave it alone, or set the thresholds to `0`, when the source documentation chan
 day and readers must see the change immediately, and when nobody is reviewing edited answers:
 nothing on this panel expires them.
 
-These settings are also not a time-to-live. Reusing a **KnowledgeBase** query result for a number
-of minutes is a different cache with its own slider — **KnowledgeBase Query Cache (minutes)** on
+These settings are not a time-to-live. Reusing a **KnowledgeBase** query result for a number of
+minutes is a different cache with its own slider — **KnowledgeBase Query Cache (minutes)** on
 [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/).
 
 ## How it works
 
 Open the configuration you want to change from the routing tree on the **Neural Config** screen —
-for the instance-wide settings that is the **Default Config** node — then **Edit Configuration**,
-then the **Intent Matching & Cache Configuration** accordion header. Every setting below lives in
-that one section, and nothing takes effect until the dialog is saved.
+for the instance-wide settings that is the **Default Config / Answer Generation** node — then
+**Edit Configuration**, then the **Intent Matching & Cache Configuration** accordion header. It is
+the twelfth of the fourteen headers, between **Answer Engineering & Preferences** and
+**mAIstro Configuration**. Every setting below lives in that one section, and nothing takes
+effect until the dialog is saved.
 
-![The Edit Configuration dialog open on the Intent Matching & Cache Configuration section, showing its lead-in text and the Intent Match Tolerance selector](/img/neural-config/intent-matching-cache-configuration.png)
+![The Edit Configuration dialog for Default Config with the Intent Matching & Cache Configuration accordion expanded, showing its lead-in text and the Intent Match Tolerance selector](/img/neural-config/intent-matching-cache-configuration.png)
 
-Each configuration in the routing tree carries its own copy of this section, so a category can in
-principle cache differently from the default; that has not been verified against a custom
-configuration here.
+<!-- UNCONFIRMED: that every configuration in the routing tree carries its own copy of this section — from the previous docs; the category nodes exist in the tree, but no category's Edit Configuration was opened in the capture behind this page. -->
 
-### How a question is matched to an intent
+Each configuration in the routing tree is expected to carry its own copy of this section, so a
+category could in principle cache differently from the default; that has not been verified
+against a custom configuration here.
 
-**Intent Match Tolerance** is a single selector directly under the section's opening text. On the
-instance captured for this page it is set to `Exact Match` — a question is matched to an existing
-intent only when it is the same question, so near-misses start their own intent.
+The values quoted below are the ones on the instance captured for this page. Nothing on the
+accordion marks a value as the default.
 
-<!-- UNCONFIRMED: the further options "Fuzzy Match" and "Exact Match, exact conversational context", and the claim that the context-sensitive option is offered for normal answers but not for edited ones — from the previous MkDocs caching page. The option list was not opened in the capture behind this page, so `Exact Match` is the only value evidenced here. -->
+### Where the section lives
 
-The previous version of the caching documentation described a looser `Fuzzy Match` and an
-`Exact Match, exact conversational context` alongside it. Those names have not been re-checked
-against the current product; open the selector on your own instance to see what it offers.
+The accordion body has two halves, each introduced by one sentence from the product. The first
+half is intent matching: "NeuralSeek automatically generates and groups user input into intents.
+When a user input does not match an existing intent, a new intent is created." Under it sits the
+single **Intent Match Tolerance** selector. The second half is caching: "NeuralSeek can serve
+cached answers to user questions in order to speed up response times or produce more consistent
+results." Under it sit the two cache sliders and, inside the second slider's group, the two Yes/No
+selectors.
 
-Which embedding model computes the vectors behind intent matching is a different setting —
-**Vector Intent**, on
-[Embedding models](/configuration/neural-config/embedding-models/). What the resulting intents
-look like in aggregate is reported on [Intent Insights](/governance/seek-intent-insights/).
+![The whole Intent Matching & Cache Configuration body: the intent-matching lead-in and the Intent Match Tolerance selector, then the caching lead-in, the Edited answer cache and Normal answer cache sliders, and the two Require Cache selectors](/img/neural-config/intent-matching-cache-configuration--intent-match-tolerance.png)
 
-### The two answer caches
+Expanding this header does not collapse the others — several sections of the dialog can be open
+at once.
 
-Both caches are thresholds, set with a slider that runs from `Disabled` to `5` and a
-**Slider value** box next to it for typing the number directly.
+### Intent Match Tolerance
 
-![Screenshot needed — Intent Matching & Cache Configuration, the Edited answer cache and Normal answer cache sliders with their Slider value boxes and the two Yes/No selectors below them](/img/_placeholder.svg)
+**Intent Match Tolerance** is a selector directly under the section's opening sentence; its label
+sits beneath the control, and it has no help text of its own. It decides how closely an incoming
+question must resemble an existing intent before it joins that intent — and therefore before it
+can ever hit an answer cache. On the instance captured for this page it is `Exact Match`.
 
-<!-- SCREENSHOT: Neural Config > Default Config > Edit Configuration > Intent Matching & Cache
-     Configuration, scrolled down so both cache sliders, their Slider value boxes and the two
-     Require Cache selectors are visible in one shot.
-     Why: the capture above stops at Intent Match Tolerance, and the threshold's meaning is not
-     guessable from the slider alone. -->
+The selector offers five options:
 
-**Edited answer cache** — "Serve an edited answer when at least this many different edited answers
-exist for a user question. Edited answers are retained until updated or deleted, even if the
-source documentation changes - so use caution to be sure your edited answers do not contain
-out-of-date information. Set 0 to disable the edited answer cache." It is `3` on the captured
-instance.
+- `Exact Match`
+- `Vector Similarity`
+- `Fuzzy Match`
+- `Keyword Match`
+- `Fuzzy Keyword Match`
 
-**Normal answer cache** — "Serve a recent answer if the relevant documentation has not changed,
-or an edited answer when at least this many different answers exist for a user question. Edited
-answers have priority in the Normal Answer cache, followed by the most recent generated answer.
-Edited answers are retained until updated or deleted, even if the source documentation changes -
-so use caution to be sure your edited answers do not contain out-of-date information. Set 0 to
-disable the normal answer cache." It is `5` on the captured instance.
+![The Intent Match Tolerance menu open, listing Exact Match, Vector Similarity, Fuzzy Match, Keyword Match and Fuzzy Keyword Match](/img/neural-config/intent-matching-cache-configuration--options-intent-match-tolerance.png)
 
-So the number is a count of stored answers, not a confidence or a duration:
+The screen does not describe what any option does. Reading only the names — and this is an
+inference, not a verified behaviour — `Exact Match` matches an identical input, so a rephrased
+question starts its own intent; `Vector Similarity` would compare embeddings, so a rephrase could
+land on the same intent; `Fuzzy Match`, `Keyword Match` and `Fuzzy Keyword Match` name tolerant
+string matching, shared-keyword matching, and the two combined.
 
-| Value      | Effect                                                                     |
-| ---------- | -------------------------------------------------------------------------- |
-| `Disabled` | That cache never serves. The panel's own wording is "Set 0 to disable".     |
-| A low number | Caching starts early, after few different answers exist for the question. |
-| `5`        | Nothing is served until five different answers exist for that question.    |
+<!-- UNCONFIRMED: the behaviour of Vector Similarity, Fuzzy Match, Keyword Match and Fuzzy Keyword Match — inferred from the option names only; no probe has exercised them (backlog 381fbbda33 is open). -->
 
-Two consequences worth holding on to. Inside the **Normal answer cache** the order is fixed —
-edited answers first, then the most recent generated answer — so curating one answer changes what
-this cache serves even though the setting is on the other slider. And the two caches are counted
-separately: the edited threshold counts *edited* answers for the question, the normal threshold
-counts answers in general.
+Until those four options have been exercised, treat the readings above as the names' plain
+meaning and nothing more. Before relying on one, test a few phrasings on your own instance.
 
-### Two extra conditions on a cache hit
+The vectors behind `Vector Similarity` come from whichever embedding model has **Vector Intent**
+ticked on [Embedding models](/configuration/neural-config/embedding-models/). What the resulting
+intents look like in aggregate is reported on [Intent Insights](/governance/seek-intent-insights/).
 
-Passing the threshold is not on its own enough. Two selectors below the sliders add conditions,
-and both are plain Yes/No.
+### Edited answer cache
 
-- **Require Cache to Follow Context?** — `Yes` on the captured instance. With it on, a stored
-  answer is served only when it fits the conversation so far, not the question text in isolation.
-  This is the setting that stops a cached answer landing in the middle of a multi-turn exchange
-  where it no longer makes sense; see [Conversational context](/seek/conversational-context/) for
-  how NeuralSeek tracks that conversation.
-- **Require Cache to match the exact KB for the question and not the intent?** — `No` on the
-  captured instance. With it off, matching is on the intent, which is the looser and more
-  cache-friendly behaviour. Turning it on ties a stored answer to the KnowledgeBase material
-  behind the question, so a question that matched the intent but draws on different documents
-  will not reuse the answer.
+**Edited answer cache** is a slider with a **Slider value** box next to it for typing the number
+directly. The track runs from `Disabled` at the left end to `5` at the right; the help text says
+"Set 0 to disable the edited answer cache", so `Disabled` is the `0` position. On the instance
+captured for this page it is `3`.
 
-Neither selector carries help text on screen; the label is the whole explanation the product
+![The Edited answer cache slider with its help text, the track from Disabled to 5, and the Slider value box reading 3](/img/neural-config/intent-matching-cache-configuration--edited-answer-cache.png)
+
+The help text in full:
+
+> Serve an edited answer when at least this many different edited answers exist for a user
+> question. Edited answers are retained until updated or deleted, even if the source documentation
+> changes - so use caution to be sure your edited answers do not contain out-of-date information.
+> Set 0 to disable the edited answer cache.
+
+So the number is a count of different edited answers stored for the question, not a confidence
+and not a duration. Edited answers are the ones a person wrote or corrected on the Curate tab —
+[Answer curation](/seek/curation/) covers how they are made; how the cache then serves them is on
+[Caching](/seek/caching/).
+
+### Normal answer cache
+
+**Normal answer cache** is the second slider, with the same `Disabled` … `5` track and its own
+**Slider value** box. On the instance captured for this page it is `5`, the right end of the
+track. Its help text:
+
+> Serve a recent answer if the relevant documentation has not changed, or an edited answer when
+> at least this many different answers exist for a user question. Edited answers have priority in
+> the Normal Answer cache, followed by the most recent generated answer. Edited answers are
+> retained until updated or deleted, even if the source documentation changes - so use caution to
+> be sure your edited answers do not contain out-of-date information. Set 0 to disable the normal
+> answer cache.
+
+Two things follow from that wording. Inside the normal cache the order is fixed — edited answers
+first, then the most recent generated answer — so curating one answer changes what this cache
+serves even though the setting is on the other slider. And only the normal cache carries the
+"relevant documentation has not changed" guard; the edited cache has no equivalent.
+
+![The Normal answer cache slider at 5 with the Require Cache to Follow Context? selector set to Yes and the Require Cache to match the exact KB for the question and not the intent? selector set to No beneath it](/img/neural-config/intent-matching-cache-configuration--normal-answer-cache.png)
+
+Two Yes/No selectors sit inside the same field group as the slider, which is why the crop above
+shows them together. Neither carries help text; the label is the whole explanation the product
 gives.
 
-### Rebuilding intent vectors
+- **Require Cache to Follow Context?** — `Yes` on the instance captured for this page. Options:
+  `Yes` and `No`. Read from the label alone, `Yes` means a stored answer is served only when it
+  fits the conversation so far rather than the question text in isolation; how NeuralSeek tracks
+  that conversation is on [Conversational context](/seek/conversational-context/). Whether this
+  selector also governs the **Edited answer cache**, or only the **Normal answer cache** it sits
+  under, is not shown on screen and is an open question.
 
-**Rebuild Vector Intents** recomputes the vectors behind every intent that already exists. It is
-guarded by a confirmation with **Cancel** and **Confirm Rebuild** buttons, which is a fair signal
-of its cost — it is not a setting you toggle, it is a job that reprocesses everything already
-grouped.
+  ![The Require Cache to Follow Context? menu open, listing Yes and No](/img/neural-config/intent-matching-cache-configuration--options-require-cache-to-follow-context.png)
+
+- **Require Cache to match the exact KB for the question and not the intent?** — `No` on the
+  instance captured for this page. Options: `Yes` and `No`. The label itself says what the two
+  positions key on: at `No` a cache hit is decided on the matched intent, the looser and more
+  cache-friendly behaviour; at `Yes` the stored answer must also come from the same KnowledgeBase
+  as the question.
+
+  ![The Require Cache to match the exact KB for the question and not the intent? menu open, listing Yes and No](/img/neural-config/intent-matching-cache-configuration--options-require-cache-to-match-the-exact-kb-for-.png)
+
+What a cache hit looks like from the outside: asked twice through the MCP `seek` tool, "What is
+NeuralSeek?" came back byte-identical both times — same answer text, same scores, same two sources
+in the same order. The start of the answer, as returned:
+
+```text
+NeuralSeek employs several NLP models to identify and extract meaning, intent, and main subject from user questions and generated responses.
+```
+
+The MCP tool exposes no timing field, so "faster the second time" was not measured; the identical
+result is what a cache hit produces, though it is consistent with one rather than proof of one.
+
+### Rebuild Vector Intents
+
+**Rebuild Vector Intents** recomputes the stored vectors behind every intent that already exists.
+It is guarded by a confirmation dialog with **Cancel** and **Confirm Rebuild** buttons, which is a
+fair signal of its cost — it is not a setting you toggle, it is a job that reprocesses everything
+already grouped.
+
+![Screenshot needed — the Rebuild Vector Intents confirmation dialog with its Cancel and Confirm Rebuild buttons](/img/_placeholder.svg)
+
+<!-- SCREENSHOT: Neural Config > Default Config > Edit Configuration > Intent Matching & Cache
+     Configuration: locate the control that opens the Rebuild Vector Intents confirmation (it may
+     only render when Intent Match Tolerance is not Exact Match) and capture the dialog open.
+     Do not press Confirm Rebuild. Why: the dialog exists in the page markup but its opener was
+     not found in any captured state. -->
 
 <!-- UNCONFIRMED: that a rebuild is what you run after changing the Vector Intent embedding model — inferred from what the two settings do, not stated anywhere on the screen or in an answer. -->
 
-Changing the embedding model on
+Changing the model that has **Vector Intent** ticked on
 [Embedding models](/configuration/neural-config/embedding-models/) is the change that would make
 existing vectors inconsistent with new ones, so a rebuild is the plausible follow-up; nothing on
 the screen says so, and this page does not claim it.
 
 :::caution[Entry point not yet documented]
-The confirmation dialog for **Rebuild Vector Intents** is present in the **Neural Config** screen
-in every state captured for this page, but the control that opens it was not found. Rather than
-send you to a button that may not be where we guess, this page names the action and stops there.
+The **Rebuild Vector Intents** confirmation dialog is present in the **Neural Config** screen's
+markup in every state captured for this page, but the control that opens it was not found — the
+expanded accordion holds only the selector, the two sliders and the two Yes/No selectors. Rather
+than send you to a button that may not be where we guess, this page names the action and stops
+there.
 :::
 
-### Checking how a question matches
+### Intent Similarity Testing
 
-**Intent Similarity Testing** scores a question you type against the intents that already exist
-and lists the results in an **Intent** / **Score** table, behind a **Test** action. It answers the
-question this panel otherwise leaves open — whether a given phrasing lands on the intent you
-expect, and by how much — which is what you want before and after changing
+**Intent Similarity Testing** scores a question you type against the intents that already exist.
+The dialog has a **Test** button and a results table with two columns, **Intent** and **Score**.
+It answers the question this panel otherwise leaves open — whether a given phrasing lands on the
+intent you expect, and by how much — which is what you want to know before and after changing
 **Intent Match Tolerance**.
+
+![Screenshot needed — the Intent Similarity Testing dialog with the Test button and the Intent / Score results table](/img/_placeholder.svg)
+
+<!-- SCREENSHOT: Neural Config screen: locate the control that opens the Intent Similarity Testing
+     dialog, type a question, press Test, and capture the dialog with a populated Intent / Score
+     table. Why: the dialog exists in the page markup but its opener was not found in any captured
+     state, so the page cannot give a click path. -->
 
 The same caveat as above applies: the dialog is in the **Neural Config** screen's markup in every
 captured state, but the control that opens it was not identified, so this page does not give a
@@ -185,42 +253,44 @@ click path for it.
 
 ## FAQ
 
-### How do I turn caching off?
+### How do I turn answer caching off?
 
-Set the **Normal answer cache** and the **Edited answer cache** sliders to `0` — the panel says
-"Set 0 to disable the normal answer cache" and "Set 0 to disable the edited answer cache". That
-leaves the KnowledgeBase-side cache untouched; to stop that one as well, move
+Set both sliders to `0` — the panel says "Set 0 to disable the edited answer cache" and "Set 0 to
+disable the normal answer cache", and the left end of each track reads `Disabled`. That leaves the
+KnowledgeBase-side cache untouched; to stop that one as well, move
 **KnowledgeBase Query Cache (minutes)** on
 [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) to `Disabled`.
 
 ### What is the difference between the two caches?
 
-The **Edited answer cache** serves an answer a person curated. The **Normal answer cache** serves
-"a recent answer if the relevant documentation has not changed, or an edited answer when at least
-this many different answers exist" — and inside it edited answers take priority over the most
-recent generated one. Only the normal cache has the "documentation has not changed" guard.
+The **Edited answer cache** serves an answer a person curated, once that many different edited
+answers exist for the question. The **Normal answer cache** serves "a recent answer if the
+relevant documentation has not changed, or an edited answer when at least this many different
+answers exist for a user question" — and inside it "Edited answers have priority in the Normal
+Answer cache, followed by the most recent generated answer." Only the normal cache has the
+"documentation has not changed" guard.
 
 ### My edited answer is out of date — will NeuralSeek notice?
 
 No. The panel is explicit: "Edited answers are retained until updated or deleted, even if the
 source documentation changes." Correcting one is a manual job in [Curate](/seek/curation/).
 
-### Will a cached answer be reused in the middle of a conversation?
+### Which Intent Match Tolerance should I pick?
 
-Only if **Require Cache to Follow Context?** allows it. Set to `Yes`, as it is on the instance
-captured here, the stored answer has to fit the conversation so far; set to `No`, the question
-alone decides.
+The five options — `Exact Match`, `Vector Similarity`, `Fuzzy Match`, `Keyword Match`,
+`Fuzzy Keyword Match` — are named on screen and not described. `Exact Match`, the value on the
+instance captured here, matches identical input only, so every rephrase becomes a new intent. The
+other four are looser by name; their behaviour is not documented on the screen, so test a few
+phrasings before relying on one.
 
-### Does a cached answer have to come from the same documents?
+### Does a cached answer respect the conversation?
 
-That is **Require Cache to match the exact KB for the question and not the intent?**. It is `No`
-on the instance captured here, so a cache hit is decided on the matched intent. Setting it to
-`Yes` requires the same KnowledgeBase material behind the question as behind the stored answer.
+Only when **Require Cache to Follow Context?** is `Yes`, as it is on the instance captured here —
+read from the label, the stored answer then has to fit the conversation so far; at `No`, the
+question alone decides.
 
-### Why is a repeated question still not being served from cache?
+### Where do I test whether a phrasing lands on the intent I expect?
 
-Work down the panel in order. The threshold may not be reached yet — nothing is served until that
-many different answers exist for the question. **Intent Match Tolerance** may not be treating the
-new phrasing as the same question at all, which is what **Intent Similarity Testing** is for. And
-**Require Cache to Follow Context?** can reject an otherwise valid hit because the conversation
-has moved on.
+**Intent Similarity Testing**: it scores your question against the existing intents in an
+**Intent** / **Score** table behind a **Test** button. The control that opens it was not located on
+the captured screen, so this page cannot give the click path yet.

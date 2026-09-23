@@ -1,117 +1,118 @@
 ---
 title: "Connect a knowledge base"
-description: "Discover how to seamlessly integrate NeuralSeek with virtual agents, APIs, and more with NeuralSeek's Integrate page. Access step-by-step guides, enhance user experience, and optimize performance with comprehensive logging tools."
+description: "Step-by-step walkthrough for admins connecting a knowledge base to NeuralSeek: open the KnowledgeBase Connection section of Neural Config, pick the KnowledgeBase Type, set the KnowledgeBase Language, save, and confirm with a Seek."
 ---
 
-## Overview
+## What is it
 
-![integrate](/img/knowledge/connect-a-kb/integrate.png)
+Connecting a knowledge base means telling NeuralSeek which store it should search when it answers a question. That happens in one place: the **KnowledgeBase Connection** section, the first accordion of the configuration dialog that opens from the **Default Config / Answer Generation** node in Neural Config. The dialog's title bar reads **Configuration: Default Config**.
 
-**What is it?**
+This page is the task walkthrough — reach the section, choose the store, set the language, save, and check that answers come back from it. The meaning of every field for every store type lives on [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/); which types support which features is on [Supported knowledge bases](/knowledge/supported-knowledgebases/).
 
-- The Integrate tab provides users with detailed instruction on integration of NeuralSeek with selected Virtual Agents, WebHook, API, or self-hosted LLM. 
+## Why it matters
 
-**Why is it important?**
+Until a store is connected, Seek has nothing to ground an answer in. Everything downstream — retrieval, attribution, the KB score on an answer — depends on this section pointing at the right store in the right language.
 
-- NeuralSeek provides comprehensive guidance on selected integrations which allows for a more user-friendly experience.  
+This is not the page for loading documents (that is the KnowledgeBase tab, see [Load documents](/knowledge/load/)) or for creating API keys and integrating a chatbot (see [API keys](/configuration/administration/api-keys/)). If you want NeuralSeek to host the store for you rather than connect an external one, read [Managed KnowledgeBase](/knowledge/managed-knowledgebase/overview/) first and come back here to select `NeuralSeek KB`.
 
-**How does it work?**
+## When to use it
 
-- The Integrate tab on NeuralSeek's user interface provides step-by-step instructions on how to connect to various virtual agent frameworks. Once connected, users are able to call on NeuralSeek through the chosen framework as either a "fallback intent" or other action. 
+- You are setting up a new NeuralSeek instance and it has no store yet.
+- You are moving from one store to another — from the built-in `NeuralSeek KB` to Elasticsearch or Pinecone, for example.
+- Your content is not in English and you need to declare its language so that cross-language handling can work.
+- You want to leave a note with the configuration for the next administrator who opens it.
 
-    - **Custom Extension:** This contains the information to build a custom NeuralSeek extension within Watson Assistant.
-    - **LexV2 Lambda:** Use AWS Lambda to send user input that routes the Lex FallbackIntent to NeuralSeek. Used in conjunction with AWS LexV2.
-    - **LexV2 Logs:** How to enable Round-Trip Logging using LexV2 Logs, to monitor the usage of curated intents. The purpose of round-trip logging is to improve the virtual agent’s performance by analyzing the data and identifying areas for improvement.
-    - **Watson Logs**: How to enable Round-Trip Logging using Watson Logs, to monitor the usage of curated intents. The purpose of round-trip logging is to improve the virtual agent’s performance by analyzing the data and identifying areas for improvement.
-    - **WebHook**: This is the backbone of NeuralSeek, how users connect and communicate with the solution. One can make a call to this WebHook from any application (e.g. slack, servicenow, etc.) that can forward its question to it and receive answers from.
-    - **API (REST)**: Where to find necessary information regarding how to invoke NeuralSeek’s REST API, and navigate and test it right on its openAPI generated page. You can get examples of JSON message requests and responses, as well as JSON schema of the message payloads.
-    - **KoreAI**: Activate Round-Trip monitoring for deployed NeuralSeek Intents. This feature enables NeuralSeek to continuously monitor the usage of its curated intents through KoreAI event Tasks. It will promptly alert you if any curated intents require updates due to changes in the associated KnowledgeBase documents.
-    - **Console API**: This integration allows users to access debugging and monitoring features conveniently from within the NeuralSeek application, simplifying tasks such as error identification, performance analysis, and data insights without the need to switch between different tools or interfaces. It enhances the user experience by providing seamless access to the Console API's functionality within NeuralSeek's interface, streamlining development and monitoring tasks
+## How it works
 
-## API Keys
+![The Configuration: Default Config dialog with the KnowledgeBase Connection accordion open, showing KnowledgeBase Type, KnowledgeBase Language and Notes, and the Propose Changes and Save footer](/img/neural-config/knowledgebase-connection.png)
 
-The API Keys page allows you to easily create API Keys for NeuralSeek that can be integrated with various other services.
+### Open the KnowledgeBase Connection section
 
-To add an API Key, click on the Create ApiKey button and input the name you want to use for the Key in the pop-up prompt.
+Three clicks reach the section:
 
-![addkey](/img/knowledge/connect-a-kb/addkey.png)
+1. Open **Neural Config** from the top navigation. It draws the instance's routing tree as a diagram — see [Configuration overview](/configuration/overview/) for how the tree is read.
+1. Click the **Default Config / Answer Generation** node. A panel for that node opens, with an **Edit Configuration** button under its settings.
+1. Click **Edit Configuration**. The **Configuration: Default Config** dialog opens with **KnowledgeBase Connection** as its first accordion, already expanded.
 
-After the key has been created, you will be able to see both the name of the key as well as the API code that you are able to copy immediately after creation.
+![The KnowledgeBase Connection accordion body: the KnowledgeBase Type dropdown reading NeuralSeek KB, the KnowledgeBase Language dropdown reading English, and the empty Notes box](/img/neural-config/knowledgebase-connection--knowledgebase-type.png)
 
-![keycode](/img/knowledge/connect-a-kb/keycode.png)
+The section holds three fields on the playground instance: **KnowledgeBase Type**, **KnowledgeBase Language** and **Notes**. Other accordions in the same dialog (KnowledgeBase Tuning, LLM Details and the rest) are not part of this task; the dialog itself — including how it is saved — is described on [Using the Edit Configuration dialog](/configuration/neural-config/using-this-page/).
 
-**If you don’t copy the API key immediately after creating it, you won’t be able to copy it again.** However, the key will continue to function normally for any services where it has already been defined.
+### Choose the store
 
-If you want to delete an API Key and terminate its services, simply check off the checkbox next to a key's name and click on the Delete ApiKey button. This will remove the key from your instance.
+**KnowledgeBase Type** is the first decision and it drives everything below it: the value you pick decides which connection fields the section shows next. On the playground it reads `NeuralSeek KB`.
 
-![deletekey](/img/knowledge/connect-a-kb/keydelete.png)
+![The KnowledgeBase Type dropdown open, showing the first six of its fifteen options — Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery, OpenSearch — with a scrollbar for the rest](/img/neural-config/knowledgebase-connection--options-knowledgebase-type.png)
 
-## REST API
+The dropdown lists fifteen types, in this order (the menu scrolls, so the picture shows only the first six):
 
-Virtual Agents, chatbots, and applications can send user questions and receive answers via NeuralSeek’s REST API. In the `Integrate > API`, you can access its openAPI documentation that covers its service endpoints, and also can test its executions, as well as access the message schema. For more information, please refer to [https://api.neuralseek.com/](https://api.neuralseek.com/).
+- `Watson Discovery`
+- `Watson Discovery (CP4D)`
+- `Elastic AppSearch`
+- `ElasticSearch`
+- `watsonx Discovery`
+- `OpenSearch`
+- `Kendra`
+- `Bedrock`
+- `Pinecone`
+- `Milvus`
+- `Postgres`
+- `Virtual KB`
+- `NeuralSeek KB`
+- `No KnowledgeBase`
+- `ChromaDB`
 
-### Example of curl command to invoke REST API
+With `NeuralSeek KB` selected there is nothing else to fill in: NeuralSeek hosts the store, so no endpoint, key or index name is asked for, and the section shows only the three fields above. Any other type adds its own set of connection fields (endpoint, credentials, index, field mappings) under the selector. Those field sets are documented per type on [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/), and the feature-by-type comparison is on [Supported knowledge bases](/knowledge/supported-knowledgebases/). Setup guides exist for some stores: [Pinecone](/knowledge/pinecone/), [Elasticsearch vector model](/knowledge/elasticsearch-vector-model/), [Virtual KB](/seek/virtual-kb/) and [Managed KnowledgeBase](/knowledge/managed-knowledgebase/overview/) for `NeuralSeek KB`.
 
-```bash
-curl -X 'POST' \
-  'https://api.neuralseek.com/v1/test/seek' \
-  -H 'accept: application/json' \
-  -H 'apikey: xxxxxx07-xxxxxxbc-xxxxxxae-xxxxxxef' \
-  -H 'Content-Type: application/json' \
-  -d '{ "question": "I want to know more about NeuralSeek" }'
-```
+### Set the language and add notes
 
-### Example of JSON Response
+**KnowledgeBase Language** declares the language the stored content is written in. On the playground it reads `English`. The dropdown offers the same language list you meet elsewhere in the console (`Abkhazian` through `Zulu`, including regional variants such as `Chinese (Simplified)` and `Chinese (Traditional)`); the [Language handling](/configuration/language/) page covers the list and how the pieces fit together.
+
+![The KnowledgeBase Language dropdown open, showing the start of the alphabetical language list — Abkhazian, Afar, Afrikaans, Akan, Albanian, Amharic — with a scrollbar](/img/neural-config/knowledgebase-connection--options-knowledgebase-language.png)
+
+This setting does not translate anything by itself. It is the reference point that **Cross Language** in Platform Preferences compares against; that control's own help text describes it as "Translate into the KB language when the KB language is different than the Seek Language", and notes that semantic scoring is disabled for cross-language answers. Set the KB language to match the documents, and decide about translation on [Language handling](/configuration/language/).
+
+**Notes** is the multi-line box under the two dropdowns. It is empty on the playground and has no help text.
+
+<!-- UNCONFIRMED: Notes is a free-text note stored with the configuration for other administrators to read — inferred from the label; nothing on screen shows where it is displayed afterwards -->
+
+Use it for what the label suggests: a short operator note about this connection, such as why the type was chosen or when it was last changed.
+
+### Save and check the connection
+
+The dialog footer has two buttons: **Propose Changes** and **Save**. What each one does, and what happens after you click it, is described on [Using the Edit Configuration dialog](/configuration/neural-config/using-this-page/).
+
+There is no "test connection" button in the KnowledgeBase Connection section for `NeuralSeek KB`. The **Test** buttons elsewhere in the dialog belong to the LLM cards in LLM Details, not to the store. The check is a real question:
+
+- **Seek tab.** Ask a question whose answer you know is in the store and confirm the answer cites a document from it — see [Seek overview](/seek/overview/).
+- **KnowledgeBase tab.** Open the document table and confirm documents are listed — see [Document manager](/knowledge/document-manager/).
+
+On the playground, asking `What is NeuralSeek?` through the MCP `seek` tool came back with an answer and two sources from the connected `NeuralSeek KB`, each carrying a `url`, a `score` and an `excerpt`. The first source, via the MCP:
 
 ```json
-{
-  "answer": "NeuralSeek is an AI-powered Answers-as-a-Service platform designed to enhance information sharing and customer support within virtual agents. It leverages a sophisticated Large Language Model (LLM) and a corporate KnowledgeBase to provide contextually relevant responses to user queries. NeuralSeek offers features such as fact-checking, data analytics, and step-by-step instructions to improve AI-generated responses. It can be integrated with virtual agents like IBM Watson Assistant or AWS Lex and used as an internal organization tool. NeuralSeek also provides training resources, demos, and support for users.",
-  "ufa": "NeuralSeek is an AI-powered Answers-as-a-Service platform designed to enhance information sharing and customer support within virtual agents. It leverages a sophisticated Large Language Model (LLM) and a corporate KnowledgeBase to provide contextually relevant responses to user queries. NeuralSeek offers features such as fact-checking, data analytics, and step-by-step instructions to improve AI-generated responses. It can be integrated with virtual agents like IBM Watson Assistant or AWS Lex and used as an internal organization tool. NeuralSeek also provides training resources, demos, and support for users.",
-  "intent": "FAQ-neuralseek",
-  "category": 0,
-  "categoryName": "Other",
-  "answerId": 1706800601368,
-  "warningMessages": [],
-  "cachedResult": false,
-  "langCode": "en",
-  "sentiment": 5,
-  "totalCount": 14,
-  "KBscore": 53,
-  "score": 26,
-  "url": "http://documentation.neuralseek.com/overview/",
-  "document": "NeuralSeek Overview",
-  "kbTime": 7472,
-  "kbCoverage": 56,
-  "semanticScore": 26,
-  "semanticAnalysis": "The answer has many jumps between source articles, which lowered the overall score.  Source jumping may indicate the meaning & intent of the source articles are not carrying thru to the answer.  The high standard deviation of the contributing sources increased the overall score.  The primary source does not match the full answer well, which decreased the total score.  The answer had the terms \"Service platform\" and \"leverages\" and \"checking\" that were not backed by a reference to source documentation, which decreased the final score significantly.",
-  "semanticDetails": {
-    "sourceJumps": 17,
-    "stdDeviation": 78.71767414134023,
-    "topSourceCoverage": 0.4640198511166253,
-    "totalCoverage": 1.0397022332506203,
-    "answerLength": 403,
-    "longestPhrase": 41,
-    "unattributedKeyTerms": [],
-    "unattributedTerms": [
-      "Service platform",
-      "leverages",
-      "checking"
-    ],
-    "unattributedNumbers": [],
-    "missingKeyTerms": [],
-    "missingTerms": []
-  },
-  "time": 13181,
-  "thumbs": "https://api.neuralseek.com/v1/test/thumbs/1706800601368/1393218967/rate.svg"
-}
+{"url": "https://documentation.neuralseek.com/ui/seek/", "score": 100, "excerpt": "Dynamic Filters (././guides/data/dynamic_filters) KnowledgeBase Tuning (././guides/data/tuning_guide) Virtual KnowledgeBase (././guides/data/virtual_kb) Training Virtual Agents (././guides/integration…"}
 ```
 
-## Supported Integrations
+That is the MCP tool's response shape; the REST `/seek` endpoint returns `url` and `document` fields instead and no `sources` array. Either way, a source pointing at one of your documents is the confirmation that the connection works.
 
-{pagelist b supportedintegration}
+## FAQ
 
+### Where do I connect my knowledge base?
 
-## Guides
-Here is a list of guides relevant to the Integrate tab.
+In Neural Config: click the **Default Config / Answer Generation** node, then **Edit Configuration**, and the **KnowledgeBase Connection** accordion is the first section of the dialog — it opens expanded.
 
-{pagelist 1000 Gintegrate}
+### Which knowledge base types can I pick?
+
+**KnowledgeBase Type** offers fifteen values: `Watson Discovery`, `Watson Discovery (CP4D)`, `Elastic AppSearch`, `ElasticSearch`, `watsonx Discovery`, `OpenSearch`, `Kendra`, `Bedrock`, `Pinecone`, `Milvus`, `Postgres`, `Virtual KB`, `NeuralSeek KB`, `No KnowledgeBase` and `ChromaDB`. Which features each one supports is on [Supported knowledge bases](/knowledge/supported-knowledgebases/).
+
+### Why do I see only three fields in KnowledgeBase Connection?
+
+Because the type is `NeuralSeek KB`: NeuralSeek hosts that store, so there is no endpoint or credential to enter and the section shows only **KnowledgeBase Type**, **KnowledgeBase Language** and **Notes**. Other types add their own fields — see [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/).
+
+### Is there a "test connection" button?
+
+Not for `NeuralSeek KB` on the captured screen. Save the configuration, then ask a question on the Seek tab and check that the answer cites a document from your store. Whether other store types show a test control has not been captured.
+
+### Does KnowledgeBase Language translate my documents?
+
+No. It declares the language the documents are already in. Translating a question into the store's language at query time is **Cross Language** in Platform Preferences — see [Language handling](/configuration/language/).

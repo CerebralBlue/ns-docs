@@ -1,53 +1,47 @@
 ---
 title: "Supported LLMs"
-description: "Which LLM providers and models NeuralSeek can connect to, and why the authoritative list is the Add an LLM dialog on your own instance rather than this page."
+description: "Which language models NeuralSeek can use is decided by the Add an LLM dialog in LLM Details on your own instance, not by a fixed list; this page explains how to read that list, what a Managed model card is, and where each model's settings live."
 ---
-
-:::caution[Unverified]
-The provider list and the per-model tables on this page have **not** been checked against the
-current product. They are a snapshot of what NeuralSeek previously published, kept because the
-model notes are still useful; the live catalogue is the **Add an LLM** dialog on your own
-instance, and it has moved on from this list. Treat every model name below as "was offered at
-some point", not as "is offered today".
-:::
 
 ## What is it
 
-A catalogue page. It lists the LLM providers NeuralSeek can connect to and, per provider, the
-models that were offered along with notes on how each one behaves inside NeuralSeek.
+In NeuralSeek, a model is "supported" when it can be added as a card in the **LLM Details**
+section of a configuration and ticked for the functions it is allowed to perform. The list of
+platforms and models you can add is not published as a table here: it is the **Add an LLM**
+dialog on your own instance, which is instance-specific and changes as NeuralSeek adds
+providers. This page tells you where that list is, how to read the cards it produces, and which
+page holds the per-model settings — see [LLM Details](/configuration/neural-config/llm-details/)
+for those.
 
-Nothing on this page is a setting. Models are added and configured in the **LLM Details** section
-of a configuration — see [LLM Details](/configuration/neural-config/llm-details/) — and this page
-exists only to help you decide what to put there.
+The page is an orientation page, not a settings screen. Nothing on it is a control you change.
 
 ## Why it matters
 
-In NeuralSeek an LLM is not a single global choice. Each model card is ticked for the functions
-that model is allowed to perform, so the models you connect decide which parts of the product
-work at all. The **LLM Details** section states the consequence in its own help text:
+An LLM in NeuralSeek is not one global choice. Each model card carries an **LLM Functions**
+grid, and the models you connect decide which parts of the product work at all. The **LLM
+Details** section states the rule in its own help text:
 
 > You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them
 > for the selected functions that have multiple LLM's. Features that an LLM are not capable of
 > will be unselectable. If you do not provide an LLM for a function, there is no fallback and
 > that function of NeuralSeek will be disabled.
 
-Model choice also sets your latency and cost floor, and some models are simply unsuited to
-retrieval-augmented answering — the notes in the tables below say which, and that is the part of
-this page that ages best.
+So "is my model supported?" is really two questions: can it be added at all (the dialog answers
+that), and which functions can it be ticked for once added (the card answers that).
 
 ## When to use it
 
 Read this page when you are:
 
-- choosing which provider to buy capacity from, before connecting anything;
-- looking at a greyed-out function checkbox and wondering which model would enable it;
-- deciding between a NeuralSeek-hosted model and one of your own — see
+- choosing a provider before connecting anything, and want to know where the real list is;
+- looking at a greyed-out function checkbox and wondering whether another model would enable it;
+- deciding between a NeuralSeek-hosted `Managed` card and a model on your own account — see
   [Managed LLM Details](/configuration/neural-config/managed-llm/);
-- planning image, audio or video work, which is covered by
-  [Multimodal LLM configuration](/configuration/multimodal/);
 - spreading functions across several models, which is covered by
   [Multi-LLM](/configuration/multi-llm/);
-- running a model on your own infrastructure, which is covered by
+- planning image work, which is covered by
+  [Multimodal LLM configuration](/configuration/multimodal/);
+- running a model on your own infrastructure — see
   [Self-hosting an LLM](/configuration/administration/self-hosting-an-llm/).
 
 Do not use this page as an inventory of what your instance can select right now. Open
@@ -55,307 +49,107 @@ Do not use this page as an inventory of what your instance can select right now.
 
 ## How it works
 
-![The LLM Details section of a configuration, with the Add an LLM button and two NeuralSeek-managed model cards](/img/neural-config/llm-details.png)
+Everything described here sits in one place: **Neural Config**, click the **Default Config /
+Answer Generation** node, then **Edit Configuration**; in the dialog's accordion, expand
+**LLM Details**.
 
-### Which providers NeuralSeek connects to
+![The collapsed LLM Details accordion header in the Edit Configuration dialog — the row to click](/img/neural-config/edit-configuration-edit--add-an-llm.png)
 
-<!-- UNCONFIRMED: the provider list below (Amazon Bedrock, Azure Cognitive Services, Cloudflare, Google Vertex AI, HuggingFace, OpenAI, together.ai, watsonx.ai, plus generic OpenAI-compatible endpoints) — previously published old-docs content; the Add an LLM dialog was not opened in any capture of this screen -->
+### Where the model list lives
 
-The last published platform list named these providers:
+Expanding **LLM Details** shows the **Add an LLM** button on the left, the help paragraph quoted
+above beside it, and one card per model already on the instance.
 
-- Amazon Bedrock
-- Azure Cognitive Services
-- Cloudflare
-- Google Vertex AI
-- HuggingFace
-- OpenAI
-- together.ai
-- watsonx.ai
+![The LLM Details section expanded: the Add an LLM button, the load-balancing and no-fallback paragraph, and the Managed GPT and Managed gpt-image cards with their LLM Functions, LLM ID and Weight rows](/img/neural-config/llm-details-panel.png)
 
-In addition to any generic OpenAI-compatible endpoint.
+- **Add an LLM** opens the `Add an LLM` dialog, whose footer is **Cancel** and **Add**. This
+  dialog is the catalogue: the platforms and models it offers are the ones your instance
+  supports. It was not opened when this page was captured, so its contents are not reproduced
+  here — open it on your instance to see them. How to fill it in and what happens next is on
+  [LLM Details](/configuration/neural-config/llm-details/).
+- **LLM Functions** is the checkbox grid on every card. "Features that an LLM are not capable
+  of will be unselectable" is visible in the capture: on the `Managed gpt-image` card every box
+  except **Image Generation** and **Image Edits** is greyed, while on `Managed GPT` most boxes
+  are selectable. A greyed box is the product telling you that model cannot do that job, not a
+  permission you are missing. The twenty functions themselves are listed on
+  [LLM Details](/configuration/neural-config/llm-details/).
+- **LLM ID:** is the identifier at the foot of each card. The instance captured for this page
+  carried four cards — `Managed GPT` (`ns-gpt-5`), `Managed gpt-image` (`ns-gpt-image`),
+  `Translate` (`translate-ns`) and `gpt-oss-20b` (`gpt-oss-20b-ns`). These are the models on
+  that one instance, not a list of what NeuralSeek supports; a card whose name starts with
+  `Managed` is one NeuralSeek hosts, described on
+  [Managed LLM Details](/configuration/neural-config/managed-llm/).
 
-Alongside bring-your-own models, NeuralSeek also hosts models itself. On the instance captured
-for this page, **LLM Details** held four such cards — `Managed GPT` (`LLM ID: ns-gpt-5`),
-`Managed gpt-image` (`LLM ID: ns-gpt-image`), `Translate` (`LLM ID: translate-ns`) and
-`gpt-oss-20b` (`LLM ID: gpt-oss-20b-ns`) — sitting in the same list as any model you connect
-yourself. Which managed models your instance offers depends on your plan; the cards themselves
-are described on [Managed LLM Details](/configuration/neural-config/managed-llm/).
+### What this page does not know
 
-<!-- UNCONFIRMED: the platform list here is reported to omit xAI, and the model catalogue is reported to be roughly two model generations behind with around 287 models actually offered — route gap audit in scripts/migration-map.json; neither claim is verifiable from any capture of this screen, so neither is stated on the page -->
+The platform list inside **Add an LLM** was not captured, so the page cannot say which platforms
+the dialog names today, nor whether any particular provider is present or absent from it.
 
-### Reading the per-provider tables
+![Screenshot needed — the Add an LLM dialog with its platform list open](/img/_placeholder.svg)
 
-The tables below are a **snapshot**, not a live read of your instance. Two things follow from
-that, and both matter more than any individual row:
+<!-- SCREENSHOT: Neural Config > Default Config / Answer Generation > Edit Configuration > LLM Details > click "Add an LLM" — the open dialog with its platform dropdown expanded so every platform name is legible; then Cancel.
+     Why: the platform list is the only fact this page exists to give and it lives nowhere else on the screen. -->
 
-- **A model missing here may still be available.** New models and whole new platforms are added
-  to the product faster than this list is republished.
-- **A model listed here may be gone.** Providers deprecate models; several rows already say so.
+<!-- UNCONFIRMED: the provider list below (Amazon Bedrock, Azure Cognitive Services, Cloudflare, Google Vertex AI, HuggingFace, OpenAI, together.ai, watsonx.ai, plus any generic OpenAI-compatible endpoint) — the last published old-docs list; the Add an LLM dialog was not opened in this capture, and the route's gap audit says the list is stale -->
 
-The authoritative answer for your instance is the **Add an LLM** dialog in **LLM Details**: it
-offers a platform and then the models available on it, and what it shows is what you can actually
-select. Use the notes below for judgement — how a model family behaves in retrieval — and the
-dialog for availability.
+For orientation only, the last published list named Amazon Bedrock, Azure Cognitive Services,
+Cloudflare, Google Vertex AI, HuggingFace, OpenAI, together.ai and watsonx.ai, plus any generic
+OpenAI-compatible endpoint. Treat every name as "was offered at some point": providers have been
+added since and the dialog on your instance is the only current answer. The previous site also
+carried a per-model table for each provider with notes on how each model behaved in NeuralSeek;
+those tables are not reproduced here because the models they describe are several generations
+behind what the dialog offers.
 
-<!-- UNCONFIRMED: every provider table below and every per-model note in it — previously published old-docs content, not re-verified against the current build -->
+Two more statements come from the previous site and were not checked against the product:
 
-<details>
-<summary>Amazon Bedrock</summary>
+<!-- UNCONFIRMED: "LLM choice is available with NeuralSeek's BYOLLM (bring your own Large Language Model) plan; all other plans default to NeuralSeek's curated LLM" — old-docs prose; no plan control is on the captured screen -->
 
-| LLM                           | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Claude 3 Haiku                | Claude 3 Haiku is Anthropic's fastest, most compact model for near-instant responsiveness. It answers simple queries and requests with speed. Customers will be able to build seamless AI experiences that mimic human interactions. Claude 3 Haiku can process images and return text outputs, and features a 200K context window.                                                                                                                                                       |
-| Claude 3 Opus                 | Claude 3 Opus is Anthropic's most powerful AI model, with state-of-the-art performance on highly complex tasks. It can navigate open-ended prompts and sight-unseen scenarios with remarkable fluency and human-like understanding. Claude 3 Opus shows us the frontier of what’s possible with generative AI. Claude 3 Opus can process images and return text outputs, and features a 200K context window.                                                                               |
-| Claude 3 Sonnet               | Claude 3 Sonnet by Anthropic strikes the ideal balance between intelligence and speed—particularly for enterprise workloads. It offers maximum utility at a lower price than competitors, and is engineered to be the dependable, high-endurance workhorse for scaled AI deployments. Claude 3 Sonnet can process images and return text outputs, and features a 200K context window.                                                                                                      |
-| Claude 3.5 Haiku              | Claude 3.5 Haiku is Anthropic's fastest, most compact model for near-instant responsiveness. It answers simple queries and requests with speed. Customers will be able to build seamless AI experiences that mimic human interactions. Claude 3 Haiku can process images and return text outputs, and features a 200K context window.                                                                                                                                                     |
-| Claude 3.5 Sonnet             | Claude 3.5 Sonnet by Anthropic strikes the ideal balance between intelligence and speed—particularly for enterprise workloads. It offers maximum utility at a lower price than competitors, and is engineered to be the dependable, high-endurance workhorse for scaled AI deployments. Claude 3 Sonnet can process images and return text outputs, and features a 200K context window.                                                                                                    |
-| Claude 3.5 Sonnet v2          | Claude 3.5 Sonnet v2 by Anthropic strikes the ideal balance between intelligence and speed—particularly for enterprise workloads. It offers maximum utility at a lower price than competitors, and is engineered to be the dependable, high-endurance workhorse for scaled AI deployments. Claude 3 Sonnet can process images and return text outputs, and features a 200K context window.                                                                                                 |
-| Claude Instant v1.2           | A faster and cheaper yet still very capable model, which can handle a range of tasks including casual dialogue, text analysis, summarization, and document question-answering.                                                                                                                                                                                                                                                                                                           |
-| Claude v2                     | Anthropic's most powerful model, which excels at a wide range of tasks from sophisticated dialogue and creative content generation to detailed instruction following.                                                                                                                                                                                                                                                                                                                    |
-| Claude v2.1                   | Anthropic's most powerful model, which excels at a wide range of tasks from sophisticated dialogue and creative content generation to detailed instruction following.                                                                                                                                                                                                                                                                                                                    |
-| Jurassic-2 Mid                | Jurassic-2 Mid is AI21’s mid-sized model, carefully designed to strike the right balance between exceptional quality and affordability. Jurassic-2 Mid can be applied to any language comprehension or generation task including question answering, summarization, long-form copy generation, advanced information extraction and many others.                                                                                                                                           |
-| Jurassic-2 Ultra              | Jurassic-2 Ultra is AI21’s most powerful model offering exceptional quality. Apply Jurassic-2 Ultra to complex tasks that require advanced text generation and comprehension. Popular use cases include question answering, summarization, long-form copy generation, advanced information extraction, and more.                                                                                                                                                                          |
-| Llama-2-chat 13B              | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                                                                                                                                                   |
-| Llama-2-chat 70B              | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                                                                                                                                                   |
-| llama-3-1-405b-instruct       | llama-3-405b instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                        |
-| llama-3-1-70b-instruct        | Llama 3.1 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                           |
-| llama-3-1-8b-instruct         | Llama 3.1 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                           |
-| llama-3-2-11b-vision-instruct | Llama 3.2 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                           |
-| llama-3-2-1b-instruct         | Llama 3.2 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                           |
-| llama-3-2-3b-instruct         | Llama 3.2 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                           |
-| llama-3-2-90b-vision-instruct | Llama 3.2 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                           |
-| llama-3-3-70b-instruct        | Llama 3.3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                           |
-| Mistral-7B-Instruct           | Mistral brings capabilities similar to many popular commercial models. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version.                                                                                                               |
-| Mistral-large                 | The most advanced Mistral AI Large Language model capable of handling any language task including complex multilingual reasoning, text understanding, transformation, and code generation.                                                                                                                                                                                                                                                                                               |
-| Mistral-small                 | Mistraql Small is optimized for high-volume, low-latency language-based tasks. Mistral Small is perfectly suited for straightforward tasks that can be performed in bulk, such as classification, customer support, or text generation.                                                                                                                                                                                                                                                  |
-| Mixtral-8x7B-Instruct         | The Mixtral-8x7B Large Language Model (LLM) is a pretrained generative Sparse Mixture of Experts. The Mixtral-8x7B outperforms Llama 2 70B on most benchmarks. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version.                        |
-| Nova Lite                     | Amazon Nova is a new generation of state-of-the-art (SOTA) foundation models (FMs) that deliver frontier intelligence and industry leading price-performance, available exclusively on Amazon Bedrock.                                                                                                                                                                                                                                                                                   |
-| Nova Micro                    | Amazon Nova is a new generation of state-of-the-art (SOTA) foundation models (FMs) that deliver frontier intelligence and industry leading price-performance, available exclusively on Amazon Bedrock.                                                                                                                                                                                                                                                                                   |
-| Nova Pro                      | Amazon Nova is a new generation of state-of-the-art (SOTA) foundation models (FMs) that deliver frontier intelligence and industry leading price-performance, available exclusively on Amazon Bedrock.                                                                                                                                                                                                                                                                                   |
-| Titan Text G1 - Express       | Amazon Titan Text Express has a context length of up to 8,000 tokens, making it well-suited for a wide range of advanced, general language tasks such as open-ended text generation and conversational chat, as well as support within Retrieval Augmented Generation (RAG). At launch, the model is optimized for English, with multilingual support for more than 100 additional languages available in preview.                                                                         |
+- Adding your own model was described as part of the BYOLLM (bring your own Large Language
+  Model) plan, with other plans defaulting to NeuralSeek's curated model. If **Add an LLM** is
+  not on your screen, your plan is the first thing to check.
 
-</details>
+<!-- UNCONFIRMED: "Some LLMs can take up to 30 seconds and longer to generate a full response; use caution with a virtual agent platform that imposes a strict timeout" — old-docs prose; no timing was probed -->
 
-<details>
-<summary>Azure Cognitive Services</summary>
+- Some models were noted to take 30 seconds or longer for a full response, which matters when a
+  virtual agent platform in front of NeuralSeek enforces a strict timeout.
 
-| LLM                        | Notes                                                                                                                                                                                                                                                                                       |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Azure GPT4 Turbo (Preview) | GPT-4 Turbo provides a good balance of speed and capability. The 16K context window version of the model allows for more information to be passed to it, generally yeilding better responses.                                                                                                |
-| GPT-4o                     | GPT-4o matches GPT-4 Turbo performance on text in English and code, with significant improvement on text in non-English languages.                                                                                                                                                           |
-| GPT-4o-mini                | GPT-4o mini is an affordable and intelligent small model for fast, lightweight tasks. GPT-4o mini is cheaper and more capable than GPT-3.5 Turbo.                                                                                                                                            |
-| GPT3.5                     | GPT-3.5 provides a good balance of speed and capability.                                                                                                                                                                                                                                    |
-| GPT4                       | GPT-4 can often take longer than 30 seconds for a full response. Use caution when using in conjunction with a Virtual Agent platform that imposes a strict timeout.                                                                                                                          |
-| GPT4 (32K)                 | GPT-4 can often take longer than 30 seconds for a full response. Use caution when using in conjunction with a Virtual Agent platform that imposes a strict timeout. The 32K context window version of the model allows for more information to be passed to it, generally yeilding better responses. |
-| o1                         | The o1 series of large language models are trained with reinforcement learning to perform complex reasoning. o1 models think before they answer, producing a long internal chain of thought before responding to the user.                                                                    |
-| o1-mini                    | The o1 series of large language models are trained with reinforcement learning to perform complex reasoning. o1 models think before they answer, producing a long internal chain of thought before responding to the user.                                                                    |
-| o1-preview                 | The o1 series of large language models are trained with reinforcement learning to perform complex reasoning. o1 models think before they answer, producing a long internal chain of thought before responding to the user.                                                                    |
+### Per-model settings are elsewhere
 
-</details>
-
-<details>
-<summary>Cloudflare</summary>
-
-| LLM                  | Notes                                                                                                                                                                                                                                                                                                                                                    |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Llama-2-chat-7b      | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                    |
-| llama-3-8b-instruct  | Llama 3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                              |
-| llama-3.1-8b-instruct | Llama 3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                             |
-| llama-3.2-1b-instruct | Llama 3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                             |
-| llama-3.2-3b-instruct | Llama 3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                             |
-| m2m100-1.2b          | M2M100 is a multilingual encoder-decoder (seq-to-seq) model primarily intended for translation tasks. M2M100 does not support custom translation dictionaries.                                                                                                                                                                                            |
-| Mistral-7B-Instruct  | Mistral brings capabilities similar to many popular commercial models. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version. |
-
-</details>
-
-<details>
-<summary>Google Vertex AI</summary>
-
-| LLM                                | Notes                                                                                                                                                                                                                                                                                                                                                       |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| gemini-1.5-flash (128K Context)    | Gemini 1.5 Flash is designed for high-volume, high-frequency tasks where cost and latency matter. On most common tasks, Flash achieves comparable quality to other Gemini Pro models at a significantly reduced cost. Flash is well-suited for applications like chat assistants and on-demand content generation where speed and scale matter.               |
-| gemini-1.5-flash (1M Context)      | Gemini 1.5 Flash is designed for high-volume, high-frequency tasks where cost and latency matter. On most common tasks, Flash achieves comparable quality to other Gemini Pro models at a significantly reduced cost. Flash is well-suited for applications like chat assistants and on-demand content generation where speed and scale matter.               |
-| gemini-1.5-flash-001 (128K Context) | Gemini 1.5 Flash is designed for high-volume, high-frequency tasks where cost and latency matter. On most common tasks, Flash achieves comparable quality to other Gemini Pro models at a significantly reduced cost. Flash is well-suited for applications like chat assistants and on-demand content generation where speed and scale matter.              |
-| gemini-1.5-flash-001 (1M Context)  | Gemini 1.5 Flash is designed for high-volume, high-frequency tasks where cost and latency matter. On most common tasks, Flash achieves comparable quality to other Gemini Pro models at a significantly reduced cost. Flash is well-suited for applications like chat assistants and on-demand content generation where speed and scale matter.               |
-| gemini-1.5-flash-8b                | Gemini 1.5 Flash-8B is a small model designed for lower intelligence tasks.                                                                                                                                                                                                                                                                                 |
-| gemini-1.5-pro (128K Context)      | Gemini 1.5 Pro is a foundation model that performs well at a variety of multimodal tasks such as visual understanding, classification, summarization, and creating content from image, audio and video. It's adept at processing visual and text inputs such as photographs, documents, infographics, and screenshots.                                        |
-| gemini-1.5-pro (1M Context)        | Gemini 1.5 Pro is a foundation model that performs well at a variety of multimodal tasks such as visual understanding, classification, summarization, and creating content from image, audio and video. It's adept at processing visual and text inputs such as photographs, documents, infographics, and screenshots.                                        |
-| gemini-1.5-pro-001 (128K Context)  | Gemini 1.5 Pro is a foundation model that performs well at a variety of multimodal tasks such as visual understanding, classification, summarization, and creating content from image, audio and video. It's adept at processing visual and text inputs such as photographs, documents, infographics, and screenshots.                                        |
-| gemini-1.5-pro-001 (1M Context)    | Gemini 1.5 Pro is a foundation model that performs well at a variety of multimodal tasks such as visual understanding, classification, summarization, and creating content from image, audio and video. It's adept at processing visual and text inputs such as photographs, documents, infographics, and screenshots.                                        |
-| gemini-2.0-flash-001               | Gemini 2.0 Flash delivers next-gen features and improved capabilities, including superior speed, native tool use, multimodal generation, and a 1M token context window.                                                                                                                                                                                      |
-| gemini-2.0-flash-exp               | Gemini 2.0 Flash delivers next-gen features and improved capabilities, including superior speed, native tool use, multimodal generation, and a 1M token context window.                                                                                                                                                                                      |
-| gemini-2.0-flash-lite-preview-02-05 | Gemini 2.0 Flash-Lite is the fastest and most cost efficient Flash model. It's an upgrade path for 1.5 Flash users who want better quality for the same price and speed.                                                                                                                                                                                    |
-| gemini-2.0-pro-exp-02-05           | Gemini 2.0 Pro is the strongest model for coding and world knowledge and features a 2M long context window. Gemini 2.0 Pro is available as an experimental model in Vertex AI and is an upgrade path for 1.5 Pro users who want better quality, or who are particularly invested in long context and code.                                                    |
-
-</details>
-
-<details>
-<summary>HuggingFace</summary>
-
-| LLM                        | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Flan-t5-xxl                | The Flan models are primarily english-only, and may struggle with joining thoughts across multiple documents. You will find answers tend to be selected from a single source, even when a stitched answer may be better. Flan does suffer from strong hallucinations, so it is recommended to only use Flan for internal usecases and ensure the Semantic Scoring model is on and primary with a minimum confidence level set of at least 10-15%.     |
-| Flan-ul2                   | The Flan models are primarily english-only, and may struggle with joining thoughts across multiple documents. You will find answers tend to be selected from a single source, even when a stitched answer may be better. Flan does suffer from strong hallucinations, so it is recommended to only use Flan for internal usecases and ensure the Semantic Scoring model is on and primary with a minimum confidence level set of at least 10-15%.     |
-| Llama-2                    | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the non-chat version (Llama-2-7b-hf, Llama-2-13b-hf, Llama-2-70b-hf)                            |
-| Llama-2-chat               | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                                                                                                              |
-| llama-3-chat               | Llama 3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                        |
-| Mistral-7B-Instruct        | Mistral brings capabilities similar to many popular commercial models. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version.                                                                          |
-| Mixtral-8x22B-Instruct-v0.1 | The Mixtral-8x22B Large Language Model (LLM) is a pretrained generative Sparse Mixture of Experts. It outperforms Llama 2 70B on most benchmarks. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version. |
-| Mixtral-8x7B-Instruct      | The Mixtral-8x7B Large Language Model (LLM) is a pretrained generative Sparse Mixture of Experts. The Mixtral-8x7B outperforms Llama 2 70B on most benchmarks. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version. |
-| MPT-7B-instruct            | The mpt-7b-instruct2 model can generate longer text than the Flan models. Use caution, however, as the model is prone to both extreme hallucination and runaway responses. Be sure to set a minimum confidence level to control this. Not reccomended for public usecases.                                                                                                                                                                            |
-
-</details>
-
-<details>
-<summary>NeuralSeek</summary>
-
-| LLM                   | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| llama-3.1-8b-instruct | Llama 3.1 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                          |
-| Mistral-7B-Instruct   | Mistral brings capabilities similar to many popular commercial models. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version. This is a Globally-hosted model and is not guaranteed to run within a particular geography. Do not use this model if you have data residency requirements. |
-| Translate             | The translate model is an encoder-decoder model focused on language translation. This model does not support custom translation dictionaries or additional LLM instructions. If you require those capabilities do not use this model. This is a Globally-hosted model and is not guaranteed to run within a particular geography. Do not use this model if you have data residency requirements.                                          |
-
-</details>
-
-<details>
-<summary>OpenAI</summary>
-
-| LLM                 | Notes                                                                                                                                                                                                                                                                                       |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| gpt-3.5-turbo-0125  | GPT-3.5 provides a good balance of speed and capability.                                                                                                                                                                                                                                    |
-| GPT-4o              | GPT-4o matches GPT-4 Turbo performance on text in English and code, with significant improvement on text in non-English languages.                                                                                                                                                           |
-| gpt-4o-mini         | GPT-4o mini is an affordable and intelligent small model for fast, lightweight tasks. GPT-4o mini is cheaper and more capable than GPT-3.5 Turbo.                                                                                                                                            |
-| GPT3.5              | GPT-3.5 provides a good balance of speed and capability.                                                                                                                                                                                                                                    |
-| GPT3.5 (16K)        | GPT-3.5 provides a good balance of speed and capability. The 16K context window version of the model allows for more information to be passed to it, generally yeilding better responses.                                                                                                    |
-| GPT4                | GPT-4 can often take longer than 30 seconds for a full response. Use caution when using in conjunction with a Virtual Agent platform that imposes a strict timeout.                                                                                                                          |
-| GPT4 (32K)          | GPT-4 can often take longer than 30 seconds for a full response. Use caution when using in conjunction with a Virtual Agent platform that imposes a strict timeout. The 16K context window version of the model allows for more information to be passed to it, generally yeilding better responses. |
-| GPT4 Turbo (Preview) | GPT-4 Turbo provides a good balance of speed and capability. The 16K context window version of the model allows for more information to be passed to it, generally yeilding better responses.                                                                                               |
-| o1                  | The o1 series of large language models are trained with reinforcement learning to perform complex reasoning. o1 models think before they answer, producing a long internal chain of thought before responding to the user.                                                                    |
-| o1-mini             | The o1 series of large language models are trained with reinforcement learning to perform complex reasoning. o1 models think before they answer, producing a long internal chain of thought before responding to the user.                                                                    |
-| o1-preview          | The o1 series of large language models are trained with reinforcement learning to perform complex reasoning. o1 models think before they answer, producing a long internal chain of thought before responding to the user.                                                                    |
-| o3-mini             | The o3 series of large language models are trained with reinforcement learning to perform complex reasoning. o1 models think before they answer, producing a long internal chain of thought before responding to the user.                                                                    |
-
-</details>
-
-<details>
-<summary>together.ai</summary>
-
-| LLM                              | Notes                                                                                                                                                                                                                                                                                                                                                    |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DeepSeek-R1                      | DeepSeek-R1, a strong Mixture-of-Experts (MoE) language model with 671B total parameters.                                                                                                                                                                                                                                                                 |
-| DeepSeek-V3                      | DeepSeek-V3, a strong Mixture-of-Experts (MoE) language model with 671B total parameters.                                                                                                                                                                                                                                                                 |
-| Llama-2 Chat 13B                 | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                    |
-| Llama-2 Chat 70B                 | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                    |
-| Llama-2 Chat 7B                  | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                    |
-| llama-2-13b                      | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the non-chat version (Llama-2-7b-hf, Llama-2-13b-hf, Llama-2-70b-hf) |
-| llama-2-70b                      | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the non-chat version (Llama-2-7b-hf, Llama-2-13b-hf, Llama-2-70b-hf) |
-| LLaMA-2-7B-32K-Instruct          | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the non-chat version (Llama-2-7b-hf, Llama-2-13b-hf, Llama-2-70b-hf) |
-| Llama-3.1-405B-Instruct-Turbo    | llama-3-405b instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                         |
-| Llama-3.1-8B-Instruct-Turbo-128K | Llama-3.1-8B-Instruct-Turbo-128K instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                     |
-| Llama-3.3-70B-Instruct-Turbo     | Llama-3.3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                            |
-| Mistral-7B-Instruct              | Mistral brings capabilities similar to many popular commercial models. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version. |
-| Mixtral-8x22B-Instruct-v0.1      | The Mixtral-8x22B Large Language Model (LLM) is a pretrained generative Sparse Mixture of Experts. It outperforms Llama 2 70B on most benchmarks. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version. |
-| Mixtral-8x7B-Instruct            | The Mixtral-8x7B Large Language Model (LLM) is a pretrained generative Sparse Mixture of Experts. The Mixtral-8x7B outperforms Llama 2 70B on most benchmarks. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version. |
-
-</details>
-
-<details>
-<summary>watsonx.ai</summary>
-
-| LLM                                | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| elyza-japanese-llama-2-7b-instruct | ELYZA-japanese-Llama-2-7b は、 Llama2をベースとして日本語能力を拡張するために追加事前学習を行ったモデルです。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Flan-t5-xxl                        | The Flan models are primarily english-only, and may struggle with joining thoughts across multiple documents. You will find answers tend to be selected from a single source, even when a stitched answer may be better. Flan does suffer from strong hallucinations, so it is recommended to only use Flan for internal usecases and ensure the Semantic Scoring model is on and primary with a minimum confidence level set of at least 10-15%.                                                                                                                                                                              |
-| Flan-ul2                           | The Flan models are primarily english-only, and may struggle with joining thoughts across multiple documents. You will find answers tend to be selected from a single source, even when a stitched answer may be better. Flan does suffer from strong hallucinations, so it is recommended to only use Flan for internal usecases and ensure the Semantic Scoring model is on and primary with a minimum confidence level set of at least 10-15%.                                                                                                                                                                              |
-| granite-13b-chat-v2                | The Granite series of models are a step ahead of their counterpart t5 and UL2 models. They excel at retrieving correct information from good documentation, and can join phrases from a limited number of documents. They do not have much ability to reason, however. This can be good or bad, depending on your usecase. Use granite to answer a well defined set of questions from good documentation. Granite likes to generate short results, and will create runaway responses if pressed to generate longer than it wants to. Granite will hallucinate if asked questions without a good reference in your knowledgeBase, or that stray too closely to its training data, and may refuse to follow your documentation. Use semantic scoring to block this hallucination. |
-| granite-13b-instruct-v2            | The Granite series of models are a step ahead of their counterpart t5 and UL2 models. They excel at retrieving correct information from good documentation, and can join phrases from a limited number of documents. They do not have much ability to reason, however. This can be good or bad, depending on your usecase. Use granite to answer a well defined set of questions from good documentation. Granite likes to generate short results, and will create runaway responses if pressed to generate longer than it wants to. Granite will hallucinate if asked questions without a good reference in your knowledgeBase, or that stray too closely to its training data, and may refuse to follow your documentation. Use semantic scoring to block this hallucination. |
-| granite-20b-multilingual           | The Granite series of models are a step ahead of their counterpart t5 and UL2 models. They excel at retrieving correct information from good documentation, and can join phrases from a limited number of documents. They do not have much ability to reason, however. This can be good or bad, depending on your usecase. Use granite to answer a well defined set of questions from good documentation. Granite likes to generate short results, and will create runaway responses if pressed to generate longer than it wants to. Granite will hallucinate if asked questions without a good reference in your knowledgeBase, or that stray too closely to its training data, and may refuse to follow your documentation. Use semantic scoring to block this hallucination. |
-| granite-3-2b-instruct              | Granite-3.0-2B-Instruct is a lightweight and open-source 8B parameter model fine tuned from Granite-3.0-8B-Base on a combination of open-source and proprietary instruction data with a permissively licensed. This language model is designed to excel in instruction following tasks such as summarization, problem-solving, text translation, reasoning, code tasks, funcion-calling, and more.                                                                                                                                                                                                                             |
-| granite-3-8b-instruct              | Granite-3.0-8B-Instruct is a lightweight and open-source 8B parameter model fine tuned from Granite-3.0-8B-Base on a combination of open-source and proprietary instruction data with a permissively licensed. This language model is designed to excel in instruction following tasks such as summarization, problem-solving, text translation, reasoning, code tasks, funcion-calling, and more.                                                                                                                                                                                                                             |
-| granite-34b-code-instruct          | The Granite series of models are a step ahead of their counterpart t5 and UL2 models. They excel at retrieving correct information from good documentation, and can join phrases from a limited number of documents. They do not have much ability to reason, however. This can be good or bad, depending on your usecase. Use granite to answer a well defined set of questions from good documentation. Granite likes to generate short results, and will create runaway responses if pressed to generate longer than it wants to. Granite will hallucinate if asked questions without a good reference in your knowledgeBase, or that stray too closely to its training data, and may refuse to follow your documentation. Use semantic scoring to block this hallucination. |
-| granite-7b-lab (Deprecated)        | The Granite 7 Billion LAB (granite-7b-lab) model is the chat-focused variant initialized from the pre-trained Granite 7 Billion (granite-7b) model, which is Meta Llama 2 7B architecture trained to 2T tokens.                                                                                                                                                                                                                                                                                                                                                                                                              |
-| granite-8b-japanese                | The Granite 8 Billion Japanese model is an instruct variant initialized from the pre-trained Granite Base 8 Billion Japanese model. Pre-training went through 1.0T tokens of English, 0.5T tokens of Japanese, and 0.1T tokens of code. This model is designed to work with Japanese text. IBM Generative AI Large Language Foundation Models are Enterprise-level Multilingual models trained with large volumes of data that has been subjected to intensive pre-processing and careful analysis.                                                                                                                             |
-| jais-13b-chat                      | Jais-13b-chat is Jais-13b fine-tuned over a curated set of 4 million Arabic and 6 million English prompt-response pairs.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Llama-2-chat 13B (Deprecated)      | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                                                                                                                                                                                                                                                                                       |
-| Llama-2-chat 70B (Deprecated)      | Llama-2 brings capabilities similar to many popular commercial models. Llama-2 is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning.                                                                                                                                                                                                                                                                                       |
-| llama-3-1-70b-instruct             | Llama 3.1 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| llama-3-1-8b-instruct              | Llama 3.1 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| llama-3-2-11b-vision-instruct      | Llama 3.2 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| llama-3-2-1b-instruct              | Llama 3.2 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| llama-3-2-3b-instruct              | Llama 3.2 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| llama-3-2-90b-vision-instruct      | Llama 3.2 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| llama-3-3-70b-instruct             | Llama 3.3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| llama-3-405b-instruct              | llama-3-405b instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| llama-3-70b-instruct               | Llama 3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| llama-3-8b-instruct                | Llama 3 instruction-tuned models are fine-tuned and optimized for dialogue/chat use cases and outperform many of the available open-source chat models on common benchmarks.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| llama3-llava-next-8b-hf (depricated) | Llama 3-llava Supports image captioning, image-to-text transcription (OCR) including handwriting, data extraction and processing, context Q&A, object identification.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| Mistral-large                      | The most advanced Mistral AI Large Language model capable of handling any language task including complex multilingual reasoning, text understanding, transformation, and code generation.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Mixtral-8x7B-Instruct              | The Mixtral-8x7B Large Language Model (LLM) is a pretrained generative Sparse Mixture of Experts. The Mixtral-8x7B outperforms Llama 2 70B on most benchmarks. Mistral is good at joining thoughts across multiple documents. It is also highly sensitive. Slight variations in prompt and weighting can have a profound impact on usability of the system. Use extreme caution if applying prompt engineering or weight tuning. This model is the instruct version.                                                                                                                                                            |
-
-</details>
-
-<!-- UNCONFIRMED: LLM choice requires the BYOLLM (bring your own Large Language Model) plan; other plans default to NeuralSeek's curated LLM and the option is not available — previously published old-docs content, not re-verified -->
-
-:::note[Plan]
-Choosing your own LLM is part of NeuralSeek's BYOLLM (bring your own Large Language Model) plan.
-On other plans the instance uses NeuralSeek's curated model and the option to add one is not
-offered.
-:::
-
-<!-- UNCONFIRMED: the ">30 seconds for a full response" latency warning for larger models — previously published old-docs content, not re-verified -->
-
-:::caution[Latency]
-Models differ widely in speed. Some take 30 seconds or more to produce a full response, which
-breaks a virtual-agent platform that imposes a strict timeout. Check the per-model notes above
-before putting a large model in front of a chat channel.
-:::
-
-### What you do after choosing a model
-
-Adding the model is one screen: open a configuration, expand **LLM Details**, and use
-**Add an LLM**. Each model then gets a card carrying its **Connection Info**, the **LLM Functions**
-it is allowed to perform, a **Weight:** used for load-balancing, and a **Test** button. All of
-that is documented on [LLM Details](/configuration/neural-config/llm-details/) — this page does
-not repeat it.
-
-The one rule to carry over from this page to that one: a function with no model assigned is not
-degraded, it is off. **If you do not provide an LLM for a function, there is no fallback and that
-function of NeuralSeek will be disabled.** So when you compare candidate models, compare them on
-the set of functions each is allowed to perform, not only on answer quality.
+This page has no controls of its own. Once a model is a card, everything about it is configured
+on the card, and the card is documented on
+[LLM Details](/configuration/neural-config/llm-details/): **Connection Info** and its
+**LLM Languages**, the **LLM Functions** grid with **Enable All** / **Disable All**, the
+**Weight:** row that sets the card's share of load-balanced traffic, and the **Test** and
+**Delete** buttons. Splitting one function across two cards is on
+[Multi-LLM](/configuration/multi-llm/); the image functions are on
+[Multimodal LLM configuration](/configuration/multimodal/); the `Managed` cards are on
+[Managed LLM Details](/configuration/neural-config/managed-llm/).
 
 ## FAQ
 
-**Is my model supported?**
+### Is my model supported?
 
-The definitive answer is the **Add an LLM** dialog on your own instance: open **LLM Details** in a
-configuration, click **Add an LLM**, and see what the platform offers. The tables on this page are
-a snapshot of a previously published list and lag behind the product.
+Open **Edit Configuration** → **LLM Details** → **Add an LLM** on your own instance. The dialog
+lists the platforms and models available to you, and that list is the only current one. This
+page cannot list them for you: the dialog was not captured, and the previously published list
+is out of date.
 
-**Can I use a provider that is not listed here?**
+### What is a "Managed" model?
 
-Any generic OpenAI-compatible endpoint was supported in addition to the named providers, and a
-model you run yourself is covered by
-[Self-hosting an LLM](/configuration/administration/self-hosting-an-llm/). Both of these are
-old-page facts that this page could not re-verify — confirm against **Add an LLM** before
-planning around them.
+A card NeuralSeek hosts for you. On the captured instance its **Connection Info** holds only
+**LLM Languages** — there is no key or endpoint to enter. The instance shows two of them,
+`Managed GPT` and `Managed gpt-image`, alongside `Translate` and `gpt-oss-20b`. What the managed cards offer and how they are versioned is on
+[Managed LLM Details](/configuration/neural-config/managed-llm/).
 
-**What is a "Managed" model?**
+### Why is a function greyed out on my model?
 
-A model NeuralSeek hosts for you, so there is no connection or key of your own to supply. The
-instance captured for this page showed four of them — `Managed GPT`, `Managed gpt-image`,
-`Translate` and `gpt-oss-20b` — sitting in **LLM Details** as ordinary cards next to
-bring-your-own models. See [Managed LLM Details](/configuration/neural-config/managed-llm/).
+Because that model cannot do that job. In the product's words, "Features that an LLM are not
+capable of will be unselectable." The `Managed gpt-image` card shows it: only **Image Generation**
+and **Image Edits** can be ticked. To enable the function, add a model that has it.
 
-**Do I need one model that does everything?**
+### Do I need one model that does everything?
 
-No. Each card is ticked for the functions that model may perform, and NeuralSeek load-balances
-across every model ticked for the same function. A small fast model can serve one function while a
-larger one serves another — see [Multi-LLM](/configuration/multi-llm/). The constraint is the
-other way round: a function with **no** model ticked is disabled entirely.
-
-**Why is a function checkbox greyed out on a model I added?**
-
-Because that model cannot do it. The **LLM Details** help text puts it as "Features that an LLM
-are not capable of will be unselectable" — image, audio and video functions in particular are
-only selectable on models that support those modalities. See
-[Multimodal LLM configuration](/configuration/multimodal/).
+No. Several cards can each claim functions; where two cards tick the same function NeuralSeek
+"will load-balance across them", and a function no card ticks is disabled — "there is no
+fallback". Pick models per function, then check that every function you rely on is ticked on at
+least one card. The details are on [Multi-LLM](/configuration/multi-llm/).

@@ -1,245 +1,186 @@
 ---
 title: "Language handling"
-description: "Discover NeuralSeek's powerful language translation API, supporting numerous languages for seamless multilingual communication. Effortlessly translate text with JSON payloads and explore extensive language options."
+description: "Where NeuralSeek's three language settings live — KnowledgeBase Language, Default Output Language and Cross Language — how they decide which language a question is retrieved and answered in, and which LLM card handles translation and language identification."
 ---
 
-**What is it?**
+## What is it
 
-- NeuralSeek provides language translation that will let users call it to translate languages into different languages.
+Language handling is not one setting in NeuralSeek but three, spread across three sections of the **Edit Configuration** dialog in Neural Config:
 
-**Why is it important?**
+- **KnowledgeBase Language** (in [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/)) says what language your documents are written in.
+- **Default Output Language** and **Cross Language** (in [Platform Preferences](/configuration/neural-config/platform-preferences/)) say what language answers come back in, and whether a question asked in another language is translated into the KnowledgeBase's language before retrieval.
+- **LLM Languages**, **Translate** and **Fallback Language Id** (on each card in [LLM Details](/configuration/neural-config/llm-details/)) say which model is allowed to work in which languages, and which model performs translation and language identification.
 
-- Any application that would need to translate a given text to another language can now use NeuralSeek to do it, rather than relying on other external translation services.
+This page explains how those settings fit together. Each control is owned and documented in full by its own section page, linked above.
 
-**How does it work?**
+## Why it matters
 
-- Translation is provided as REST API, and can be tested on [NeuralSeek API documentation](https://api.neuralseek.com/). 
-- Message payload is in JSON format, and contains an array of `text` in certain language(s). Another attribute is `target` which specifies the target language the translation needs to be performed in. An example message would look something like this:
+The language of the documents, the language of the question and the language of the answer are three different things, and NeuralSeek treats them separately. If the three settings are left at their defaults — on the instance captured for this page, `English` for the KnowledgeBase, `English` for output and **Cross Language** off — a question asked in Spanish is answered in English. That is the behaviour the probe on this page shows, and it surprises people who expected the answer to follow the question.
 
-```json
-{
-    "text": [
-    "NeuralSeek introduced several new features in July 2023, including streaming responses for web use cases, enhanced cross-lingual support, curate to CSV/upload curated QA from CSV, improved semantic match analysis, updated IBM WatsonX model compatibility, and AWS Lex round-trip monitoring."
-    ],
-    "target": "ko"
-},
-```
+The setting that changes it, **Cross Language**, has a cost the screen states plainly: "Semantic Scoring is not possible on Cross-language response generation, so it will be automatically disabled." Any guardrail or dashboard that relies on the semantic score goes quiet for those answers. If everyone asking questions uses the KnowledgeBase's language, leave **Cross Language** off and keep the score.
 
-:::note
-For more details on what language codes are supported, please refer to the **Multi Language Support** section below.
-:::
+## When to use it
 
-NeuralSeek would then translate the given text into the target language `ko` which is Korean:
+- Your documents are in one language and your users ask in another — set **KnowledgeBase Language** to the documents' language and decide whether **Cross Language** is worth losing semantic scoring for.
+- Answers must always come back in one fixed language regardless of the question — set **Default Output Language** to it.
+- One integration needs a different answer language from the rest — the **Default Language** help text says the default "can be overridden on the Seek tab and the api by setting the language option", so leave the default alone and set it per request.
+- A model should only be used for some languages — restrict the card's **LLM Languages** list on the LLM Details screen.
+- You need a model that translates or identifies languages — make sure one card claims the **Translate** or **Fallback Language Id** function; without one, that function is off.
 
-```json
-{
-    "word_count": 39,
-    "character_count": 289,
-    "translations": [
-        "NeuralSeek은 2023년 7월에 웹 사용 사례를 위한 스트리밍 응답, 향상된 교차 언어 지원, CSV에 대한 선별/선별 QA 업로드, 개선된 의미 일치 분석, 업데이트된 IBM WatsonX 모델 호환성 및 AWS Lex 왕복 모니터링과 같은 여러 가지 새로운 기능을 도입했습니다."
-    ],
-    "detected_language": "en",
-    "detected_language_confidence": 0.9999967787054185
-}
-```
+## How it works
 
-You can also provide texts in different languages that can all be translated into the target language:
+All three settings sit inside Neural Config. Open **Configure**, click the **Default Config / Answer Generation** node of the routing tree, and the **Edit Configuration** dialog opens with one accordion per section. The three that matter here are **KnowledgeBase Connection**, **Platform Preferences** and **LLM Details**. Nothing takes effect until you **Save** the dialog.
 
-```json
-{
-    "text": [
-    "soy un chico.",
-    "나는 소년입니다.",
-    "私は男の子です."
-    ],
-    "target": "en"
-}
-```
+### The language of the KnowledgeBase
 
-Which will be translated into `en` which is English:
+**KnowledgeBase Language** is the second control in the **KnowledgeBase Connection** section, next to **KnowledgeBase Type** and above **Notes**. It tells NeuralSeek what language the documents are written in. On the instance captured for this page it is `English`.
 
-```json
-        {
-        "word_count": 6,
-        "character_count": 30,
-        "translations": [
-        "I am a boy.",
-        "I am a boy.",
-        "I am a boy."
-        ],
-        "detected_language": "es",
-        "detected_language_confidence": 0.95
-        }
-```
+![KnowledgeBase Connection: KnowledgeBase Type set to NeuralSeek KB, KnowledgeBase Language set to English, and the Notes box](/img/neural-config/knowledgebase-connection--knowledgebase-type.png)
 
-## Multi Language Support
+This is the "KB language" that the **Cross Language** help text refers to — the anchor every translation decision is made against. It is a single value: the dropdown lists 185 languages and has no "Match Input" entry, because a KnowledgeBase is assumed to be in one language.
 
-**What is it?**
+![The KnowledgeBase Language dropdown open, listing Abkhazian, Afar, Afrikaans, Akan, Albanian, Amharic and so on](/img/neural-config/knowledgebase-connection--options-knowledgebase-language.png)
 
-- NeuralSeek has several different language options available for understanding questions and delivering answers. These include English, Spanish, Portuguese, French, German, Italian, Arabic, Korean, Chinese, Czech, Dutch, Indonesian, Japanese, and more. These can be adjusted on the “Configure” section of the NeuralSeek console, or on the “Seek” endpoint. Please see the below table for the full list of supported languages. 
-
-**Why is it important?**
-
-- Instead of having to train your virtual agents to understand various different languages, your question can be automatically converted into the response in the language of your choice.
-
-**How does it work?**
-
-- NeuralSeek will try to determine if the user is asking a question in a certain language (e.g. Spanish), and will try to convert the responses into the language that the user asked without any additional set ups.
-
-### Supported Languages
+The full list, as captured from the dropdown on 2026-09-19; two entries, `Brazillian Portuguese` and `Interlingua)`, are spelled here exactly as the screen spells them:
 
 <details>
-<summary>Languages and Language Codes</summary>
+<summary>The 185 languages in the KnowledgeBase Language list</summary>
 
-|Language|Lang code|
-|---|---|
-|English|en|
-|Match Input|xx|
-|Arabic|ar|
-|Basque|eu|
-|Bengali|bn|
-|Bosnian|bs|
-|Bulgarian|bg|
-|Catalan|ca|
-|Chinese (Simplified)|zh-cn|
-|Chinese (Traditional)|zh-tw|
-|Croatian|hr|
-|Czech|cs|
-|Danish|da|
-|Dutch|nl|
-|Estonian|et|
-|Finnish|fi|
-|French|fr|
-|German|de|
-|Greek|el|
-|Gujarati|gu|
-|Hebrew|he|
-|Hindi|hi|
-|Hungarian|hu|
-|Irish|ga|
-|Indonesian|id|
-|Italian|it|
-|Japanese|ja|
-|Kannada|kn|
-|Korean|ko|
-|Latvian|lv|
-|Lithuanian|lt|
-|Malay|ms|
-|Malayalam|ml|
-|Maltese|mt|
-|Marathi|mr|
-|Montenegrin|cnr|
-|Nepali|ne|
-|Norwegian Bokmål|nb|
-|Polish|pl|
-|Portuguese|pt-br|
-|Punjabi|pa|
-|Romanian|ro|
-|Russian|ru|
-|Serbian|sr|
-|Sinhala|si|
-|Slovak|sk|
-|Slovenian|sl|
-|Spanish|es|
-|Swedish|sv|
-|Tamil|ta|
-|Telugu|te|
-|Thai|th|
-|Turkish|tr|
-|Ukrainian|uk|
-|Urdu|ur|
-|Vietnamese|vi|
-|Welsh|cy|
+Abkhazian, Afar, Afrikaans, Akan, Albanian, Amharic, Arabic, Aragonese, Armenian, Assamese, Avaric, Avestan, Aymara, Azerbaijani, Bambara, Bashkir, Basque, Belarusian, Bengali, Bihari languages, Bislama, Bosnian, Brazillian Portuguese, Breton, Bulgarian, Burmese, Catalan, Central Khmer, Chamorro, Chechen, Chichewa, Chinese, Chinese (Simplified), Chinese (Traditional), Church Slavic, Chuvash, Cornish, Corsican, Cree, Croatian, Czech, Danish, Divehi, Dutch, Dzongkha, English, Esperanto, Estonian, Ewe, Faroese, Fijian, Finnish, French, Fulah, Gaelic, Galician, Ganda, Georgian, German, Greek, Guarani, Gujarati, Haitian, Hausa, Hebrew, Herero, Hindi, Hiri Motu, Hungarian, Icelandic, Ido, Igbo, Indonesian, Interlingua), Interlingue, Inuktitut, Inupiaq, Irish, Italian, Japanese, Javanese, Kalaallisut, Kannada, Kanuri, Kashmiri, Kazakh, Kikuyu, Kinyarwanda, Kirghiz, Komi, Kongo, Korean, Kuanyama, Kurdish, Lao, Latin, Latvian, Limburgan, Lingala, Lithuanian, Luba-Katanga, Luxembourgish, Macedonian, Malagasy, Malay, Malayalam, Maltese, Manx, Maori, Marathi, Marshallese, Mongolian, Nauru, Navajo, Ndebele, Ndonga, Nepali, Northern Sami, Norwegian, Norwegian Bokmål, Occitan, Ojibwa, Oriya, Oromo, Ossetian, Pali, Panjabi, Persian, Polish, Portuguese, Pushto, Quechua, Romanian, Romansh, Rundi, Russian, Samoan, Sango, Sanskrit, Sardinian, Serbian, Shona, Sichuan Yi, Sindhi, Sinhala, Slovak, Slovenian, Somali, Sotho, Spanish, Sundanese, Swahili, Swati, Swedish, Tagalog, Tahitian, Tajik, Tamil, Tatar, Telugu, Thai, Tibetan, Tigrinya, Tonga, Tsonga, Tswana, Turkish, Turkmen, Twi, Uighur, Ukrainian, Urdu, Uzbek, Venda, Vietnamese, Volapük, Walloon, Welsh, Western Frisian, Wolof, Xhosa, Yiddish, Yoruba, Zhuang, Zulu
 
 </details>
 
-Match Input Feature: NeuralSeek can understand and support conversations that are initiated in languages other than the ones listed through the Match Input Feature. On the “Seek” endpoint, click the dropdown for language navigation and click "Match Input".
+The same 185 names appear in the **Default Output Language** and **LLM Languages** dropdowns. The screen shows names only; the language codes behind them are visible in the **Change Logs** panel of Neural Config, where the list is stored as name/code pairs — `English` is `en`, `Spanish` is `es`, `Korean` is `ko`, `Brazillian Portuguese` is `pt-br`, `Chinese (Simplified)` is `zh-cn`, `Chinese (Traditional)` is `zh-tw`, and `Match Input` is `xx`. That stored list has 187 language entries rather than 185 because two names carry two codes each: `Ndebele` (`nd` and `nr`) and `Norwegian` (`nn` and `no`).
 
+The rest of the section — the KnowledgeBase type, its connection fields and the notes box — is documented on [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/).
 
-<!-- MERGE: everything below came from features/language_indentification/index.md. Fold it into the sections above, then delete this comment. -->
+### Answering in a language other than the KnowledgeBase's
 
+Two settings in the **Platform Preferences** section decide what happens when the question, the documents and the answer are not all in one language.
 
-**What is it?**
+**Default Language** is the heading; the dropdown under it is labelled **Default Output Language** and is `English` on the instance captured here. The help text under the heading reads: "Set the default platform language. The language can be overridden on the Seek tab and the api by setting the language option." So this is a default, not a constraint — a request that carries its own language option wins.
 
-- NeuralSeek provides a service that would analyze and identify the language of a given text.
+![Platform Preferences: the Default Language group with its help text and the Default Output Language dropdown set to English](/img/neural-config/platform-preferences--default-language.png)
 
-**Why is it important?**
+Its dropdown has 186 entries: **Match Input** first, then the same 185 languages as the KnowledgeBase list. `Match Input` is the only entry that is not a language name and the screen gives it no description.
 
-- Any application that would need to understand which language a given text is can now use NeuralSeek to do it, rather than relying on other external services.
+![The Default Output Language dropdown open, with Match Input above Abkhazian, Afar, Afrikaans and Akan](/img/neural-config/platform-preferences--options-default-output-language.png)
 
-**How does it work?**
+<!-- UNCONFIRMED: Match Input makes NeuralSeek answer in the language the question was asked in — old page ("Match Input Feature: NeuralSeek can understand and support conversations that are initiated in languages other than the ones listed"); no probe or screen on this capture describes the option -->
 
-- Language identification is provided as REST API, and can be tested on [NeuralSeek API documentation](https://api.neuralseek.com/). Message payload is in `text/plain` format, and contains `text` in certain languages. An example message would look something like this:
+The name suggests the answer language follows the question's language, and that is what the previous documentation said it does; nothing on the captured screens describes it, so treat that reading as unverified until you have tested it on your instance.
 
+**Cross Language** is a dropdown a little further up the same section; it shows `False` on the instance captured here (its option list was not opened for this capture, so the other value is presumed to be `True`, as on the neighbouring switches). Its help text is the whole specification: "Translate into the KB language when the KB language is different than the Seek Language. Semantic Scoring is not possible on Cross-language response generation, so it will be automatically disabled."
+
+![Platform Preferences: the Cross Language group with its help text and the dropdown showing False](/img/neural-config/platform-preferences--cross-language.png)
+
+Read the two sentences separately:
+
+- **What it does.** With **Cross Language** on, a question whose language differs from the **KnowledgeBase Language** is translated into the KnowledgeBase's language before retrieval, so the documents can be searched in their own language.
+- **What it costs.** Semantic scoring is switched off for those answers. The Semantic Scoring tab says the same thing from its side ("Semantic scoring is not available in cross-laguage usecases", spelled that way on screen). If you rely on the score — for guardrails or for analytics — see [Semantic model tuning](/configuration/semantic-model/) for what is lost before turning this on.
+
+<!-- UNCONFIRMED: with Cross Language on, the answer is generated and delivered back in the user's own language (steps 4–5 of the old page's Spanish → English → Spanish flow) — old page "Cross-language support for KBs"; the captured help text only covers translating the question into the KB language -->
+
+The help text covers the question's trip into the KnowledgeBase's language. Whether the answer then comes back in the user's language, or in the **Default Output Language**, is not stated on screen; the previous documentation described the answer returning in the user's language.
+
+**What the default configuration does with a foreign-language question.** The instance captured for this page has **KnowledgeBase Language** `English`, **Default Output Language** `English` and **Cross Language** `False`. Asked, through the MCP, `¿Qué es NeuralSeek y para qué sirve?`, it answered in English — the question's language was not followed:
+
+```text
+NeuralSeek is a knowledge‑base‑driven question‑answering platform. It lets users query a connected KnowledgeBase, generate answers, and see where those answers come from. The system highlights source provenance, uses semantic match scores to gauge alignment with the source material, and offers extensive configuration options for tailoring behavior.
 ```
+
+That answer came back with a KB score of 70 and a semantic score of 18, and the MCP response carried no field naming the language it was written in. With these settings the output language is the configured default, whatever language the question arrives in.
+
+The rest of **Platform Preferences** — generation timeout, context turns, relax filters, stopwords, HTML cleansing, the save and post-Seek agents — is not about language and is documented on [Platform Preferences](/configuration/neural-config/platform-preferences/).
+
+### Which LLM handles which languages
+
+Every LLM card on the **LLM Details** screen carries three language-related controls under its **Connection Info** accordion. The section's own help text sets the rule for all of them: "If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled."
+
+**LLM Languages** is a multi-select labelled `Enabled Languages`, with a number badge showing how many languages the card is enabled for. An LLM is only used for the languages its list enables.
+
+![An LLM card's Connection Info accordion: the LLM Languages multi-select with a 187 badge and the Enabled Languages placeholder](/img/neural-config/llm-details--llm-languages.png)
+
+On the instance captured here, three of the four cards — **Managed GPT**, **Managed gpt-image** and **gpt-oss-20b** — show `187`, which is the whole stored language list (the 185 names plus the two double-coded ones, as explained above). The fourth card, **Translate**, shows `96`: a card can be restricted to a subset. Which 96 they are is not visible in the capture, because the multi-select shows only its count once it is closed.
+
+![The LLM Languages multi-select open, with Abkhazian, Afar, Afrikaans, Akan and Albanian all checked](/img/neural-config/llm-details--options-llm-languages.png)
+
+**Translate** is one of the function checkboxes on each card. A card with it checked performs translation — which is what **Cross Language** needs to translate a question into the KnowledgeBase's language. On the captured instance it is checked on the **Translate** card (where it is the only checked function) and on **gpt-oss-20b**, unchecked on **Managed GPT**, and greyed out on **Managed gpt-image**, which cannot perform the function.
+
+![The Translate function checkbox on an LLM card](/img/neural-config/llm-details--translate.png)
+
+**Fallback Language Id** is the other language function. Its label is all the screen says about it: it reads as the function that identifies the language of a text, with "Fallback" suggesting it is called when a cheaper identifier is not confident — both are inferences from the label, not stated behaviour. On the captured instance it is checked on **gpt-oss-20b** only, unchecked on **Managed GPT**, and greyed out on both **Managed gpt-image** and **Translate**.
+
+![The Fallback Language Id function checkbox on an LLM card](/img/neural-config/llm-details--fallback-language-id.png)
+
+The practical consequence of the "no fallback" rule: if no card has **Translate** checked, cross-language translation is disabled on that instance; if none has **Fallback Language Id** checked, language identification is. The captured playground ships a dedicated **Translate** card; whether your instance does is a question for your LLM Details screen. The cards themselves — connection fields, the other functions, load balancing — are documented on [LLM Details](/configuration/neural-config/llm-details/).
+
+### Translation and language identification as APIs (unverified)
+
+The previous version of this page documented a translation REST API and a language-identification REST API, both testable at [api.neuralseek.com](https://api.neuralseek.com/). Neither appears on any captured screen, and the pipeline that wrote this page has no tool that can call them, so the shapes below are carried over from that documentation without verification. The only on-screen evidence that these functions exist is the **Translate** and **Fallback Language Id** checkboxes described above; per the LLM Details rule, both are off on an instance where no card claims them. Check the request and response fields against the [REST and Console APIs](/integrations/rest-and-console-api/) reference before building on them.
+
+<!-- UNCONFIRMED: the translation REST API takes a JSON body with a `text` array and a `target` language code, and returns `word_count`, `character_count`, `translations[]`, `detected_language` and `detected_language_confidence` — old page "Language handling / How does it work?"; not on any captured screen, no probe path -->
+
+**Translation.** The request carried an array of `text` strings, in any language or mix of languages, plus a `target` language code; the response returned one translation per input string together with the detected source language:
+
+```json
+{
+  "text": ["soy un chico.", "나는 소년입니다.", "私は男の子です."],
+  "target": "en"
+}
+```
+
+```json
+{
+  "word_count": 6,
+  "character_count": 30,
+  "translations": ["I am a boy.", "I am a boy.", "I am a boy."],
+  "detected_language": "es",
+  "detected_language_confidence": 0.95
+}
+```
+
+<!-- UNCONFIRMED: the language-identification REST API takes a `text/plain` body and returns an array of `{ language, confidence }` — old page "features/language_indentification"; not on any captured screen, no probe path -->
+
+**Language identification.** The request was a `text/plain` body containing the text to identify; the response was an array of language code and confidence pairs:
+
+```text
 이 언어는 어떤 언어입니까?
 ```
 
-- NeuralSeek would then identify what language this is in, and returns the language code and the confidence score:
-
 ```json
 [
-    {
-        "language": "ko",
-        "confidence": 0.95
-    }
+  {
+    "language": "ko",
+    "confidence": 0.95
+  }
 ]
 ```
 
-## Specifying a Language
-If you would like to specify a certain target language that you want NeuralSeek to generate answers into, you can do so by specifying a language code (e.g. es) in the request when you are invoking `Seek`.
+The codes in these examples (`en`, `es`, `ko`) are the same codes the configuration's stored language list pairs with the names in the dropdowns.
 
-![lang selection](/img/configuration/language/image-001.png)
+## FAQ
 
-The same can be achieved when you are invoking `Seek` using REST API. You can specify the language under the `options > language`.
+### Where do I set the language my documents are written in?
 
+In **KnowledgeBase Language**, the second control of the **KnowledgeBase Connection** section of the **Edit Configuration** dialog (Neural Config, **Default Config / Answer Generation** node). It is `English` on the instance captured for this page, and the dropdown offers 185 languages. It is the one language setting with no "Match Input" option, because it describes the documents, not the users.
 
-## Cross-language support for KBs
+### How do I get answers in a language different from my documents?
 
-NeuralSeek offers robust multi-language support, allowing users to interact with a knowledge base (KB) in a different language than the one the KB is written in. This is particularly useful in scenarios where the knowledge base is in one language (e.g., English), but users need to query it in another language (e.g., Spanish).
+Two settings in **Platform Preferences**. **Default Output Language** sets the language answers are written in, and its help text says the Seek tab and the API can override it per request "by setting the language option". **Cross Language** makes NeuralSeek translate a question into the KnowledgeBase's language first when the two differ, so retrieval works against the documents in their own language. With both left at their defaults (`English` and `False`), a Spanish question on the captured instance came back in English.
 
+### Why did semantic scoring disappear after I turned Cross Language on?
 
-**How It Works**
+Because the setting turns it off. The **Cross Language** help text says: "Semantic Scoring is not possible on Cross-language response generation, so it will be automatically disabled." The Semantic Scoring tab repeats it from its side. There is no way to have both; if the score matters more than serving questions in other languages, leave **Cross Language** at `False`. See [Semantic model tuning](/configuration/semantic-model/).
 
-When a user queries the knowledge base in a different language, NeuralSeek handles the translation process seamlessly:
+### What does "Match Input" do?
 
-![query example](/img/configuration/language/spanish-test.png)
+It is the first entry in the **Default Output Language** dropdown and the only one that is not a language name — 186 entries against the 185 of the KnowledgeBase list. The screen does not describe it. The previous documentation said it makes the answer follow the language the question was asked in, which is what the name suggests, but nothing captured for this page confirms it; test it on your instance before relying on it.
 
+### Which languages does NeuralSeek support?
 
-1. **User Query in Native Language**: The user asks a question in their native language (e.g., Spanish).
-2. **Translation to KB Language**: NeuralSeek translates the user's question into the language of the knowledge base (e.g., English).
-3. **Querying the KB**: The translated question is used to search the knowledge base.
-4. **Retrieving the Answer**: NeuralSeek retrieves the answer from the LLM in their native language.
-5. **Delivering the Response**: The user receives the response in their native language.
+The 185 names listed in the collapsible section above, captured from the **KnowledgeBase Language** dropdown on 2026-09-19; **Default Output Language** and each card's **LLM Languages** offer the same names. Whether a given language actually works for answers also depends on the LLM cards: a card serves only the languages its **LLM Languages** list enables, which can be all of them (the `187` badge) or a subset (the `96` on the captured instance's **Translate** card).
 
-<details>
-<summary>Example Scenario</summary>
+### Is there a translation API?
 
-
-Question in Spanish, KB in English
-
-1. **User Query**: "¿Cuál es la capital de Francia?"
-2. **Translate to English**: "What is the capital of France?"
-3. **Query the English KB**: The system searches for "What is the capital of France?" in the English knowledge base.
-4. **Retrieve Answer from the LLM in Spanish**: "La capital de Francia es París."
-5. **Deliver Response**: "La capital de Francia es París."
-
-To configure NeuralSeek for multi-language support, follow these steps:
-
-**Step 1**: Configure the Knowledge Base Language
-
-![kb](/img/configuration/language/kb-language.png)
-
-- **Navigate to the Configure Tab**: Access the configuration settings of NeuralSeek.
-- **Select the Language of Your Knowledge Base**: Choose the language your knowledge base is written in (English, in this case).
-- **Save the Configuration**: Ensure that your settings are saved properly to apply the changes.
-
-**Step 2**: Testing Multi-Language Queries
-
-![seek](/img/configuration/language/french-example.png)
-
-- **Go to the Seek Tab**: Access the query interface of NeuralSeek.
-- **Enter a Question in Spanish**: Test the configuration by entering a question in Spanish, such as "¿Cuál es la capital de Francia?"
-- **Observe the Response**: NeuralSeek should translate the question, query the English knowledge base, and return the response in the desired language: "La capital de Francia es París."
-
-</details>
+The captured LLM Details screen shows a **Translate** function that a card can claim, and a dedicated **Translate** card on the playground, so a translation capability exists on that instance. The REST endpoints the previous documentation described — a JSON `text` array plus `target` for translation, and a `text/plain` body for language identification — were not verified for this page; their shapes are reproduced above as unconfirmed background. Confirm them against the [REST and Console APIs](/integrations/rest-and-console-api/) reference or at [api.neuralseek.com](https://api.neuralseek.com/).
