@@ -1,129 +1,114 @@
 ---
 title: "Prompt Engineering"
-description: "Prompt Engineering is the section of the Edit Configuration dialog where an expert user injects extra instructions into the LLM prompt and shifts NeuralSeek's baseline temperature, top probability, frequency penalty and maximum tokens by -100% to 100% — at the cost of support for the instance."
+description: "Prompt Engineering is the Neural Config section where an expert user adds instructions to NeuralSeek's LLM prompt and offsets temperature, top probability, frequency penalty and maximum tokens for Seek answers, at the cost of support for the instance."
 ---
 
 ## What is it
 
-**Prompt Engineering** is a section of the **Edit Configuration** dialog on the **Neural Config** screen. It is where you can add your own text to the prompt NeuralSeek sends to the LLM, and shift the sampling settings sent alongside it.
+**Prompt Engineering** is a section of the configuration dialog you open from the **Neural Config** screen. It lets you add your own text to the prompt NeuralSeek sends to the LLM, and shift four generation settings that NeuralSeek otherwise chooses for you.
 
 The section describes itself in one paragraph:
 
 > Prompt Engineering allows expert users to inject specific instructions into the LLM prompt. Most usecases will not need this and should not use this. EG: do not enter "provide factual information" or "act as a helpful customer support agent". NeuralSeek's extensive prompting already does this.
 
-It holds three things: a selector that enables the section, a free-text instruction box, and four sliders grouped under **Seek Weight Tuning.** On the playground captured for this page the selector reads `Disabled`, and the box and all four sliders are disabled with it — every image below shows that greyed state.
+It holds three things:
+
+- a selector, **Enable Prompt Engineering (Void all support and guarantees)**, that switches the section on;
+- a free-text instruction box;
+- four sliders grouped under the heading **Seek Weight Tuning.**: Temperature, Top Probability, Frequency penalty and Maximum Tokens.
 
 ## Why it matters
 
-This section is unusual for a settings page: the product asks you not to use it, and says so in a red box before you reach a control.
-
-NeuralSeek builds its own prompt around your KnowledgeBase results, your language settings and your answer preferences. Instructions you add here are added to that prompt, not used instead of it — so a generic instruction ("be helpful", "be factual") duplicates work already done and can pull the answer away from the tuning NeuralSeek applied. The sliders behave the same way: each one shifts a baseline NeuralSeek chooses rather than setting a raw model parameter, and the **Maximum Tokens** slider says so in its own label — "Adjust our baseline".
-
-The consequence is written into the selector's label, **Enable Prompt Engineering (Void all support and guarantees)**, and into the warning above it.
-
-## When to use it
-
-- Rarely. The product's position is that most instances should leave this section alone.
-- You are an expert user with a specific instruction the rest of the configuration cannot express — the box's own label suggests a fallback behaviour — and you accept owning every answer problem that follows.
-- You have already tried the supported controls: answer length lives on the **How verbose should an average answer be?** slider in **Answer Engineering & Preferences** (see [Tuning answers](/seek/tuning/)), and per-agent sampling lives on the NTL LLM node (see [Generate Data](/maistro/ntl/generate-data/)).
-
-Do **not** use it to give the model a persona — the section's own paragraph gives "act as a helpful customer support agent" as an example of what not to enter — and do not use it to make a single agent behave differently: these settings belong to the configuration you opened, not to one agent.
-
-## How it works
-
-Open **Neural Config**, click the **Default Config / Answer Generation** node, then **Edit Configuration**. In the accordion that opens, expand **Prompt Engineering** — it is the ninth header, between **Corporate Logging** and **Dynamic Personalization**. (The dialog and the route to it are described on [Configuration overview](/configuration/overview/); the section headers are listed on [Neural Config](/configuration/neural-config/).)
-
-![The Configuration: Default Config dialog with the Prompt Engineering accordion expanded, below Corporate Document Filter and Corporate Logging: the red warning box, the explanatory paragraph and the selector reading Disabled, with Propose Changes and Save in the footer](/img/neural-config/prompt-engineering.png)
-
-The viewport shows only the top of the section; the rest sits below the fold. The section crops that follow are the pictures of each control.
-
-### The warning and the switch
-
-- **Prompt Engineering** — the accordion header. Expanding it shows a red-bordered box before anything else, then the explanatory paragraph quoted above, then the controls.
-- **Enable Prompt Engineering (Void all support and guarantees)** — the selector for the whole section, shown as a dropdown with its label underneath. On the captured playground it reads `Disabled`; its menu was not opened, so the other option is not shown here. It is the control that turns the section on.
-
-![The Prompt Engineering panel: header, the red WARNING box, the explanatory paragraph, the selector reading Disabled with its label Enable Prompt Engineering (Void all support and guarantees), the greyed instruction box and the start of Seek Weight Tuning](/img/neural-config/prompt-engineering-panel.png)
-
-The box reads, verbatim (the double full stop is the screen's):
+This is one of the few settings sections where the product asks you not to use it. Expanding the section shows a red warning before any control:
 
 :::caution[Warning printed by the product]
 WARNING: Your instance will not be supported while prompt engineering is enabled. When you encounter ANY issue after this moment - such as bad answers, wrong languages, or ANYTHING else - the issue is your prompt engineering, and you will need to disable it. Most likely you do not need Prompt Engineering, and should not use it..
 :::
 
-Read that as a support boundary rather than a warranty disclaimer: while the section is enabled, a bad answer is treated as your prompt first, and the first step asked of you is to turn the section off.
+The double full stop is the screen's. Read the warning as a support boundary. While the section is enabled, a bad answer is treated as caused by your prompt engineering, and the first thing you will be asked to do is turn the section off. The selector's own label says the same: **Enable Prompt Engineering (Void all support and guarantees)**.
 
-### The instruction box
+What you type here is added on top of NeuralSeek's own prompting. It does not replace that prompting. According to the section's paragraph, that prompting already covers generic instructions such as "provide factual information", so repeating them adds nothing.
 
-- **Add specific instructions to the LLM prompt. This can help tune the system to fall back in specific ways.** — the free-text box your instructions go into; its label sits under the box. On the captured playground, with the selector at `Disabled`, the box is disabled and empty — it is the greyed area under the selector in the panel image above (this section shares that image).
+## When to use it
 
-The label is the intended use: an instruction about how the system should fall back — what to do when the KnowledgeBase does not carry the answer — rather than a general description of how the model should behave.
+- **Rarely.** The paragraph says "Most usecases will not need this and should not use this."
+- Use it when you are an expert user with a specific instruction that no other section of the configuration can express, and you accept owning every answer problem that follows. The instruction box's label says what it is for: tuning how the system falls back.
+- Try the supported controls first. For answer length, use the **How verbose should an average answer be?** slider in **Answer Engineering & Preferences**, described on [Tuning answers](/seek/tuning/).
+
+Do **not** use it to give the model a persona or to ask for factual answers. The section's paragraph names "provide factual information" and "act as a helpful customer support agent" as examples of what not to enter, because NeuralSeek's prompting already does both.
+
+## How it works
+
+Open **Neural Config** and click the **Default Config / Answer Generation** node, then **Edit Configuration**. In the dialog, expand **Prompt Engineering**, which sits between **Corporate Logging** and **Dynamic Personalization**. [Configuration overview](/configuration/overview/) describes the dialog and how to reach it, and [Neural Config](/configuration/neural-config/) lists every section header.
+
+### Turning Prompt Engineering on, and the instruction box
+
+![The Prompt Engineering section expanded in the Configuration: Default Config dialog, below Corporate Logging: the red WARNING box, the explanatory paragraph and the selector reading Disabled, with Propose Changes and Save in the footer. The selector's label and the instruction box sit just below the bottom of this image.](/img/neural-config/prompt-engineering-panel.png)
+
+- **Prompt Engineering**: the accordion header. Expanding it shows the warning first, then the explanatory paragraph, then the controls.
+- **Enable Prompt Engineering (Void all support and guarantees)**: the dropdown that governs the whole section. The screen shows it reading `Disabled`. While it reads Disabled, the instruction box and all four sliders below it are greyed out. To use the section, switch it from Disabled.
+- **Add specific instructions to the LLM prompt. This can help tune the system to fall back in specific ways.**: the free-text box your instructions go into. Its label, printed under the box, is also its help text. The screen does not say where in NeuralSeek's prompt the text is placed, or how long it may be.
+
+Write an instruction about a specific fallback behaviour. Do not write a general description of how the model should act. Leave out the paragraph's two examples, "provide factual information" and "act as a helpful customer support agent", because NeuralSeek's prompting already does both.
 
 ### Seek Weight Tuning — Temperature
 
-**Seek Weight Tuning.** is the group label under the instruction box; it introduces four sliders. Each has a scale from `-100%` to `100%` and a **Slider value** readout on the right; each reads `0` on the captured playground, and each is disabled while the selector reads `Disabled`.
+![The Temperature slider, greyed out: its label, the -100% and 100% scale ends, and a value box reading 0](/img/neural-config/prompt-engineering--temperature.png)
 
-- **Temperature. How much variablity is provided in generated responses.** — shifts how much the wording of an answer is allowed to vary. Range `-100%` to `100%`; reads `0`. (`variablity` is the screen's spelling.)
+**Seek Weight Tuning.** is the heading under the instruction box. It introduces four sliders. Each one is an offset rather than a raw model setting:
 
-![The Temperature slider, greyed: its label, the -100% and 100% scale ends, and a Slider value of 0](/img/neural-config/prompt-engineering--temperature-how-much-variablity-is-provi.png)
+- its track runs from `-100%` to `100%`;
+- it rests at the centre;
+- a **Slider value** box to its right shows the number.
 
-### Seek Weight Tuning — Top Probability
+A value of 0 appears to leave NeuralSeek's own baseline unchanged. The heading says these sliders tune Seek. The screen does not say whether they also apply to other LLM calls.
 
-- **Top Probability. For each portion of the generation, what percentage of the top options are considered.** — shifts how wide a pool of candidate continuations the model draws from at each step. Range `-100%` to `100%`; reads `0`.
+- **Temperature. How much variablity is provided in generated responses.** ("variablity" is the screen's spelling.) Temperature controls how much the LLM's wording varies. Moving the slider towards `100%` allows more varied phrasing from one answer to the next. Moving it towards `-100%` makes answers more repeatable. Change it only when answers read too uniform or too loose, and only after the supported answer settings have not helped.
 
-![The Top Probability slider, greyed: its label, the -100% and 100% scale ends, and a Slider value of 0](/img/neural-config/prompt-engineering--top-probability-for-each-portion-of-the-.png)
+### Top Probability
 
-### Seek Weight Tuning — Frequency penalty
+![The Top Probability slider, greyed out: its label, the -100% and 100% scale ends, and a value box reading 0](/img/neural-config/prompt-engineering--top-probability.png)
 
-- **Frequency penalty. How much penalty to apply to generated portions of text that are repeated.** — shifts how strongly repeated phrasing is discouraged. Range `-100%` to `100%`; reads `0`.
+- **Top Probability. For each portion of the generation, what percentage of the top options are considered.** This slider widens or narrows the pool of candidate words the LLM picks from at each step. Moving it towards `100%` appears to let the LLM consider a larger share of candidates, which gives more varied wording. Moving it towards `-100%` keeps the LLM to the most likely candidates.
 
-![The Frequency penalty slider, greyed: its label, the -100% and 100% scale ends, and a Slider value of 0](/img/neural-config/prompt-engineering--frequency-penalty-how-much-penalty-to-ap.png)
+### Frequency penalty
 
-### Seek Weight Tuning — Maximum Tokens
+![The Frequency penalty slider, greyed out: its label, the -100% and 100% scale ends, and a value box reading 0](/img/neural-config/prompt-engineering--frequency-penalty.png)
 
-- **Maximum Tokens. Adjust our baseline (varies per answer verbosity) requested maximum tokens.** — shifts the cap on answer length NeuralSeek requests from the model. Range `-100%` to `100%`; reads `0`.
+- **Frequency penalty. How much penalty to apply to generated portions of text that are repeated.** (The screen writes "penalty" in lower case.) Use this slider when answers repeat the same phrases. Moving it towards `100%` penalises repeated text more strongly. Moving it towards `-100%` penalises it less.
 
-![The Maximum Tokens slider, greyed: its label, the -100% and 100% scale ends, and a Slider value of 0](/img/neural-config/prompt-engineering--maximum-tokens-adjust-our-baseline-varie.png)
+### Maximum Tokens
 
-This label is the on-screen evidence for how all four sliders work: `0` is not "off", it is NeuralSeek's baseline, and the scale is a relative adjustment to the value NeuralSeek would have chosen. For tokens that baseline is not fixed — it "varies per answer verbosity", which is the **How verbose should an average answer be?** slider in **Answer Engineering & Preferences**, documented on [Tuning answers](/seek/tuning/). If answer length is the only thing you want to change, that slider is the supported place.
+![The Maximum Tokens slider, greyed out: its label, the -100% and 100% scale ends, and a value box reading 0](/img/neural-config/prompt-engineering--maximum-tokens.png)
 
-### Seek-wide versus per-agent
+- **Maximum Tokens. Adjust our baseline (varies per answer verbosity) requested maximum tokens.** This slider raises or lowers the answer-length cap that NeuralSeek requests from the LLM. Moving it towards `100%` requests a higher cap than NeuralSeek would choose on its own. Moving it towards `-100%` requests a lower cap.
 
-The dialog's footer carries **Propose Changes** and **Save**; nothing in this section applies until one of them is pressed, and what each does is covered on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
+This label shows most clearly that the sliders adjust a baseline: "Adjust our baseline". The label also says the baseline for tokens is not fixed: it "varies per answer verbosity". That is the **How verbose should an average answer be?** slider in **Answer Engineering & Preferences**, documented on [Tuning answers](/seek/tuning/). If answer length is all you want to change, use that slider instead. It does not require enabling this section.
 
-These settings belong to the configuration you opened — they change how NeuralSeek answers for that configuration, not how one agent behaves. A single mAIstro agent has its own knobs on the NTL LLM node ([Generate Data](/maistro/ntl/generate-data/)). The `ntl://reference` resource, read for this page, lists the node as:
+### The same knobs for a single mAIstro agent
 
-```text
-{{ LLM | prompt: "Your prompt here" | cache: "true" | images: "" | modelCard: "" | stream: "false" | maxTokens: "" | minTokens: "" | temperatureMod: "" | toppMod: "" | freqpenaltyMod: "" | timeout: "" }}
-```
+A mAIstro agent that calls an LLM through the NTL LLM node has its own per-call settings on that node. See [Generate Data](/maistro/ntl/generate-data/). Changing an agent there leaves this section, and the instance's support, untouched.
 
-So the four sliders here have named counterparts on the node: `temperatureMod` ("Temperature modifier"), `toppMod` ("Top-p modifier"), `freqpenaltyMod` ("Frequency penalty modifier") and `maxTokens` ("Maximum tokens in the response"), plus `minTokens`. The reference documents no numeric range or default for them; its only concrete number is an example, `temperatureMod: "-0.5"` "for deterministic structured output".
-
-<!-- UNCONFIRMED: the node's temperatureMod, toppMod and freqpenaltyMod run from -1 to 1 in steps of 0.01 with default 0 — old prose on /maistro/ntl/generate-data/ (status auto); the ntl://reference resource read in probe p32 shows the names but no range -->
-
-The Generate Data page lists `-1` to `1` with a default of `0` for the three `*Mod` parameters, which would be the same relative scale the sliders show as a percentage. If only one agent needs different sampling, set it on that agent's node and leave this section disabled.
+**Propose Changes** and **Save** in the dialog's footer apply to this section like any other. [Using the Neural Config page](/configuration/neural-config/using-this-page/) covers what each one does.
 
 ## FAQ
 
-### Should I turn Prompt Engineering on?
+### Will NeuralSeek support still help if I enable Prompt Engineering?
 
-The product's own answer is no: "Most likely you do not need Prompt Engineering, and should not use it." Its explanatory paragraph says NeuralSeek's prompting already covers instructions like "provide factual information" or "act as a helpful customer support agent", and the selector's label reads **Enable Prompt Engineering (Void all support and guarantees)**. Use it only when you have a specific instruction nothing else in the configuration can express.
+No. The warning states that "Your instance will not be supported while prompt engineering is enabled". It adds that any issue after that point, "bad answers, wrong languages, or ANYTHING else", is treated as caused by your prompt engineering. Disable the section before you report a problem.
 
-### What happens to support if I enable it?
+### Should I tell the LLM to "act as a helpful customer support agent"?
 
-The warning states that "Your instance will not be supported while prompt engineering is enabled", and that any issue after that point — "bad answers, wrong languages, or ANYTHING else" — is treated as caused by your prompt engineering, with disabling it as the step you will be asked to take.
-
-### The sliders run from -100% to 100% — what does 0 mean?
-
-`0` is the baseline NeuralSeek would use on its own, not zero temperature or zero tokens. Each slider is a relative adjustment to that baseline, which is why **Maximum Tokens** describes itself as "Adjust our baseline (varies per answer verbosity)". A negative value pulls below the baseline, a positive value pushes above it.
+No. The section's own paragraph gives that exact phrase, and "provide factual information", as examples of what not to enter: "NeuralSeek's extensive prompting already does this."
 
 ### Why are the instruction box and the sliders greyed out?
 
-Because the section is off. On the captured playground the selector **Enable Prompt Engineering (Void all support and guarantees)** reads `Disabled`, and the instruction box and all four **Seek Weight Tuning.** sliders are disabled with it. The selector is the control that turns the rest of the section on.
+The section is off. While **Enable Prompt Engineering (Void all support and guarantees)** reads Disabled, the instruction box and all four **Seek Weight Tuning.** sliders are greyed out. To use them, switch that selector from Disabled.
 
-### I want different sampling for one agent only — is this the place?
+### What does 0 on the sliders mean?
 
-No. Prompt Engineering belongs to the configuration as a whole. The NTL LLM node carries `temperatureMod`, `toppMod`, `freqpenaltyMod`, `maxTokens` and `minTokens` for one agent — see [Generate Data](/maistro/ntl/generate-data/). Setting them on the node leaves the rest of the instance supported.
+Each slider runs from -100% to 100% around NeuralSeek's own baseline, and 0 appears to leave that baseline unchanged. It does not mean zero temperature or zero tokens. The **Maximum Tokens** label describes itself as "Adjust our baseline", and a negative value pulls below that baseline.
 
-### Where do I change answer length without enabling this?
+### Can one agent use a different temperature?
 
-Use **How verbose should an average answer be?** in the **Answer Engineering & Preferences** section of the same dialog, described on [Tuning answers](/seek/tuning/). It is the supported control for answer length, and it is the baseline the **Maximum Tokens** slider here would shift.
+Yes. Use the NTL LLM node in that agent's flow, described on [Generate Data](/maistro/ntl/generate-data/). This section belongs to the configuration you opened, not to one agent.

@@ -1,200 +1,208 @@
 ---
 title: "Conversational context"
-description: "NeuralSeek resolves a follow-up question against the earlier turns of a conversation when the seek request carries a constant session_id or user_id; the Platform Preferences settings — Context Turns, Context Timeout - Session, Context Timeout - User Only, Context detection and Force carry context — decide how much is carried and for how long."
+description: "NeuralSeek answers a follow-up question in the light of earlier turns of the same conversation, held together by a constant session_id (or by the user when no session_id is sent), and the Platform Preferences settings Context Turns, Context Timeout - Session, Context Timeout - User Only, Context detection and Force carry context decide how much history is carried, for how long, and how a follow-up is recognised."
 ---
 
 ## What is it
 
 Conversational context is what lets NeuralSeek answer a question that does not stand on its own.
-"How does it work?" names nothing; only the turns before it say what "it" is. Rather than treating
-every question as unrelated, NeuralSeek tracks the subject of the conversation and brings it
-forward, so the follow-up is answered from the right material in the KnowledgeBase.
+"How much is it?" names nothing; only the turns before it say what "it" is. Instead of treating
+every question as unrelated, NeuralSeek works out the subject of the conversation and carries it
+forward, so the follow-up is answered from the right material in your KnowledgeBase.
 
-For that to happen, NeuralSeek has to know which conversation a request belongs to. The console
-distinguishes two kinds of session, in the help text of the two context timeouts: a "session_id
-based user session" and a "user based session with no session_id". In practice that means the
-seek request carries a `session_id`, a `user_id`, or both, and the value stays the same for the
-span of the conversation.
+To do that, NeuralSeek has to know which conversation a request belongs to. The console names two
+kinds of session in the help text of its two context timeouts: a "session_id based user session"
+and a "user based session with no session_id". A conversation is held together by a `session_id`
+that stays the same from one request to the next or, when there is none, by the user.
 
-Everything that shapes the behaviour lives in one accordion of the Edit Configuration dialog,
-**Platform Preferences**, plus one switch in **Intent Matching & Cache Configuration** that decides
-whether a cached answer has to respect the conversation too. This page explains those settings
-from the conversation's point of view; the settings themselves are documented on
+The settings that shape this sit in the **Platform Preferences** section of the configuration
+dialog on the Neural Config screen, plus one switch in **Intent Matching & Cache Configuration**
+that concerns cached answers. This page explains them from the conversation's point of view. The
+full reference for each section is on
 [Platform Preferences](/configuration/neural-config/platform-preferences/) and
 [Intent Matching & Cache](/configuration/neural-config/intent-matching-caching/).
 
 ## Why it matters
 
-Without carried context, a user has to restate the full subject in every message, which nobody
-does. Follow-ups working is what makes a customer-facing conversation run naturally instead of
+Without carried context, users have to restate the full subject in every message, and nobody
+does. Follow-ups that work are what make a customer-facing conversation feel natural instead of
 stalling on the second question.
 
-Carrying more history is not free, though. NeuralSeek's own warning on the **Context Turns**
-setting is that increasing it "will reduce the available LLM context available to your
-documentation, and opens additional risk of attack from users trying to elicit inappropriate
-responses". More turns means less room for your own content in the prompt, so the defaults lean
-towards carrying little.
+Carrying more history has a cost. The help text of **Context Turns** warns that increasing it
+"will reduce the available LLM context available to your documentation, and opens additional risk
+of attack from users trying to elicit inappropriate responses". Every earlier turn sent to the LLM
+takes room that your own content would otherwise use.
 
-Context also decides what may be served from cache. A cached answer that was right in one
-conversation is not necessarily right as the answer to a follow-up in another; the
-**Require Cache to Follow Context?** switch is where that is settled — see [Caching](/seek/caching/).
+Context also touches what may be served from cache: an answer that was right in one conversation
+is not necessarily right as the answer to a follow-up in another. See [Caching](/seek/caching/).
 
 ## When to use it
 
-- Any customer-facing chat where users ask follow-up questions.
-- Integrations that already own the conversation history — watsonx Assistant is the usual case,
-  see [watsonx Assistant](/integrations/virtual-agents/watsonx-assistant/).
-- Testing a multi-turn flow in the [Seek tab](/seek/overview/) under a fixed user and session id.
+- A customer-facing chat or virtual agent where users ask follow-up questions.
+- An integration that already holds the conversation history, such as
+  [watsonx Assistant](/integrations/virtual-agents/watsonx-assistant/).
+- Testing a multi-turn exchange in the [Seek tab](/seek/overview/), keeping the same user and
+  session between questions.
 
-It is not needed for one-shot, self-contained questions — a search box, a batch of independent
-queries, an API call that supplies its whole subject. There, a session id buys nothing and any
-extra turns fed to the LLM only take room away from your documentation.
+It is the wrong tool for one-shot, self-contained questions: a search box, a batch of independent
+queries, or an API call that always states its full subject. There a shared session adds nothing,
+and extra turns sent to the LLM only take room away from your documentation. Keep **Context
+Turns** low and send a fresh `session_id` for each unrelated request.
 
 ## How it works
 
-### Where the context settings live
+On the Neural Config screen, open the **Default Config** (Answer Generation) node and expand
+**Platform Preferences** in the configuration dialog. The context settings follow the **Timeout**
+slider. How to save a change, and the difference between **Save** and **Propose Changes**, is on
+[Using this page](/configuration/neural-config/using-this-page/).
 
-Open **Default Config / Answer Generation** on the Neural Config screen, then expand
-**Platform Preferences** in the **Edit Configuration** dialog. The context settings follow the
-**Timeout** slider, in this order:
+![The configuration dialog with Platform Preferences expanded, showing Timeout, Context Turns and Context Timeout - Session](/img/neural-config/platform-preferences-panel.png)
 
-- **Context Turns**
-- **Context Timeout - Session**
-- **Context Timeout - User Only**
-- **Context detection** (two dropdowns, **Detection Method** and **mAIstro flow**)
-- **Force carry context**
+### Keep the same session_id or user_id across turns
 
-The one related switch that is not here, **Require Cache to Follow Context?**, sits in the
-**Intent Matching & Cache Configuration** accordion of the same dialog.
+Consecutive Seek requests count as one conversation when they identify the same session. The two
+timeout help texts show how a session is recognised: **Context Timeout - Session** reads "Timeout
+of a session_id based user session.", and **Context Timeout - User Only** reads "Timeout of a user
+based session with no session_id." So a request that carries the same `session_id` as the previous
+one continues that conversation, and a request with no `session_id` continues the user's
+conversation instead. Once the matching timeout has passed, the next question starts fresh.
 
-Every control below is owned by
-[Platform Preferences](/configuration/neural-config/platform-preferences/); saving a change, and
-the difference between **Save** and **Propose Changes**, is covered on
-[Using this page](/configuration/neural-config/using-this-page/). The values quoted are the ones
-captured on the playground instance, not product defaults.
+![The Context Timeout - Session slider, whose help text names session_id](/img/neural-config/platform-preferences--context-timeout-session.png)
 
-![The Edit Configuration dialog with Platform Preferences expanded, showing Timeout, Context Turns and Context Timeout - Session](/img/neural-config/platform-preferences.png)
+<!-- UNCONFIRMED: the Seek request identifies the user with a `user_id` field, either id alone is enough, and the ids need only stay constant for the conversation — from the previous documentation page; the screen names session_id in help text but shows no Seek request body. -->
+
+On the Seek request, send the conversation as `session_id` and the user as `user_id`; either one is
+enough to keep a conversation together, and you can send both. The values only need to stay the
+same for the length of the conversation; they do not have to match an account in NeuralSeek. The
+rest of the request is described on [Seek](/seek/overview/).
 
 ### Context Turns
 
-**Context Turns** is how many earlier turns the LLM actually sees. The help text reads: "Maximum
-number of previous context turns to feed to the LLM. Increasing this is not recommended as it
-will reduce the available LLM context available to your documentation, and opens additional risk
-of attack from users trying to elicit inappropriate responses." The slider runs from `0` to `50`;
-the playground has it at `1`, so the LLM sees the single previous exchange.
+**Context Turns** sets how many earlier turns are sent to the LLM along with the new question. Its
+help text reads: "Maximum number of previous context turns to feed to the LLM. Increasing this is
+not recommended as it will reduce the available LLM context available to your documentation, and
+opens additional risk of attack from users trying to elicit inappropriate responses." The slider
+runs from `0` to `50`, with a box beside it where you can type the number; the box shows your
+current setting.
 
-![The Context Turns slider, 0 to 50, set to 1](/img/neural-config/platform-preferences--context-turns.png)
+![The Context Turns slider, running from 0 to 50, with its value box](/img/neural-config/platform-preferences--context-turns.png)
 
-The value is the one worth thinking about before you change it. Raising it makes the model see
-more of the conversation, at the cost the product itself spells out; move it one step at a time
-and check answer quality rather than jumping to the maximum.
+Because the value is a maximum, `0` sends no earlier turns and every question is answered on its
+own text. Raise it only when your users' follow-ups regularly reach back further than the last
+exchange, and weigh the two costs the help text names: less room in the prompt for your
+documentation, and more surface for users trying to steer the model through earlier messages.
+Change it one step at a time and compare the answers to a follow-up before going further.
 
-### Context Timeout - Session
+### Context Timeout - Session and Context Timeout - User Only
 
-**Context Timeout - Session** is how long a conversation identified by a `session_id` keeps its
-context. The help text is one line: "Timeout of a session_id based user session." The slider runs
-from `0` to `999999`; the playground has it at `360000`.
+These two sliders decide how long a conversation is remembered.
 
-![The Context Timeout - Session slider, 0 to 999999, set to 360000](/img/neural-config/platform-preferences--context-timeout-session.png)
+- **Context Timeout - Session** — "Timeout of a session_id based user session." It applies to
+  requests that carry a `session_id`. The slider runs from `0` to `999999`.
+- **Context Timeout - User Only** — "Timeout of a user based session with no session_id." It
+  applies to requests without a `session_id`, where context is kept per user. Same `0` to `999999`
+  range.
 
-:::note
-Neither context timeout shows a unit on screen, so do not read the numbers as seconds or
-milliseconds. The neighbouring **Timeout** slider does say "milliseconds", but that is the
-language-generation timeout, a different setting.
+![The Context Timeout - User Only slider, running from 0 to 999999, with its value box](/img/neural-config/platform-preferences--context-timeout-user-only.png)
+
+:::note[No unit on screen]
+Neither context timeout shows a unit in its label or help text, so do not assume seconds, minutes
+or milliseconds. The **Timeout** slider just above them does say "milliseconds", but that is the
+language-generation timeout, a different setting. What `0` means for a context timeout is not
+stated on screen either.
 :::
 
-### Context Timeout - User Only
-
-**Context Timeout - User Only** is the window for a request that carries a user id but no
-`session_id`. The help text reads: "Timeout of a user based session with no session_id." The
-slider has the same `0` to `999999` range; the playground has it at `1800` — a much smaller number
-on the same scale as the session timeout's `360000`, so a user-only session expires far sooner
-than a session identified by a `session_id`.
-
-![The Context Timeout - User Only slider, 0 to 999999, set to 1800](/img/neural-config/platform-preferences--context-timeout-user-only.png)
-
-That difference is the reason to send a `session_id` when you have one: a conversation keyed only
-on a user id falls under the smaller of the two timeouts.
+Lengthen a timeout when users come back to a conversation after a pause and expect it to pick up
+where it left off. Shorten it when a user's next question, some time later, is usually about
+something new, so an old subject does not leak into it. The two are set separately, so a
+conversation your application tracks with a `session_id` can be kept for a different length of
+time than one tracked by user alone.
 
 ### Context detection
 
-**Context detection** decides what works out what a follow-up refers to. The help text reads: "Use
-our (fast) model for carrying language context or use an LLM-based mAIstro flow for custom PoS
-tagging." It is one heading over two dropdowns.
+**Context detection** decides what works out the subject a follow-up refers to. Its help text reads:
+"Use our (fast) model for carrying language context or use an LLM-based mAIstro flow for custom PoS
+tagging." (PoS tagging is part-of-speech tagging: finding the nouns and subjects in a question.) It
+has two dropdowns, **Detection Method** and **mAIstro flow**.
 
-![Context detection, with the Detection Method dropdown set to Model Only and the mAIstro flow dropdown showing ex_Context_Grammar](/img/neural-config/platform-preferences--context-detection.png)
+![Context detection, with Detection Method set to Model Only beside a greyed-out mAIstro flow dropdown](/img/neural-config/platform-preferences--context-detection.png)
 
-**Detection Method** chooses the mechanism. Its options are:
+**Detection Method** chooses the mechanism. The options have no help text of their own; what each
+does below follows from its name and the help text of **Context detection**.
 
-- `Model Only` — NeuralSeek's own model carries the context (the playground value).
-- `Model + mAIstro fallback` — the model first, with the mAIstro agent as the fallback.
-- `mAIstro Only` — the mAIstro agent alone.
+<!-- UNCONFIRMED: that `Model + mAIstro fallback` runs the model first and hands over to the agent, and when it hands over — inferred from the option names; the setting was not changed and the options have no help text of their own. That mAIstro flow becomes selectable with the other two methods is also inference from the greyed-out dropdown. -->
 
-![The Detection Method option list: Model Only, Model + mAIstro fallback, mAIstro Only](/img/neural-config/platform-preferences--options-detection-method.png)
+| Option                     | What it does                                                                                 |
+| -------------------------- | -------------------------------------------------------------------------------------------- |
+| `Model Only`               | NeuralSeek's own fast model finds the subject and carries it forward.                        |
+| `Model + mAIstro fallback` | The fast model runs first; the agent chosen in **mAIstro flow** is the fallback.             |
+| `mAIstro Only`             | The agent chosen in **mAIstro flow** does the part-of-speech tagging instead of the model.   |
 
-**mAIstro flow** names the agent used whenever the method involves mAIstro — the "LLM-based
-mAIstro flow for custom PoS tagging" of the help text, that is, an agent that does the
-part-of-speech work in place of the built-in model. Its list is `Disabled` plus the agents on the
-instance that qualify, so the second entry is instance-specific: on the playground it is
-`ex_Context_Grammar`.
+![The Detection Method dropdown opened while set to Model Only, with mAIstro flow greyed out beside it](/img/neural-config/platform-preferences--options-detection-method.png)
 
-<!-- UNCONFIRMED: mAIstro flow appears disabled while Detection Method is `Model Only` — inferred from the greyed rendering in the capture and the missing pointer cursor on its listbox; switching the method to confirm would change the configuration. -->
+**mAIstro flow** names that agent. Its list starts with `Disabled`, followed by the agents saved in
+your mAIstro, for example an agent named `ex_Context_Grammar`. With **Detection Method** on
+`Model Only`, the screen shows **mAIstro flow** greyed out. Whether it becomes selectable once you
+pick one of the other two methods is not shown on screen.
 
-In the capture the **mAIstro flow** dropdown is rendered greyed out while **Detection Method** is
-`Model Only`, which suggests it only becomes editable once a mAIstro option is selected.
+Stay on `Model Only` while follow-ups resolve correctly; it is the fast option. Move to a mAIstro
+option when the built-in model keeps missing the subject in your users' phrasing: an agent you
+build then does the tagging, at the cost of the extra time an LLM-based flow takes.
 
 ### Force carry context
 
-**Force carry context** is the switch for subject-less follow-ups. The help text reads: "If no
+**Force carry context** covers questions that name no subject at all. Its help text reads: "If no
 subject / nouns are found in a question assume the question is a follow on to the previous
-question". It is a True or False dropdown; the playground has it at `False`, so a question with no
-subject is not treated as a follow-up unless you turn this on.
+question".
 
-![The Force carry context dropdown, set to False](/img/neural-config/platform-preferences--force-carry-context.png)
+![The Force carry context dropdown with its help text](/img/neural-config/platform-preferences--force-carry-context.png)
 
-With it on, "how does it work?" is read as a continuation of the previous question. With it off,
-NeuralSeek relies on what **Context detection** can find in the question itself.
+The dropdown has two options, `True` and `False`:
+
+- `True` — a question with no subject or nouns, such as "How much is it?", is treated as a
+  follow-on to the previous question.
+- `False` — a question is not treated as a follow-on just because it names no subject or nouns.
+
+![The Force carry context option list open: True, False](/img/neural-config/platform-preferences--options-force-carry-context.png)
+
+Choose `True` for a chat where short follow-ups are the norm. Leave it at `False` when users often
+open a new topic with a vague question, so that question is not answered about the previous
+subject.
 
 ### Require Cache to Follow Context?
 
-**Require Cache to Follow Context?** is a `Yes` / `No` dropdown under **Normal answer cache** in
-the **Intent Matching & Cache Configuration** accordion; the playground has it at `Yes`.
+**Require Cache to Follow Context?** sits under the **Normal answer cache** slider in the **Intent
+Matching & Cache Configuration** section of the same dialog. It has no help text of its own; the
+screen shows it set to `Yes`. The screen does not say whether it applies only to the Normal answer
+cache it sits under or to other caches as well.
 
-![The Normal answer cache section, with Require Cache to Follow Context? set to Yes](/img/neural-config/intent-matching-cache-configuration--normal-answer-cache.png)
+![The Normal answer cache section, with Require Cache to Follow Context? set to Yes beneath the slider](/img/neural-config/intent-matching-cache-configuration--normal-answer-cache.png)
 
-<!-- UNCONFIRMED: that `Yes` means a cached answer is only served when the conversation context matches as well — inferred from the label; the control has no help text and no probe exercised it. -->
+<!-- UNCONFIRMED: that with `Yes` a cached answer is reused only when the conversation context matches — inferred from the label; the control has no help text, its option list was not captured, and no test exercised it. -->
 
-Set to `Yes`, a cached answer is only reused when the conversation context matches as well, not on
-the question text alone. How the caches themselves work is on [Caching](/seek/caching/), and the
-setting is documented on
+With `Yes`, a cached answer is served only when it fits the conversation so far, so a follow-up is
+not answered with a cached reply given in a different conversation. How the caches work is on
+[Caching](/seek/caching/), and the whole section is documented on
 [Intent Matching & Cache](/configuration/neural-config/intent-matching-caching/).
 
-### Carrying the previous turn yourself
+### Passing the previous turn yourself
 
 When the calling system already holds the conversation history, it can hand the previous exchange
-over on each request instead of relying on a session id.
+to NeuralSeek instead of relying on the session alone. Inside mAIstro the history is available to
+agents: the NTL reference gives the `seekIn` node a `lastTurn` parameter, "The last turn array",
+and lists `seekIn.lastTurn` as "The chat history as an array of objects." It gives no JSON shape
+for the objects.
 
-<!-- UNCONFIRMED: `options.lastTurn` and its `[{input, response}]` shape, and the two request examples below, are from the previous documentation page; nothing in this capture shows a seek request body, and they were not re-verified against the current /seek API. -->
+:::caution[Not yet verified]
+The NTL reference documents `lastTurn` only as `seekIn.lastTurn`. The Seek request field below comes
+from earlier NeuralSeek documentation and has not been re-checked against the current product.
+:::
 
-`options.lastTurn` carries the previous exchange with the request. On the first request there is
-nothing to reference, so the structure is empty:
+<!-- UNCONFIRMED: an `options.lastTurn` field on the Seek request with the `[{input, response}]` shape and the example below, and watsonx Assistant passing its `Session History` variable to it through the NeuralSeek extension — from the previous documentation page; the NTL reference documents `lastTurn` only as `seekIn.lastTurn`, and no Seek request body or watsonx Assistant screen was checked. -->
 
-```json
-{
-  "question": "How can NeuralSeek help businesses in different industries with Gen AI?",
-  "options": {
-    "lastTurn": [
-      {
-        "input": "",
-        "response": ""
-      }
-    ]
-  }
-}
-```
-
-Keep the answer that comes back. On the next request, put the previous question in `input` and
-that answer in `response`:
+On the Seek request, the previous exchange goes in `options.lastTurn`, with the previous question
+as `input` and the answer that came back as `response`. On the first request of a conversation
+both are empty strings. On the next one:
 
 ```json
 {
@@ -210,47 +218,46 @@ that answer in `response`:
 }
 ```
 
-<!-- UNCONFIRMED: watsonx Assistant's `Session History` variable mapping onto `options.lastTurn` — from the previous documentation page (_private/archive/verbatim-migration/previous/seek/conversational-context.md); the watsonx Assistant console was never captured in this run. -->
+<!-- UNCONFIRMED (same fact as the marker above this section's example): watsonx Assistant's `Session History` variable passed to `options.lastTurn` — previous documentation page. -->
 
-watsonx Assistant keeps its own `Session History` variable, which is what its NeuralSeek
-extension passes here; the setup is on
+watsonx Assistant keeps its own `Session History` variable, which its NeuralSeek extension can
+pass in this field; the setup is on
 [watsonx Assistant](/integrations/virtual-agents/watsonx-assistant/).
 
 ## FAQ
 
-### What do I have to send for follow-up questions to work?
+### Why does a follow-up like "how much is it?" lose track of the subject?
 
-A session identifier that stays constant for the conversation. The console distinguishes a
-"session_id based user session" from a "user based session with no session_id", each with its own
-**Context Timeout**, so send a `session_id` when you have one — a user id alone falls under the
-smaller of the two timeouts.
+Usually one of three things. The requests do not share the same `session_id` (or user), so
+NeuralSeek sees two separate conversations. **Context Turns** is `0`, so no earlier turn reaches
+the LLM. Or the matching context timeout has passed. If the question has no subject at all,
+setting **Force carry context** to `True` makes NeuralSeek treat it as a follow-on to the previous
+question.
 
-### How many earlier turns does the LLM see?
+### How many earlier turns does NeuralSeek use?
 
-As many as **Context Turns** allows, in **Platform Preferences**. It ranges from `0` to `50` and is
-`1` on the playground. The help text warns against raising it: more turns means less LLM context
-left for your documentation and more exposure to prompt attacks.
+As many as **Context Turns** allows: it is the maximum number of previous turns fed to the LLM, set
+between `0` and `50`. Its help text advises against raising it, because more turns leave less LLM
+context for your documentation and open more risk of users trying to elicit inappropriate
+responses.
 
-### How long does context last?
+### What unit are the context timeouts in?
 
-Two separate timeouts: **Context Timeout - Session** (`360000` on the playground) for a
-`session_id` session, and **Context Timeout - User Only** (`1800`) for a request with a user id and
-no session id. Both run from `0` to `999999` and neither shows its unit on screen, so read the
-values in your own console rather than assuming seconds or milliseconds.
+The screen does not say. **Context Timeout - Session** and **Context Timeout - User Only** both run
+from `0` to `999999` with no unit shown. The **Timeout** slider above them is in milliseconds, but
+it is a different setting.
 
-### The user asked "how does it work?" with no subject — is it a follow-up?
+### Can an LLM decide what a follow-up refers to instead of the built-in model?
 
-Only if **Force carry context** is `True`: "If no subject / nouns are found in a question assume
-the question is a follow on to the previous question". The playground has it at `False`.
+Yes. Set **Detection Method** to `mAIstro Only`, or to `Model + mAIstro fallback` to keep the
+fast model first, and pick the agent in **mAIstro flow**. The list offers `Disabled` and the agents
+saved in your mAIstro.
 
-### Can a mAIstro agent decide what the follow-up refers to?
+### Can I send the previous turn with the request instead of relying on the session?
 
-Yes. Set **Detection Method** to `mAIstro Only`, or to `Model + mAIstro fallback` to keep
-NeuralSeek's own model first, and pick the agent in **mAIstro flow**. The list offers `Disabled`
-and the qualifying agents on your instance; on the playground that is `ex_Context_Grammar`.
+<!-- UNCONFIRMED (same fact as the marker under "Passing the previous turn yourself"): `options.lastTurn` on the Seek request — previous documentation page. -->
 
-### Does a cached answer ignore the conversation?
-
-Not while **Require Cache to Follow Context?** is `Yes`, which is the playground value. Set it to
-`No` and the cache is keyed on the question alone. The caches are explained on
-[Caching](/seek/caching/).
+Not confirmed for the Seek request. Earlier documentation described an `options.lastTurn` field,
+shown under [Passing the previous turn yourself](#passing-the-previous-turn-yourself) with that
+caveat. The NTL reference documents `lastTurn` as `seekIn.lastTurn`, the chat history a mAIstro
+agent can read.

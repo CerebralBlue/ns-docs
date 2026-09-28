@@ -64,8 +64,22 @@ without `/ns-docs`. Every image: an explorer capture (`/img/<area>/<state>[-pane
 `/img/_placeholder.svg` followed within 3 lines by
 `<!-- SCREENSHOT: <path> — <what to capture, from which screen> -->` when the brief names a
 control with no image. **No old-docs screenshot survives** — the images gate checks their
-hashes. Delete every `<!-- MERGE: -->`, `<!-- STILL TO DOCUMENT -->`, `<!-- ASK: -->` and
+hashes. **Each image appears once on a page** — a section gets its own crop, never the panel
+again (the images gate fails a repeat). Delete every `<!-- MERGE: -->`, `<!-- STILL TO DOCUMENT -->`, `<!-- ASK: -->` and
 "To document on this page" block; what they asked for is on the page now or in `left_unresolved`.
+
+**Write for a customer** (the audience gate fails the page otherwise):
+
+- Never mention the playground, "this instance", the MCP, probes, runs or "we tested". What the
+  capture shows is how the product looks; say "the screen shows", "Seek returns", "you see".
+- A value the screen happened to show is **not** a default. Write "Default: X" only when the brief
+  marks it as a default; otherwise describe the options and what each does.
+- Every control: **what it does, when to change it, what changes in the answer or the behaviour.**
+  Take it from `C/experiments.md` (a setting changed, a Seek compared, rolled back — quote the
+  difference), a probe, help text, or the old page (UNCONFIRMED). Never "by its label" — if you
+  have nothing, put the control in `left_unresolved` with `needs: {kind: "experiment"}`.
+- Option lists: name every option and what choosing it does; a dropdown with many values (LLM
+  platforms, KB types) gets a table: option · what it is · what it needs · link to its page.
 
 **Reference-kind routes** (`kind: reference` in the brief — no screen): write from the brief's
 background section, the answers and the MCP resources the runner saved; open the page with

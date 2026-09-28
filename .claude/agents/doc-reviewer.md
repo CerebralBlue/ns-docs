@@ -50,6 +50,13 @@ sections`)? If yes: fixable. If no: not fixable, say which crop is missing.
    never named, a planned image not placed.
 5. **Links to unwritten content** (from `links` warnings) — is the sentence honest about it?
 6. **Prose** — marketing words, undefined jargon, sentences that assume the answer.
+7. **Purpose** (kind `lost-content`) — for every control on the page: does it say what the control
+   does and when to change it? A control explained only by restating its label, or a value
+   presented as the setting ("Disable") without saying what it changes, is a finding with
+   `needs: {kind: "experiment", target: "<area>"}` when no source covers it.
+8. **Audience** (kind `prose`) — the page must not talk about how it was researched (playground,
+   instance, MCP, probe, run) or present one instance's value as a default. The audience gate
+   catches the words; you catch the same thing said another way.
 
 `fixable: true` = the writer can fix it on this page from evidence this run already has (a
 snapshot, an image, the brief). `false` = it needs something this run does not have — then say

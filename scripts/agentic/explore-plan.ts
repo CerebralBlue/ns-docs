@@ -21,6 +21,14 @@
  *       [--options <id>=<abs.yml>:<abs.png>]… [--json]
  *       the section crops and option captures of a state → states.json (option values parsed
  *       from the options snapshot when the a11y tree exposes the open menu)
+ *   bun scripts/agentic/explore-plan.ts variants <run> [--json]
+ *       after the default walk: one todo per area.json variant whose base state was recorded,
+ *       id `<base>@<variant>`, reach = the base's reach + its `pick`/`open` steps
+ *   bun scripts/agentic/explore-plan.ts variant-on <run> <variant-id>
+ *   bun scripts/agentic/explore-plan.ts variant-off <run>
+ *       write / remove R/variant-allowlist.json — the ONLY thing that lets the browser hook
+ *       (ref-context.ts) accept a pipeline agent's click on a dropdown option. Values come from
+ *       area.json, never from the command line; the file expires after 30 minutes.
  *   bun scripts/agentic/explore-plan.ts finish <run> [--json]
  *       states.json → map-build.ts (candidate) → map-diff.ts --apply; prints the summary
  *
@@ -31,14 +39,16 @@
  * (feedback, download, copy, close…), anything the browser hook would refuse anyway.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { basename, join, relative } from 'node:path';
 import {
 	CAPTURES_FILE,
 	COMMIT_VERBS,
+	CURRENT_RUN_FILE,
 	COMPONENT_MAP_DIR,
 	DESTRUCTIVE,
 	INTERACTIVE,
+	isOpener,
 	LANDMARKS,
 	nameOf,
 	parseArgs,
@@ -52,10 +62,11 @@ import {
 	writeJson,
 	type SnapNode,
 } from './lib';
+import type { Sweep, Variant } from './areas';
 
 const MAX_STATES = 40; // openable states; section crops and option captures are not counted
 const MAX_SECTIONS = 20;
-const MAX_PAGES = 10;
+const MAX_PAGES = 25; // a side navigation (API's & Integration) has 16 pages; 10 left six unopened (run 202609271205)
 const MAX_DEPTH = 3;
 /** Opening these documents nothing or has a side effect the walk must not cause. */
 const NEVER =
@@ -66,8 +77,9 @@ type Todo = {
 	id: string;
 	label: string;
 	role: string;
-	kind: 'tab' | 'menu' | 'select' | 'button' | 'page';
+	kind: 'tab' | 'menu' | 'select' | 'button' | 'page' | 'variant';
 	region: string;
+	variant?: Variant;
 	from: string;
 	depth: number;
 	reach: string[];
@@ -94,6 +106,8 @@ type State = {
 	options?: Record<string, OptionCapture>;
 	url?: string;
 	adds?: { role: string; name: string }[];
+	/** A settings-dependent capture: what was picked, on which base, for which routes. */
+	variant?: { id: string; base: string; when: string; routes: string[] };
 	capturedAt: string;
 };
 
@@ -102,7 +116,9 @@ const verb = args.positional[0];
 const run = args.positional[1];
 const asJson = args.flags.has('json');
 if (!verb || !run) {
-	console.error('Usage: explore-plan.ts plan|diff|record|crops|attach|finish <run> …');
+	console.error(
+		'Usage: explore-plan.ts plan|diff|record|crops|attach|variants|variant-on|variant-off|finish <run> …'
+	);
 	process.exit(1);
 }
 const dir = runDir(run);
@@ -138,6 +154,10 @@ const textOf = (n: SnapNode): string => {
 // pointer generic is a chip or a toggle, and clicking one changes a setting.
 const inSvg = (n: SnapNode) => {
 	for (let p = n.parent; p; p = p.parent) if (p.role === 'img') return true;
+	return false;
+};
+const inListbox = (n: SnapNode) => {
+	for (let p = n.parent; p; p = p.parent) if (p.role === 'listbox') return true;
 	return false;
 };
 const isPointer = (n: SnapNode) =>
@@ -181,11 +201,13 @@ function planFrom(snap: string, from: string) {
 	const filter: string[] | null =
 		Array.isArray(area.states) && area.states.length ? area.states : null;
 	for (const c of controlsOf(parseSnapshot(readFileSync(snap, 'utf8')))) {
-		if (todos.length + added.length >= MAX_STATES) break;
+		if (todos.filter((t) => t.kind !== 'variant').length + added.length >= MAX_STATES) break;
 		if (!c.name || NAV_REGIONS.test(c.region)) continue;
-		// "Edit Configuration", "Add a Category", "Create…" OPEN something; the commit happens on
-		// the Save inside, which the plan never lists. So an opener wins over COMMIT_VERBS.
-		const opener = /^(edit|add|create|new|configure|manage|view|show|open)\b/i.test(c.name.trim());
+		// A dropdown (or the value button inside one) is an OPTION target — `record` prints it and
+		// the explorer photographs its list. Planned as a state it only burned the 40-state cap
+		// (run 202609191748: NeuralSeek KB, English, 187, 96 — and Add an LLM never opened).
+		if (c.role === 'listbox' || c.role === 'combobox' || inListbox(c.node)) continue;
+		const opener = isOpener(c.name);
 		if (DESTRUCTIVE.test(c.name)) {
 			if (c.role === 'button' || c.role === 'generic') exclude(c, 'destructive');
 			continue;
@@ -424,6 +446,151 @@ function cropsOf(snapshotYaml: string, stateId: string, stateLabel: string) {
 	};
 }
 
+const whenOf = (v: Variant) =>
+	v.set
+		.filter((s): s is { pick: string; value: string } => 'pick' in s)
+		.map((s) => `${s.pick} = ${s.value}`)
+		.join(', ');
+const ALLOWLIST = join(dir, 'variant-allowlist.json');
+const VARIANT_TTL_MS = 30 * 60 * 1000;
+/** The value a dropdown shows in a snapshot: listbox > button "<value>", labelled by a sibling generic. */
+function currentValue(snapshotFile: string, label: string): string | null {
+	let found: string | null = null;
+	walkSnapshot(parseSnapshot(readFileSync(snapshotFile, 'utf8')), (n) => {
+		if (found || n.role !== 'listbox' || !n.parent) return;
+		const lab = n.parent.children.find((c) => c.role === 'generic' && !c.children.length && c.text);
+		if (lab?.text?.trim() !== label) return;
+		const btn = n.children.find((c) => c.role === 'button');
+		if (btn?.name) found = btn.name;
+	});
+	return found;
+}
+
+if (verb === 'variants') {
+	const declared: Variant[] = [...(area.variants ?? [])];
+	// Sweeps become variants: one per option the base's captured list shows.
+	const sweepNotes: string[] = [];
+	for (const sw of (area.sweeps ?? []) as Sweep[]) {
+		const base = states[sw.base];
+		const list = base
+			? Object.entries(base.options ?? {}).find(
+					// by label, or by the capture id when the label was not resolved (a dialog's floating menu)
+					([k, o]) => o.label === sw.pick || k === `options-${slug(sw.pick)}`
+				)?.[1]
+			: undefined;
+		if (!list?.values.length) {
+			sweepNotes.push(`${sw.id} (no captured "${sw.pick}" list in ${sw.base})`);
+			continue;
+		}
+		for (const value of list.values) {
+			if (value === list.value) continue; // the base capture already shows it
+			if (
+				declared.some(
+					(v) =>
+						v.base === sw.base &&
+						v.set.some((s) => 'pick' in s && s.pick === sw.pick && s.value === value)
+				)
+			)
+				continue;
+			declared.push({
+				id: `${sw.id}-${slug(value)}`,
+				base: sw.base,
+				set: [{ pick: sw.pick, value }],
+				routes: sw.routes,
+				note: `sweep ${sw.id}: capture the "${sw.capture}" option list`,
+			});
+		}
+	}
+	const added: string[] = [];
+	const missingBase: string[] = [];
+	// No cap: variants come only from areas.json, and a sweep yields one per option of a real
+	// dropdown — the count is bounded by the screen itself (Fabio, 2026-09-27).
+	for (const v of declared) {
+		const id = `${v.base}@${v.id}`;
+		if (todos.some((t) => t.id === id)) continue;
+		const base = states[v.base];
+		if (!base) {
+			missingBase.push(`${v.id} (base ${v.base} not captured)`);
+			continue;
+		}
+		todos.push({
+			id,
+			label: `${v.base} with ${whenOf(v)}`,
+			role: 'variant',
+			kind: 'variant',
+			region: 'dialog',
+			from: v.base,
+			depth: base.reach.length,
+			reach: [
+				...base.reach,
+				...v.set.map((s) =>
+					'pick' in s ? `pick "${s.pick}" = "${s.value}"` : `click button "${s.open}"`
+				),
+			],
+			variant: v,
+		});
+		added.push(id);
+	}
+	missingBase.push(...sweepNotes);
+	writeJson(todoPath, todos);
+	const pending = todos.filter((t) => t.kind === 'variant' && !t.done);
+	if (asJson) console.log(JSON.stringify({ added, missingBase, pending }));
+	else {
+		console.log(
+			`${added.length} variant(s) queued, ${pending.length} pending${missingBase.length ? ` · not queued: ${missingBase.join(', ')}` : ''}`
+		);
+		for (const t of pending) console.log(`  ${t.id.padEnd(48)} ${t.reach.join(' → ')}`);
+	}
+	process.exit(0);
+}
+
+if (verb === 'variant-on') {
+	const vid = args.positional[2];
+	// Declared variants, or the ones a sweep generated (they live only in the todos).
+	const v = ((area.variants ?? []).find((x: Variant) => x.id === vid) ??
+		todos.find((t) => t.kind === 'variant' && t.variant?.id === vid)?.variant) as
+		Variant | undefined;
+	if (!v) {
+		console.error(`variant '${vid}' is not declared in this run's area.json`);
+		process.exit(1);
+	}
+	const base = states[v.base];
+	if (!base) {
+		console.error(`base state ${v.base} is not recorded — capture it first`);
+		process.exit(1);
+	}
+	const current = existsSync(CURRENT_RUN_FILE) ? readFileSync(CURRENT_RUN_FILE, 'utf8').trim() : '';
+	if (current !== run) {
+		console.error(
+			`current-run is '${current}', not ${run} — a variant is armed only for the running run`
+		);
+		process.exit(1);
+	}
+	// Each picked control may be set to the variant's value or back to what the base showed.
+	const controls: Record<string, string[]> = {};
+	for (const s of v.set) {
+		if (!('pick' in s)) continue;
+		const baseline = currentValue(join(ROOT, base.snapshot), s.pick);
+		controls[s.pick] = [
+			...new Set([...(controls[s.pick] ?? []), s.value, ...(baseline ? [baseline] : [])]),
+		];
+	}
+	const expires = new Date(Date.now() + VARIANT_TTL_MS).toISOString();
+	writeJson(ALLOWLIST, { runId: run, variant: v.id, controls, expires });
+	console.log(
+		`variant ${v.id} armed until ${expires.slice(11, 16)}Z — may pick: ${Object.entries(controls)
+			.map(([k, vals]) => `${k} ∈ {${vals.join(', ')}}`)
+			.join('; ')}. Capture, then RELOAD the area URL and run variant-off.`
+	);
+	process.exit(0);
+}
+
+if (verb === 'variant-off') {
+	rmSync(ALLOWLIST, { force: true });
+	console.log('variant allowlist removed — option clicks are refused again');
+	process.exit(0);
+}
+
 if (verb === 'plan') {
 	const snap = args.get('snapshot');
 	if (!snap || !existsSync(snap)) {
@@ -516,7 +683,8 @@ if (verb === 'record') {
 		}
 	const todo = todos.find((t) => t.id === id);
 	const reach = args.values.reach ?? todo?.reach ?? [];
-	const prev = states[todo?.from ?? 'default'];
+	// A variant is compared with its BASE (what the picks added), not with the default screen.
+	const prev = states[todo?.variant ? todo.variant.base : (todo?.from ?? 'default')];
 	let adds: State['adds'] | undefined;
 	if (prev && existsSync(join(ROOT, prev.snapshot))) {
 		const had = new Set(
@@ -540,6 +708,14 @@ if (verb === 'record') {
 		panel: panel ? '/' + relative(join(ROOT, 'public'), panel) : null,
 		url: args.get('url'),
 		adds,
+		variant: todo?.variant
+			? {
+					id: todo.variant.id,
+					base: todo.variant.base,
+					when: whenOf(todo.variant),
+					routes: todo.variant.routes,
+				}
+			: undefined,
 		capturedAt: new Date().toISOString(),
 	};
 	if (todo) todo.done = true;
@@ -547,7 +723,9 @@ if (verb === 'record') {
 	writeJson(todoPath, todos);
 	// Look deeper automatically: what this state exposes (accordions in a dialog, tabs in a
 	// panel) joins the todo list now — the agent does not have to remember to plan.
-	const deeper = noChange ? { added: [] as Todo[] } : planFrom(snap, id);
+	// A variant plans nothing deeper: its controls exist only while the picks are live, and a todo
+	// planned from it would later be walked on the reloaded (default) screen.
+	const deeper = noChange || todo?.variant ? { added: [] as Todo[] } : planFrom(snap, id);
 	const pendingList = todos.filter((t) => !t.done);
 	// What to photograph in THIS state before moving on: the panel, one crop per section,
 	// every dropdown's option list. The agent shoots each ref and calls `attach`.
@@ -744,7 +922,12 @@ if (verb === 'finish') {
 		if (states[id].viewport)
 			argv.push('--screenshot', `${id}=${join(ROOT, 'public', states[id].viewport!)}`);
 		for (const o of Object.values(states[id].options ?? {}))
-			if (o.values.length) argv.push('--options', `${o.label}=${o.values.join('|')}`);
+			if (o.values.length)
+				argv.push(
+					'--options',
+					`${o.label}${states[id].variant ? `@${id}` : ''}=${o.values.join('|')}`
+				);
+		if (states[id].variant) argv.push('--when', `${id}=${states[id].variant!.when}`);
 	}
 	mkdirSync(join(COMPONENT_MAP_DIR, '.candidates'), { recursive: true });
 	const b = spawnSync(argv[0], argv.slice(1), { cwd: ROOT, encoding: 'utf8' });
@@ -785,7 +968,21 @@ if (verb === 'finish') {
 		states: ids.length,
 		images: imagesOnDisk,
 		mapHash: diff?.hash?.candidate ?? diff?.hash?.cached ?? null,
-		notOpened: summary.pendingTodos,
+		notOpened: summary.pendingTodos.filter((t) => !t.includes('@')),
+		variants: {
+			captured: ids.filter((i) => states[i].variant && !states[i].noChange),
+			notCaptured: todos.filter((t) => t.kind === 'variant' && !t.done).map((t) => t.id),
+			// one attempt per variant per capture; the planner never re-requests a failed one
+			attempts: {
+				...(captures[area.area]?.variants?.attempts ?? {}),
+				...Object.fromEntries(
+					todos
+						.filter((t) => t.kind === 'variant')
+						.map((t) => [t.variant!.id, { run, ok: !!(t.done && !states[t.id]?.noChange) }])
+				),
+			},
+		},
+		restore: captures[area.area]?.restore ?? null,
 	};
 	writeJson(CAPTURES_FILE, captures);
 	console.log(
@@ -795,5 +992,7 @@ if (verb === 'finish') {
 	);
 	process.exit(0);
 }
-console.error('Usage: explore-plan.ts plan|diff|record|crops|attach|finish <run> …');
+console.error(
+	'Usage: explore-plan.ts plan|diff|record|crops|attach|variants|variant-on|variant-off|finish <run> …'
+);
 process.exit(1);

@@ -87,7 +87,9 @@ export function coverageOf(
 		.replace(/<!--[\s\S]*?-->/g, ' ')
 		.replace(/^\s*(`{3,}|~{3,})[\s\S]*?^\s*\1\s*$/gm, ' ');
 	const text = norm(raw);
-	const missing = labels.filter((l) => !text.includes(norm(l)));
+	// "Index Name [kb-pinecone]" — the same label on two variants; the page names the label only.
+	const bare = (l: string) => l.replace(/\s*\[[^\]]*\]\s*$/, '');
+	const missing = labels.filter((l) => !text.includes(norm(bare(l))));
 	const covered = labels.length - missing.length;
 	const percent = Math.round((covered / labels.length) * 100);
 	return {

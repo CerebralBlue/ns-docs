@@ -388,7 +388,7 @@ Open items that affect anyone touching content:
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
 
-## The `/docs-explore` pipeline (agentic workflow v3.3, screen-first, capture once — write many, a bounded orchestrator)
+## The `/docs-explore` pipeline (agentic workflow v3.4, screen-first, capture once — write many, a bounded orchestrator, variants + experiments)
 
 The workflow that writes pages from the **running product's screens**. One run = one **console
 area** (a screen in `_private/agentic-v2/areas.json`). Fabio runs it (`/docs-explore <area>`,
@@ -412,15 +412,38 @@ state is in git at `6fbb837^`, nothing else of them survives.
   reported), then writers in parallel. **The capture decides, not ownership**: any route whose
   controls are on that screen may be written from it (`crossArea` in the report); the map's
   `console[0]` only sets the night's default. `lib.ts captureDir()`/`briefDir()` resolve paths.
+- **Settings-dependent screens and experiments (v3.4, 2026-09-26).** Design:
+  `_private/agentic-v2/design/variants-v4.md`; evidence: `_private/tools/playwright/output/spike-variants/SPIKE.md`.
+  - **Variants** (`areas.json` `variants[]` / `sweeps[]`): the same state with dropdown options
+    picked — capture `<base>@<variant>` (images never overwrite the defaults), then **reload**
+    (an unsaved pick is discarded). Only while `explore-plan.ts variant-on` has armed it does the
+    hook accept those options. A sweep = one variant per option (every LLM platform). Own budget
+    no cap (every variant is declared in areas.json; a sweep is bounded by its dropdown), outside the 40 states; dropdown value buttons are option targets,
+    never states.
+  - **Experiments** (what a setting DOES): understand proposes ≤ 5 (`experiments.json`),
+    `experiments.ts validate` keeps only dropdowns in `EXPERIMENT_SECTIONS` (lib.ts); the
+    `experimenter` agent asks a Seek, changes ONE setting, **saves it as a named version**
+    (`docs-exp-<run>-<id>`), asks again, **rolls back** to `current`, verifies → `experiments.md`.
+    The hook allows its Save only in "Save a new version" with exactly one field beyond
+    `normalisedOnLoad`, and Rollback only on the baseline's row.
+  - **Named versions** are the safety net: `_private/agentic-v2/playground-versions.{json,md}`
+    (`current` = docs-baseline). A `pending` experiment blocks every run and the night until it is
+    rolled back and verified.
+  - **Restore gate** (`verify-restore.ts`): the Change Log row by row + every setting against
+    `_private/agentic-v2/reference/<area>.json` (written by the main session). Runs after gather,
+    after experiments (before the runner) and in `finish()`; a FAIL halts the run, and the main
+    session rolls back. `report.md` prints the result on its first lines.
 - **Stages** — `queue.ts` (area.json: url, navPath, routes, captureRun, mode) → gather in
   parallel: `explorer` (browser: walks every state `explore-plan.ts` names — tabs, menus,
   accordions, dialogs, the SVG tree nodes of Neural Config; openers like _Edit/Add/Create…_ win
   over the commit-verb filter; what it skipped by policy is recorded as `excluded`) and
   `config-export` (packed restore point) → `understand` (opus, the thinking step: brief per
   route with the controls it must document by exact label, `coverage-plan.<batch>.json`, ≤ 10
-  `probes.json`) → `runner` (the probes, on the playground through the MCP → `answers.md`,
+  `probes.json`, ≤ 5 `experiments.json`) → `experimenter` (browser: change → save a version → Seek →
+  roll back → verify; restore gate) → `runner` (the probes, on the playground through the MCP → `answers.md`,
   verbatim quotes) → `ia-agent` (only when a control is unowned, a route is empty or batches
-  conflict; **assigns, relabels, reorders, proposes — never adds a route**; then `bun run
+  conflict or a new page is briefed; **assigns, relabels, reorders, merges, and adds a route only
+  when understand briefed it (`newPages`) — every addition is listed in the report**; then `bun run
 stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline first, then the
   page, **Write/Edit only**) → `gates.ts` → `sync-map.ts` (page description → map) →
   `doc-reviewer` (findings only, incl. outline drift; no rewrite loop) → `bun run verify` once
@@ -447,16 +470,22 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
   written from config/MCP resources/old prose with an `Unverified` caution.
 - **One instance — the playground — and nothing else.** `_private/agentic-v2/instances.json`
   names the playground id and the locked ids (production). Hooks enforce it for every caller
-  including the main session, and fail closed: `.claude/hooks/pw-policy.sh` (browser: URL must
-  carry the playground id; a click's `target` ref must resolve in the latest saved snapshot to
-  a non-destructive control; typing only while on the playground; `evaluate` never; snapshots
-  under `runs/`, screenshots under `public/img/`), `mcp-policy.sh` (the `neuralseek-node` MCP:
+  including the main session, and fail closed (an internal error exits 2, no jq needed):
+  `.claude/hooks/pw-policy.sh` (browser: URL must carry the playground id; `browser_tabs` only
+  list/close; a click's `target` ref must resolve in the latest **full** saved snapshot and is
+  judged by `scripts/agentic/ref-context.ts` — **pipeline agents only look** (the experimenter excepted, see v3.4 above): no commit verb
+  (Save, Propose Changes, Rollback, bare Add, Generate Key, OK — `lib.ts COMMIT_VERBS`, openers
+  excepted by `isOpener`), no dropdown option, checkbox or chip, no unnamed button, keys = Escape,
+  typing = the area's `entry` text only; the **main session** may Save and Roll back named
+  versions — `_private/agentic-v2/playground-versions.md` — destructive refused for all;
+  `evaluate` never; snapshots under `runs/`, screenshots under `public/img/`; tests:
+  `bun scripts/agentic/test-hooks.ts`), `mcp-policy.sh` (the `neuralseek-node` MCP:
   every tool denied unless `.neuralseekrc.json` points at the playground; `delete_agent` only
   for `docs-*`; run tools logged to `spend.log`), `agent-paths.sh` (per-agent Edit/Write
   fences), **`bash-policy.sh`** (the pipeline's named agents may run only the Bash prefixes in
   their frontmatter — no redirection, heredoc, `sed -i`, `python3`; files go through
   Write/Edit, so the path fence holds), `nav-log.sh` (audit trail). The explorer never clicks
-  Save / Delete / Run and never types except an area's `entry` input; the runner never changes
+  Save / Delete / Run and never types except an area's `entry` input; the experimenter is the only agent that changes (and restores) a setting; the runner never changes
   configuration. Denials go to `runs/<id>/denials.log`.
 - **The only memory is `_private/agentic-v2/conventions.md`.** Agents start blank every run;
   `learn.ts` harvests each run's _structured_ notes (explorer/understand/runner `notes`,

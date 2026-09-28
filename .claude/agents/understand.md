@@ -38,6 +38,14 @@ your own `C/coverage-plan.<batch>.json`; never touch `C/coverage-plan.json` (a s
   them is still open, say so in the brief's Open questions (the capture did not do it yet).
 - `_private/component-map/<area>.json` — every control by region and state
   (`role`, `name`, `kind`, `commits`, `destructive`, `opens`, `states[]`, table `columns`).
+- **Context budget — read only what your routes need** (run 202609270311: batches that read every
+  state and image of a 74-state capture ran out of context and wrote nothing). First list, per
+  route, the states it needs: `jq` over `C/states.json` (ids, `variant.routes`, section/option
+  labels) and `grep -l` the route's words across `C/states/*.yml`. Then open **only those**
+  snapshots, search them with Grep instead of reading them whole, and Read an image only when you
+  must transcribe it (an option list with no a11y values) — never "every panel image once".
+  **Write each route's brief as soon as it is done**, then the coverage plan — never hold all of
+  them until the end.
 - **Read in this order**: `C/states.json` + `C/states/<state>.yml` first (structure: labels,
   values, options, table columns, help text — the snapshot is the truth), then the images
   `public/img/<area>/*.png` (layout, icons; Read shows them — every panel image once), then the
@@ -47,9 +55,15 @@ your own `C/coverage-plan.<batch>.json`; never touch `C/coverage-plan.json` (a s
   list; `values[]` empty means the a11y tree did not expose the menu — **Read the image and
   transcribe the options from it**, and say so in the brief: `options (from image): …`).
 - `R/section/config.json` — the config export. On this platform it is a packed blob
-  (`packed: true`, no keys); when it does carry `keys`, a key's value is the playground's
-  current setting. **A value on screen is the playground's current value, not a default** —
-  call it a default only when the screen says so ("Default: 0.7", a reset control, help text).
+  (`packed: true`, no keys). **A value on screen is one test instance's setting, not a default
+  and not a fact for the reader** — never put it in a brief as "X is set to Y". Call a value a
+  default only when the screen says so ("Default: 0.7", a reset control, help text) or the old
+  page says so (then under "From the old page"). The pages are for customers: nothing in a brief
+  may lead the writer to mention the instance, the playground, the MCP, probes or runs.
+- **Purpose, not label.** For every control the brief says what it DOES and when to change it.
+  Evidence, best first: an experiment (you propose it below; the experimenter runs it after you and
+  the writer reads `C/experiments.md`), a probe, help text on screen, the old page (UNCONFIRMED). Where none of
+  these exists, add an experiment (below) or a probe; "by its label" is never an explanation.
 - For each route with `alsoReads`, the cached maps `_private/component-map/<other area>.json`
   and, if a run exists for that area in `_private/agentic-v2/index.json`, its `states/`.
 - Old prose, **background only**: `route.page` (the current page, verbatim from the old
@@ -74,14 +88,29 @@ your own `C/coverage-plan.<batch>.json`; never touch `C/coverage-plan.json` (a s
 }
 ```
 
-A route in `notInCapture` gets a one-paragraph `brief.md` saying which screen it needs
-and no sections — the writer is skipped for it and the report lists it.
+**Variant states first.** A state id with `@` (`knowledgebase-connection@kb-pinecone`) is the same
+screen with dropdown options picked; `states.json[id].variant.when` says which ("KnowledgeBase
+Type = Pinecone") and `.routes` which pages it serves. Its controls belong to those routes, and
+the brief says under which setting they appear ("Shown when KnowledgeBase Type is Pinecone").
+Two variants can show the same label ("Index Name") — qualify it in the plan as
+`"Index Name [kb-pinecone]"`; the coverage check strips the brackets.
+
+A route goes in `notInCapture` only when no state — default or variant — shows its controls. It
+gets a one-paragraph `brief.md` naming the screen AND the setting it needs, and the same in
+`needsVariant` in your returned JSON: `[{route, set: [{pick: "<dropdown label>", value: "<option>"}]}]`
+— the next plan turns that into a variant capture instead of a skip.
 
 Every named control in the component map (skip the top navigation, the banner, unnamed icon
 buttons and table rows) appears exactly once as owned, or in `unowned` with a reason in the
 brief. A control that two pages need (a setting one page explains and another page uses)
 goes to the page that explains it and is listed in `shared` so the other page links there.
 Routes with `console: []` (reference kind) get no controls.
+
+**New pages.** When the screen has more than the routes can explain well — a dropdown whose every
+option is its own product (LLM platforms, KnowledgeBase types), a dialog no route owns — propose
+a page in `newPages` (returned JSON) with its route (next to its siblings), why, and the controls it
+would own, **and write its brief** like any other route's. The IA step adds briefed pages to the map
+and sidebar; the writers fill them in the same run. No brief, no page.
 
 **2. `C/briefs/<route folder>/brief.md`** per route, this shape:
 
@@ -152,6 +181,28 @@ an answer looks like with a setting on, what an agent returns, what a KB query r
 `tool` ∈ `seek | call_agent | run_agent | get_agent | list_agents | resource`; inputs ≤ 200
 characters; never a configuration change; never one of the `support_*` demo agents.
 
+**4. `R/experiments.json`** (append; ids `e<batch><n>`) — at most 5 for the whole area: what a
+setting DOES, shown by changing it. The experimenter changes ONE setting, saves it as a named
+version, asks the same Seek question before and after, and rolls back. Pick the settings whose
+purpose no screen text, probe or help text explains (a toggle explained only "by its label"):
+
+```json
+[
+  {
+    "id": "e01",
+    "control": "Check document titles as part of the Semantic Match",
+    "value": "Enable",
+    "question": "What is NeuralSeek?",
+    "routes": ["configuration/semantic-model"],
+    "why": "no help text; what changes in the semantic score when titles count?"
+  }
+]
+```
+
+`control` = the exact label of a dropdown whose captured option list contains `value`.
+`experiments.ts validate` drops anything else (secrets, keys, endpoints, logging, filters, text
+inputs, more than 5) — you do not need to police it, but do not waste the budget.
+
 ## Rules
 
 - Quote labels **exactly** (case, punctuation, `&`). The coverage gate greps the page for them.
@@ -167,7 +218,7 @@ characters; never a configuration change; never one of the `support_*` demo agen
   entry in its brief and appears in `emptyRoutes[]` in the coverage plan — the IA step decides
   what to do with it. Do not invent content for it.
 - Do not write pages. Do not edit the map. Write only under `C/` (briefs, your partial plan)
-  and `R/probes.json`. Use the Write tool — never a shell redirection.
+  and `R/probes.json` / `R/experiments.json`. Use the Write tool — never a shell redirection.
 
 ## Output — return this JSON
 
@@ -179,7 +230,16 @@ characters; never a configuration change; never one of the `support_*` demo agen
   "controls": { "owned": 84, "unowned": 6, "shared": 4 },
   "emptyRoutes": ["configuration/neural-config/using-this-page"],
   "notInCapture": [],
+  "needsVariant": [],
+  "newPages": [
+    {
+      "route": "configuration/llm-platforms/amazon-bedrock",
+      "why": "14 platforms in Add an LLM; one page cannot explain each",
+      "controls": ["…"]
+    }
+  ],
   "probes": 4,
+  "experiments": 3,
   "questions": ["…"],
   "notes": "one factual line per thing worth remembering about this screen; no narrative"
 }

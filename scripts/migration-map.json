@@ -81,7 +81,7 @@
     },
     "seek/tuning": {
       "title": "Tuning answers",
-      "description": "Tuning a NeuralSeek agent means controlling which documentation reaches the LLM and how the LLM is told to write from it — diagnosed on the Seek tab and changed in the Edit Configuration dialog of Neural Config.",
+      "description": "Tuning NeuralSeek answers means checking a real answer on the Seek tab, then shaping it with the Answer Engineering & Preferences and Company / Organization Preferences sections of Neural Config, after KnowledgeBase Tuning has the right documents reaching the LLM.",
       "sources": ["guides/data/tuning_guide/index.md"],
       "action": "keep",
       "status": "auto",
@@ -93,7 +93,7 @@
     },
     "seek/virtual-kb": {
       "title": "Virtual KB",
-      "description": "Discover mAIstro's Virtual KnowledgeBase, a powerful tool to unify multiple knowledge sources for enhanced search and discovery. Learn to configure and expand your Virtual KB for flexible, scalable solutions.",
+      "description": "Virtual KB is a KnowledgeBase Type that answers from a mAIstro agent instead of an indexed store: you set KnowledgeBase Type to Virtual KB in KnowledgeBase Connection and choose the agent in mAIstro Virtual KB agent, with no connection or field-mapping settings to fill in.",
       "sources": ["guides/data/virtual_kb/index.md"],
       "action": "keep",
       "status": "auto",
@@ -109,7 +109,7 @@
     },
     "seek/conversational-context": {
       "title": "Conversational context",
-      "description": "NeuralSeek resolves a follow-up question against the earlier turns of a conversation when the seek request carries a constant session_id or user_id; the Platform Preferences settings — Context Turns, Context Timeout - Session, Context Timeout - User Only, Context detection and Force carry context — decide how much is carried and for how long.",
+      "description": "NeuralSeek answers a follow-up question in the light of earlier turns of the same conversation, held together by a constant session_id (or by the user when no session_id is sent), and the Platform Preferences settings Context Turns, Context Timeout - Session, Context Timeout - User Only, Context detection and Force carry context decide how much history is carried, for how long, and how a follow-up is recognised.",
       "sources": [
         "features/convo_context/index.md",
         "guides/integration/providing_context/index.md"
@@ -120,7 +120,7 @@
     },
     "seek/caching": {
       "title": "Caching",
-      "description": "NeuralSeek has three caches — one on KnowledgeBase queries and two on answers (edited and normal) — each with its own setting in the Neural Config Edit Configuration dialog.",
+      "description": "NeuralSeek has three caches — the KnowledgeBase Query Cache on search results and the Edited and Normal answer caches on answers — each set in the Neural Config Edit Configuration dialog.",
       "sources": ["features/caching/index.md"],
       "action": "keep",
       "status": "auto",
@@ -649,7 +649,7 @@
     },
     "knowledge/connect-a-kb": {
       "title": "Connect a knowledge base",
-      "description": "Step-by-step walkthrough for admins connecting a knowledge base to NeuralSeek: open the KnowledgeBase Connection section of Neural Config, pick the KnowledgeBase Type, set the KnowledgeBase Language, save, and confirm with a Seek.",
+      "description": "Step-by-step walkthrough for admins connecting a knowledge base to NeuralSeek: open KnowledgeBase Connection in Neural Config, pick the KnowledgeBase Type, fill in the store's fields, set the KnowledgeBase Language, save, and confirm with a Seek.",
       "sources": ["ui/integrate/index.md"],
       "action": "rewrite",
       "status": "auto",
@@ -657,7 +657,7 @@
     },
     "knowledge/supported-knowledgebases": {
       "title": "Supported knowledge bases",
-      "description": "NeuralSeek's KnowledgeBase Type selector offers fifteen stores — Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery, OpenSearch, Kendra, Bedrock, Pinecone, Milvus, Postgres, Virtual KB, NeuralSeek KB, No KnowledgeBase and ChromaDB — and this page lists them with the retrieval features each is known to support.",
+      "description": "The KnowledgeBase Type selector in Neural Config lists sixteen knowledge bases — Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery, OpenSearch, Kendra, Bedrock, IBM CAS, Pinecone, Milvus, Postgres, Virtual KB, NeuralSeek KB, No KnowledgeBase and ChromaDB — and the connection form each one opens decides which retrieval controls, such as filters, re-sorting, full-document return and hybrid or vector search, you can set.",
       "sources": ["ui/integrate/integrations/supported_knowledgebases/supported_knowledgebases.md"],
       "action": "keep",
       "status": "auto",
@@ -683,11 +683,11 @@
     },
     "knowledge/hybrid-vector-semantic-search": {
       "title": "Hybrid, vector and semantic search",
-      "description": "How NeuralSeek queries Elasticsearch and watsonx Discovery indexes — keyword, vector, hybrid and semantic query types, and who computes the query vector.",
+      "description": "The Hybrid & Vector Search Settings section of Edit Configuration, shown only when the KnowledgeBase Type is ElasticSearch or watsonx Discovery, sets the Elastic Query Type — Lucene, Hybrid, Vector or Semantic — and decides whether NeuralSeek or a model deployed in Elasticsearch turns the question into a query vector.",
       "sources": [],
       "action": "new",
       "console": ["neural-config", "knowledge"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Query Type: Semantic — an Elasticsearch semantic query via an inference endpoint",
         "'Use NeuralSeek embedding models?' — whether NeuralSeek or Elasticsearch computes the query vector",
@@ -697,7 +697,7 @@
     },
     "knowledge/pinecone": {
       "title": "Pinecone setup",
-      "description": "Unlock seamless integration with Pinecone as your knowledge base using our step-by-step guide. Learn to configure, upload documents via Node.js, and master its key functionalities.",
+      "description": "To use a Pinecone index as NeuralSeek's knowledge base, set KnowledgeBase Type to Pinecone in the KnowledgeBase Connection section of Neural Config, enter the index name, namespace and API key, and map your records' metadata to the Curation Data, Link and Document Name fields.",
       "sources": ["guides/integration/pinecone_configuration/index.md"],
       "action": "keep",
       "status": "auto",
@@ -705,7 +705,7 @@
     },
     "knowledge/elasticsearch-vector-model": {
       "title": "Elasticsearch vector model",
-      "description": "Learn to configure environments, create API keys, set up machine learning, download models, and verify data embeddings seamlessly with NeuralSeek's ElasticSearch Vector Search guide.",
+      "description": "Use an Elasticsearch index that holds embeddings as NeuralSeek's knowledge base: set KnowledgeBase Type to ElasticSearch, fill the connection and field-mapping settings, then set Elastic Query Type to Vector with the model and embedding field the index was built with.",
       "sources": ["guides/integration/elasticsearch_vector_model/index.md"],
       "action": "keep",
       "status": "auto",
@@ -812,7 +812,7 @@
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Requested by Robert (2026-08-04): a sitemap page that ties every external connection together",
         "Linked from Getting Started as well as from Integrations — intentionally the same page in two places",
@@ -821,7 +821,7 @@
     },
     "integrations/virtual-agents": {
       "title": "Virtual agents",
-      "description": "Explore NeuralSeek's supported virtual agents, including watsonx Assistant and AWS Lex. Discover features like fallback search, answer curation, and round-trip monitoring for enhanced chatbot integration.",
+      "description": "NeuralSeek connects to watsonx Assistant, AWS Lex and Kore.ai through setup screens under API's & Integration, which cover fallback search into NeuralSeek and round-trip monitoring of the intents you curate.",
       "sources": ["ui/integrate/integrations/supported_virtual_agents/supported_virtual_agents.md"],
       "action": "keep",
       "status": "auto",
@@ -833,7 +833,7 @@
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Watson OpenAPI: two downloads — the full spec file vs the Watson Custom file, and when to use each",
         "Watson Logs setup — round-trip logging from watsonx Assistant"
@@ -841,11 +841,11 @@
     },
     "integrations/virtual-agents/aws-lex": {
       "title": "AWS Lex",
-      "description": "Route the Lex fallback intent to NeuralSeek through a Lambda, and enable round-trip logs.",
+      "description": "NeuralSeek connects to an Amazon Lex V2 bot through two AWS Lambda functions: one sends questions that reach the bot's FallbackIntent to NeuralSeek's Seek endpoint, the other ships the bot's conversation logs to NeuralSeek every 15 minutes for round-trip monitoring.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "LexV2 Lambda — route the Lex fallback intent to NeuralSeek",
         "LexV2 Logs — round-trip logging"
@@ -853,11 +853,11 @@
     },
     "integrations/virtual-agents/kore-ai": {
       "title": "Kore.ai",
-      "description": "Round-trip monitoring of a Kore.ai assistant through event tasks.",
+      "description": "KoreAI Logs sets up round-trip monitoring for a Kore.ai bot: a Dialog Task fired on the End of Task event posts the conversation context to NeuralSeek, which then flags curated intents whose source documents have changed.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": ["KoreAI Logs — round-trip monitoring via Kore.ai event tasks"]
     },
     "integrations/training-virtual-agents": {
@@ -870,7 +870,7 @@
     },
     "integrations/watsonx-assistant-streaming": {
       "title": "watsonx Assistant streaming",
-      "description": "Unlock a dynamic user experience with mAIstro NTL Endpoint and Watsonx Assistant! Learn to enable streaming for faster, interactive chatbot responses. Follow our step-by-step guide to enhance engagement.",
+      "description": "Stream a mAIstro agent's answer into an IBM watsonx Assistant chat by calling it through the NeuralSeek custom extension, with streaming allowed on the agent's LLM node and switched on in watsonx Assistant.",
       "sources": ["guides/integration/wa_context_guide/index.md"],
       "action": "keep",
       "status": "auto",
@@ -878,7 +878,7 @@
     },
     "integrations/nice-cxone": {
       "title": "NICE CXone",
-      "description": ">",
+      "description": "Connect a NICE CXone chat channel to a NeuralSeek mAIstro agent through the Virtual Agent Hub Custom Exchange Endpoint, a CXone Studio script and a proxy-tunnel agent.",
       "sources": ["guides/integration/nice_cxone_integration/index.md"],
       "action": "keep",
       "status": "auto",
@@ -890,7 +890,7 @@
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Credentials and manifest generation",
         "Event handler agents (cross-link maistro/ntl/pipeline-hooks: Slack Event In, Out, Cancel)",
@@ -904,7 +904,7 @@
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Azure Bot credentials, welcome message, app package download",
         "Single-tenant vs multi-tenant — Tenant ID is required for single-tenant and left empty for multi-tenant"
@@ -912,11 +912,11 @@
     },
     "integrations/mcp-server": {
       "title": "MCP server",
-      "description": "Expose your agents as MCP tools over a Bearer-authenticated endpoint, so any MCP client can call them.",
+      "description": "The MCP Server screen gives you your instance's MCP server URL and the Authorization: Bearer header format, so an MCP client can connect with a NeuralSeek API key and consume your mAIstro agents.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Admin Tools > Integrate > MCP Server — endpoint and Bearer auth",
         "Which agents are exposed and how they appear as tools",
@@ -925,11 +925,11 @@
     },
     "integrations/a2a-server": {
       "title": "a2a server",
-      "description": "Expose your agents over the Agent-to-Agent protocol.",
+      "description": "The a2a Server screen under API's & Integration gives the URL and the Bearer authentication header an Agent-to-Agent (a2a) client needs to call your NeuralSeek mAIstro agents.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Admin Tools > Integrate > a2a Server",
         "Cross-link: maistro/ntl/integrations/a2a is the client direction"
@@ -955,16 +955,16 @@
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": ["Admin Tools > Integrate > WebHook — the generic inbound entry point"]
     },
     "integrations/rest-and-console-api": {
       "title": "REST and Console APIs",
-      "description": "NeuralSeek's three API surfaces — the runtime API, the Console (management) API, and the managed KnowledgeBase API — and which one to reach for.",
+      "description": "NeuralSeek has three API surfaces: the runtime API at /v1/<instance id> for Seek, mAIstro and related calls, the Console API at /c1/<instance id> for managing an instance's data, and the separate managed KnowledgeBase API.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Console API — the management API for configuration, curation and governance data",
         "Three API surfaces: runtime API, Console API, and the managed KB API are different things",
@@ -990,7 +990,7 @@
 
     "configuration/overview": {
       "title": "Configuration overview",
-      "description": "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that route matched questions to Seek or to a mAIstro agent, and Guardrails nodes — this page maps the screen and links each part to its own page.",
+      "description": "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that send matching questions to Answer Generation or to a mAIstro agent (mAIstro-led) and can carry a configuration of their own, and Guardrails nodes — this page maps the screen and links each part to its own page.",
       "sources": ["ui/configure/index.md"],
       "action": "rewrite",
       "status": "auto",
@@ -1013,7 +1013,7 @@
     },
     "configuration/neural-config/using-this-page": {
       "title": "Using the Neural Config page",
-      "description": "How a change on the Neural Config screen is committed — Save versus Propose Changes, and the version prompt — plus the node dialogs that belong to no settings section: Add Intent, Default Action, Delete Configuration and the single-agent/multi-agent switch.",
+      "description": "On the Neural Config screen nothing in a dialog applies until you press Save — which on the configuration accordion asks you to name the new version — and this page also covers Propose Changes, the Add Intent and Default Action dialogs, and the Delete Configuration, Delete Category and routing-mode confirmations.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1029,7 +1029,7 @@
     },
     "configuration/neural-config/knowledgebase-connection": {
       "title": "KnowledgeBase Connection",
-      "description": "KnowledgeBase Connection is the first section of the Edit Configuration dialog in Neural Config: it sets the KnowledgeBase Type NeuralSeek queries, the KnowledgeBase Language of that content, and the Notes stored with the configuration — and the type it names decides which other connection fields the section shows.",
+      "description": "KnowledgeBase Connection is the first section of Neural Config's Edit Configuration dialog, where you pick which of sixteen KnowledgeBase Types NeuralSeek retrieves from, state the language of that content, and fill in the connection and field-mapping settings the chosen store needs.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1053,7 +1053,7 @@
     },
     "configuration/neural-config/knowledgebase-tuning": {
       "title": "KnowledgeBase Tuning",
-      "description": "KnowledgeBase Tuning is the Neural Config section that shapes what retrieval hands the LLM: how many documents a Seek returns, how they are scored, how many neighbouring chunks come with a match, how long query results are cached, and whether a mAIstro agent runs over them first.",
+      "description": "KnowledgeBase Tuning is the Neural Config section that shapes what retrieval hands the LLM: how many documents a Seek uses, how they are scored and dated, how much text around a match comes with it, how long query results are cached, and whether a mAIstro agent processes them first.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1067,7 +1067,7 @@
     },
     "configuration/neural-config/llm-details": {
       "title": "LLM Details",
-      "description": "Per-model configuration: which of the 20 LLM functions a model may perform, its model code, context window, cost multiplier and modalities.",
+      "description": "LLM Details is the section of the Neural Config Edit Configuration dialog where you add language models as cards, choose which of twenty LLM Functions each model performs, and set its LLM ID, languages and load-balancing weight.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1086,16 +1086,18 @@
     },
     "configuration/neural-config/managed-llm": {
       "title": "Managed LLM Details",
-      "description": "Pick the NeuralSeek-hosted model and its version.",
+      "description": "A managed LLM is a model NeuralSeek provides: in the Add an LLM dialog you choose Platform NeuralSeek, pick the model under LLM Selection, read its LLM Notes, and its card in LLM Details asks only for LLM Languages under Connection Info.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
-      "status": "stub",
-      "gaps": ["Choosing the NeuralSeek-hosted model and its version (V1–V2.1)"]
+      "status": "auto",
+      "gaps": [
+        "Add an LLM → Platform NeuralSeek → LLM Selection: the managed models (Managed GPT, gpt-5-mini, gpt-oss-120b/20b, Managed Claude Opus/Sonnet/Haiku, gpt-4o-mini-tts, gpt-image, Translate) — what each is for and its capabilities"
+      ]
     },
     "configuration/neural-config/embedding-models": {
       "title": "Embedding models",
-      "description": "The Embedding Models section of Edit Configuration lists one card per embedding model and assigns each model to KB Search, mAIstro or Vector Intent.",
+      "description": "The Embedding Models section of Edit Configuration adds embedding models from AWS, Azure, NeuralSeek, OpenAI or watsonx.ai and assigns each one to KB Search, mAIstro or Vector Intent.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1121,7 +1123,7 @@
     },
     "configuration/neural-config/platform-preferences": {
       "title": "Platform Preferences",
-      "description": "Platform Preferences is the section of the Edit Configuration dialog in Neural Config that sets instance-wide request behaviour: the generation timeout, how much conversation context is carried and for how long, cross-language and default output language, filter relaxation, plan streaming and logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords and HTML cleansing, and the mAIstro agents run on save and after each Seek.",
+      "description": "Platform Preferences is the Neural Config section that sets instance-wide request behaviour: the generation timeout, conversation context, cross-language and default output language, filter relaxation, plan streaming and logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords, HTML cleansing, and the mAIstro agents run on save and after each Seek.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1142,7 +1144,7 @@
     },
     "configuration/neural-config/prompt-engineering": {
       "title": "Prompt Engineering",
-      "description": "Prompt Engineering is the section of the Edit Configuration dialog where an expert user injects extra instructions into the LLM prompt and shifts NeuralSeek's baseline temperature, top probability, frequency penalty and token cap — at the cost of support for the instance.",
+      "description": "Prompt Engineering is the Neural Config section where an expert user adds instructions to NeuralSeek's LLM prompt and offsets temperature, top probability, frequency penalty and maximum tokens for Seek answers, at the cost of support for the instance.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1157,7 +1159,7 @@
     },
     "configuration/neural-config/intent-matching-caching": {
       "title": "Intent Matching & Cache",
-      "description": "How an incoming question is matched to a known intent, and the conditions under which a cached answer may be served.",
+      "description": "The Intent Matching & Cache Configuration section of a NeuralSeek configuration sets how questions are grouped into intents and when an edited or recent answer may be served from cache instead of being generated.",
       "sources": [],
       "action": "new",
       "console": ["neural-config"],
@@ -1184,11 +1186,11 @@
     },
     "configuration/administration/api-keys": {
       "title": "API keys",
-      "description": "Create, scope and expire API keys — including per-endpoint scoping and the rule that an unscoped key is an admin key.",
+      "description": "The API Keys screen creates, scopes, expires and deletes the keys that authenticate calls to NeuralSeek; a key left unscoped has full access.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Bulk create — 1 to 100 keys at once, auto-numbered from the name you give",
         "Key expiration — optional expiry date, with Expires and Expired badges",
@@ -1205,7 +1207,7 @@
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "Admin Tools > Integrate > Embed Seek & mAIstro",
         "Embed code vs API key — embed codes are safe in browser code, API keys are not"
@@ -1216,8 +1218,8 @@
       "description": "Manage who can reach your instance and what each of the 13 permissions unlocks — including two that grant more than their name suggests.",
       "sources": [],
       "action": "new",
-      "console": ["admin-tools"],
-      "status": "stub",
+      "console": ["profile"],
+      "status": "auto",
       "gaps": [
         "Users page — manage authorized users and their permissions (avatar > Users)",
         "Profile page — your user ID and your enabled capabilities",
@@ -1231,8 +1233,8 @@
       "description": "What a new user gets before an admin touches anything.",
       "sources": [],
       "action": "new",
-      "console": ["admin-tools"],
-      "status": "stub",
+      "console": ["profile"],
+      "status": "auto",
       "gaps": ["avatar > Default Permissions — the baseline every new user starts from"]
     },
     "configuration/administration/self-hosting-an-llm": {
@@ -1272,7 +1274,7 @@
     },
     "configuration/supported-llms": {
       "title": "Supported LLMs",
-      "description": "Which language models NeuralSeek can use is decided by the Add an LLM dialog in LLM Details on your own instance, not by a fixed list; this page explains how to read that list, what a Managed model card is, and where each model's settings live.",
+      "description": "The language models NeuralSeek supports are the ones offered by the Add an LLM dialog in Neural Config's LLM Details section — 14 platforms including xAI, DeepSeek, Perplexity, Xiaomi and NeuralSeek's own managed models — and each model's LLM Notes state what it cannot do before you add it.",
       "sources": ["ui/integrate/integrations/supported_llms/supported_llms.md"],
       "action": "keep",
       "status": "auto",
@@ -1284,7 +1286,7 @@
     },
     "configuration/multi-llm": {
       "title": "Multi-LLM",
-      "description": "A NeuralSeek instance can run several LLMs at once: each model is a card in LLM Details, each card claims the functions it is allowed to perform, two cards sharing a function are load-balanced, and a function no card claims is disabled with no fallback.",
+      "description": "A NeuralSeek instance can run several LLMs at once: each model is a card in LLM Details, each card claims the LLM Functions it performs, a function ticked on two cards is load-balanced across them, and a function no card claims is disabled with no fallback.",
       "sources": ["features/multi_llm/index.md"],
       "action": "keep",
       "status": "auto",
@@ -1292,7 +1294,7 @@
     },
     "configuration/multimodal": {
       "title": "Multimodal LLM configuration",
-      "description": "NeuralSeek records which model can produce or transform media through six checkboxes on each LLM Details card — Image Generation, Image Edits, Video, Speech, Music and Speech to Text — and greys out the ones a model cannot do.",
+      "description": "Six of the LLM Functions on every LLM Details model card — Image Generation, Image Edits, Video, Speech, Music and Speech to Text — decide which model handles media jobs, and the Add an LLM dialog's LLM Notes show a model's media support before you add it.",
       "sources": ["guides/models/multimodal/index.md"],
       "action": "keep",
       "status": "auto",
@@ -1300,7 +1302,7 @@
     },
     "configuration/semantic-model": {
       "title": "Semantic model tuning",
-      "description": "The Semantic Scoring tab of a configuration's Guardrails dialog switches NeuralSeek's semantic score model on, decides whether that score drives the Warning and Minimum confidence guardrails and reranking, and opens the Semantic Model Tuning modal that holds its penalties and weights.",
+      "description": "The Semantic Model Tuning modal, opened from the Semantic Scoring tab of a configuration's Guardrails dialog, holds the six penalties and weights and the always-allowed terms that decide how NeuralSeek's semantic score rates an answer against its KnowledgeBase sources.",
       "sources": ["guides/models/semantic_model/index.md"],
       "action": "keep",
       "status": "auto",
@@ -1311,7 +1313,7 @@
     },
     "configuration/language": {
       "title": "Language handling",
-      "description": "Where NeuralSeek's three language settings live — KnowledgeBase Language, Default Output Language and Cross Language — how they decide which language a question is retrieved and answered in, and which LLM card handles translation and language identification.",
+      "description": "NeuralSeek's language behaviour is set by three Neural Config settings — KnowledgeBase Language, Default Output Language and Cross Language — and carried out by the LLM cards that have the Translate and Fallback Language Id functions enabled.",
       "sources": ["features/language/index.md", "features/language_indentification/index.md"],
       "action": "merge",
       "status": "auto",
@@ -1319,7 +1321,7 @@
     },
     "configuration/backup-restore": {
       "title": "Backup, restore & change logs",
-      "description": "Effortlessly manage your NeuralSeek settings with our comprehensive Backup and Restore guide. Learn to download, edit, and re-upload curated data, ensuring your content is always secure and up-to-date.",
+      "description": "The Neural Config screen's floating toolbar holds Backup & Restore, which downloads or uploads a configuration settings file and backs up or restores the whole instance, and Change Logs, which lists every saved configuration version by date, user and label with a Rollback action per row.",
       "sources": ["guides/integration/backup_and_restore/index.md"],
       "action": "keep",
       "status": "auto",
@@ -1689,7 +1691,7 @@
     },
     "governance/entity-extraction": {
       "title": "Entity extraction",
-      "description": "Discover NeuralSeek's Entity Extraction feature, enabling seamless entity detection in text with custom definitions and multilingual support. Integrate effortlessly via REST API to enhance virtual agents.",
+      "description": "NeuralSeek entity extraction reads a sentence and returns the entities it detects, each as an entity type with the matched text, for use in mAIstro agents, virtual agents and chatbots.",
       "sources": ["features/entity_extraction/index.md"],
       "action": "keep",
       "status": "auto",

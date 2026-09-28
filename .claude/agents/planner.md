@@ -40,7 +40,10 @@ Decide, in this order, and write the reasoning in ≤ 15 lines:
 1. **Routes and order.** Every queued route gets an `action`: `write` (stub or never written),
    `rewrite` (written before; say why it is worth rewriting — a richer capture, open backlog,
    parked last time), or `skip` with a reason (not in capture, empty, written from this very
-   capture already, blocked on a Fabio decision). Order: stubs and pages other pages link to
+   capture already, blocked on a Fabio decision). **"Not in capture" in an earlier report is not a
+   reason by itself** (v3.4): if `area.json` `variants`/`sweeps` list the route, this run captures
+   it — plan `write`. Skip it only when `captures.json → <area>.variants.attempts` shows that
+   variant already failed (`ok: false`); then it goes to the `fabio` backlog, never re-requested. Order: stubs and pages other pages link to
    first, then rewrites, then cross-area. You may **add** a route that is briefed in this
    capture and not queued (a `route:` backlog target, a page the queued ones link to) — only
    those; the validator drops anything else.
@@ -57,7 +60,10 @@ Decide, in this order, and write the reasoning in ≤ 15 lines:
 chars, expect}`), within the runner's limits and rules (never a config change, never the
    `support_*` agents).
 6. **Stages.** `explore: run|skip` (skip only in write-only), `understand: run|skip` (skip only
-   when every route in the plan has a brief), `probe: run|skip`, `ia: auto|run|skip`.
+   when every route in the plan has a brief), `experiment: run|skip` (the experimenter — skip only
+   in write-only or when `playground-versions.json` has no `current`), `probe: run|skip`,
+   `ia: auto|run|skip`. The restore gate after the explorer and after the experiments is not
+   yours to skip: a FAIL halts the run.
 7. **Checkpoints.** One sentence per stage saying what "good" looks like for this run (e.g.
    `explore: "≥ 12 accordion states with section crops; the 3 capture requests recorded"`),
    so the review mode has your expectation, not just the digest.

@@ -44,12 +44,59 @@ export function rcInstance(): string | null {
 export const consoleUrl = (inst: Instances, page: string) =>
 	`https://${inst.host}/${inst.playground}/${page.replace(/^\//, '')}`;
 
-/** A control whose name matches commits an action — information for the explorer (never clicked by the walk). */
+/**
+ * A control whose name matches commits an action. The walk never plans it, and the browser hook
+ * (via scripts/agentic/ref-context.ts) refuses the click for every pipeline agent. `propose`,
+ * `rollback`, `revert`, `activate` were added 2026-09-26: Neural Config's "Propose Changes" and the
+ * Change Log's one-click Rollback commit with no confirmation.
+ */
 export const COMMIT_VERBS =
-	/\b(save|run|submit|delete|remove|apply|update|test|send|generate|regenerate|upload|merge|train|enhance|import|export|reset|clear|confirm|ok|yes|create|add|edit|publish|deploy|start|stop|execute|sign out|log ?out)\b/i;
+	/\b(save|run|submit|delete|remove|apply|update|test|send|generate|regenerate|upload|merge|train|enhance|import|export|reset|clear|confirm|ok|yes|create|add|edit|publish|deploy|start|stop|execute|propose|rollback|revert|activate|sign out|log ?out)\b/i;
 
-/** Same list as .claude/hooks/pw-policy.sh — the hook never lets these be clicked, on any instance. */
+/**
+ * Where an experiment may change a setting (agentic v3.4): accordions of Neural Config's Edit
+ * Configuration dialog whose settings only shape answers. An ALLOWLIST on purpose — a label
+ * denylist lets "enable corporate logging" through. Not here, and why: KnowledgeBase Connection /
+ * LLM Details / Embedding Models (switching breaks every later Seek), Corporate Logging / Document
+ * Filter (call outside endpoints), Secrets, Dynamic Personalization (user data), mAIstro
+ * Configuration (runs agents). Guardrails is a separate dialog whose Save has not been verified.
+ */
+export const EXPERIMENT_SECTIONS = [
+	'KnowledgeBase Tuning',
+	'Platform Preferences',
+	'Prompt Engineering',
+	'Answer Engineering & Preferences',
+	'Intent Matching & Cache Configuration',
+	'Company / Organization Preferences',
+] as const;
+export const VERSIONS_FILE = join(V2_DIR, 'playground-versions.json');
+export type Versions = {
+	current: string;
+	versions: { name: string; savedAt: string; purpose?: string; rolledBackTo?: string[] }[];
+	normalisedOnLoad: string[];
+	pending: null | {
+		run: string;
+		id: string;
+		versionName: string;
+		control: string;
+		value: string;
+		baseline: string;
+		since: string;
+		baselineVersion: string;
+		baselineSavedAt: string;
+	};
+};
+
+/** Never clicked by anyone, main session included (ref-context.ts). */
 export const DESTRUCTIVE = /\b(delete|remove|purge|erase|reset|clear all|sign out|log ?out)\b/i;
+
+/**
+ * "Edit Configuration", "Add an LLM", "Create agent" OPEN something; the commit happens on the Save
+ * inside. An opener wins over COMMIT_VERBS — but only with an object after the verb: a bare "Add" or
+ * "Create" is the commit button of the dialog it opened.
+ */
+export const isOpener = (name: string) =>
+	/^(edit|add|create|new|configure|manage|view|show|open)\b\s+\S/i.test(name.trim());
 
 export type Route = {
 	title: string;
@@ -134,10 +181,11 @@ export const LIMITS = {
 	fixPassesPerPage: 1, // beyond the evaluator-optimizer loop's own pass
 	writerPassesPerRoute: 2,
 	states: 40,
+	experimentsPerArea: 5,
 	sectionsPerState: 20,
 	probesPerArea: 10,
 	probeInputChars: 200,
-	understandBatch: 8,
+	understandBatch: 3, // 8 overflowed the context on a 74-state capture (run 202609270311)
 	plannerCalls: { plan: 1, delegate: 1, reviewPerStage: 1 },
 } as const;
 export const BACKLOG_TARGETS = ['capture', 'route', 'probe', 'fabio'] as const;
@@ -231,6 +279,22 @@ export function parseSnapshot(yaml: string): SnapNode[] {
 	}
 	return roots;
 }
+
+/** The label Carbon puts beside a widget: a text-only `generic` sibling ("KnowledgeBase Type"). */
+export const labelBeside = (n: SnapNode): string =>
+	(
+		n.parent?.children.find((c) => c !== n && c.role === 'generic' && !c.children.length && c.text)
+			?.text ?? ''
+	).trim();
+/** The accordion a node sits in: the nearest listitem's named button ("KnowledgeBase Connection"). */
+export const accordionOf = (n: SnapNode): string => {
+	for (let p = n.parent; p; p = p.parent)
+		if (p.role === 'listitem') {
+			const b = p.children.find((c) => c.role === 'button' && c.name);
+			if (b) return b.name;
+		}
+	return '';
+};
 
 export function walkSnapshot(nodes: SnapNode[], fn: (n: SnapNode) => void) {
 	for (const n of nodes) {

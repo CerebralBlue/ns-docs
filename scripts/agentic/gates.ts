@@ -14,8 +14,8 @@
  *   links      every internal ](/…) link resolves to a route, a renamed key, or a file; a link
  *              whose sentence names a **topic** the (unwritten) target page does not mention is
  *              a warning line, never a FAIL
- *   images     every image exists, is not an old-docs carry-over, and a placeholder is
- *              followed by a SCREENSHOT marker within 3 lines
+ *   images     every image exists, is not an old-docs carry-over, is used once per page, and a
+ *              placeholder is followed by a SCREENSHOT marker within 3 lines
  *   coverage   the page names ≥ 90 % of the controls coverage-plan.json assigns to it — owned
  *              plus the shared ones naming the route; zero on a console route FAILs
  *              (coverage.ts — the writer's own check, re-run here)
@@ -23,6 +23,8 @@
  *              (the capture has a crop per section; a placeholder there is a writer omission)
  *   values     WARN: bold labels / code values on the page that no snapshot of the capture
  *              contains and no UNCONFIRMED marker covers (values.ts) — the reviewer rules on each
+ *   audience   the page talks to a customer: no "playground", "the MCP", "probe", "our test";
+ *              no control explained "by its label"
  *   facts      ≤ 4 `<!-- UNCONFIRMED: … -->` markers; more means the page is old prose with a
  *              new coat and Fabio should look at it. Reference-kind routes are exempt.
  *
@@ -199,9 +201,16 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 	} catch {
 		detail.push('note: scripts/old-docs-image-hashes.json missing — stale-image check inert');
 	}
+	const seenAt = new Map<string, number>();
 	outsideFences((line, i) => {
 		for (const m of line.matchAll(/!\[[^\]]*\]\((\/img\/[^)\s]+)\)/g)) {
 			const p = m[1];
+			// One picture, one place: the same screenshot under two sections explains neither.
+			if (p !== PLACEHOLDER && seenAt.has(p))
+				detail.push(
+					`line ${at(i)}: ${p} is already shown at line ${seenAt.get(p)} — crop the section instead`
+				);
+			else seenAt.set(p, at(i));
 			if (p === PLACEHOLDER) {
 				if (!/<!--\s*SCREENSHOT:/.test(lines.slice(i + 1, i + 4).join('\n')))
 					detail.push(`line ${at(i)}: placeholder without a SCREENSHOT marker within 3 lines`);
@@ -315,6 +324,35 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 		`${marks.length} unconfirmed fact(s)${isReference ? ' (reference kind — no limit)' : ''}`,
 		...marks.map((m) => `unconfirmed: ${m}`),
 	]);
+}
+// ── audience ─────────────────────────────────────────────────────────────
+// The reader is a customer: the page never talks about how it was researched (the playground,
+// the MCP, probes, runs) and never explains a control "by its label" — that is a guess, not a fact.
+{
+	const TALK = /\b(playground|the MCP|probe[sd]?|our tests?|we tested|during (the|this) run)\b/i;
+	const HEDGE = /\b(by its label|(its|the) label (suggests|says|implies)|going by the label)\b/i;
+	const detail: string[] = [];
+	const noComments = body.replace(/<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, ' '));
+	const plain = noComments.split('\n');
+	let inFence = false;
+	for (const [i, line] of plain.entries()) {
+		if (/^\s*(`{3,}|~{3,})/.test(line)) {
+			inFence = !inFence;
+			continue;
+		}
+		if (inFence) continue;
+		const t = line.match(TALK);
+		if (t)
+			detail.push(
+				`line ${at(i)}: "${t[0]}" — pages are for customers; describe the product, not how it was researched`
+			);
+		const h = line.match(HEDGE);
+		if (h)
+			detail.push(
+				`line ${at(i)}: "${h[0]}" — say what the control does (experiment, probe, or an UNCONFIRMED source), not what its label suggests`
+			);
+	}
+	gate('audience', detail.length ? 'FAIL' : 'PASS', detail);
 }
 // ── values (WARN — never parks; the reviewer rules on each) ───────────────
 {

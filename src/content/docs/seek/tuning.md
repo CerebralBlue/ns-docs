@@ -1,61 +1,67 @@
 ---
 title: 'Tuning answers'
-description: 'Tuning a NeuralSeek agent means controlling which documentation reaches the LLM and how the LLM is told to write from it — diagnosed on the Seek tab and changed in the Edit Configuration dialog of Neural Config.'
+description: 'Tuning NeuralSeek answers means checking a real answer on the Seek tab, then shaping it with the Answer Engineering & Preferences and Company / Organization Preferences sections of Neural Config, after KnowledgeBase Tuning has the right documents reaching the LLM.'
 ---
 
 ## What is it
 
 Tuning is the work of getting better answers out of a KnowledgeBase that is already connected.
-The KnowledgeBase is the ground truth: everything Seek generates is built from the passages it
-returns, so tuning is mostly about controlling _which_ documentation reaches the LLM and _how
-much_ of it, plus a small number of settings that tell the LLM how to write what comes back.
+Every answer Seek generates is built from the passages the KnowledgeBase returns, so tuning has
+two halves: controlling _which_ documentation reaches the LLM, and controlling _how_ the LLM writes
+from it.
 
-It happens in two places. You diagnose on the [Seek](/seek/overview/) tab, where an answer
-arrives with the source documents that produced it. You change settings in the
-**Edit Configuration** dialog on the Neural Config screen, in three accordions: **KnowledgeBase
-Tuning** for retrieval, **Answer Engineering & Preferences** for the shape of the answer, and
-**Company / Organization Preferences** for the standing context every answer carries.
+This page covers the second half. It documents two sections of the **Edit Configuration** dialog
+on the Neural Config screen:
+
+- **Answer Engineering & Preferences** — how long a typical answer is, whether answers must come
+  from the KnowledgeBase, and regular-expression rewrites applied to your content and to answers.
+- **Company / Organization Preferences** — your organization's display name, company affinity,
+  and a Stump Speech passed to the LLM with every Seek.
+
+The retrieval half — how many documents reach the LLM and how closely they must match — is on
+[KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/). The prompt and sampling
+controls (temperature, top probability, penalties, maximum tokens) are on
+[Prompt Engineering](/configuration/neural-config/prompt-engineering/).
 
 ## Why it matters
 
 An LLM asked a question with poor source material still answers. The failure is quiet: a fluent,
-plausible, wrong response. Most answer-quality problems in a NeuralSeek deployment are retrieval
-problems wearing a generation problem's clothes — the model wrote a reasonable paragraph out of
-the wrong documents.
+plausible, wrong response. Many answer-quality problems are retrieval problems that look like
+generation problems — the model wrote a reasonable paragraph out of the wrong documents. That is
+why the product asks you to look at a real answer, and the documents behind it, before moving
+anything.
 
-The controls here also carry trade-offs in both directions. More documents per Seek is not
-better, and a longer answer is not better. Each lever has a direction that helps a given
-deployment and a direction that hurts it, which is why the product asks you to look at a real
-answer before moving anything.
+Once the right documents arrive, the settings on this page decide what the reader actually gets:
+an answer of the right length, in your organization's voice, with text you never want shown
+removed or replaced.
 
-Tuning is the wrong tool when the documentation itself does not answer the question. No slider
-turns a missing passage into a present one; fix the source and come back.
+Tuning is the wrong tool when the documentation does not answer the question at all. No setting
+turns a missing passage into a present one; fix the source content first.
 
 ## When to use it
 
-- A new instance whose answers have never been reviewed.
-- Answers that are irrelevant or inaccurate, or that vary between identical questions.
-- Answers that are too long, too short, or that drift away from your own documentation.
-- Answers that should carry your organization's name or a fixed piece of standing context.
-- Answers or training data that contain text you need stripped or swapped, such as phone
-  numbers or email addresses.
+- A new deployment whose answers have never been reviewed.
+- Answers that are too long or too short for where they are shown.
+- Answers that should refer to your organization by name, or that need a fixed piece of standing
+  context every time.
+- KnowledgeBase content or answers that contain text you need stripped or swapped, such as phone
+  numbers or e-mail addresses.
+- Answers that pull in irrelevant documents — start on
+  [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) instead.
 
 ## How it works
 
 Every setting on this page lives in one dialog. On the Neural Config screen, select the
-**Default Config / Answer Generation** node on the routing tree, then **Edit Configuration**.
-The dialog is titled **Configuration: Default Config** and opens with one accordion per
-configuration section; its footer carries **Propose Changes** and **Save** — nothing you change
-takes effect until you select **Save**. See
+**Default Config / Answer Generation** node on the routing tree to open **Edit Configuration**.
+The dialog holds one expandable section per configuration area; its footer carries
+**Propose Changes** and **Save**. See
 [Using this page](/configuration/neural-config/using-this-page/) for how saving and proposals
 behave, and [Configuration overview](/configuration/overview/) for the routing tree itself.
 
-![The Configuration: Default Config dialog with the Answer Engineering & Preferences accordion open, and Propose Changes and Save in the footer](/img/neural-config/answer-engineering-preferences.png)
+### Diagnose on the Seek tab first
 
-### Start on the Seek tab, then narrow what reaches the LLM
-
-The **KnowledgeBase Tuning** accordion opens with the product's own tuning loop, and it is the
-right order of work:
+The **KnowledgeBase Tuning** section of the same dialog opens with the product's own tuning
+advice, and it sets the order of work:
 
 > Tuning your Knowledgebase is an important part of creating a well performing system. Start by
 > entering a seek on the seek tab, and looking at the documentation in the accordions below the
@@ -64,208 +70,185 @@ right order of work:
 > you bringing back more than you need (irrelevant docs) - set a max docs per seek or lower
 > document score window.
 
-So the source documentation is checked before any slider is touched: ask the failing question on
-the [Seek](/seek/overview/) tab, open the accordions under the answer, and read what the
-KnowledgeBase actually sent to the LLM. If that passage does not answer the question, no setting
-on this page will make the answer correct. How the answer is scored against those sources is
-covered on [Semantic model tuning](/configuration/semantic-model/).
+![The KnowledgeBase Tuning section: the tuning paragraph above the Document Score Range and Max Documents per Seek sliders](/img/neural-config/knowledgebase-tuning--document-score-range.png)
 
-![The KnowledgeBase Tuning accordion: the tuning paragraph above the Document Score Range and Max Documents per Seek sliders](/img/neural-config/knowledgebase-tuning--document-score-range.png)
+So the loop is:
 
-When the top document is right but the answer still mixes in unrelated material, the paragraph
-names the two retrieval controls to reach for. Both live in the same accordion and are documented
-in full on [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/); in tuning
-terms:
+1. Ask the failing question on the [Seek](/seek/overview/) tab and look at the source documents
+   listed under the answer.
+2. If the top document is wrong or incomplete, the problem is retrieval. Work on
+   [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) first.
+3. If irrelevant documents come back with the right one, the paragraph's own advice applies: cap
+   **Max Documents per Seek** or narrow **Document Score Range**. Both are documented in full on
+   [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/).
+4. Once the right documents arrive, shape the answer with the two sections below.
 
-- **Max Documents per Seek** — the paragraph's first suggestion for irrelevant documents ("set a
-  max docs per seek"). It caps how many documents reach the LLM, so a good answer is not diluted
-  by near-misses. The slider runs from `Unlimited` to `30`; the instance captured here holds `2`.
-- **Document Score Range** — the paragraph's "document score window". Lowering it narrows the
-  share of scored documents considered. The slider runs from `0%` to `100%`; the instance
-  captured here holds `0.8`.
+Change one setting at a time, save, and ask the same question again. Changing three settings
+together tells you nothing about which one moved the answer. How an answer is scored against its
+sources is covered in [Semantic model tuning](/configuration/semantic-model/); the sampling
+controls that change how the LLM phrases an answer are on
+[Prompt Engineering](/configuration/neural-config/prompt-engineering/).
 
-For most deployments a few high-quality documents beat many loosely related ones. If an answer
-stitches together unrelated material, lower **Max Documents per Seek** before anything else.
+### Answer Engineering & Preferences
 
-The paragraph also mentions adjusting snippet size. No control by that name exists in the
-KnowledgeBase Tuning accordion captured for this page, whose KnowledgeBase Type is NeuralSeek KB
-— so on that configuration there is nothing to adjust, and the sliders above are the retrieval
-levers you have.
+Expand **Answer Engineering & Preferences** in the Edit Configuration dialog. It opens with two
+controls, followed by the regular-expression table described in the next section.
 
-### How long an answer should be
+**How verbose should an average answer be?** is a slider with `Very Concise` at the left end and
+`Very Verbose` at the right. It has no number, no value box and no help text beside it: you set a
+position, not a value.
 
-The first control in the **Answer Engineering & Preferences** accordion is
-**How verbose should an average answer be?** — a slider running from `Very Concise` on the left
-to `Very Verbose` on the right. Unlike the other sliders in the dialog it carries no number and
-no value box: you set a position, not a value. On the instance captured here the handle sits left
-of centre, about a third of the way from `Very Concise`. There is no help text beside it.
+![The How verbose should an average answer be? slider, from Very Concise to Very Verbose](/img/neural-config/answer-engineering-preferences--verbosity.png)
 
-![The How verbose should an average answer be? slider, from Very Concise to Very Verbose](/img/neural-config/answer-engineering-preferences--how-verbose-should-an-average-answer-be.png)
+The screen ties this slider to the length of what the LLM is asked to generate. The
+**Prompt Engineering** section describes its Maximum Tokens slider as "Maximum Tokens. Adjust our
+baseline (varies per answer verbosity) requested maximum tokens." So the verbosity position sets
+the baseline token budget, and Maximum Tokens shifts that baseline up or down. Move the slider
+toward `Very Concise` when answers are longer than the place they are shown can hold, toward
+`Very Verbose` when they are too clipped to be useful, then re-ask the same question and compare.
 
-Move it toward `Very Concise` when answers are long or padded; move it toward `Very Verbose` when
-answers are too clipped to be useful. The setting also feeds how much the LLM is asked to
-generate: the **Prompt Engineering** accordion describes its **Maximum Tokens** control as
-"Adjust our baseline (varies per answer verbosity) requested maximum tokens", so a more concise
-setting is one of the levers to reach for when answers arrive late or cut short. See
-[Prompt Engineering](/configuration/neural-config/prompt-engineering/) for that control.
+<!-- UNCONFIRMED: a more concise verbosity, together with fewer documents per Seek, helps answers that time out — previous MkDocs tuning guide -->
 
-### Keeping answers inside your documentation
+If answers time out, a more concise setting is one of the levers to try, together with fewer
+documents per Seek. The timeout itself is set in
+[Platform Preferences](/configuration/neural-config/platform-preferences/).
 
-**Force Answers from the Knowledgebase** is a list in the same accordion with two options,
-`True` and `False`; the instance captured here is set to `True`. The label is the whole of its
-on-screen description — there is no help text — and it is the control to check first when the
-LLM is answering from general knowledge instead of from your documents.
+**Force Answers from the Knowledgebase** is a list with two options, `True` and `False`. The
+screen gives no help text for it; its label is the only on-screen description.
 
-![The Force Answers from the Knowledgebase list, set to True](/img/neural-config/answer-engineering-preferences--force-answers-from-the-knowledgebase.png)
+![The Force Answers from the Knowledgebase list, with its label underneath](/img/neural-config/answer-engineering-preferences--force-answers.png)
 
-![The open Force Answers from the Knowledgebase list showing its two options, True and False](/img/neural-config/answer-engineering-preferences--options-force-answers-from-the-knowledgebase.png)
+![The open Force Answers from the Knowledgebase list, with True ticked](/img/neural-config/answer-engineering-preferences--options-force-answers.png)
 
-With the setting at `True`, a question the KnowledgeBase cannot answer comes back as a decline
-rather than as the model's own knowledge. Asked "What is the capital of France?" via the MCP,
-the instance captured here answered:
+<!-- UNCONFIRMED: set Force Answers from the Knowledgebase to True so answers stay grounded in your KnowledgeBase — previous MkDocs tuning guide recommendation; no screen text or test shows what True or False changes in an answer -->
 
-```text
-The documentation does not contain information about the capital of France.
-```
-
-The answer came back with a KB score of 10 and a semantic score of 11 — the decline is what a
-low-scoring retrieval looks like with this setting on. If the setting is already `True` and
-answers still drift, the problem is upstream: the retrieved documents are the thing to inspect.
+The previous tuning guide recommended `True`, to keep answers grounded in your KnowledgeBase
+rather than the model's general knowledge. If you are unsure which your deployment needs, ask the
+same off-topic question with each value (save between them) and compare the answers before
+settling on one.
 
 ### Rewriting text with regular expressions
 
-The same accordion holds a replacement table, described on screen as:
+Below the two controls, the section holds a replacement table. The screen describes it in its own
+words (spelling as shown):
 
 > Answer Engineering uses Javascript Regular Expressions to selectivley replace text in both the
 > KnowledgeBase training data and the live generated answer. Use this to remove or swap phone
 > numbers, emails, etc...
 
-![The Answer Engineering & Preferences accordion: verbosity slider, Force Answers from the Knowledgebase, and the Regular Expression / Replacement table with its add-row button](/img/neural-config/answer-engineering-preferences-panel.png)
+![The Answer Engineering & Preferences section as it opens in the Edit Configuration dialog, with the verbosity slider and the Force Answers list; the regular-expression table sits further down the section](/img/neural-config/answer-engineering-preferences-panel.png)
 
-Each row pairs a **Regular Expression** with a **Replacement**. The instance captured here has a
-single empty row; the only control in it is the icon button at the end of the row, whose tooltip
-reads **Add a new row.** — the same button the Secrets table uses (see
-[Secrets](/configuration/neural-config/secrets/)). Because the expression is applied to the
-training data as well as to the generated answer, a broad pattern changes what the LLM sees, not
-only what the reader sees — keep patterns narrow and specific.
+The table has two named columns, **Regular Expression** and **Replacement**, and a third, unnamed
+column that holds an icon button whose tooltip reads **Add a new row.** Select it to add a row.
+Each row pairs a pattern to match with the text that takes its place. An empty table shows the
+header row and a single row holding only that button.
+
+Because the rewrite applies to the KnowledgeBase training data as well as to the generated answer,
+a broad pattern changes what the LLM sees, not only what the reader sees. Keep patterns narrow,
+and after you save, re-ask a question whose answer exercises the pattern.
 
 :::caution
-This is a text substitution, not a redaction guarantee. For detecting and masking personal data,
-use [PII detection](/governance/pii-detection/) rather than a regular expression here.
+This is a text substitution you write and maintain yourself, not a detector. For finding and
+masking personal data, use [PII detection](/governance/pii-detection/).
 :::
 
-### Telling the LLM who you are
+### Company / Organization Preferences
 
-The **Company / Organization Preferences** accordion adds standing context to every Seek, which
-is why it belongs to tuning: it changes answers without changing retrieval. It holds three
-fields.
+Expand **Company / Organization Preferences** in the same dialog. It holds three fields that add
+standing context to every Seek. They change answers without changing retrieval, which is why they
+belong to tuning.
 
-**Enter the company or organization display name** is a text box; the label sits under it. The
-instance captured here holds `Neuralseek`. There is no help text.
+**Enter the company or organization display name** is a text box for the name of your company or
+organization. There is no help text beside it. Fill it in with the name your answers should use.
 
-![The display name text box, holding Neuralseek, with its label underneath](/img/neural-config/company-organization-preferences--enter-the-company-or-organization-displa.png)
+![The display name text box with its label, Enter the company or organization display name](/img/neural-config/company-organization-preferences--display-name.png)
 
-**Company Response Affinity** is a list whose full on-screen label reads "Company Response
-Affinity (add affinity to the company on top of any affinity that may be already present in
-your KnowledgeBase and Stump Speeches)". Its two options are `Add company affinity` and
-`Do not add affinity`; the instance captured here is set to `Do not add affinity`. The
-parenthetical is the only description of what affinity means: a pro-company slant added on top
-of whatever your documents and stump speech already carry.
+**Company Response Affinity** is a list. Its full on-screen label is its only explanation:
+"Company Response Affinity (add affinity to the company on top of any affinity that may be already
+present in your KnowledgeBase and Stump Speeches)". The screenshot below shows it set to
+`Do not add affinity`; the list's other options are not documented here yet. Leave it at `Do not add affinity`
+when your KnowledgeBase and Stump Speech already say what you want said about your company.
 
-![The Company Response Affinity list, set to Do not add affinity, with its full label](/img/neural-config/company-organization-preferences--company-response-affinity-add-affinity-t.png)
-
-![The open Company Response Affinity list showing Add company affinity and Do not add affinity](/img/neural-config/company-organization-preferences--options-company-response-affinity-add-affinity-t.png)
+![The Company Response Affinity list showing Do not add affinity, with its full label](/img/neural-config/company-organization-preferences--response-affinity.png)
 
 **Stump Speech** is a multi-line text box whose full label reads "Stump Speech. A block of text
-that will be passed to the LLM on every single seek as part of the provided documentation." It
-is empty on the instance captured here; the grey text `ABC company is a great company that can
-help you do things.` is the box's placeholder, not a value.
+that will be passed to the LLM on every single seek as part of the provided documentation." Its
+placeholder, `ABC company is a great company that can help you do things.`, is grey example text,
+not a value.
 
-![The Company / Organization Preferences accordion: display name, Company Response Affinity, and the empty Stump Speech box showing its placeholder](/img/neural-config/company-organization-preferences-panel.png)
+![The Company / Organization Preferences section: the display name box, the Company Response Affinity list and the Stump Speech box with its placeholder; the Embedding Models card above it is also in frame](/img/neural-config/company-organization-preferences-panel.png)
 
-Because the stump speech is passed on every single Seek, it takes up context on every call. Keep
-it to facts the model must always have — not a marketing paragraph.
+Use the Stump Speech for facts every answer should be able to draw on — who you are, what you
+offer — without depending on retrieval to find them. Because it is passed as part of the provided
+documentation on every Seek, it takes up part of that documentation on every call; keep it to a
+few sentences the model must always have rather than a marketing paragraph.
 
 ### Starting points from the previous guide
 
-<!-- UNCONFIRMED: the starting points below (Document Score Range 0.6–0.8, Max Documents per Seek 4–5, verbosity toward Very Concise, Force Answers True) — carried over from the previous MkDocs tuning guide; no captured screen or probe states them as product defaults or recommendations -->
+<!-- UNCONFIRMED: the starting points below (Document Score Range 0.6–0.8, Max Documents per Seek 4–5, verbosity toward Very Concise, Force Answers True) — previous MkDocs tuning guide; no screen states them as defaults or recommendations -->
 
-These are starting points carried over from the previous tuning guide, not product defaults.
-The values on your instance will differ.
+These starting points come from the previous tuning guide. They are not product defaults, and the
+right values depend on your content.
 
-| Setting                                  | Where                                                                      | Starting point        |
-| ---------------------------------------- | -------------------------------------------------------------------------- | --------------------- |
-| Document Score Range                     | [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) | `0.6` – `0.8`         |
-| Max Documents per Seek                   | [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) | `4` – `5`             |
-| How verbose should an average answer be? | Answer Engineering & Preferences                                           | toward `Very Concise` |
-| Force Answers from the Knowledgebase     | Answer Engineering & Preferences                                           | `True`                |
-
-Change one setting at a time and re-ask the same question on the Seek tab. Changing three
-settings together tells you nothing about which one moved the answer.
+| Setting                                  | Where                                                                      | Starting point     |
+| ---------------------------------------- | -------------------------------------------------------------------------- | ------------------ |
+| Document Score Range                     | [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) | 0.6 to 0.8         |
+| Max Documents per Seek                   | [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) | 4 to 5             |
+| How verbose should an average answer be? | Answer Engineering & Preferences                                           | toward Very Concise |
+| Force Answers from the Knowledgebase     | Answer Engineering & Preferences                                           | True               |
 
 ### What is tuned elsewhere
 
 Several things people reach for while tuning are documented on their own pages:
 
 - Generating and curating questions and answers in bulk — [Answer curation](/seek/curation/).
-- Serving one consistent answer instead of small wording variations —
-  [Caching](/seek/caching/) and
-  [Intent matching & caching](/configuration/neural-config/intent-matching-caching/).
-- Narrowing a large corpus by metadata — [Dynamic filters](/seek/dynamic-filters/).
-- Lucene, vector and hybrid retrieval —
-  [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/) and
-  [Supported knowledge bases](/knowledge/supported-knowledgebases/).
-- Answering in a language your documents are not written in —
-  [Language](/configuration/language/).
+- Serving one consistent answer instead of small wording variations — [Caching](/seek/caching/)
+  and [Intent matching & caching](/configuration/neural-config/intent-matching-caching/).
+- Narrowing a large corpus by metadata — [Dynamic filters](/seek/dynamic-filters/) and
+  [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/).
+- Choosing between keyword, vector and hybrid search —
+  [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/).
+- Answering in a language your documents are not written in — [Language](/configuration/language/).
 - Timeouts, context turns and other platform-wide behaviour —
   [Platform Preferences](/configuration/neural-config/platform-preferences/).
-- Re-running a previous answer against new settings — [Replay](/governance/replay/).
-- Exporting a saved configuration to run a call against different settings —
-  [Backup & restore](/configuration/backup-restore/).
+- Saving and restoring a known-good configuration before you experiment —
+  [Backup, restore & change logs](/configuration/backup-restore/).
 
 ## FAQ
 
-### My answers are too long. What do I change?
+### How do I make answers shorter?
 
-**How verbose should an average answer be?**, in the **Answer Engineering & Preferences**
-accordion of the Edit Configuration dialog. It is a slider from `Very Concise` to
-`Very Verbose` with no numeric value, so move the handle toward `Very Concise`, select **Save**,
-and re-ask the same question. The Prompt Engineering accordion says its requested maximum
-tokens baseline "varies per answer verbosity", so a more concise answer is also less to generate.
+Move **How verbose should an average answer be?**, in **Answer Engineering & Preferences**, toward
+`Very Concise`, save, and re-ask the same question. The slider has no numeric value. Per the
+**Prompt Engineering** section's own text, verbosity sets the baseline for maximum tokens, which
+that section's Maximum Tokens slider then adjusts — see
+[Prompt Engineering](/configuration/neural-config/prompt-engineering/).
 
-### The LLM is answering from general knowledge instead of my documents. What now?
+### Can I strip phone numbers or e-mail addresses from answers?
 
-Check **Force Answers from the Knowledgebase** in the same accordion — its options are `True`
-and `False`, and it is `True` on the instance documented here. If it is already `True` and the
-answer still drifts, the problem is upstream: start on the Seek tab as the product's own tuning
-paragraph says, open the source accordions under the answer, and see whether the KnowledgeBase
-returned anything that answers the question at all.
-
-### Can I strip phone numbers or emails from answers?
-
-Yes. Use the **Regular Expression** / **Replacement** table in **Answer Engineering &
-Preferences**. The on-screen text says it applies to "both the KnowledgeBase training data and
-the live generated answer", so the pattern changes what the LLM sees as well as what the reader
-sees. Add rows with the **Add a new row.** button at the end of the last row. For personal data,
-prefer [PII detection](/governance/pii-detection/).
-
-### How do I make every answer know my company name?
-
-Fill in **Enter the company or organization display name** in the **Company / Organization
-Preferences** accordion. To add a pro-company slant on top of whatever your documents already
-carry, set **Company Response Affinity** to `Add company affinity`; the instance documented here
-leaves it at `Do not add affinity`.
+Yes. Add a row to the **Regular Expression** / **Replacement** table in **Answer Engineering &
+Preferences** with **Add a new row.**, then save. The section's text says the rewrite applies to
+"both the KnowledgeBase training data and the live generated answer", so the pattern changes what
+the LLM sees as well as what the reader sees. For personal data, prefer
+[PII detection](/governance/pii-detection/).
 
 ### What is a Stump Speech?
 
-On screen: "A block of text that will be passed to the LLM on every single seek as part of the
-provided documentation." It is a fixed piece of context the model always receives without having
-to retrieve it, which makes it suitable for a small amount of standing text the model must
-always have. It is empty on the instance documented here.
+The screen describes it as "A block of text that will be passed to the LLM on every single seek as
+part of the provided documentation." It lives in **Company / Organization Preferences**. Because
+it is sent with every Seek, keep it to a short piece of standing context the model must always
+have.
 
-### Too many irrelevant documents reach the LLM. Which control?
+### Where do I change how many documents reach the LLM?
 
-Lower **Max Documents per Seek** or narrow **Document Score Range**, both in the
-**KnowledgeBase Tuning** accordion — this is the product's own advice for "bringing back more
-than you need". Both controls are documented in full on
+In the **KnowledgeBase Tuning** section of the same dialog: **Max Documents per Seek** caps the
+number, and **Document Score Range** narrows which scores qualify. Both are documented on
 [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/).
+
+### Should Force Answers from the Knowledgebase be True?
+
+<!-- UNCONFIRMED: True is the recommended value — previous MkDocs tuning guide -->
+
+The screen offers `True` and `False` with no help text. The previous tuning guide recommended
+`True`; if you are unsure, compare the answer to the same off-topic question under each value
+before you settle on one.

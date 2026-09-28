@@ -1,472 +1,250 @@
 ---
 title: "Elasticsearch vector model"
-description: "Learn to configure environments, create API keys, set up machine learning, download models, and verify data embeddings seamlessly with NeuralSeek's ElasticSearch Vector Search guide."
+description: "Use an Elasticsearch index that holds embeddings as NeuralSeek's knowledge base: set KnowledgeBase Type to ElasticSearch, fill the connection and field-mapping settings, then set Elastic Query Type to Vector with the model and embedding field the index was built with."
 ---
 
-## Overview 
+## What is it
 
-This guide provides step-by-step instructions on configuring Vector search with ElasticSearch. It includes logging into the environments, creating keys for API access, setting up a machine learning instance, downloading necessary models, creating source and destination indices, and ingesting data to generate text embeddings. The guide also covers manual data loading steps and utilizing client helper functions for data ingestion. It concludes with verifying the data and content embeddings in the destination index.
+This page covers the NeuralSeek side of vector search on Elasticsearch. Once your Elasticsearch
+index holds embeddings, three parts of **Neural Config** connect Seek to it:
 
-## Log into Environments
+- **KnowledgeBase Connection**, with **KnowledgeBase Type** set to `ElasticSearch`: where the
+  index is, how NeuralSeek authenticates, and which index fields hold the text, link and title.
+- **Hybrid & Vector Search Settings**, a section that appears only for Elasticsearch-based
+  types: **Elastic Query Type** set to `Vector`, plus the model and the index field that hold
+  the embeddings.
+- **KnowledgeBase Tuning**, which shows different controls once the type is `ElasticSearch`.
 
-Begin by logging in to your IBM Cloud account
+The Elasticsearch side (the deployment, the model and the index) is built in Elastic's own
+tools; this page outlines it only so you know what must exist before you connect.
 
-- **To provision in IBM Cloud**:, 
-    - Navigate to **Databases for ElasticSearch**.
-    - Select the **Platinum Database Edition**.
-- Otherwise, provision within Elastic Cloud as normal.
+## Why it matters
 
-There are two environments to work from.
+Keyword (Lucene) search finds documents that share words with the question. Vector search
+compares meaning, so it can bring back a passage that answers the question in different words.
 
-- **ElasticSearch Cloud** console. Notice the icons in the top right corner. 
-- **Kibana** console
-    - Users may be taken directly to the Kibana console after creating a deployment. If not, navigate there by selecting Open on the deployment page from the ElasticSearch Cloud console. 
+It can also make answers worse, and the screen says so directly above **Elastic Query Type**:
 
-![es_deploy_click_to_kibana](/img/knowledge/elasticsearch-vector-model/es_deploy_click_to_kibana.png)
-![es_kibana_console](/img/knowledge/elasticsearch-vector-model/es_kibana_console.png)
+> ElasticSearch can provide Lucene, Hybrid, and pure Vector search. For most usecases Lucene
+> search is best. Depending on your settings, Vector and Hybrid searches may amplify
+> hallucinations by bringing back similar but corporatley-different documentation, adding
+> confusion to the LLM - especially with searches based on part number, version, or product
+> name... Do not casually enable Vector search.
 
-## Creating Keys
+So treat `Vector` as a deliberate choice for a specific kind of content, tested against real
+questions, not as an upgrade over `Lucene`.
 
-- Select the circle icon in the top right of the Kibana screen. 
-- Select `Connection Details`
-- Here, you will see the **ElasticSearch endpoint** and the **Cloud ID**.
-- Select **Create and Manage API Keys**. 
-- To create a new API key, click **Create API Key**.
-    - Add a unique name.
-    - Select the type as **User API Key**.
-    - Click **Create API Key** button at the bottom of the dialog.
+## When to use it
 
-![es_connection_details](/img/knowledge/elasticsearch-vector-model/ES_connection_details.png)
-![es_manage_keys](/img/knowledge/elasticsearch-vector-model/ES_manage_api_keys.png)
-![es_create_api_key](/img/knowledge/elasticsearch-vector-model/ES_create_api_key.png)
+- Your content already lives in Elasticsearch, and the index carries an embeddings field built
+  by a model you can name.
+- Users phrase questions differently from the documents, and keyword search keeps missing
+  passages that do answer them.
 
-:::tip
-Save these values in a safe place for later use. 
-:::
+When it is the wrong tool:
 
-## Create a Machine Learning Instance
-
-Elastic requires a machine learning instance to run the NLP models required for vectorizing the data for indexing. 
+- Questions turn on part numbers, versions or product names. The screen's warning above names
+  exactly these cases; keep **Elastic Query Type** on `Lucene`.
+- You want keyword and vector search combined, or an Elasticsearch semantic query. Those are the
+  other query types; see
+  [Hybrid, vector and semantic search](/knowledge/hybrid-vector-semantic-search/).
+- You have no Elasticsearch index and no other reason to run one. The other knowledge base types
+  on [Supported knowledge bases](/knowledge/supported-knowledgebases/) need less setup.
 
-- Navigate to the Home screen of your ElasticSearch instance.
-- Navigate to the newly created deployment and select **Manage**.
-- On the side menu, select **Edit**.
-- Scroll down to the **Machine Learning Instances** section.
-- Select **Add Capacity**.
-- Select 4 GB RAM.
-- Click **Save** at the bottom of the page. 
+## How it works
 
-![ES_edit_deploy](/img/knowledge/elasticsearch-vector-model/ES_edit_deploy.png)
-![ES_add_ML_RAM](/img/knowledge/elasticsearch-vector-model/ES_add_ML_RAM.png)
-![ES_save_ML_add](/img/knowledge/elasticsearch-vector-model/ES_save_ML_add.png)
-
-## Download Models
-
-<details>
-<summary>Download ELSER model</summary>
-
-- In Kibana, click the menu icon in the top left and navigate to **Analytics > Machine Learning > Trained Models**.
-- Click the **Download** button under the Actions column
-    - Choose the recommended `".elser_model_2_linux-x86_64"` model
-    - It may take some time for the download to finish. 
-- Click the **Deploy** link that shows up when the mouse is hovered over the downloaded model.
-- Leave the default settings on the Dialog column and select **Start**.
-- The State column will show **Deployed** when successfully done. 
-
-![ES_download_trained_model](/img/knowledge/elasticsearch-vector-model/ES_kibana_trained_model.png)
-
-</details>
-
-<details>
-<summary>Download A Text Embedding Model</summary>
-
-It is recommended to use **Eland** to upload and download the desired model to ElasticSearch.
-
-- Run this command to install the Eland Python client with PyTorch: `python -m pip install 'eland[pytorch]'`
-- Run this script to download the model from Hugging Face, convert it to TorchScript format, and upload to the Elasticsearch cluster:
-
-```
-    eland_import_hub_model
-    --cloud-id <cloud-id> \
-    -u <username> -p <password> \
-    --hub-model-id elastic
-    distilbert-base-cased-finetuned-conll03-english \
-    --task-type ner
-```
-
-- Specify the **Elastic Cloud identifier** using the TLS setting with a downloaded cert from **IBM Cloud -> Database for Elasticsearch -> Overview tab**.
-- Provide authentication details to access your cluster.
-- Specify the **identifier** for the model in the Hugging Face model hub.
-- Specify the **NLP task type** as `"text_embedding"`.
-
-:::tip
-It is recommended to use the `intflost/multilingual-e5-base` Hugging Face model to start. 
-
-It may take time for the model to auto-start, up to a few hours.
-:::
-
-
-</details>
-
-## Create Source Index and Upload Data
-
-Indices can be created by either manually loading data using the _bulk API, or by using a client helper function which will create the index and load the data.
-
-![kibana_dev_console](/img/knowledge/elasticsearch-vector-model/ES_kibana_dev_console.png)
-
-<details>
-<summary>Manual Data Load Steps</summary>
-
-- Navigate to Kibana console.
-- From the side menu, select **Management > Dev Tools** to launch the dev console.
-- Delete any code that appears.
-- To create the source index, enter the following code:
-
-```
-    PUT /search-gs-docs-src
-    {
-    "mappings": {
-        "properties": {
-        "title": { 
-            "type": "text" 
-        },
-        "content": { 
-            "type": "text" 
-        },
-        "source": { 
-            "type": "text" 
-        },
-        "url": { 
-            "type": "text" 
-        },
-        "public_record": { 
-            "type": "boolean" 
-        }
-        }
-    }
-    }
-
-```
-
-- Hit the **run** icon.
-- Prepare the data for bulk ingestion by manually converting the data and using the dev console to load it by entering the following code:
-
-```
-    POST _bulk
-    { "index" : { "_index" : "search-gs-docs-src", "_id" : "1" } }
-    { "title" : "Top 3 Best Practices to Secure Your Gainsight PX Subscription",
-    "content" : "We should all protect what has been entrusted…”,
-    "url" : "https://support.gainsight.com/...",
-    "source" : "docs”,
-    “public_record”:true,
-    “objectID”: “https://support.gainsight.com/...”
-    }
-    { "index" : { "_index" : "search-gs-docs-src", "_id" : "2" } }
-    { "title" : "Using PX with Content Security Policy",
-    "content" : "This article describes the steps to allow a Content Security Policy…”,
-    "url" : "https://support.gainsight.com/...",
-    "source" : "docs”,
-    “public_record”:true,
-    “objectID”: “https://support.gainsight.com/...”
-    }
-    …
-```
-
-</details>
-
-<details>
-<summary>Utilizing Client Helper Function Steps</summary>
-
-- Enter the following code to utilize the client helper function to create the index and load the data:
-
-```
-    'use strict'
-
-    require('array.prototype.flatmap').shim()
-    const { Client } = require('@elastic/elasticsearch')
-    const client = new Client({
-    cloud: { id: '<cloud_id>'},
-    auth: { apiKey: '<api_key>' }
-    })
-    const dataset = require('./gainsight_documentation_data/gainsight-en-federated.json')
-
-    // Create and load the source index
-    async function run () {
-    await client.indices.create({
-        index: 'search-gs-docs-src',
-        operations: {
-        mappings: {
-            properties: {
-            title: { type: 'text' },
-            content: { type: 'text' },
-            url: { type: 'text' },
-            source: { type: 'text' },
-            public_record: { type: 'boolean' },
-            objectID: { type: 'text' }
-            }
-        }
-        }
-    }, { ignore: [400] })
-
-    const operations = dataset.flatMap(doc => [{ index: { _index: 'search-gs-docs-src' } }, doc])
-
-    const bulkResponse = await client.bulk({ refresh: true, operations })
-
-    if (bulkResponse.errors) {
-        const erroredDocuments = []
-        // The items array has the same order of the dataset we just indexed.
-        // The presence of the `error` key indicates that the operation
-        // that we did for the document has failed.
-        bulkResponse.items.forEach((action, i) => {
-        const operation = Object.keys(action)[0]
-        if (action[operation].error) {
-            erroredDocuments.push({
-            // If the status is 429 it means that you can retry the document,
-            // otherwise it's very likely a mapping error, and you should
-            // fix the document before to try it again.
-            status: action[operation].status,
-            error: action[operation].error,
-            operation: operations[i * 2],
-            document: operations[i * 2 + 1]
-            })
-        }
-        })
-        console.log(erroredDocuments)
-    }
-
-    const count = await client.count({ index: 'search-gs-docs-src' })
-    console.log(count)
-    }
-
-    run().catch(console.log)
-```
-
-- Use the **Cloud ID** and **API Key**.
-- Enter the following commands to run this script:
-    - `npm i @elastic/elasticsearch`
-    - `npm i array.prototype.flatmap`
-    - `node data_load.js`
-
-</details>
-
-Once the data is loaded, either manually or programmatically, verify that it appears properly in the index.
-
-- Navigate to the Kibana console.
-- Navigate to **Search > Content > Indices**.
-- Open the `search-gs-docs-src` index.
-- Open the **Documents** tab to see the data for verification.
-
-## Create destination Index
-
-Create a destination index using the same schema as the source index. Add a field to store the content embeddings. 
-
-- Enter the following code, then hit the **run** icon.
-
-```
-    PUT /search-gs-docs-dest
-    {
-    "mappings": {
-        "properties": {
-        "content_embedding": { 
-            "type": "sparse_vector" 
-        },
-        "title": { 
-            "type": "text" 
-        },
-        "content": { 
-            "type": "text" 
-        },
-        "source": { 
-            "type": "text" 
-        },
-        "url": { 
-            "type": "text" 
-        },
-        "public_record": { 
-            "type": "boolean" 
-        }
-        }
-    }
-    }
-```
-## Ingest the Data to Generate Text Embeddings
-
-- Create an ingest pipeline with an inference processor. Enter the following code:
-
-```
-    PUT _ingest/pipeline/my-content-embedding-pipeline
-    {
-    "processors": [
-        {
-        "inference": {
-            "model_id": ".elser_model_2_linux-x86_64",
-            "input_output": [ 
-            {
-                "input_field": "content",
-                "output_field": "content_embedding"
-            }
-            ]
-        }
-        }
-    ]
-    }
-```
-
-- Click the **run** icon.
-
-- Ingest the data through the inference index pipeline to create the text embeddings. Enter the following code into the dev console:
-
-```
-    POST _reindex?wait_for_completion=false
-    {
-    "source": {
-        "index": "search-gs-docs-src",
-        "size": 50 
-    },
-    "dest": {
-        "index": "search-gs-docs-dest",
-        "pipeline": "my-content-embedding-pipeline"
-    }
-    }
-```
-
-- To get the name of the pipeline with the model loaded, navigate to **Kibana > Machine Learning > Trained Models**.
-- Expand the Deployed model.
-- Navigate to the **Pipelines** tab to view the `my-content-embesddings-pipeline` created in the above step. 
-
-:::tip
-To confirm the task was run successfully, run the following command using the **task ID** produced in the response from the previous command:
-`GET _tasks/<task_id>`.
-:::
-
-- Verify the content embeddings are in the new destination index.
-    - Navigate to Kibana.
-    - Navigate to **Search > Content > Indices**.
-    - Open the `search-gs-docs-dest` index.
-    - Open the **Documents** tab to see the data.
-
-## Map a Field
-
-Models compatible with ElasticSearch NLP generate dense vectors as output, so the `dense_vector` field type for the index is suitable for storing. This field type must be configured with the same number of dimensions using the `dims` option. 
-
-- Enter the following code into the dev console to create an index mapping that defines field containing the model output. 
-```
-    PUT my-index
-    {
-    "mappings": {
-        "properties": {
-        "my_embeddings.predicted_value": { 
-            "type": "dense_vector", 
-            "dims": 384 
-        },
-        "my_text_field": { 
-            "type": "text" 
-        }
-        }
-    }
-    }
-```
-
-- `my_embeddings.predicted_value` is equal to the name of the field containing the embeddings generated by the model.
-- The `"type"` field must be `"dense_vector"`.
-- The `"dims"` field contains the number of dimensions of the embeddings produced by the model. Be sure that this number is configured in the `dense_vector` field. 
-- The `"my_text_field"` field is equal to the name of the field from which to create the dense vector representation.
-- The `"type"` field is `text`. 
-
-## Test the Semantic Search
-
-<details>
-<summary>ELSER Model</summary>
-
-Test the semantic search using the `text_expansion` query by providing the query text and the ELSER Model ID. 
-
-- Enter the following code into the dev console:
-
-```
-        GET search-gs-docs-dest/_search
-    {
-    "query":{
-        "text_expansion":{
-            "content_embedding":{
-                "model_id":".elser_model_2_linux-x86_64",
-                "model_text":"Put sample query here"
-            }
-        }
-    }
-    }
-```
-
-- The `content_embedding` field contains the generated ELSER output. 
-
-</details>
-
-<details>
-<summary>Dense Vector Model</summary>
-
-The dense vector models allow users to query rank features with a kNN search. In the `knn` clause, users will provide the name of the dense vector field. In the `query_vector_builder` clause, add the model ID and the query text.
-
-- Enter the following code into the dev console:
-
-```
-    GET my-index/_search
-    {
-    "knn": {
-        "field": "my_embeddings.predicted_value",
-        "k": 10,
-        "num_candidates": 100,
-        "query_vector_builder": {
-        "text_embedding": {
-            "model_id": "sentence-transformers__msmarco-minilm-l-12-v3",
-            "model_text": "the query string"
-        }
-        }
-    }
-    }
-```
-
-</details>
-
-## Connect NeuralSeek to Elasticsearch
-
-- Navigate to your IBM Cloud account.
-- Open the NeuralSeek service instance.
-- Navigate to the **Configure** screen.
-- Save your current setting by clicking the **Download Settings** button at the bottom of the screen.
-- Open the **KnowledgeBase Connection** accordion and update the following fields. 
-    - Set KnowledgeBase Type to `ElasticSeach`
-    - Set the **ElasticSearch Endpoint**.
-    - Set the **ElasticSearch Private API Key**.
-    - Set the **ElasticSearch Index Name** to the destination index. In this case, `search-gs-docs-dest`. 
-    - Set the **Curation Data Field** to `content`.
-    - Set the **Documentation Name Field** to `title`.
-    - Set the **Link Field** to `url`.
-- Click the **Save** button at the bottom of the page.
-
-![ES_download_NS_settings](/img/knowledge/elasticsearch-vector-model/ES_download_NS_settings.png)
-![ES_NS_settings](/img/knowledge/elasticsearch-vector-model/ES_NS_settings.png)
-
-## Enable Vector Search in NeuralSeek
-
-In the NeuralSeek Configure screen, open the **Hybrid and Vector Search Settings** accordion to update the following fields.
-
-- Set Elastic Query Type to `Hybrid`. 
-    - This will allow for both **Lucene** (exact match) and **Vector** (semantic) searching to achieve a more robust response. 
-- Set the **Model ID** to `".elser_model_2_linux-x86_64"`
-- Set the **Embedding Field** to `content_embedding`
-- Set the **Use the Elastic ELSER Model** field to `True` for ELSER Model Use, or set to `False` to allow NeuralSeek to expect JSON format for a kNN search query. 
-- Click **Save** at the bottom of the screen. 
-
-![ES_hybrid_NS_settings](/img/knowledge/elasticsearch-vector-model/ES_hybrid_NS_settings.png)
-
-:::caution[If using 'IBM Databases for ElasticSearch']
-
-With Hybrid search, the KnnScoreDocQuery was created by a different reader. To fix this, enter the following code into the Kibana dev console:
-```
-    PUT /<INDEX_NAME>/_settings
-    {
-        "index" : {
-            "highlight.weight_matches_mode.enabled" : "false"
-        }
-    }
-```
-:::
+The order is: build the index in Elasticsearch, select `ElasticSearch` in NeuralSeek and connect,
+map the index fields, then switch **Elastic Query Type** to `Vector` and name the model and the
+embeddings field.
+
+### Before you start: the Elasticsearch side
+
+None of this happens in NeuralSeek. Check each step against Elastic's documentation for your
+version.
+
+<!-- UNCONFIRMED: Elasticsearch can run on IBM Cloud "Databases for Elasticsearch" or on Elastic Cloud, and Kibana's Connection Details shows the endpoint, with Create API Key (a user API key) making the key NeuralSeek uses — old NeuralSeek docs page -->
+
+1. Deployment and credentials: run Elasticsearch on IBM Cloud Databases for Elasticsearch
+   or on Elastic Cloud. In Kibana, Connection Details shows the endpoint, and you create a user
+   API key there. These two values go into NeuralSeek in the next section.
+
+<!-- UNCONFIRMED: vectorising needs machine-learning capacity on the deployment, and the ELSER model is downloaded and deployed from Kibana's Machine Learning > Trained Models (a text-embedding model can be imported with Elastic's Eland client instead) — old NeuralSeek docs page -->
+
+2. A deployed model: embedding runs on machine-learning capacity in the deployment. Download
+   and deploy ELSER from Kibana's Trained Models page, or import a text-embedding model with
+   Elastic's Eland client. Note the model's ID; NeuralSeek asks for it.
+
+<!-- UNCONFIRMED: the embeddings are written by an ingest pipeline with an inference processor into a destination index that has an embeddings field, the source index is reindexed through it, and the index's Documents tab shows whether the embeddings are filled; a dense vector field's dimension count must equal the model's output size — old NeuralSeek docs page -->
+
+3. An index with embeddings: create a destination index with an embeddings field, and an
+   ingest pipeline whose inference processor runs the model on your text field and writes the
+   result into it. Reindex your documents through the pipeline, then open the index's Documents
+   tab to check that every document has embeddings. For a dense vector field, the dimension
+   count must match the model's output size.
+
+<!-- UNCONFIRMED: a text_expansion (ELSER) or kNN (dense vector) query run in Kibana confirms the index answers before NeuralSeek is connected — old NeuralSeek docs page -->
+
+4. A test query: run a text-expansion query (ELSER) or a kNN query (dense vectors) against
+   the index in Kibana. If it returns sensible documents, NeuralSeek has something to search.
+
+Before you change the knowledge base type on a working configuration, take a copy of it with
+[Backup and restore](/configuration/backup-restore/). If you run IBM Cloud Databases for
+Elasticsearch and plan to try the hybrid query type, read the known error and its fix on
+[Hybrid, vector and semantic search](/knowledge/hybrid-vector-semantic-search/).
+
+### Select ElasticSearch as the KnowledgeBase Type
+
+In **Neural Config**, open the configuration (for example **Default Config**), then the
+**KnowledgeBase Connection** section of the dialog. Pick `ElasticSearch` in **KnowledgeBase
+Type**.
+
+![The KnowledgeBase Type list open with ElasticSearch ticked below Watson Discovery, Watson Discovery (CP4D) and Elastic AppSearch; KnowledgeBase Language reads English beside it. The ElasticSearch Endpoint, Private API Key and Index Name fields sit directly below this row once the list is closed.](/img/neural-config/knowledgebase-connection@kb-elastic--options-knowledgebase-type.png)
+
+`ElasticSearch` and `Elastic AppSearch` are separate types with different fields; this page is
+about `ElasticSearch`. The full list of types, and **KnowledgeBase Language** and **Notes** beside
+the type, are described on
+[KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/).
+
+Shown when **KnowledgeBase Type** is `ElasticSearch`, three fields tell NeuralSeek where the index
+is:
+
+- **ElasticSearch Endpoint**: the URL of your Elasticsearch deployment. The empty field shows the
+  placeholder `https://myElasticAppSearchEndpoint.com` (it reads "AppSearch" on this type too);
+  replace it with your own endpoint.
+- **ElasticSearch Private API Key**: the key NeuralSeek authenticates with. The field is masked;
+  the **Show password** eye button reveals what you typed.
+- **ElasticSearch Index Name**: the index Seek searches (placeholder `kbase`). For vector search,
+  name the index that holds the embeddings field, not a raw source index without them.
+
+### Map the index fields
+
+The field grid below the connection fields tells NeuralSeek which field of each document plays
+which role, and how much of each document the LLM receives. All of these are shown when
+**KnowledgeBase Type** is `ElasticSearch`.
+
+![The field-mapping grid of KnowledgeBase Connection for ElasticSearch: Curation Data Field, Link Field, Document Name Field, Additional Payload Field, Include additional Payload Field inside LLM context, Attribute sources inside LLM Context by Document Name, Return the full document instead of passages, Filter Field, Static Default Filter Value, the Re-Sort values list with its Priority / Value or RegExp table, and the red Enable Advanced Schema button](/img/neural-config/knowledgebase-connection@kb-elastic-panel.png)
+
+**Curation Data Field**, **Link Field** and **Document Name Field** pick the index fields that
+hold the passage text, the document's URL and its title. When one of these lists is opened, it
+shows the current field name and a _Loading data..._ entry, so the list appears to be filled from
+the fields of the connected index. Do not take the names you see in a fresh form as defaults to
+keep: choose the fields your own index uses.
+
+The remaining mapping controls are the same for every knowledge base type and are described on
+[KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/):
+
+- **Additional Payload Field** and **Include additional Payload Field inside LLM context**: one
+  extra index field to fetch, and whether it is passed to the LLM too.
+- **Attribute sources inside LLM Context by Document Name**: `Enabled` or `Disabled`.
+- **Filter Field** and **Static Default Filter Value (when no runtime filter is passed)**: the
+  field filters apply to, and the value used when a request carries no filter of its own.
+- **Re-Sort values list.**: the screen's help reads "Enter a prioritized list of values you want
+  to re-rank above other results, regardless of KB score." You choose the **Re-Sort Field** and
+  fill a table of Priority and **Value or RegExp** rows.
+- **Enable Advanced Schema**: the red button at the bottom of the section.
+
+![The Return the full document instead of passages dropdown, closed, reading Disabled](/img/neural-config/knowledgebase-connection@kb-elastic--options-return-the-full-document-instead-of-pass.png)
+
+**Return the full document instead of passages (only enable this if all of your documents are
+short)** has two options:
+
+- `Disabled`: NeuralSeek works with passages from the matching documents.
+- `Enabled`: NeuralSeek hands over each matching document whole.
+
+The label carries the only guidance the screen gives: enable it only if every document in the
+index is short. Long documents returned whole take up the room that passages from several
+documents would otherwise share.
+
+### Turn on vector search: Elastic Query Type = Vector
+
+**Hybrid & Vector Search Settings** is its own section of the dialog, below **KnowledgeBase
+Tuning**. It opens with the warning quoted in [Why it matters](#why-it-matters). Set **Elastic
+Query Type** to `Vector`.
+
+![Hybrid & Vector Search Settings with Elastic Query Type on Vector: Use NeuralSeek configured embedding models? reading False, Use the Elastic ELSER model? reading True, Model Id with the placeholder .elser_model_1, and Embedding Field with the placeholder ml.tokens and its ELSER v1 / v2 help text](/img/neural-config/knowledgebase-connection@kb-es-vector-panel.png)
+
+The values seen in **Elastic Query Type** are `Lucene`, `Hybrid`, `Semantic` and `Vector`. This
+page covers `Vector`;
+[Hybrid, vector and semantic search](/knowledge/hybrid-vector-semantic-search/) explains each
+query type and when to pick it. With `Vector`, four more fields appear:
+
+- **Use NeuralSeek configured embedding models?**: shown as `False` in the form above, which
+  leaves the query vector to the model in your Elastic deployment. The screen's own example for
+  the `Semantic` type describes the other setting: "Enable "Use NeuralSeek configured embedding
+  models" and NeuralSeek computes the query vector at search time." The index must then have been
+  embedded with that same model, so decide this when you build the index.
+- **Use the Elastic ELSER model?**: shown as `True`, the setting that matches an index built with
+  Elastic's ELSER model, which is what the placeholders in the next two fields assume.
+- **Model Id**: the ID of the model deployed in Elasticsearch, exactly as Elastic lists it. The
+  empty field shows the placeholder `.elser_model_1`.
+- **Embedding Field**: the index field that holds the embeddings. The help text under it reads:
+  "Embedding Field. For ELSER v1 this is typicaly "ml.tokens", and for ELSER v2
+  "content_embedding"". Use the field your ingest pipeline writes to.
+
+**Model Id** and **Embedding Field** must match what built the index. A different model, or a
+field without embeddings, leaves vector search nothing to compare against.
+
+![The header of an embedding model card in the Embedding Models section: the model name e5-small-v2 between an info icon and a copy icon](/img/neural-config/embedding-models--e5-small-v2.png)
+
+The models NeuralSeek itself can embed with are the cards in the **Embedding Models** section of
+the same dialog; [Embedding models](/configuration/neural-config/embedding-models/) describes
+them, including how a card is marked for knowledge base search.
+
+Nothing in the dialog applies until you press **Save** or **Propose Changes** at its foot;
+[Using the Neural Config page](/configuration/neural-config/using-this-page/) explains the
+difference. After saving, ask Seek a question the index can answer and check that the cited
+sources come from your index.
+
+### KnowledgeBase Tuning looks different on ElasticSearch
+
+Changing the type also changes **KnowledgeBase Tuning**, the collapsed section directly above
+**Hybrid & Vector Search Settings**.
+
+![Edit Configuration scrolled to the end of KnowledgeBase Connection: the collapsed KnowledgeBase Tuning section, Hybrid & Vector Search Settings open with Elastic Query Type on Vector, and the Propose Changes and Save buttons at the foot of the dialog](/img/neural-config/knowledgebase-connection@kb-es-vector.png)
+
+With the NeuralSeek KB, the tuning section shows **Expansion Window**. With `ElasticSearch`, as
+with the other external types, it shows Snippet size instead: "Snippet size. Use this setting to
+window relevant details in a document that do not specifically mention the user question, but
+apply to it.", on a range from 100 to 1000. See
+[KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) for the section's
+settings.
+
+## FAQ
+
+### Where do I switch Elasticsearch to vector search?
+
+In **Neural Config**, open the configuration and go to **Hybrid & Vector Search Settings**, then
+set **Elastic Query Type** to `Vector`. The section only appears when **KnowledgeBase Type** in
+**KnowledgeBase Connection** is an Elasticsearch-based type such as `ElasticSearch`; see
+[Hybrid, vector and semantic search](/knowledge/hybrid-vector-semantic-search/) for which types
+show it.
+
+### Should I use Vector instead of Lucene?
+
+Usually not. The screen's own advice is that "For most usecases Lucene search is best", and that
+Vector and Hybrid searches may amplify hallucinations, especially with part numbers, versions or
+product names: "Do not casually enable Vector search." Compare answers to real questions before
+and after the switch.
+
+### What goes in Embedding Field?
+
+The name of the index field that holds the embeddings, which is the field your ingest pipeline
+writes to. The help text on the screen gives the usual values: "ml.tokens" for ELSER v1 and
+"content_embedding" for ELSER v2.
+
+### When should I return full documents instead of passages?
+
+Only if every document in the index is short, as the label of **Return the full document instead
+of passages (only enable this if all of your documents are short)** says. Otherwise leave it on
+`Disabled`.
+
+### Why does KnowledgeBase Tuning show Snippet size instead of Expansion Window?
+
+**Expansion Window** belongs to the NeuralSeek KB. With `ElasticSearch` and the other external
+types, the section shows Snippet size instead. See
+[KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/).
+
+### The field dropdowns only show "Loading data...". What is wrong?
+
+The mapping lists appear to be filled from the connected index, so check the connection first:
+**ElasticSearch Endpoint**, **ElasticSearch Private API Key** and **ElasticSearch Index Name**.

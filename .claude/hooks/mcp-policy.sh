@@ -12,7 +12,7 @@
 # the playground's token limit is unknown; the agents are told to keep probes small).
 # Runs for every caller. Fails closed.
 set -euo pipefail
-trap 'jq -n --arg r "mcp-policy.sh hit an internal error on ${TOOL:-?} — denied by default" '"'"'{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'"'"'; exit 0' ERR
+trap 'echo "mcp-policy.sh hit an internal error on ${TOOL:-?} — denied by default" >&2; exit 2' ERR
 
 INPUT=$(cat)
 TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""')
@@ -25,8 +25,8 @@ LOG="$V2/${RUN_ID:+runs/$RUN_ID/}denials.log"
 SPEND="$V2/${RUN_ID:+runs/$RUN_ID/}spend.log"
 
 deny() {
-	mkdir -p "$(dirname "$LOG")" 2>/dev/null && printf '%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$AGENT" "$TOOL" "$1" >>"$LOG"
-	jq -n --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
+	mkdir -p "$(dirname "$LOG")" 2>/dev/null && printf '%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$AGENT" "$TOOL" "$1" >>"$LOG" || true
+	jq -n --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}' || { echo "$1" >&2; exit 2; }
 	exit 0
 }
 
@@ -41,7 +41,8 @@ RC_ID=$(jq -r '.baseUrl // ""' "$RC" | sed -nE 's#.*/([0-9a-f]{24})/?$#\1#p')
 
 case "$TOOL" in
 	mcp__neuralseek-node__delete_agent)
-		NAMES=$(printf '%s' "$INPUT" | jq -r '[.tool_input.name // empty, (.tool_input.names // [])[]] | .[]')
+		# The MCP takes `agent_names` (a string or an array); older builds used name / names.
+		NAMES=$(printf '%s' "$INPUT" | jq -r '[.tool_input.name // empty, (.tool_input.names // [])[], (.tool_input.agent_names // [] | if type == "string" then [.] else . end)[]] | .[]')
 		[ -n "$NAMES" ] || deny "delete_agent without a name"
 		while IFS= read -r N; do
 			case "$N" in "$PREFIX"*) ;; *) deny "delete_agent refused for '$N' — only agents named ${PREFIX}* (created by the pipeline) may be deleted" ;; esac

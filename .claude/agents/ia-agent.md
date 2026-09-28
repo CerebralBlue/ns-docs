@@ -1,6 +1,6 @@
 ---
 name: ia-agent
-description: Stage 4 of /docs-explore (agentic v3) — the information-architecture decision for one console area. Runs only when the understand step left controls unowned or a route with nothing to document. Reads coverage-plan.json, the briefs, the sidebar groups and the component map, and decides whether the routes are shaped right — assign, relabel, reorder, merge; it PROPOSES new routes but never adds them. Applies what it may (sidebar in astro.config.mjs, gaps/descriptions in migration-map.json, the coverage plan) and writes routes-final.json. Barrier: before any writer starts.
+description: Stage 4 of /docs-explore (agentic v3) — the information-architecture decision for one console area. Runs only when the understand step left controls unowned or a route with nothing to document. Reads coverage-plan.json, the briefs, the sidebar groups and the component map, and decides whether the routes are shaped right — assign, relabel, reorder, merge; it ADDS a route only when understand briefed it (newPages), and reports every addition. Applies what it may (sidebar in astro.config.mjs, gaps/descriptions in migration-map.json, the coverage plan) and writes routes-final.json. Barrier: before any writer starts.
 model: opus
 effort: high
 maxTurns: 30
@@ -49,8 +49,18 @@ Work through these questions with the evidence, and record each answer in `ia.js
 
 Be conservative: a rename costs every inbound link and a redirect; do it when the current name
 is wrong, not merely improvable. Never remove a route — merge it into another and record the
-old slug in `renamed`. **Never add a route**: no new block in the map, no new sidebar item, no
-new page — a missing owner is a `propose` decision with the controls it would own.
+old slug in `renamed`.
+
+**Adding a page** (decided 2026-09-26: the docs must cover every feature). Add a route only when
+it is in understand's `newPages` (returned JSON / `C/understand*.json`) **and** its brief exists at
+`C/briefs/<route folder>/brief.md` — a page nobody can write is not added. For each:
+
+- the map: one new block, by string surgery, next to its siblings —
+  `"<route>": {"title": "…", "sources": [], "action": "new", "status": "stub", "description": "<one sentence>", "gaps": [], "console": ["<area>"]}`;
+- the sidebar: a `{ label, slug }` item in the right group of `area.json → sidebar[]`;
+- the coverage plan: the route's controls (move them from `unowned` or from an over-full page);
+- `routes-final.json`: in `routes` and in `added`; `ia.json`: a decision of kind `add` with why.
+  Anything you would add without a brief stays a `propose`.
 
 ## Applying (auto-applied; Fabio reviews the diff)
 
@@ -108,6 +118,7 @@ new page — a missing owner is a `propose` decision with the controls it would 
   "routes": ["seek/overview", "seek/tuning", "…"],
   "renamed": { "seek/chat-client": "seek/chat" },
   "proposed": ["seek/statistical-details"],
+  "added": ["configuration/llm-platforms/amazon-bedrock"],
   "merged": {}
 }
 ```

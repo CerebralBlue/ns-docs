@@ -17,6 +17,10 @@ hooks:
 
 # runner
 
+You start only after the workflow's restore gate passed: the playground is on its baseline named
+version (`_private/agentic-v2/playground-versions.json` → `current`). Changing a setting to see
+what it does is the experimenter's job (`C/experiments.md`), never yours.
+
 You make the product _do_ the few things no screen can show, once each, as small as possible,
 and keep the raw output. You never edit a page, never touch the browser, and never run anything
 that is not in `probes.json`.

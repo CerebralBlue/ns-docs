@@ -31,6 +31,7 @@ says where it went instead.
 
 - You know what you want to change but not which section owns it.
 - You are reviewing a new instance section by section and want a checklist.
+- You want to know which sections a category can override with its own settings.
 - You went looking in this dialog for guardrails, backups or categories and did not find them —
   the last section below says where they are instead.
 
@@ -39,26 +40,24 @@ says where it went instead.
 ### Opening the dialog
 
 Open **Neural Config** from the top navigation, click the **Default Config** node at the
-top-left of the routing tree, then **Edit Configuration** in the dialog that opens. The tree,
-its nodes and that first dialog are described on
+top-left of the routing tree, then **Edit Configuration** in the panel that opens. The tree,
+its nodes and that first panel are described on
 [Configuration overview](/configuration/overview/).
 
-![The Edit Configuration dialog open over the Neural Config routing tree, headed Configuration: Default Config, showing the collapsed accordion sections from KnowledgeBase Connection down to Intent Matching and Cache Configuration, with Propose Changes and Save in the footer](/img/neural-config/edit-configuration-edit.png)
+![The small Default Configuration panel the node opens: the Action to take on match dropdown set to Answer Generation, with Edit Configuration and a gear icon bottom-left and Save bottom-right](/img/neural-config/default-config-answer-generation-panel.png)
+
+**Edit Configuration** opens the full dialog, headed `Configuration: Default Config`:
+
+![The Edit Configuration dialog open over the Neural Config routing tree, headed Configuration: Default Config, with the Default Config node visible at the top-left behind it and Change Logs at the bottom-right of the screen](/img/neural-config/edit-configuration-edit.png)
 
 The dialog is a scrolling list of accordion headers — click one to expand it, and the settings
 it holds appear underneath. **Close** (×) is top-right; the footer holds **Propose Changes** and
 **Save**, which are documented on
 [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-<!-- UNCONFIRMED: a category's Custom Configuration opens this same fourteen-section dialog against that category — old page prose; Add/Edit Custom Configuration was never opened in the capture -->
-
-Categories whose node reads `Custom Configuration` have settings of their own; the old
-documentation described them as the same dialog opened against that category. Categories and
-the tree are on [Configuration overview](/configuration/overview/).
-
 ### The fourteen sections, in screen order
 
-![The accordion list of the Configuration: Default Config dialog, twelve headers visible from KnowledgeBase Connection to Intent Matching and Cache Configuration, with Propose Changes and Save in the footer](/img/neural-config/edit-configuration-edit--edit-configuration-edit.png)
+![The accordion list of the Configuration: Default Config dialog, twelve headers visible from KnowledgeBase Connection to Intent Matching and Cache Configuration, with Propose Changes and Save in the footer](/img/neural-config/edit-configuration-edit-panel.png)
 
 Twelve headers fit in the dialog when it opens; the last two — mAIstro Configuration and
 Secrets — are below the fold, so scroll the list to reach them.
@@ -67,17 +66,17 @@ Secrets — are below the fold, so scroll the list to reach them.
    **KnowledgeBase Language** and a free-text **Notes** box. See
    [KnowledgeBase connection](/configuration/neural-config/knowledgebase-connection/).
 2. **KnowledgeBase Tuning** — how much documentation, and which documentation, reaches the LLM:
-   **Document Score Range**, **Max Documents per Seek**, **Document Date Penalty**, the
-   **Expansion Window**, **KnowledgeBase Query Cache (minutes)**, **Max Raw Score** and the
-   **mAIstro Post-KB Agent** that can run between retrieval and answering. There is no
-   snippet-size control in this section, even though its introductory paragraph mentions one.
-   See [KnowledgeBase tuning](/configuration/neural-config/knowledgebase-tuning/).
+   **Document Score Range**, **Max Documents per Seek**, **Document Date Penalty**,
+   **KnowledgeBase Query Cache (minutes)**, **Max Raw Score** and the **mAIstro Post-KB
+   Agent** that can run between retrieval and answering. With the NeuralSeek KB this section
+   shows an **Expansion Window** slider; with other KnowledgeBase Types the same place holds
+   **Snippet size**. See
+   [KnowledgeBase tuning](/configuration/neural-config/knowledgebase-tuning/).
 3. **LLM Details** — **Add an LLM**, one card per model, and which of the twenty **LLM
-   Functions** (Seek, PII Detection, Translate, maistro and the rest) each model performs. Its
-   sub-topic is the NeuralSeek-managed model,
-   [Managed LLM details](/configuration/neural-config/managed-llm/): the playground shows two
-   managed cards but no model or version picker for them on the captured screen. See
-   [LLM details](/configuration/neural-config/llm-details/).
+   Functions** (Seek, PII Detection, Translate, maistro and the rest) each model performs. See
+   [LLM details](/configuration/neural-config/llm-details/). The cards for models NeuralSeek
+   hosts for you, such as **Managed GPT**, are covered on
+   [Managed LLM details](/configuration/neural-config/managed-llm/).
 4. **Embedding Models** — **Add an Embedding**, and the three roles an embedding card can be
    assigned to: **KB Search**, **mAIstro** and **Vector Intent**. See
    [Embedding models](/configuration/neural-config/embedding-models/).
@@ -87,8 +86,8 @@ Secrets — are below the fold, so scroll the list to reach them.
    [Tuning answers](/seek/tuning/).
 6. **Platform Preferences** — instance-wide behaviour: context turns and timeouts, the
    **Detection Method** and its **mAIstro flow**, **Virtual Agent Type**, **Default Output
-   Language**, the HTML cleanser, and the **Configuration Save Agent** and **Post-Seek mAIstro
-   Agent** hooks. See
+   Language**, **Enable the automatic HTML Cleanser**, the two save agents (**Configuration Save
+   Agent** and **mAIstro Save Agent**) and the **Post-Seek mAIstro Agent**. See
    [Platform preferences](/configuration/neural-config/platform-preferences/).
 7. **Corporate Document Filter** — **Enable Corporate Filter** and the endpoint NeuralSeek
    calls to decide which documents a user may see. See
@@ -101,7 +100,7 @@ Secrets — are below the fold, so scroll the list to reach them.
    (Temperature, Top Probability, Frequency penalty, Maximum Tokens). See
    [Prompt engineering](/configuration/neural-config/prompt-engineering/).
 10. **Dynamic Personalization** — **Enable Dynamic Personalization** and the **mAIstro
-    Personalization Agent** that tailors answers per user. See
+    Personalization Agent** it uses. See
     [Personalization](/seek/personalization/).
 11. **Answer Engineering & Preferences** — **How verbose should an average answer be?**,
     **Force Answers from the Knowledgebase**, and a **Regular Expression** / **Replacement**
@@ -117,16 +116,31 @@ Secrets — are below the fold, so scroll the list to reach them.
 14. **Secrets** — the instance secret store, a table of **Name** and **Value** rows with
     **Add a new row.** See [Secrets](/configuration/neural-config/secrets/).
 
+### A category's Custom Configuration
+
+A category whose node on the tree reads `Custom Configuration` has settings of its own. Click
+the category's node, then **Edit Custom Configuration**, and a dialog headed with the category's
+name opens — `Configuration: Refunds` for a category called Refunds.
+
+![The Configuration: Refunds dialog for a category's custom configuration, showing the same accordion headers from KnowledgeBase Connection down to Intent Matching and Cache Configuration, with Delete Configuration and Save in the footer](/img/neural-config/refunds-custom-configuration-dialog-panel.png)
+
+It holds thirteen of the fourteen sections above, in the same order and under the same
+headers. **mAIstro Configuration** is not among them — the list goes straight from **Intent
+Matching & Cache Configuration** to **Secrets**. The footer is different too — **Delete Configuration** takes the place of
+**Propose Changes**, next to **Save**. Deleting and saving a category configuration are
+documented on [Using the Neural Config page](/configuration/neural-config/using-this-page/),
+and categories themselves on [Configuration overview](/configuration/overview/).
+
 ### Settings that are not in this dialog
 
-Four groups of settings live on the Neural Config screen but outside the accordion, so looking
-for them here is a dead end:
+These live on the Neural Config screen but outside the accordion, so looking for them in the
+dialog is a dead end:
 
 - **Guardrails** — the tabs that check a question and an answer (Semantic Scoring, Prompt
   Injection, PII, Profanity (HAP), Attribution Protection, Warning Confidence, Min Confidence,
   Min Text, Max Length, Custom Governance) hang off a **Guardrails** node on the tree, not off
   this dialog. See [Guardrails overview](/governance/guardrails/overview/).
-- **Change Logs** and backup and restore — on the toolbar at the bottom-right of the screen,
+- **Change Logs** and **Backup & Restore** — on the toolbar at the bottom-right of the screen,
   outside the dialog. See [Backup, restore and change logs](/configuration/backup-restore/).
 - Categories, the routing tree itself, **Add a Category**, **Add Intent** and **Default
   Action** — see [Configuration overview](/configuration/overview/).
@@ -151,9 +165,8 @@ Secrets. The list scrolls, so the last two are below the fold when the dialog op
 
 **Where is snippet size?**
 
-It is not a control in this dialog on the captured build. The paragraph at the top of
-**KnowledgeBase Tuning** mentions adjusting snippet size, but the controls under it are the
-sliders and the **mAIstro Post-KB Agent** listed above. See
+In **KnowledgeBase Tuning**, when the **KnowledgeBase Type** is not NeuralSeek KB. With
+NeuralSeek KB the same place shows **Expansion Window** instead. See
 [KnowledgeBase tuning](/configuration/neural-config/knowledgebase-tuning/).
 
 **Where are PII, profanity and confidence thresholds?**
@@ -169,9 +182,7 @@ covers the effect those settings have on an answer, until dedicated pages exist.
 
 **Does a category's Custom Configuration use the same sections?**
 
-<!-- UNCONFIRMED: Custom Configuration opens the same fourteen-section dialog — old page prose; never opened in the capture -->
-
-The old documentation said so — a category whose node reads `Custom Configuration` opens the
-same dialog against that category. That was not re-checked on the captured screen, so treat it
-as unverified until the category pages on
-[Configuration overview](/configuration/overview/) confirm it.
+Almost. **Edit Custom Configuration** on a category opens a dialog with thirteen of the fourteen
+sections — every one except **mAIstro Configuration** — and a **Delete Configuration** button
+where Default Config has **Propose Changes**. See
+[A category's Custom Configuration](#a-categorys-custom-configuration) above.

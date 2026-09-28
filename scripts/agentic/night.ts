@@ -19,7 +19,17 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { loadAreas, resolveArea } from './areas';
-import { loadMap, parseArgs, readJson, ROOT, routeFolder, V2_DIR, writeJson } from './lib';
+import {
+	loadMap,
+	parseArgs,
+	readJson,
+	ROOT,
+	routeFolder,
+	V2_DIR,
+	VERSIONS_FILE,
+	writeJson,
+	type Versions,
+} from './lib';
 
 const ORDER = [
 	'neural-config',
@@ -147,6 +157,17 @@ if (!state) {
 const save = () => writeJson(statePath(state.nightId), state);
 
 if (verb === 'next') {
+	// A pending experiment (never verified back) stops the whole night, not just its area.
+	const exp = readJson<Versions>(VERSIONS_FILE)?.pending;
+	if (exp) {
+		console.log(
+			JSON.stringify({
+				done: true,
+				halt: `experiment ${exp.run} ${exp.id} is still pending — the main session rolls back to "${exp.baselineVersion}" and verifies before the night continues`,
+			})
+		);
+		process.exit(0);
+	}
 	const running = state.sections.find((s) => s.status === 'running');
 	const pending = running ?? state.sections.find((s) => s.status === 'pending');
 	if (pending) {

@@ -1,109 +1,173 @@
 ---
 title: "Multimodal LLM configuration"
-description: "NeuralSeek records which model can produce or transform media through six checkboxes on each LLM Details card — Image Generation, Image Edits, Video, Speech, Music and Speech to Text — and greys out the ones a model cannot do."
+description: "Six of the LLM Functions on every LLM Details model card — Image Generation, Image Edits, Video, Speech, Music and Speech to Text — decide which model handles media jobs, and the Add an LLM dialog's LLM Notes show a model's media support before you add it."
 ---
 
 ## What is it
 
-Multimodal configuration is the part of **LLM Details** (Neural Config → Default Config → Edit Configuration) that deals with media rather than text. Every model card in that section carries the same twenty **LLM Functions** checkboxes; six of them are media functions: **Image Generation**, **Image Edits**, **Video**, **Speech**, **Music** and **Speech to Text**. A ticked box assigns that media job to the model; a greyed-out box means the model is not capable of it and the box cannot be selected.
+Multimodal configuration is the media side of **LLM Details**, the section of a Neural Config configuration where you add language models and decide what each one is used for. Every model card in that section carries the same grid of **LLM Functions** checkboxes. Six of them are media functions: **Image Generation**, **Image Edits**, **Video**, **Speech**, **Music** and **Speech to Text**. Ticking one assigns that media job to the card's model; a greyed-out box means the model cannot do the job, and the box cannot be selected.
 
-This page explains how to read those six boxes, what a greyed box means for the instance as a whole, and where a model with media capabilities is added. The rest of the card — the other fourteen functions, weights, identifiers, **Enable All** and **Disable All** — is documented on [LLM Details](/configuration/neural-config/llm-details/).
+This page covers those six boxes, how to tell a media-capable model from a text-only one, and how to check a model's media support in the **Add an LLM** dialog before you add it. The rest of each card — the text functions, languages, identifiers and buttons — is documented on [LLM Details](/configuration/neural-config/llm-details/).
 
 ## Why it matters
 
-The section's own rule is short and has no exceptions. In the product's words: "You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them for the selected functions that have multiple LLM's. Features that an LLM are not capable of will be unselectable. If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled."
+The **LLM Details** section states its own rule above the cards: "You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them for the selected functions that have multiple LLM's. Features that an LLM are not capable of will be unselectable. If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled."
 
-For media that has two consequences. A model that cannot generate images will never be asked to, because its **Image Generation** box cannot be ticked. And if no card on the instance has a given media function ticked, that function is simply off — there is no default model behind it, and nothing on this screen warns you.
+For media, that rule has three consequences:
+
+- A model is never asked to do a media job it cannot do, because the box for that job is greyed out on its card.
+- A media function that no card has ticked is off. There is no default model behind it, and the section shows no separate warning.
+- If two cards tick the same media function, NeuralSeek shares the work between them.
+
+So whether NeuralSeek can generate an image, edit one or turn speech into text depends entirely on which cards you have and which boxes on them are ticked.
 
 ## When to use it
 
-- You are adding a model so that NeuralSeek can generate or edit images, and you need to know where the capability shows up once the card exists.
-- A media feature is not working and you want to check whether any card actually claims it.
-- You are reviewing an instance and want to know, per model, what media it is allowed to produce.
+- You want NeuralSeek to generate or edit images, produce speech or transcribe audio, and you need a model that can do it.
+- A media step fails or does nothing, and you want to check whether any card actually has that function ticked.
+- You are choosing between models in **Add an LLM** and want to know, before adding one, which media jobs it supports.
+- You are reviewing a configuration and want to see which model serves which media job.
 
-Not the page for text-only work: if every model on the instance is used for Seek answers, translation and mAIstro prompts, none of the six media boxes matters and [LLM Details](/configuration/neural-config/llm-details/) covers what you need. It also does not cover reading images as input — see the FAQ.
+This is not the page for text-only setups: if your models only answer Seek questions, translate and run mAIstro prompts, none of the six media boxes matters and [LLM Details](/configuration/neural-config/llm-details/) covers what you need. It is also not where a model's ability to _read_ an image is set — there is no card checkbox for that; see [Checking a model's media support before you add it](#checking-a-models-media-support-before-you-add-it).
 
 ## How it works
 
-### Which model card can handle media
+To reach the cards, open **Neural Config**, click the configuration node (for example **Default Config**) and expand **LLM Details** in the configuration dialog. How the dialog, **Save** and **Propose Changes** work is covered on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-Open **LLM Details** and look at the **LLM Functions** grid of each card. The six media checkboxes sit in the last rows, after **System AI** and before **maistro**. Each is in one of three states: ticked (this model does that job), clear (it could, but is not assigned), or greyed out (it cannot).
+### The media functions on a model card
 
-![The LLM Details panel with the Add an LLM button, the rules paragraph, and the Managed GPT and Managed gpt-image cards side by side — on Managed GPT the six media checkboxes are greyed out, on Managed gpt-image Image Generation and Image Edits are ticked and everything else is greyed](/img/neural-config/llm-details-panel.png)
+Each card's **LLM Functions** grid lists every job NeuralSeek can give a model, with **Enable All** and **Disable All** beside the heading. The six media checkboxes come after **System AI** and before **maistro**. Each box is in one of three states:
 
-On the captured instance the four cards read like this:
+- _ticked_ — this card's model serves the job;
+- _clear_ — the model can do the job but is not assigned to it;
+- _greyed out_ — the model cannot do the job, and the box cannot be ticked.
 
-| Card                | Image Generation | Image Edits | Video      | Speech     | Music      | Speech to Text |
-| ------------------- | ---------------- | ----------- | ---------- | ---------- | ---------- | -------------- |
-| `Managed GPT`       | greyed out       | greyed out  | greyed out | greyed out | greyed out | greyed out     |
-| `Managed gpt-image` | **ticked**       | **ticked**  | greyed out | greyed out | greyed out | greyed out     |
-| `Translate`         | greyed out       | greyed out  | greyed out | greyed out | greyed out | greyed out     |
-| `gpt-oss-20b`       | greyed out       | greyed out  | greyed out | greyed out | greyed out | greyed out     |
+The greyed boxes below are from a text model's card, which is why none of them can be ticked.
 
-So `Managed gpt-image` (LLM ID `ns-gpt-image`) is the only card that produces media, and it does two things: **Image Generation** and **Image Edits**. On `Managed gpt-image` every non-media function is greyed out in turn — it is a media-only card. **Video**, **Speech**, **Music** and **Speech to Text** are greyed on all four cards, so by the no-fallback rule those four functions are disabled on this instance. The greyed boxes look like this on `Managed GPT`:
+![The Image Generation checkbox on a text model's card, greyed out](/img/neural-config/llm-details--image-generation.png)
 
-![The Image Generation checkbox on the Managed GPT card, greyed out](/img/neural-config/llm-details--image-generation.png)
-![The Image Edits checkbox on the Managed GPT card, greyed out](/img/neural-config/llm-details--image-edits.png)
+**Image Generation** — creating a new image from a prompt.
 
-Two things the screen does not tell you. It does not say which product surface calls each media function — the label is all there is. And it has no checkbox for image _input_: the six functions describe what a model can produce or transform, not what it can read. Whether a model's ability to look at a picture is recorded anywhere on its card was not visible on the captured instance.
+![The Image Edits checkbox on a text model's card, greyed out](/img/neural-config/llm-details--image-edits.png)
 
-Because the boxes are shared with the owner page, the mechanics — **Enable All** / **Disable All**, load balancing when two cards tick the same function, and the `Weight: 100` share — are on [LLM Details](/configuration/neural-config/llm-details/) and [Multi-LLM](/configuration/multi-llm/).
+**Image Edits** — changing existing images according to a prompt.
 
-### Adding a model with media capabilities
+![The Video checkbox on a text model's card, greyed out](/img/neural-config/llm-details--video.png)
 
-A model card exists only after it is added, so the entry point for any multimodal setup is the blue **Add an LLM** button at the top-left of the **LLM Details** section, beside the rules paragraph.
+**Video** — video work. The card does not say whether this means producing video, reading it, or both (see the Google Vertex AI example under [Checking a model's media support before you add it](#checking-a-models-media-support-before-you-add-it)).
 
-![The Edit Configuration dialog for Default Config with the LLM Details section expanded: the blue Add an LLM button and the rules paragraph above the first two cards, and the Propose Changes and Save footer](/img/neural-config/llm-details.png)
+![The Speech checkbox on a text model's card, greyed out](/img/neural-config/llm-details--speech.png)
 
-**Add an LLM** opens a dialog of the same name with **Cancel** and **Add** buttons. The dialog was not opened in this capture, so which platforms and models it lists — and whether a particular vision or image model is among them — is documented on [LLM Details](/configuration/neural-config/llm-details/) and [Supported LLMs](/configuration/supported-llms/), not here. Once the card exists, its media capabilities are whatever the six boxes allow: tick the ones you want the model to serve.
+**Speech** — producing spoken audio from text.
 
-Each card also has a **Test** button next to **Delete**. It checks the model's connection; it was never pressed in this capture, so what a successful result looks like is not confirmed.
+![The Music checkbox on a text model's card, greyed out](/img/neural-config/llm-details--music.png)
 
-<!-- UNCONFIRMED: the old page's walkthrough named "OpenAI GPT-4o" as the example model to choose, said its connection detail is an API Key, and said the Test button "turns green" on success — the dialog and a third-party card's connection fields are on no captured screen (the managed cards show only LLM Languages under Connection Info). Old docs, verbatim page. -->
+**Music** — its own media function, separate from **Speech**. No node in the media section of the NTL reference is dedicated to it, and the card gives no further description.
 
-The older walkthrough for this page chose GPT-4o in the dialog, entered an API key as its connection detail and pressed **Test** until the button turned green; none of that was reproduced here.
+**Speech to Text** sits directly after **Music** in the same grid and behaves the same way; it has no separate picture here. It covers turning audio into text.
 
-Changes to the section take effect when the configuration is saved. **Save** and **Propose Changes** in the dialog footer, and the **Version Information** prompt that asks for a name for the saved version, are covered on [Using this page](/configuration/neural-config/using-this-page/).
+The media section of the NTL reference lists a node for each of these jobs except **Music**. The table pairs each function with the node that does the same job; the card itself does not state which node uses which function.
 
-### Sending an image to a model from mAIstro
+| LLM function         | NTL node with the same job | What the node takes                                                          |
+| -------------------- | -------------------------- | ---------------------------------------------------------------------------- |
+| **Image Generation** | `generateImage`            | a prompt and an optional image file name                                     |
+| **Image Edits**      | `generateImageEdit`        | a prompt, a name, and the images to edit (base64-encoded image strings)      |
+| **Video**            | `generateVideo`            | a prompt and an image to use in the generation                               |
+| **Speech**           | `generateSpeech`           | a prompt, instructions, a voice and an audio format                          |
+| **Music**            | none listed                | —                                                                            |
+| **Speech to Text**   | `speechToText`             | a prompt to prepend to the model input                                       |
 
-Ticking a media box makes the capability available; using it happens elsewhere. The NTL reference documents an `images` parameter on the `LLM` node, described as "Images to include with the prompt", alongside a `modelCard` parameter that picks the card. The node's syntax, as the `ntl://reference` resource returned it:
+What changing a box does follows from the section's rule:
+
+- Tick a media box on a card to make that model serve the job. If it is the only card with the box ticked, it handles every request of that kind.
+- Untick it to take the model off the job. If no other card has it ticked, the function is disabled — there is no fallback.
+- Tick it on a second card to share the job between both models. The share each card gets is set by its weight; see [Multi-LLM](/configuration/multi-llm/).
+
+**Enable All** and **Disable All** act on the whole grid, text functions included; they are described on [LLM Details](/configuration/neural-config/llm-details/).
+
+### Reading a card: what its model can do
+
+A card greys out whatever its model cannot do, so the pattern of greyed boxes tells you what kind of model it is before you read anything else.
+
+![The LLM Details section: the Add an LLM button and the rules paragraph above two model cards, Managed GPT and Managed gpt-image](/img/neural-config/llm-details-panel.png)
+
+The two cards in the screenshot show the two typical patterns:
+
+- **Managed GPT**, a text model: the text functions are selectable, and all six media boxes — **Image Generation**, **Image Edits**, **Video**, **Speech**, **Music**, **Speech to Text** — are greyed out.
+- **Managed gpt-image** (LLM ID `ns-gpt-image`), an image model: **Image Generation** and **Image Edits** are ticked, and every other function, text ones included, is greyed out. It is a media-only card, so it cannot answer Seek questions; a text model has to be on another card for that.
+
+Managed gpt-image is an example of a managed image model card; which cards appear in your configuration depends on the models you have added. In the configuration shown, **Video**, **Speech**, **Music** and **Speech to Text** are greyed out on every card, so by the no-fallback rule those four functions are disabled until a model that supports them is added.
+
+Each card also shows its **LLM ID** and **Weight**. Both belong to [LLM Details](/configuration/neural-config/llm-details/); how weights split a function between cards is on [Multi-LLM](/configuration/multi-llm/).
+
+### Checking a model's media support before you add it
+
+A card only exists after you add a model, so the start of any multimodal setup is the **Add an LLM** button at the top of the **LLM Details** section. It opens the **Add an LLM** dialog, where you pick a **Platform** and an **LLM Selection**. The list of platforms and models is documented on [Supported LLMs](/configuration/supported-llms/) and [Managed LLM Details](/configuration/neural-config/managed-llm/); this page uses the panel on the right of the dialog, **LLM Notes**, which describes the selected model.
+
+![The Add an LLM dialog with Platform NeuralSeek and LLM Selection Managed GPT; the LLM Notes panel says the model does not support Table Understanding, Image Generation, Image Edits, Video, Speech, Music, Speech to Text, and shows Model Code, Inputs and Outputs icons, Context Window and Seek Multiplier](/img/neural-config/add-an-llm@llm-ns-managed-panel.png)
+
+Two parts of **LLM Notes** matter for media:
+
+- **"This LLM does not support:"** names the functions that will be greyed out on the model's card. For **Managed GPT** the list is "Table Understanding, Image Generation, Image Edits, Video, Speech, Music, Speech to Text" — every media function, which is why its card has no media box to tick. A media function missing from this list is one the card will let you tick.
+- **Inputs:** and **Outputs:** show, as icons, what the model takes in and gives back. For **Managed GPT** the inputs are Text and Image and the output is Text. This is the only place the screen shows whether a model can read an image; the card has no checkbox for image input, and the six media functions do not cover it.
+
+The other lines — **Model Code**, **Context Window**, **Seek Multiplier** — describe that one model; their values differ from model to model.
+
+A second example shows how the two parts combine. With **Platform** set to Google Vertex AI and **LLM Selection** set to `gemini-3.1-pro-preview`, the does-not-support list is "Table Understanding, Image Generation, Image Edits, Speech, Music, Speech to Text" — **Video** is not on it — and **Inputs:** lists text, image, audio and video while **Outputs:** lists only text.
+
+![The Add an LLM dialog with Platform Google Vertex AI and LLM Selection gemini-3.1-pro-preview; the LLM Notes panel leaves Video out of the does-not-support list and shows text, image, audio and video inputs with a text output](/img/neural-config/add-an-llm@llm-platform-google-vertex-ai-panel.png)
+
+Going by those notes, a card added from this model would leave **Video** selectable. Because the model's only output is text, the notes do not settle whether the **Video** function means making video or reading it.
+
+Press **Add** to create the card, or **Cancel** to close the dialog without adding anything. Then tick the media functions you want the new card to serve and save the configuration.
+
+### Using the media functions from mAIstro
+
+The boxes on a card decide which model serves a media job; the job itself is started elsewhere, usually by a node in a mAIstro agent. The NTL reference groups those nodes in its media section:
 
 ```text
-{{ LLM | prompt: "Your prompt here" | cache: "true" | images: "" | modelCard: "" | stream: "false" | maxTokens: "" | minTokens: "" | temperatureMod: "" | toppMod: "" | freqpenaltyMod: "" | timeout: "" }}
+## Media (Image, Audio, Video)
+### `ffmpeg` — Transform multimedia with ffmpeg. Params: video (document), inputOptions, outputOptions, outputFile
+### `generateImage` — Params: prompt (text3), name (text, optional image filename), cache
+### `generateImageEdit` — Params: prompt (text3), name, images (images — base64 encoded image strings to use in the edit generation), cache
+### `generateSpeech` — Params: prompt (text3), instructions (text3), voice (llmAudioVoice), format (llmAudioFormat), cache
+### `generateVideo` — Params: prompt (text3), image (document — an image to use in the generation), cache
+### `joinMedia` — Join multimedia files. Params: files, outputFile
+### `mergeAudioVideo` — Merge Audio and Video. Params: audio (document, .mp3), video (document, .mp4)
+### `ocr` — OCR an image. Params: name (document — the image name)
+### `speechToText` — Params: prompt (text — a prompt to prepend to the LLM input), cache
+### `videoFrame` — Extract a frame from a video. Params: video (document), frame (default 'last')
 ```
 
-The previous version of this page carried a worked example that builds on that node. It is kept here as background only: no part of it was captured or run in this pass, and the node names and snippets should be checked against [Upload data](/maistro/ntl/upload-data/) and the [NTL overview](/maistro/ntl-overview/) before use.
+Node-by-node documentation is on [Multimodal nodes](/maistro/ntl/multimodal/). If one of these nodes does nothing, check under **LLM Details** that a card has the matching function ticked.
 
-<!-- UNCONFIRMED: the whole mAIstro walkthrough below — the "Upload data" search, the Upload a File action, the Local Document node and its `<< name: img, prompt: true, desc: Enter image file name >>` snippet, the Set Variable node, the Send to LLM node with the prompt "What is this a picture of?" and the image reference `<< name: img, prompt:false >>`, the Evaluate prompt for the file name. Old docs, verbatim page; nothing from mAIstro was in this capture. -->
+<!-- UNCONFIRMED: the mAIstro image-reading walkthrough below — the "Upload data" search and "Upload a File", the Local Document node and its `<< name: img, prompt: true, desc: Enter image file name >>` snippet, the Set Variable node, the Send to LLM node with the prompt "What is this a picture of?" and the image reference `<< name: img, prompt:false >>`, and the Evaluate prompt for the file name. Old docs, verbatim page; no mAIstro screen has been checked against it. -->
 
-1. In mAIstro, search the left pane for "Upload data" and choose "Upload a File"; the uploaded image appears as a Local Document node whose dropdown lists your uploaded files.
+Earlier documentation described sending a picture to a model that can read images. Treat it as a starting point and check each node against [Upload data](/maistro/ntl/upload-data/) before relying on it:
+
+1. In mAIstro, search the left pane for "Upload data" and choose "Upload a File". The uploaded image becomes a Local Document node, whose dropdown lists your uploaded files.
 1. Optionally add a Set Variable node so the image can be reused under a name of your choosing.
-1. Add a Send to LLM node with a prompt such as `What is this a picture of?`, reference the uploaded image in its image field, and pick a model that can read images.
-1. Press Evaluate; you are asked for the image file name (with extension) and the agent returns a description.
+1. Add a Send to LLM node with a prompt such as `What is this a picture of?`, reference the image in its image field, and pick a model whose **Inputs:** include Image.
+1. Press Evaluate. You are asked for the image file name, including its extension, and the agent returns a description.
 
 ## FAQ
 
-### How do I know whether a model can generate or edit images?
+### How do I know whether a model can generate images?
 
-Open its card under **LLM Details** and look at **Image Generation** and **Image Edits** in the **LLM Functions** grid. If the boxes are selectable — clear or ticked — the model can do them; if they are greyed out it cannot, per the section's rule that "features that an LLM are not capable of will be unselectable". On the captured instance only `Managed gpt-image` has them ticked.
+On its card under **LLM Details**, look at **Image Generation** in the **LLM Functions** grid. If the box can be ticked, the model can do it; if it is greyed out, it cannot. Before you add a model, the **Add an LLM** dialog tells you the same thing: if **Image Generation** appears in the **LLM Notes** line "This LLM does not support:", the card will not let you tick it.
 
-### Why are Video, Speech, Music and Speech to Text greyed out on every card?
+### Why are Video, Speech, Music and Speech to Text greyed out?
 
-None of the four models on that instance supports them, so the boxes cannot be ticked on any card. By the no-fallback rule a function that no card claims is disabled for the whole instance; adding a model that supports one of them is the only way to turn it on.
+The card's model cannot do them — in the section's words, "Features that an LLM are not capable of will be unselectable." If they are greyed out on every card, those functions are disabled for the configuration. To turn one on, add a model whose **LLM Notes** do not list it as unsupported, then tick the box on its card.
 
-### Where do I add GPT-4o or another multimodal model?
+### What happens if no card has Image Generation ticked?
 
-Through **Add an LLM** at the top of **LLM Details**. The dialog's platform and model choices were not captured for this page; see [LLM Details](/configuration/neural-config/llm-details/) and [Supported LLMs](/configuration/supported-llms/). After the card is added, tick the media functions you want it to serve.
+Image generation is disabled. The section's rule is that "there is no fallback and that function of NeuralSeek will be disabled" — no default model takes over. Tick **Image Generation** on a card whose model supports it, and save the configuration.
 
-### Is there a setting for reading images (image input)?
+### Can a model read images I send it?
 
-Not as a checkbox on this screen. The six media functions are about producing or transforming media — generating and editing images, video, speech, music, and transcribing speech. Whether a model's ability to read an image is shown anywhere on its card is not confirmed from the captured instance; the NTL `LLM` node does accept an `images` parameter, which is where a picture is attached to a prompt.
+Check the **Inputs:** icons in the **Add an LLM** dialog's **LLM Notes** for that model: an Image icon means the model accepts images as input. There is no checkbox for image input on the card — the six media functions cover producing, editing and transcribing media, not reading pictures.
 
-### How do I actually send an image to the model?
+### Two cards both have Image Generation ticked — which one is used?
 
-From a mAIstro agent: upload the file, then pass it to the `LLM` node through its `images` parameter with a model card that can read it. The step-by-step example on this page comes from the previous documentation and has not been re-verified; treat it as a starting point and check the node reference.
-
-### Does ticking Image Generation on two cards split the work?
-
-The section's rule says NeuralSeek "will load-balance across them for the selected functions that have multiple LLM's", so yes, the same way as any other function. How the **Weight** values decide each card's share is on [Multi-LLM](/configuration/multi-llm/). On the captured instance no media function is ticked on more than one card.
+Both. NeuralSeek "will load-balance across them for the selected functions that have multiple LLM's", the same way as for any text function. Each card's **Weight** sets its share; see [Multi-LLM](/configuration/multi-llm/).
