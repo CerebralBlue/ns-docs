@@ -33,7 +33,7 @@
  * `bun run verify` (the build) is not here: it runs once per area run, after the last writer.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { coverageOf } from './coverage';
 import { contractProblems, IMAGE_SECTION, isPageType, type PageType } from './contract';
@@ -43,11 +43,13 @@ import {
 	DOCS_DIR,
 	loadMap,
 	parseArgs,
+	parseSnapshot,
 	readJson,
 	ROOT,
 	routeDir,
 	runDir,
 	sha1,
+	walkSnapshot,
 	writeJson,
 } from './lib';
 
@@ -282,9 +284,32 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 			...body.matchAll(/!\[([^\]]*)\]\((\/img\/(?!_placeholder\.svg)[^)\s]+)\)/g),
 		].map((m) => normT(`${m[1]} ${m[2].replace(/[-_/.]/g, ' ')}`));
 		const isIllustrated = (label: string) => illustrated.some((t) => t.includes(label));
+		// Capturable = a label that is a NAMED node on some captured screen (a button, a field, a
+		// heading…). A JSON key inside a code box (the Chat SDK's `instanceId`, `chatTimeout`) is
+		// not a node, so no crop can ever exist for it — requiring one parked chat-sdk (2026-09-30).
+		const capturable = new Set<string>();
+		const sd = join(captureDir(runId), 'states');
+		if (existsSync(sd))
+			for (const f of readdirSync(sd))
+				if (f.endsWith('.yml'))
+					walkSnapshot(parseSnapshot(readFileSync(join(sd, f), 'utf8')), (n) => {
+						if (n.name) capturable.add(normT(n.name).trim());
+					});
+		const warn: string[] = [];
 		for (const sec of sections) {
 			const text = normT(sec.title + '\n' + sec.text.join('\n'));
-			const names = labels.filter((l) => l && text.includes(l));
+			const all = labels.filter((l) => l && text.includes(l));
+			const names = capturable.size ? all.filter((l) => capturable.has(l.trim())) : all;
+			const keysOnly = all.filter((l) => !names.includes(l));
+			if (keysOnly.length && !names.length) {
+				// config keys: a code fence or a table naming them is the right illustration
+				const shown = sec.text.some((l) => /^\s*(```|\|)/.test(l));
+				if (!shown)
+					warn.push(
+						`warn line ${sec.start}: "${sec.title}" documents config keys (${keysOnly.slice(0, 3).join(', ')}) with neither a table nor a code sample`
+					);
+				continue;
+			}
 			if (!names.length) continue;
 			const hasImage = sec.text.some((l) =>
 				/!\[[^\]]*\]\(\/img\/(?!_placeholder\.svg)[^)\s]+\)/.test(l)
@@ -299,7 +324,7 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 		gate(
 			'section-image',
 			detail.length ? 'FAIL' : 'PASS',
-			detail.length ? detail : [`${sections.length} section(s) checked`]
+			detail.length ? [...detail, ...warn] : [`${sections.length} section(s) checked`, ...warn]
 		);
 	}
 }

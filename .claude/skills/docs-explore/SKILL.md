@@ -98,7 +98,8 @@ export const meta = {
     },
     {
       title: 'Write',
-      detail: 'prepare-write → writer → gates → reviewer ⟲ fix (once) → verdict, per route',
+      detail:
+        'prepare-write → writer → publish images → gates → image review → reviewer ⟲ fix (once) → verdict, per route',
     },
     {
       title: 'Delegate',
@@ -355,6 +356,16 @@ const REVIEW = {
   },
   required: ['route', 'verdict', 'findings'],
 };
+const IMAGE_REVIEW = {
+  type: 'object',
+  properties: {
+    route: { type: 'string' },
+    images: { type: 'array' },
+    ok: { type: 'number' },
+    problems: { type: 'number' },
+  },
+  required: ['route', 'images'],
+};
 const EXPERIMENTS = {
   type: 'object',
   properties: { experiments: { type: 'array' }, halt: { type: ['string', 'null'] } },
@@ -406,6 +417,12 @@ const finish = async (extra) => {
   const cleaned = await cleanup();
   const restore = await restoreGate('finish');
   const report = await run(`bun scripts/agentic/report.ts ${RUN} --json`, 'report', 'Report');
+  // public/ keeps only what pages use; everything else stays in the capture library.
+  await run(
+    `bun scripts/agentic/library.ts prune-public --apply --json`,
+    'library:prune',
+    'Report'
+  );
   const learned = await learn();
   finished = {
     restore,
@@ -512,6 +529,9 @@ try {
     }
   }
   if (explore) await ensureFile(`${R}/explore.json`, explore, 'explore-file', 'Gather');
+  // File this capture into the capture library (screen → section folders + generated READMEs).
+  if (explore)
+    await run(`bun scripts/agentic/library.ts build --run ${RUN} --json`, 'library', 'Gather');
   if (explore && explore.halt === 'login') {
     loginHalted = true;
     log(
@@ -835,7 +855,13 @@ try {
       }
       return null;
     },
-    (x, r) => (x && x.wrote ? gatesFor(r, `gates:${r}`).then((g) => ({ ...x, g })) : null),
+    // Images the page references that public/ lacks come from the capture library first.
+    (x, r) =>
+      x && x.wrote
+        ? run(`bun scripts/agentic/library.ts publish ${r} --json`, `publish:${r}`, 'Write')
+            .then(() => gatesFor(r, `gates:${r}`))
+            .then((g) => ({ ...x, g }))
+        : null,
     async (x, r) => {
       if (!x || !x.g || !x.g.json) return null;
       const noWriteJson = !!x.noWriteJson;
@@ -859,8 +885,20 @@ try {
       );
       const prevPath = prevReview && prevReview.json && prevReview.json.path;
       const openForRoute = (prev && prev.json && prev.json.entries) || [];
+      // Look at every image next to its section (right section, no neighbour, not cut off…).
+      const imageReview = await A(
+        `Review the images of the route ${r}. Write ${RD(r)}/image-review.json per your instructions and return it.`,
+        { agentType: 'image-reviewer', label: `images:${r}`, phase: 'Write', schema: IMAGE_REVIEW }
+      );
+      if (imageReview)
+        await ensureFile(
+          `${RD(r)}/image-review.json`,
+          imageReview,
+          `image-review-file:${r}`,
+          'Write'
+        );
       const review = await A(
-        `Review the route ${r}. Run folder: ${R}. Capture folder: ${C}. Read ${RD(r)}/gates.json (its values / section-image / links / coverage evidence) and ${RD(r)}/outline.md first, then the brief at ${BRIEF(r)} and the snapshots in ${C}/states/; what the product did is in ${R}/answers.md.${prevPath ? ` The previous review of this route is ${prevPath} — re-check its findings and do not rediscover them.` : ''}${openForRoute.length ? ` Open backlog entries this page owes: ${JSON.stringify(openForRoute.map((e) => ({ id: e.id, what: e.what }))).slice(0, 2500)} — close the ones the page now satisfies via resolvedBacklog.` : ''} Work your checklist, mark each finding fixable or not with needs {kind, target, what} on the non-fixable ones, and write ${RD(r)}/review.json as {route, verdict, findings: [{kind, line, what, evidence, fixable, needs}], questions: [{what, needs}], resolvedBacklog: [ids]}.`,
+        `Review the route ${r}. Run folder: ${R}. Capture folder: ${C}. Read ${RD(r)}/gates.json (its values / section-image / links / coverage evidence), ${RD(r)}/image-review.json (the image verdicts — turn each problem into a finding: kind \`image\`, fixable when its fix is swap/drop/recrop, not fixable with needs {kind: "capture"} when it is recapture) and ${RD(r)}/outline.md first, then the brief at ${BRIEF(r)} and the snapshots in ${C}/states/; what the product did is in ${R}/answers.md.${prevPath ? ` The previous review of this route is ${prevPath} — re-check its findings and do not rediscover them.` : ''}${openForRoute.length ? ` Open backlog entries this page owes: ${JSON.stringify(openForRoute.map((e) => ({ id: e.id, what: e.what }))).slice(0, 2500)} — close the ones the page now satisfies via resolvedBacklog.` : ''} Work your checklist, mark each finding fixable or not with needs {kind, target, what} on the non-fixable ones, and write ${RD(r)}/review.json as {route, verdict, findings: [{kind, line, what, evidence, fixable, needs}], questions: [{what, needs}], resolvedBacklog: [ids]}.`,
         { agentType: 'doc-reviewer', label: `review:${r}`, phase: 'Write', schema: REVIEW }
       );
       if (review) await ensureFile(`${RD(r)}/review.json`, review, `review-file:${r}`, 'Write');

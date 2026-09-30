@@ -75,11 +75,11 @@ case "$AGENT" in
 		esac
 		deny "ia-agent may only edit astro.config.mjs, scripts/migration-map.json, new stub pages and its run folder; refused: $FILE"
 		;;
-	doc-reviewer)
+	doc-reviewer | image-reviewer)
 		case "$FILE" in
 			"$RUNS"/*) exit 0 ;;
 		esac
-		deny "doc-reviewer is read-only except its run folder; refused: $FILE"
+		deny "$AGENT is read-only except its run folder; refused: $FILE"
 		;;
 	*) exit 0 ;;
 esac

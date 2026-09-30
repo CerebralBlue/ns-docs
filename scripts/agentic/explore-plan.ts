@@ -6,7 +6,7 @@
  *       from one saved snapshot, append the things worth opening to states-todo.json
  *       (dedupe by role+name across the whole run; depth and count caps) and print what is
  *       still to do
- *   bun scripts/agentic/explore-plan.ts diff   <run> --before <abs.yml> --after <abs.yml> [--json]
+ *   bun scripts/agentic/explore-plan.ts diff   <run> --before <abs.yml> --after <abs.yml> [--expect "<clicked name>"] [--json]
  *       what a click added: the new container (dialog / tabpanel / region → the element to crop)
  *       and the new controls; `nothing` when the snapshots are the same
  *   bun scripts/agentic/explore-plan.ts record <run> --state <id> --snapshot <abs.yml>
@@ -650,6 +650,35 @@ if (verb === 'diff') {
 		)
 			found.push({ role: n.role, name: n.name, ref: n.ref });
 	});
+	// No new landmark, but an accordion item opened (Carbon: listitem > button [expanded] — not a
+	// landmark, and the dialog around it already existed): the item is the container to crop.
+	// Without this the explorer fell back to the whole dialog, whose screenshot showed the
+	// previous (still expanded) section above the new one (2026-09-30).
+	if (!found.length) {
+		const wasOpen = new Set<string>();
+		walkSnapshot(b, (n) => {
+			if (n.role === 'button' && n.attrs.includes('expanded') && n.parent?.role === 'listitem')
+				wasOpen.add(n.name);
+		});
+		const opened: Container[] = [];
+		walkSnapshot(a, (n) => {
+			if (
+				n.role === 'button' &&
+				n.attrs.includes('expanded') &&
+				n.parent?.role === 'listitem' &&
+				n.parent.ref &&
+				!wasOpen.has(n.name)
+			)
+				opened.push({ role: 'listitem', name: n.name, ref: n.parent.ref });
+		});
+		// Several can open at once (the dialog auto-expands its first item as it loads): the one
+		// just clicked (`--expect <button name>`) wins, else the last in document order.
+		const expect = args.get('expect');
+		const pick =
+			(expect && opened.find((o) => o.name === expect || slug(o.name) === slug(expect))) ||
+			opened[opened.length - 1];
+		if (pick) found.push(pick);
+	}
 	const container: Container | null = found[0] ?? null;
 	const same = !adds.length && !container;
 	if (asJson) console.log(JSON.stringify({ nothing: same, container, adds }));
@@ -749,11 +778,11 @@ if (verb === 'record') {
 		);
 		if (crops.panel || crops.sections.length || crops.options.length) {
 			console.log(
-				`  PHOTOGRAPH NOW (target=ref → public/img/<area>/${id}--<id>.png), then: explore-plan.ts attach ${run} --state ${id} --section <id>=<png> … --options <id>=<yml>:<png> …`
+				`  PHOTOGRAPH NOW (target=ref → public/img/<area>/${id}--<id>.png; the panel → ${id}-panel.png), then: explore-plan.ts attach ${run} --state ${id} [--panel <png>] --section <id>=<png> … --options <id>=<yml>:<png> …`
 			);
 			if (crops.panel)
 				console.log(
-					`    panel    ${id.padEnd(40)} ${crops.panel.ref.padEnd(12)} ${crops.panel.label}`
+					`    panel    ${(id + '-panel').padEnd(40)} ${crops.panel.ref.padEnd(12)} ${crops.panel.label}  (the expanded item itself — not the dialog)`
 				);
 			for (const x of crops.sections)
 				console.log(`    section  ${x.id.padEnd(40)} ${x.ref.padEnd(12)} ${x.label}`);
@@ -805,6 +834,16 @@ if (verb === 'attach') {
 	const st = states[id];
 	st.sections ??= {};
 	st.options ??= {};
+	// --panel <png>: the tight shot of the state's own container (the expanded accordion item),
+	// replacing the dialog-wide image `record` may have stored.
+	const panelPng = args.get('panel');
+	if (panelPng) {
+		if (!existsSync(panelPng)) {
+			console.error(`missing panel image ${panelPng}`);
+			process.exit(1);
+		}
+		st.panel = '/' + relative(join(ROOT, 'public'), panelPng);
+	}
 	const c = cropsOf(readFileSync(join(ROOT, st.snapshot), 'utf8'), id, id);
 	const kv = (x: string) => {
 		const i = x.indexOf('=');

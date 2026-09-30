@@ -4,7 +4,7 @@ description: Stage 1 of /docs-explore (agentic v3.2). Walks ONE console area of 
 model: sonnet
 effort: medium
 maxTurns: 300
-tools: Read, Grep, Bash(bun scripts/agentic/explore-plan.ts *), Bash(mkdir -p *), mcp__neuralseek-ui__browser_navigate, mcp__neuralseek-ui__browser_snapshot, mcp__neuralseek-ui__browser_take_screenshot, mcp__neuralseek-ui__browser_click, mcp__neuralseek-ui__browser_hover, mcp__neuralseek-ui__browser_type, mcp__neuralseek-ui__browser_press_key, mcp__neuralseek-ui__browser_wait_for, mcp__neuralseek-ui__browser_find, mcp__neuralseek-ui__browser_tabs
+tools: Read, Grep, Bash(bun scripts/agentic/explore-plan.ts *), Bash(bun scripts/agentic/compose-panel.ts *), Bash(mkdir -p *), mcp__neuralseek-ui__browser_navigate, mcp__neuralseek-ui__browser_snapshot, mcp__neuralseek-ui__browser_take_screenshot, mcp__neuralseek-ui__browser_click, mcp__neuralseek-ui__browser_hover, mcp__neuralseek-ui__browser_type, mcp__neuralseek-ui__browser_press_key, mcp__neuralseek-ui__browser_wait_for, mcp__neuralseek-ui__browser_find, mcp__neuralseek-ui__browser_tabs
 color: cyan
 hooks:
   PreToolUse:
@@ -79,10 +79,13 @@ still pending>}` with your notes — do **not** run `finish` or the restore chec
      label text for `generic` nodes), click it, `wait_for` ~1s.
    - Capture: snapshot → `R/states/<id>.yml`; viewport screenshot →
      `public/img/<area>/<id>.png`;
-     `bun scripts/agentic/explore-plan.ts diff <runId> --before <parent yml> --after <this yml>`
-     tells you the container that appeared (`dialog`, `tabpanel`, `region` + ref) — take a
-     second screenshot of that element (`element` = its description, `ref` = its ref) →
-     `public/img/<area>/<id>-panel.png`. If it says `nothing changed`, the click did nothing:
+     `bun scripts/agentic/explore-plan.ts diff <runId> --before <parent yml> --after <this yml> --expect "<label you just clicked>"`
+     tells you the container that appeared (`dialog`, `tabpanel`, `region`, or the **accordion
+     `listitem` you just expanded** + ref) — take a second screenshot of that element
+     (`element` = its description, `ref` = its ref) → `public/img/<area>/<id>-panel.png`. For an
+     accordion item that is the item itself (its header and fields), **never the whole dialog**:
+     a dialog shot shows the previous section above the new one. `browser_hover` the item's
+     ref first when it is below the fold. If it says `nothing changed`, the click did nothing:
      record the state with `--no-change` and no images, and move on (a new tab opening
      counts as a change — close it with `browser_tabs` and note it).
    - Record: `explore-plan.ts record <runId> --state <id> --snapshot … --viewport … [--panel …] --url …`.
@@ -90,6 +93,10 @@ still pending>}` with your notes — do **not** run `finish` or the restore chec
      `PHOTOGRAPH NOW`** — the panel, one crop per **section** (a field group: heading +
      description + control, or a labelled row) and every **dropdown** in the state. Do all of
      it before leaving the state:
+     - the `panel` line (the state's own expanded item) → when the panel you took before
+       `record` was the whole dialog, re-shoot `target=<panel ref>` → `public/img/<area>/<state>-panel.png`
+       and pass it to `attach --panel <png>`. Then `bun scripts/agentic/compose-panel.ts <runId> --state <state>`
+       adds the dialog footer (Propose Changes / Save) under the section.
      - each `section` line → `browser_take_screenshot` with `target=<ref>`, `element=<label>`
        → `public/img/<area>/<state>--<section id>.png`. If the section is below the fold,
        `browser_hover` its ref first (the console scrolls it into view), then screenshot.
