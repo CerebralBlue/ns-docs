@@ -7,8 +7,6 @@ description: "Browse, search and load pre-built agents and starter templates, in
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Browse experience — search by name, description, audience or capability; filter by type and category

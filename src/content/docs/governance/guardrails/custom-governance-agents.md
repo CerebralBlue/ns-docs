@@ -7,8 +7,6 @@ description: "The only extension point inside the live request path: agents that
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - The Custom Governance tab as a whole

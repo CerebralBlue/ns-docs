@@ -7,8 +7,6 @@ description: "A call graph of your whole agent fleet, built from every agent's N
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - What the graph is built from and how to read it

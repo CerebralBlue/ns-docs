@@ -7,8 +7,6 @@ description: "Score, strip and block prompt-injection attempts before they reach
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - 'Try it Out' — score a candidate prompt before setting a threshold

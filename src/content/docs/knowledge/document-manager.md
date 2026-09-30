@@ -7,8 +7,6 @@ description: "Search the indexed documents on your instance, see how many there 
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Where it is: KnowledgeBase in the navbar

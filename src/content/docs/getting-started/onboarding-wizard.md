@@ -7,8 +7,6 @@ description: "The first-run setup flow that walks a new instance through Basics,
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - The six wizard steps: Basics, Data, LLM, About, Tune, Q&A (Admin Tools > QA Tools)

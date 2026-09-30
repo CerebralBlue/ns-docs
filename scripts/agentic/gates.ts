@@ -145,7 +145,7 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 			// a stub or verbatim old prose is a WARNING, never a fail — the target may be written
 			// later tonight; the report counts these and the consistency pass re-checks them.
 			const targetInfo = map.routes[key];
-			if (targetInfo && targetInfo.status !== 'adopted') {
+			if (targetInfo && !['adopted', 'written'].includes(targetInfo.status)) {
 				const targetPage = [`${key}.md`, `${key}/index.md`]
 					.map((f) => join(DOCS_DIR, f))
 					.find((f) => existsSync(f));

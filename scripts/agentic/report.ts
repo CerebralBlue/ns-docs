@@ -514,7 +514,7 @@ const md = [
 	'',
 	...summary.structuralChanges.map((p) => `- \`git diff -- ${p}\`  (structural)`),
 	'',
-	'Nothing was committed. `status` was set to `auto` on written routes; `adopted` is yours to set. The playground should be as it was found — check the leftovers line.',
+	'Nothing was committed. `status` is `written` on routes that passed their gates (`draft` otherwise); `adopted` is yours to set, with `reviewedAt` + `reviewedRun`. The playground should be as it was found — check the leftovers line.',
 	'',
 ].join('\n');
 writeFileSync(join(dir, 'report.md'), md);

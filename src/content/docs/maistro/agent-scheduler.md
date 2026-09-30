@@ -7,8 +7,6 @@ description: "Run an agent on a schedule: recurrence, parameters, where the outp
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Recurrence options

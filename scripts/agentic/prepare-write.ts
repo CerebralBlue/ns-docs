@@ -6,9 +6,12 @@
  *   1. before.md — the page as it is now, saved once under runs/<id>/<route>/. If before.md
  *      already exists and write.json does not, a previous writer died mid-edit: the page is
  *      RESTORED from before.md so the rerun starts from a known state (the resume rule).
- *   2. status → "auto" in scripts/migration-map.json, by string surgery on the route's block.
- *      `bun run stubs` never touches an `auto` page, and `adopted` is a human's mark, so
- *      the pipeline sets exactly this and nothing else.
+ *   2. status stub → "draft" in scripts/migration-map.json, by string surgery on the route's
+ *      block, so `bun run stubs` can never reclaim the page mid-write. `draft`/`written` stay as
+ *      they are (sync-map.ts sets `written` once the gates pass). **An `adopted` page is a
+ *      human's sign-off: it is refused (exit 1, the writer never starts) unless
+ *      `--allow-adopted` is passed — then it becomes `written` and keeps reviewedAt/reviewedRun,
+ *      so doc-lint and the report flag it as changed since review.
  *   3. If the page does not exist yet (a route the IA stage added) a page is created from the
  *      map's title/description with its type's contract skeleton (contract.ts), so the writer
  *      starts from the right headings.
@@ -28,6 +31,12 @@ const { text, map } = loadMap();
 const info = map.routes[route];
 if (!info) {
 	console.error(`${route} is not in scripts/migration-map.json — the IA stage must add it first`);
+	process.exit(1);
+}
+if (info.status === 'adopted' && !args.flags.has('allow-adopted')) {
+	const msg = `${route} is adopted (reviewed ${info.reviewedAt ?? '?'}) — refusing to rewrite a human-checked page; pass --allow-adopted to override`;
+	if (args.flags.has('json')) console.log(JSON.stringify({ route, refused: msg }));
+	else console.error(msg);
 	process.exit(1);
 }
 const dir = routeDir(runId, route);
@@ -52,15 +61,16 @@ if (existsSync(before) && !existsSync(writeJsonPath)) {
 	copyFileSync(page, before);
 	result.savedBefore = true;
 }
-if (info.status !== 'auto') {
+const next = info.status === 'stub' ? 'draft' : info.status === 'adopted' ? 'written' : null;
+if (next) {
 	const patched = patchRouteBlock(text, route, (b) =>
-		b.replace(/"status": "(stub|adopted|auto)"/, '"status": "auto"')
+		b.replace(/"status": "(stub|adopted)"/, `"status": "${next}"`)
 	);
 	if (patched !== text) writeFileSync(MAP_PATH, patched);
-	result.status = { from: info.status, to: 'auto' };
+	result.status = { from: info.status, to: next };
 }
 if (args.flags.has('json')) console.log(JSON.stringify(result));
 else
 	console.log(
-		`${route}: ${[result.created && 'page created', result.restored && 'restored from before.md', result.savedBefore && 'before.md saved', result.status && `status ${info.status} → auto`].filter(Boolean).join(' · ') || 'nothing to do'}`
+		`${route}: ${[result.created && 'page created', result.restored && 'restored from before.md', result.savedBefore && 'before.md saved', result.status && `status ${info.status} → ${next}`].filter(Boolean).join(' · ') || 'nothing to do'}`
 	);

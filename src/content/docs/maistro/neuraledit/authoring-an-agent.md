@@ -7,8 +7,6 @@ description: "NeuralEdit's behaviour is defined by a mAIstro agent that starts w
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - The NeuralEdit Input node and the shape of a NeuralEdit agent

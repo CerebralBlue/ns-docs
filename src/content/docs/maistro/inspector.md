@@ -7,8 +7,6 @@ description: "Run an agent from the editor and read what happened: the timeline,
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Inspector > Timeline — where run time went, per node, for this run

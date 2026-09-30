@@ -7,8 +7,6 @@ description: "Self-report installs and users on a Flex plan, download a license 
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Admin Tools > Customize (Flex plan) — self-report installs and users, download a license file

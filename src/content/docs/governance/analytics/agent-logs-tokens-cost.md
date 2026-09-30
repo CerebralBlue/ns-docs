@@ -7,8 +7,6 @@ description: "The per-run agent logs behind the Agent Details aggregates, and ag
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - mAIstro Logs page — per-run agent logs behind the Agent Details aggregates

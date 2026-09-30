@@ -7,8 +7,6 @@ description: "Score how well an answer is supported by its sources, and act on t
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - LLM Decline Penalty — penalty when the answer looks like a refusal (Semantic Model Tuning)

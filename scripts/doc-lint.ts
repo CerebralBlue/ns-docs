@@ -55,6 +55,11 @@ if (!all && prefixes.length === 0) {
 
 const map: { routes: Record<string, any> } = JSON.parse(readFileSync(MAP_PATH, 'utf8'));
 const staleHashes = oldDocsImageHashes();
+/** route → last pipeline run (private; absent in CI). */
+const INDEX_PATH = join(ROOT, '_private/agentic-v2/index.json');
+const pipelineIndex: Record<string, { runId?: string }> | null = existsSync(INDEX_PATH)
+	? JSON.parse(readFileSync(INDEX_PATH, 'utf8'))
+	: null;
 
 /**
  * The visible "screenshot pending" graphic. A page referencing it is honest about a gap
@@ -335,6 +340,18 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 	} else {
 		lintPage(info.status, info.type, readFileSync(path, 'utf8'), findings);
 	}
+	// An adopted page the pipeline rewrote after the human review (index.json is private and
+	// absent in CI — then the check is skipped).
+	if (info.status === 'adopted' || info.reviewedRun) {
+		const last = pipelineIndex?.[route]?.runId;
+		if (last && info.reviewedRun !== last)
+			findings.push({
+				level: 'warn',
+				line: 1,
+				rule: 'changed-since-review',
+				message: `rewritten by run ${last} after the human review (${info.reviewedRun ?? 'no reviewedRun'}, ${info.reviewedAt ?? 'no reviewedAt'}) — re-review, then set reviewedRun`,
+			});
+	}
 
 	// A draft is allowed to be unfinished; "adopted" means a human called it done.
 	const adopted = info.status === 'adopted';
@@ -351,7 +368,7 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 	errors += e;
 	warnings += w;
 
-	report.push(`\n${rel}  [${info.status}${adopted ? '' : ' — draft, warnings only'}]`);
+	report.push(`\n${rel}  [${info.status}${adopted ? '' : ' — warnings only until adopted'}]`);
 	for (const f of shown.sort((a, b) => a.line - b.line))
 		report.push(
 			`  ${level(f) === 'error' ? 'ERROR' : 'warn '} ${String(f.line).padStart(4)}  ${f.rule.padEnd(18)} ${f.message}`

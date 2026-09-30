@@ -7,8 +7,6 @@ description: "Fleet-wide agent behaviour and the per-agent drill-down: timing, r
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Agent Execution Timeline — when agents ran and for how long

@@ -7,8 +7,6 @@ description: "Automated adversarial testing of a single agent — planned, execu
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Governance > mAIstro Governance > Red Team Testing

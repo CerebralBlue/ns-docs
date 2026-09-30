@@ -19,13 +19,13 @@ unowned — otherwise the workflow skips you.
 
 `R` = `_private/agentic-v2/runs/<runId>/` (this run); `C` = the capture (states, briefs, plan).
 
-| Thing                                                     | Where                                                                                                                                                                               |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The area, its routes, the sidebar groups they sit in      | `R/area.json` (`routes[]`, `sidebar[]` with `lines`, `notInSidebar`)                                                                                                                |
-| Which control belongs to which route, and what is unowned | `C/coverage-plan.json` (the capture folder the prompt names) — `unowned[]`, `emptyRoutes[]`, `notInCapture[]` and `conflicts[]` are your work list                                  |
-| The console's actual structure                            | `_private/component-map/<area>.json`; the states in `R/states/`                                                                                                                     |
-| Each route's brief                                        | `C/briefs/<route folder>/brief.md` — its `## Open questions`                                                                                                                        |
-| The map schema                                            | `scripts/migration-map.json` — routes are keys; `title`, `sources`, `action`, `status`, `description`, `gaps`, `console`; plus top-level `renamed` (old route → prose or new route) |
+| Thing                                                     | Where                                                                                                                                                                                                                          |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The area, its routes, the sidebar groups they sit in      | `R/area.json` (`routes[]`, `sidebar[]` with `lines`, `notInSidebar`)                                                                                                                                                           |
+| Which control belongs to which route, and what is unowned | `C/coverage-plan.json` (the capture folder the prompt names) — `unowned[]`, `emptyRoutes[]`, `notInCapture[]` and `conflicts[]` are your work list                                                                             |
+| The console's actual structure                            | `_private/component-map/<area>.json`; the states in `R/states/`                                                                                                                                                                |
+| Each route's brief                                        | `C/briefs/<route folder>/brief.md` — its `## Open questions`                                                                                                                                                                   |
+| The map schema                                            | `scripts/migration-map.json` — routes are keys; `title`, `status`, `type`, `description`, `gaps`, `gapsResolved`, `console`; plus top-level `renamed` (old route → prose or new route) and `redirects` (old URLs — never edit) |
 
 ## What you decide
 
@@ -68,7 +68,7 @@ it is in understand's `newPages` (returned JSON / `C/understand*.json`) **and** 
 `C/briefs/<route folder>/brief.md` — a page nobody can write is not added. For each:
 
 - the map: one new block, by string surgery, next to its siblings —
-  `"<route>": {"title": "…", "sources": [], "action": "new", "status": "stub", "description": "<one sentence>", "gaps": [], "console": ["<area>"]}`;
+  `"<route>": {"title": "…", "status": "stub", "type": "<concept|task|reference|quickstart>", "description": "<one sentence>", "gaps": [], "console": ["<area>"]}`;
 - the sidebar: a `{ label, slug }` item in the right group of `area.json → sidebar[]`;
 - the coverage plan: the route's controls (move them from `unowned` or from an over-full page);
 - `routes-final.json`: in `routes` and in `added`; `ia.json`: a decision of kind `add` with why.

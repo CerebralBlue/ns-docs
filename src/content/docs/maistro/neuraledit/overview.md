@@ -7,8 +7,6 @@ description: "An AI document editor grounded in your own files, driven by a mAIs
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - What NeuralEdit is and where it lives (NeuralEdit in the navbar)

@@ -7,8 +7,6 @@ description: "Named pools of agents that Select an Agent and Agent Plan choose f
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Create Registry and Edit Registry

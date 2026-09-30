@@ -7,8 +7,6 @@ description: "Browse or create a file, review the AI's diff before accepting it,
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - File Browser and Create File

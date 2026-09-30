@@ -7,8 +7,6 @@ description: "The NeuralSeek Template Language: syntax, variables, and how nodes
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - TOOLING (not a page): the NTL doc generator has stopped detecting nodes; fixing it closes 103 of 112 node gaps

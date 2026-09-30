@@ -100,9 +100,11 @@ export const isOpener = (name: string) =>
 
 export type Route = {
 	title: string;
-	sources: string[];
-	action: string;
-	status: 'stub' | 'auto' | 'adopted';
+	/** stub → draft (unverified prose) → written (pipeline-gated) → adopted (a human checked it). */
+	status: 'stub' | 'draft' | 'written' | 'adopted';
+	/** Set by hand with `adopted`: the date and the run whose page the human checked. */
+	reviewedAt?: string;
+	reviewedRun?: string;
 	/** Page contract type — scripts/agentic/contract.ts. */
 	type?: 'concept' | 'task' | 'reference' | 'quickstart';
 	description?: string;
@@ -114,8 +116,12 @@ export type Route = {
 };
 export type MigrationMap = {
 	routes: Record<string, Route>;
-	kill?: Record<string, string>;
 	renamed?: Record<string, string>;
+	redirects?: {
+		sourceCommit?: string;
+		from: Record<string, string>;
+		kill?: Record<string, string>;
+	};
 	[k: string]: unknown;
 };
 

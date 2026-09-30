@@ -7,8 +7,6 @@ description: "The hate/abuse/profanity filter, plus the allow-list and block-lis
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - HAP allow-list — words the profanity filter should ignore

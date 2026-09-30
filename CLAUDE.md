@@ -359,7 +359,7 @@ remark-directive text directive and vanishes in the build** (`user:pass@host` re
 **Structure is complete; content is the remaining work.** 151 routes exist, are in the sidebar
 and build. They split in two halves:
 
-- **76 routes have an old MkDocs page**, now ported verbatim (`status: auto`). The prose is a
+- **76 routes had an old MkDocs page**, ported verbatim (now `status: draft` until rewritten). The prose is a
   starting point for structure only — the facts in it are stale, so every claim is re-checked
   against the running product. The 5 `merge` routes still carry a `<!-- MERGE: -->` marker and
   the 3 routes sharing `more_about_NS/plans.md` carry identical text; both are for the writer.
@@ -372,11 +372,14 @@ can carry a `gaps` array listing the undocumented product surfaces that route mu
 routes have one. `gen-stubs.ts` renders it as a visible "To document on this page" worklist; converted pages
 carry it as an invisible `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment.
 
-**`status` is load-bearing.** `stub` is overwritten by `bun run stubs`; **`auto` and `adopted`
-are never regenerated** (the converter that wrote the `auto` pages is retired). `auto` means
-machine-converted verbatim from the old page and not yet verified against the product; `adopted`
-means a human has checked it. Flip a route to `adopted` when you start
-hand-editing it, so `bun run stubs` can never reclaim the file.
+**`status` is load-bearing** (2026-09-30): `stub` → `draft` → `written` → `adopted`. `stub` is
+overwritten by `bun run stubs`; nothing else is regenerated. `draft` = prose not yet checked
+against the product (the verbatim port, or a page mid-write); `written` = the `/docs-explore`
+pipeline wrote it and its gates passed (`sync-map.ts` sets it); `adopted` = a human checked it —
+set **by hand** together with `reviewedAt` (date) and `reviewedRun` (the run whose page you
+read). `prepare-write.ts` refuses to rewrite an `adopted` page unless `--allow-adopted`, and
+`doc-lint` flags `changed-since-review` when a newer run rewrote it. Old MkDocs URLs live in the
+map's `redirects` block (`from`, `kill`) for the domain cutover.
 
 Open items that affect anyone touching content:
 
@@ -449,7 +452,7 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
   `doc-reviewer` (findings only, incl. outline drift; no rewrite loop) → `bun run verify` once
   → `cleanup` (delete `docs-*` agents, on every exit) → `report.ts` (also updates
   `index.json`: route → {runId, captureRun}) → `learn.ts`. Everything lands as an
-  **uncommitted diff**; the pipeline sets `status: auto`, never `adopted`.
+  **uncommitted diff**; the pipeline sets `draft`/`written`, never `adopted`.
 - **The old prose is background, never a fact.** The writer may read the verbatim-ported page
   for the _why_ and the vocabulary; a fact from it that no snapshot, probe or config shows
   carries `<!-- UNCONFIRMED: … -->` on the line above (the `facts` gate parks a page with more

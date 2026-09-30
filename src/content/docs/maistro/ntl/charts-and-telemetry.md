@@ -7,8 +7,6 @@ description: "The chart nodes that render HTML visualisations and the instance-d
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - 6 chart nodes: bar, line, pie, area, doughnut, bubble (mAIstro > Charting & Graphs)

@@ -41,7 +41,7 @@ table and steps below only; a hook refuses anything else.
 | **Concepts → owners**    | brief `## Concepts → owner pages`; `bun scripts/agentic/neighbours.ts <route>`                                             | The **first mention** of every feature another page documents (Answers, Guardrails, Category Routing, Curate…) links to that page. One link per concept per page; never re-explain it here.                                                                                  |
 | The old page, background | `src/content/docs/<route>.md` (verbatim old prose or a stub) and `_private/archive/verbatim-migration/previous/<route>.md` | The _why_, the vocabulary, the use cases. **Not a source of facts.** A fact from here that no brief control, snapshot or answer shows may stay only with `<!-- UNCONFIRMED: <the fact> — <where it came from> -->` on the line above it.                                     |
 
-`status: auto` is already set on the map — do not touch the map.
+The map's `status` is handled by the scripts (`draft` before you write, `written` once the gates pass; an `adopted` page never reaches you) — do not touch the map.
 
 **From the orchestrator.** The prompt may carry `mustCover` (topics this page must address —
 backlog ids or control names; each becomes a paragraph or a section, and its id goes in

@@ -7,8 +7,6 @@ description: "How to read any Governance dashboard: the Filter modal, which page
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - The Filter modal — slice any dashboard by intent category or by runtime filter

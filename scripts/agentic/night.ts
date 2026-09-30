@@ -402,7 +402,7 @@ if (verb === 'report') {
 		'',
 		...[...new Set(diffs)].map((d) => `- \`${d}\``),
 		'',
-		'Nothing was committed. `status` is `auto` on written routes; `adopted` is yours.',
+		'Nothing was committed. `status` is `written` on gated routes; `adopted` is yours.',
 		''
 	);
 	const out = join(NIGHT_DIR, state.nightId, 'REPORT.md');
