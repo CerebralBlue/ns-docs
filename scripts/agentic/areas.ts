@@ -89,7 +89,7 @@ const DEFAULTS: [RegExp, string[]][] = [
 	[/^integrations\/chat-sdk$/, ['chat']],
 	[/^integrations\//, ['admin-tools']],
 	[/^configuration\/neural-config\//, ['neural-config']],
-	[/^configuration\/administration\/(support-plans|self-hosting-an-llm)$/, []],
+	[/^configuration\/administration\/support-plans$/, []],
 	[/^configuration\/administration\//, ['admin-tools']],
 	[/^configuration\//, ['neural-config']],
 	[/^governance\/guardrails\//, ['governance', 'neural-config']],

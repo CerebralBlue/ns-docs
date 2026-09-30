@@ -144,11 +144,43 @@ const SCRIPT = {
   properties: { ok: { type: 'boolean' }, json: { type: 'object' }, stderr: { type: 'string' } },
   required: ['ok'],
 };
+// The haiku wrapper sometimes nests the script's JSON one level down, under a key of its own
+// choosing ({json: {exitCode, json|output|stdout|result: {...}}}), sometimes as a string. Seen
+// on the plan, the gates and the restore gate; every caller reads r.json, so unwrap it here.
+const WRAPPER_KEYS = new Set([
+  'ok',
+  'exitCode',
+  'exit_code',
+  'code',
+  'json',
+  'output',
+  'stdout',
+  'stderr',
+  'result',
+]);
+const unwrapJson = (j) => {
+  for (let i = 0; i < 3; i++) {
+    if (typeof j === 'string') {
+      try {
+        j = JSON.parse(j);
+      } catch {
+        return j;
+      }
+      continue;
+    }
+    if (!j || typeof j !== 'object' || Array.isArray(j)) return j;
+    const keys = Object.keys(j);
+    const inner = ['json', 'output', 'stdout', 'result'].find((k) => k in j);
+    if (!inner || !keys.every((k) => WRAPPER_KEYS.has(k))) return j;
+    j = j[inner];
+  }
+  return j;
+};
 const run = (cmd, label, phase) =>
   A(
-    `From ${REPO}, run exactly this command and nothing else:\n\n${cmd}${cmd.startsWith('bun scripts/agentic/') ? ATTEMPT : ''}\n\nReturn {ok: <exit code was 0>, json: <the JSON it printed, parsed>, stderr: <stderr if any>}. Do not fix anything, do not run anything else.`,
+    `From ${REPO}, run exactly this command and nothing else:\n\n${cmd}${cmd.startsWith('bun scripts/agentic/') ? ATTEMPT : ''}\n\nReturn {ok: <exit code was 0>, json: <the JSON it printed, parsed>, stderr: <stderr if any>}. \`json\` is the printed JSON itself — do not wrap it in {exitCode, output} or any other object. Do not fix anything, do not run anything else.`,
     { label, phase, schema: SCRIPT, model: 'haiku', effort: 'low', agentType: 'general-purpose' }
-  );
+  ).then((r) => (r && 'json' in r ? { ...r, json: unwrapJson(r.json) } : r));
 // An agent's return value is a copy of the file it should have written; when the file is
 // missing (it happens), a haiku wrapper writes it from the return value.
 const ensureFile = (path, data, label, phase) =>
@@ -358,8 +390,7 @@ const restoreGate = async (stage) => {
     `restore:${stage}`,
     'Gather'
   );
-  // The haiku wrapper sometimes nests its answer ({json: {ok, json: {status}}}) — unwrap once.
-  const j = g && g.json && (g.json.status ? g.json : g.json.json);
+  const j = g && g.json;
   const status = (j && j.status) || 'FAIL';
   if (status === 'FAIL')
     log(
@@ -407,7 +438,8 @@ try {
     'Plan'
   );
   const normalised = await run(`cat ${R}/plan.normalised.json`, 'plan:read', 'Plan');
-  plan = (normalised && normalised.json) || null;
+  const pj = normalised && normalised.json;
+  plan = pj && Array.isArray(pj.routes) ? pj : null;
   if (validated && validated.json)
     log(
       `plan: ${validated.json.defaults ? 'defaults (no plan.json)' : `${validated.json.routes} route(s), ${validated.json.skipped} skipped, ${(validated.json.added || []).length} added`}${(validated.json.fallbacks || []).length ? ` · fallbacks: ${validated.json.fallbacks.length}` : ''}`
@@ -796,8 +828,6 @@ try {
     (x, r) => (x && x.wrote ? gatesFor(r, `gates:${r}`).then((g) => ({ ...x, g })) : null),
     async (x, r) => {
       if (!x || !x.g || !x.g.json) return null;
-      // The haiku wrapper sometimes nests its answer ({json: {ok, json: {...gates}}}) — unwrap once.
-      if (!x.g.json.gates && x.g.json.json) x.g.json = x.g.json.json;
       const noWriteJson = !!x.noWriteJson;
       let g = x.g.json;
       if (!g.ok) {
