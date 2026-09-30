@@ -247,8 +247,8 @@ const checkpoint = async (stage, result, extra) => {
     `mode: review. runId: ${RUN}. stage: ${stage}. Expectation from the plan: ${JSON.stringify(expectation)}. Agent result: ${JSON.stringify(result).slice(0, 3000)}. Digest: ${JSON.stringify(digest).slice(0, 5000)}. Catalog: _private/agentic-v2/catalog.json (read the entry for ${(extra && extra.agent) || stage}). Return one decision per your REVIEW mode.`,
     {
       agentType: 'planner',
-      model: 'sonnet',
-      effort: 'medium',
+      model: 'opus',
+      effort: 'high',
       label: `checkpoint:${stage}${extra && extra.route ? ':' + extra.route : ''}`,
       phase: 'Plan',
       schema: DECISION,
@@ -602,6 +602,8 @@ try {
           },
           emptyRoutes: (merged && merged.json && merged.json.emptyRoutes) || [],
           notInCapture: (merged && merged.json && merged.json.notInCapture) || [],
+          staleGaps: ok.flatMap((p) => p.staleGaps || []),
+          newPages: ok.flatMap((p) => p.newPages || []),
           questions: ok.flatMap((p) => p.questions || []),
           notes: ok
             .map((p) => p.notes || '')
@@ -718,14 +720,22 @@ try {
   const conflicts = (understood.controls && understood.controls.conflicts) || 0;
   const empty = (understood.emptyRoutes || []).length;
   const newPages = (understood.newPages || []).length;
+  const staleGaps = understood.staleGaps || [];
   let ia = null;
   const iaFlag = stageFlag('ia', 'auto');
+  // The sidebar-mirrors-the-platform rule is checked on every fresh capture (explore mode).
   if (
     iaFlag === 'run' ||
-    (iaFlag === 'auto' && (unowned > 0 || empty > 0 || conflicts > 0 || newPages > 0))
+    (iaFlag === 'auto' &&
+      (!writeOnly ||
+        unowned > 0 ||
+        empty > 0 ||
+        conflicts > 0 ||
+        newPages > 0 ||
+        staleGaps.length > 0))
   ) {
     ia = await A(
-      `runId: ${RUN}. Capture folder C: ${C}. The understand step left ${unowned} control(s) unowned, ${conflicts} conflict(s), ${empty} route(s) empty and proposed ${newPages} new page(s). Decide per your instructions (assign / relabel / reorder / merge / ADD a page when understand briefed it), apply, and write ${R}/ia.json and ${R}/routes-final.json.`,
+      `runId: ${RUN}. Capture folder C: ${C}. The understand step left ${unowned} control(s) unowned, ${conflicts} conflict(s), ${empty} route(s) empty, proposed ${newPages} new page(s) and found ${staleGaps.length} stale gap(s)${staleGaps.length ? `: ${JSON.stringify(staleGaps).slice(0, 2500)}` : ''}. Decide per your instructions (sidebar mirrors the platform; assign / relabel / reorder / merge / ADD a page when understand briefed it; move stale gaps to gapsResolved), apply, and write ${R}/ia.json and ${R}/routes-final.json.`,
       { agentType: 'ia-agent', label: `ia:${args.area}`, phase: 'IA', schema: IA }
     );
     // The ia-agent has no shell: a route it adds to the map exists only once gen-stubs writes

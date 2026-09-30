@@ -55,8 +55,8 @@ if (!all && prefixes.length === 0) {
 const map: { routes: Record<string, any> } = JSON.parse(readFileSync(MAP_PATH, 'utf8'));
 const staleHashes = oldDocsImageHashes();
 
-/** The five sections of planning/templates/feature-page.md. */
-const CONTRACT_SECTIONS = ['What is it', 'Why it matters', 'When to use it', 'How it works', 'FAQ'];
+/** The required sections of planning/templates/feature-page.md (FAQ is optional since 2026-09-30). */
+const CONTRACT_SECTIONS = ['What is it', 'Why it matters', 'When to use it', 'How it works'];
 
 /**
  * The visible "screenshot pending" graphic. A page referencing it is honest about a gap

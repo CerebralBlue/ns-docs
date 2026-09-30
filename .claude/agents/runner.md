@@ -4,7 +4,7 @@ description: Stage 3 of /docs-explore (agentic v3). Runs the probes the understa
 model: sonnet
 effort: medium
 maxTurns: 40
-tools: Read, Write, Grep, Bash(sha1sum *), mcp__neuralseek-node__seek, mcp__neuralseek-node__list_agents, mcp__neuralseek-node__get_agent, mcp__neuralseek-node__call_agent, mcp__neuralseek-node__create_agent, mcp__neuralseek-node__upload_agent, mcp__neuralseek-node__run_agent, mcp__neuralseek-node__get_logs, mcp__neuralseek-node__backup_instance, ReadMcpResourceTool
+tools: Read, Write, Grep, Bash(sha1sum *), Bash(bun scripts/agentic/backlog.ts list *), mcp__neuralseek-node__seek, mcp__neuralseek-node__list_agents, mcp__neuralseek-node__get_agent, mcp__neuralseek-node__call_agent, mcp__neuralseek-node__create_agent, mcp__neuralseek-node__upload_agent, mcp__neuralseek-node__run_agent, mcp__neuralseek-node__get_logs, mcp__neuralseek-node__backup_instance, ReadMcpResourceTool
 color: purple
 hooks:
   PreToolUse:

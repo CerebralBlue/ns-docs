@@ -9,7 +9,7 @@
  * Result → runs/<id>/<route>/gates.json.
  *
  *   lint       bun scripts/doc-lint.ts <route> --strict — any ERROR fails
- *   contract   the five h2s in order incl. a FAQ with ≥ 3 entries, title + description present,
+ *   contract   the four h2s in order, an optional FAQ with ≥ 2 entries when present, title + description present,
  *              no leftover MERGE / STILL TO DOCUMENT / ASK marker
  *   links      every internal ](/…) link resolves to a route, a renamed key, or a file; a link
  *              whose sentence names a **topic** the (unwritten) target page does not mention is
@@ -108,7 +108,8 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 }
 // ── contract ──────────────────────────────────────────────────────────────────
 {
-	const CONTRACT = ['What is it', 'Why it matters', 'When to use it', 'How it works', 'FAQ'];
+	// FAQ is optional (2026-09-30): an invented question is worse than none.
+	const CONTRACT = ['What is it', 'Why it matters', 'When to use it', 'How it works'];
 	const detail: string[] = [];
 	if (!/^title:\s*\S/m.test(fm)) detail.push('frontmatter: no title');
 	if (!/^description:\s*\S/m.test(fm)) detail.push('frontmatter: no description');
@@ -124,14 +125,14 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 	if (present.some((p, i) => i > 0 && p < present[i - 1]))
 		detail.push('contract sections out of order');
 	if (/^#\s/m.test(body)) detail.push('in-body H1');
-	// FAQ: every page ends with ≥ 3 questions (a `### Q` heading or a bold/`**Q**` line ending in `?`).
+	// FAQ, when present: ≥ 2 questions (a `### Q` heading or a bold/`**Q**` line ending in `?`).
 	const faqStart = lines.findIndex((l) => /^##\s+FAQ\s*$/i.test(l));
 	if (faqStart >= 0) {
 		const faq = lines.slice(faqStart + 1).join('\n');
 		const questions = (
 			faq.match(/^(###\s+.+\?|\*\*[^*]+\?\*\*|-\s+\*\*Q:?\*\*.+|<details>)\s*$/gm) ?? []
 		).length;
-		if (questions < 3) detail.push(`FAQ has ${questions} question(s); 3 or more required`);
+		if (questions < 2) detail.push(`FAQ has ${questions} question(s); 2 or more when present`);
 	}
 	if (/<!--\s*(MERGE|STILL TO DOCUMENT|ASK):/.test(body))
 		detail.push('a MERGE / STILL TO DOCUMENT / ASK marker is still on the page');

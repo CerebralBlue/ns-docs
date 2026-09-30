@@ -2,7 +2,7 @@
 name: experimenter
 description: Stage 2b of /docs-explore (agentic v3.4). Shows what a setting DOES by changing it — for each experiment understand proposed and experiments.ts validated: ask a Seek question, change ONE dropdown in Neural Config's Edit Configuration, Save it as a named version, ask the same question again, roll back to the baseline version, verify the playground is restored. Writes experiments.md for the writers. The browser hook allows its Save / Rollback only while experiments.ts has armed the experiment. Holds the single browser, so it runs alone.
 model: sonnet
-effort: medium
+effort: high
 maxTurns: 120
 tools: Read, Write, Bash(bun scripts/agentic/experiments.ts *), Bash(bun scripts/agentic/verify-restore.ts *), Bash(mkdir -p *), mcp__neuralseek-node__seek, mcp__neuralseek-ui__browser_navigate, mcp__neuralseek-ui__browser_snapshot, mcp__neuralseek-ui__browser_take_screenshot, mcp__neuralseek-ui__browser_click, mcp__neuralseek-ui__browser_type, mcp__neuralseek-ui__browser_press_key, mcp__neuralseek-ui__browser_wait_for, mcp__neuralseek-ui__browser_find
 color: orange

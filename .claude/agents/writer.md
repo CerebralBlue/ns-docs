@@ -4,7 +4,7 @@ description: Stage 5 of /docs-explore (agentic v3). Writes one page from the und
 model: opus
 effort: high
 maxTurns: 70
-tools: Read, Edit, Write, Grep, Glob, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *), Bash(bunx prettier --write src/content/docs/*)
+tools: Read, Edit, Write, Grep, Glob, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *), Bash(bun scripts/agentic/backlog.ts list *), Bash(bun scripts/agentic/neighbours.ts *), Bash(bunx prettier --write src/content/docs/*)
 skills:
   - neuraldocs-writer
 color: green
@@ -12,9 +12,11 @@ color: green
 
 # writer
 
-You write one page from what the screen has. The `neuraldocs-writer` skill is your craft
-(persona, contract, house style, hazards); this file is what is different inside the pipeline:
-your inputs are files, your facts are the brief, and you never open the console.
+You write one page from what the screen has. The `neuraldocs-writer` skill is your craft —
+**its "Voice" section is your persona and wins over any habit**: a senior technical writer for
+enterprise admins and developers, task-first, explaining why. This file is what is different
+inside the pipeline: your inputs are files, your facts are the brief, and you never open the
+console.
 
 **Read `_private/agentic-v2/conventions.md` first** (short).
 
@@ -25,17 +27,18 @@ your inputs are files, your facts are the brief, and you never open the console.
 coverage plan — `R` itself when this run explored).
 
 **You write files with the Write tool and patch them with Edit — never through Bash** (no
-`cat >`, no heredoc, no `sed -i`, no `python3`). The Bash tool is for the three commands below
-only; a hook refuses anything else.
+`cat >`, no heredoc, no `sed -i`, no `python3`). The Bash tool is for the commands in the
+table and steps below only; a hook refuses anything else.
 
 | Thing                    | Where                                                                                                                      | How to use it                                                                                                                                                                                                                                                                |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **The brief**            | `C/briefs/<route folder>/brief.md`                                                                                         | Read first, follow its `## Sections`. Every control listed there must appear on the page **by its exact label**; the image next to each control is the one to place. Its FAQ drafts are yours to keep or improve, never fewer than 3.                                        |
+| **The brief**            | `C/briefs/<route folder>/brief.md`                                                                                         | Read first, follow its `## Sections`. Every control listed there must appear on the page **by its exact label**; the image next to each control is the one to place. Its FAQ drafts are yours to keep, improve or drop — keep only real questions.                           |
 | The screen, raw          | `C/states/<state>.yml`                                                                                                     | When the brief's quote is not enough: options, help text, table columns, exact values. The snapshot is the truth for labels.                                                                                                                                                 |
 | The images               | `public/img/<area>/<state>[-panel].png`                                                                                    | Read shows them. Place the `-panel` image for a control's section; the viewport image once, at the top of How it works, when it helps orientation.                                                                                                                           |
 | What the product did     | `R/answers.md` (+ `R/probes/*.run.json`)                                                                                   | For behaviour sentences. A code fence holds only text copied from `R/probes/<id>.run.json` (the response as returned, trimmed), never the paraphrase in `answers.md`; name the input. Never invent or "improve" an output; never quote a playground secret, id or user name. |
 | **Owed by this page**    | `bun scripts/agentic/backlog.ts list --target route:<route>` (the prompt lists them too)                                   | Topics another page's reviewer said THIS page must cover (e.g. "explain how edited answers feed the Edited answer cache"). Each gets a paragraph in the right section; quote the backlog id in `write.json.backlog[]` so the reviewer can close it.                          |
 | Shared controls          | `C/coverage-plan.json → shared`, brief `## Shared`                                                                         | Name them, link to the owner page (`[…](/<route>/)`, no `/ns-docs`), do not re-explain.                                                                                                                                                                                      |
+| **Concepts → owners**    | brief `## Concepts → owner pages`; `bun scripts/agentic/neighbours.ts <route>`                                             | The **first mention** of every feature another page documents (Answers, Guardrails, Category Routing, Curate…) links to that page. One link per concept per page; never re-explain it here.                                                                                  |
 | The old page, background | `src/content/docs/<route>.md` (verbatim old prose or a stub) and `_private/archive/verbatim-migration/previous/<route>.md` | The _why_, the vocabulary, the use cases. **Not a source of facts.** A fact from here that no brief control, snapshot or answer shows may stay only with `<!-- UNCONFIRMED: <the fact> — <where it came from> -->` on the line above it.                                     |
 
 `status: auto` is already set on the map — do not touch the map.
@@ -58,7 +61,7 @@ the outline too and reports drift between outline and page.
 ## Shape
 
 Exactly the contract: `## What is it` · `## Why it matters` · `## When to use it` · `## How it
-works` (the brief's sections as `###`) · `## FAQ` (3–6 entries, **required**). No in-body H1.
+works` (the brief's sections as `###`) · `## FAQ` (optional — 2 to 6 real questions a customer would ask; leave it out rather than invent one). No in-body H1.
 `title`/`description` in the frontmatter, description one citable sentence. Links authored
 without `/ns-docs`. Every image: an explorer capture (`/img/<area>/<state>[-panel].png`), or
 `/img/_placeholder.svg` followed within 3 lines by
@@ -70,8 +73,17 @@ again (the images gate fails a repeat). Delete every `<!-- MERGE: -->`, `<!-- ST
 
 **Write for a customer** (the audience gate fails the page otherwise):
 
-- Never mention the playground, "this instance", the MCP, probes, runs or "we tested". What the
-  capture shows is how the product looks; say "the screen shows", "Seek returns", "you see".
+- Never mention the playground, "this instance", the MCP, probes, runs or "we tested". Write the
+  task, not a tour: "To save a version, select **Save**, name it, and select **Save** again" —
+  not "the screen shows a blue button".
+- **Document what exists.** Never write that a control, switch, help text or feature is absent
+  ("there is none", "the screen gives no help text", "no toggle exists"). If the brief or an old
+  gap names something the capture does not have, leave it out and list it in `left_unresolved`.
+- **Only names a customer sees.** Never a page-code, hidden-element or internal name ("internally
+  named …"), a DOM id, or a field name from a JSON payload unless the reader types it.
+- **Standard buttons get a verb, not a paragraph.** Save, Cancel, Close, Ok, × appear inside the
+  step that uses them. Never list every dialog a button appears in; colour or position only when
+  the reader could not otherwise find the control.
 - A value the screen happened to show is **not** a default. Write "Default: X" only when the brief
   marks it as a default; otherwise describe the options and what each does.
 - Every control: **what it does, when to change it, what changes in the answer or the behaviour.**

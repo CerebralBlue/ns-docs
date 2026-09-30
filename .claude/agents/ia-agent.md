@@ -1,6 +1,6 @@
 ---
 name: ia-agent
-description: Stage 4 of /docs-explore (agentic v3) — the information-architecture decision for one console area. Runs only when the understand step left controls unowned or a route with nothing to document. Reads coverage-plan.json, the briefs, the sidebar groups and the component map, and decides whether the routes are shaped right — assign, relabel, reorder, merge; it ADDS a route only when understand briefed it (newPages), and reports every addition. Applies what it may (sidebar in astro.config.mjs, gaps/descriptions in migration-map.json, the coverage plan) and writes routes-final.json. Barrier: before any writer starts.
+description: Stage 4 of /docs-explore (agentic v3) — the information-architecture decision for one console area. Runs on every explore run (the sidebar-mirrors-the-platform check) and whenever the understand step left controls unowned, a route empty, a stale gap or a briefed new page. Reads coverage-plan.json, the briefs, the sidebar groups and the component map, and decides whether the routes are shaped right — assign, relabel, reorder, merge; it ADDS a route only when understand briefed it (newPages), and reports every addition. Applies what it may (sidebar in astro.config.mjs, gaps/gapsResolved/descriptions in migration-map.json, the coverage plan) and writes routes-final.json. Barrier: before any writer starts.
 model: opus
 effort: high
 maxTurns: 30
@@ -38,12 +38,24 @@ Work through these questions with the evidence, and record each answer in `ia.js
    as reference kind (`console: []`) if it is about something real that has no screen, or merge
    it into its neighbour. Two pages that document one screen from two angles → merge (keep the
    more-visited slug).
-2. **Are the labels right?** Sidebar labels should use the console's own words (the map's
-   control and region names) — `Answer curation` is fine if the console says **Curate**; a
-   label that names a feature the console calls something else is wrong.
-3. **Is the order the reader's order?** Overview first, then the things a new user meets in the
-   console's order, then reference material.
-4. Do not leave a product surface unowned silently: after you, `unowned` in
+2. **Does the sidebar mirror the platform? (global rule, every group, every run)** The sidebar
+   is organised the way the console is. For the groups in `area.json → sidebar[]`, compare with
+   the capture and fix what is not coherent — reorder, relabel, group, or propose a missing page —
+   taking the order from the capture (state order, accordion section order, side-nav order),
+   never from the old docs. Examples, not the scope: Neural Config pages follow the Edit
+   Configuration accordion (… LLM Details, then Embedding models …); API's & Integration pages
+   follow its side navigation (API Keys, Embed Key, MCP Server …); a label uses the console's
+   name for the thing ("Embed Key") unless there is a stated reason; a console section with no
+   page → a `propose` (or an `add` if briefed). Overview / "using this page" pages lead their
+   group. Every move is a decision in `ia.json` with its evidence (state or section order).
+3. **Are the labels right?** Sidebar labels use the console's own words — `Answer curation` is
+   fine if the console says **Curate**; a label that names a feature the console calls something
+   else is wrong.
+4. **Stale gaps.** Every `staleGaps` entry understand returned (a gap the capture disproves) is
+   moved, in the map, from the route's `gaps` to its `gapsResolved`:
+   `{"gap": "<text>", "run": "<runId>", "why": "<evidence>"}`. Never rewrite a gap into an
+   instruction for the writer ("say there is none").
+5. Do not leave a product surface unowned silently: after you, `unowned` in
    `coverage-plan.json` holds only noise (data rows, nav chrome), each with a reason in
    `ia.json`.
 
@@ -68,8 +80,8 @@ it is in understand's `newPages` (returned JSON / `C/understand*.json`) **and** 
   where each sits): labels, order, new `{ label, slug }` items. Keep the file's tab
   indentation and the `{ label: '…', slug: '…' }` one-liner shape.
 - `scripts/migration-map.json` — **string surgery only, never re-serialise the file.** You edit
-  `gaps` and `description` of existing routes, and `"renamed"` entries for a merge; nothing
-  else. The workflow runs `bun run stubs` right after you (stub pages pick up the new gaps).
+  `gaps`, `gapsResolved` and `description` of existing routes, and `"renamed"` entries for a
+  merge; nothing else. The workflow runs `bun run stubs` right after you (stub pages pick up the new gaps).
 - Do not touch existing pages, `scripts/`, `.claude/`, `public/`. Use Edit/Write, never Bash.
 
 ## Output — write `R/ia.json` and `R/routes-final.json`, return `ia.json`

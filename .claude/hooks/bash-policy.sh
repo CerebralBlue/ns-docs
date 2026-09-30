@@ -35,9 +35,9 @@ deny() {
 case "$AGENT" in
 	explorer) PREFIXES="bun scripts/agentic/explore-plan.ts |bun scripts/agentic/verify-restore.ts check |bun scripts/agentic/backlog.ts list|mkdir -p" ;;
 	understand | ia-agent | consistency) PREFIXES="" ;;
-	runner) PREFIXES="sha1sum" ;;
-	writer) PREFIXES="bun scripts/doc-lint.ts|bun scripts/agentic/coverage.ts|bunx prettier --write src/content/docs/" ;;
-	doc-reviewer) PREFIXES="bun scripts/doc-lint.ts|bun scripts/agentic/coverage.ts" ;;
+	runner) PREFIXES="sha1sum|bun scripts/agentic/backlog.ts list" ;;
+	writer) PREFIXES="bun scripts/doc-lint.ts|bun scripts/agentic/coverage.ts|bun scripts/agentic/backlog.ts list|bun scripts/agentic/neighbours.ts|bunx prettier --write src/content/docs/" ;;
+	doc-reviewer) PREFIXES="bun scripts/doc-lint.ts|bun scripts/agentic/coverage.ts|bun scripts/agentic/neighbours.ts" ;;
 	cleanup) PREFIXES="bun scripts/agentic/verify-restore.ts check " ;;
 	experimenter) PREFIXES="bun scripts/agentic/experiments.ts on |bun scripts/agentic/experiments.ts saved |bun scripts/agentic/experiments.ts off |bun scripts/agentic/verify-restore.ts check |mkdir -p" ;;
 	config-export) PREFIXES="bun scripts/agentic/config-slice.ts" ;;

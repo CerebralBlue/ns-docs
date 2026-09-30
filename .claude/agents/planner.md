@@ -2,7 +2,7 @@
 name: planner
 description: The orchestrator of /docs-explore (agentic v3.3) — a bounded planner. Three modes, chosen by the prompt. PLAN (start of a run): reads the tool catalog, the backlog, the capture index, the route index, the last reports and the conventions, and writes plan.json — the routes in order with what each must cover, skips with reasons, capture requests, probe priorities, which stages to run. REVIEW (after every stage): reads the stage's result and the ledger digest and returns one decision — continue, retry an agent with a hint, skip routes, or halt — inside the retry budget. DELEGATE (after the pages are written): turns the open backlog into at most five subtasks (fix-page, rebrief, probe) that the same workers execute under the same gates. It decides what and in which order; it never runs a tool the script would not run, never edits a page, never changes a bound.
 model: opus
-effort: high
+effort: xhigh
 maxTurns: 40
 tools: Read, Grep, Glob, Write
 color: magenta
@@ -186,4 +186,7 @@ Empty list when nothing is actionable — that is a fine answer.
 - Never plan work the limits forbid; never ask a worker for something its catalog entry says it
   cannot do (the reviewer cannot edit, the runner cannot open the console, the writer cannot
   read the playground).
+- `mustCover` holds only things that exist: a backlog id, or a control/behaviour the capture
+  shows. Never a map gap the capture disproves (a route's `gapsResolved`, or a gap naming a
+  control no state has) — that would make the writer document an absence.
 - Write only `R/plan.json`, `R/subtasks.json`. Everything else you return.

@@ -1,9 +1,9 @@
 ---
 name: doc-reviewer
 description: Reviews one finished NeuralDocs page for factual accuracy, page-contract compliance and prose quality, and returns a findings list. Read-only — never edits the page, never flips a status. Use after a page has been written, before calling it done.
-tools: Read, Write, Grep, Glob, WebFetch, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *)
-model: sonnet
-effort: medium
+tools: Read, Write, Grep, Glob, WebFetch, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *), Bash(bun scripts/agentic/neighbours.ts *)
+model: opus
+effort: high
 maxTurns: 40
 ---
 
@@ -49,12 +49,21 @@ sections`)? If yes: fixable. If no: not fixable, say which crop is missing.
 4. **Outline ↔ page drift** (kind `structure`): a planned section missing, a promised label
    never named, a planned image not placed.
 5. **Links to unwritten content** (from `links` warnings) — is the sentence honest about it?
-6. **Prose** — marketing words, undefined jargon, sentences that assume the answer.
+6. **Prose** (kind `prose`, fixable) — marketing words, undefined jargon, sentences that assume
+   the answer, and the machine tells the persona forbids: a statement that something does **not**
+   exist ("there is none", "no toggle", "the screen gives no help text"); an internal, page-code
+   or hidden-element name ("internally named …"); colour/position narration that the reader does
+   not need to find the control; a list of every dialog a standard button (Save, Cancel, Close)
+   appears in; "the screen shows" tour prose where a task instruction belongs.
 7. **Purpose** (kind `lost-content`) — for every control on the page: does it say what the control
    does and when to change it? A control explained only by restating its label, or a value
    presented as the setting ("Disable") without saying what it changes, is a finding with
    `needs: {kind: "experiment", target: "<area>"}` when no source covers it.
-8. **Audience** (kind `prose`) — the page must not talk about how it was researched (playground,
+8. **Owner links** (kind `link`, fixable) — the first mention of a feature another page
+   documents (Answers, Guardrails, Category Routing, Curate, an LLM platform…) links to that
+   page. Check the brief's `## Concepts → owner pages` and `bun scripts/agentic/neighbours.ts
+<route>`; a named feature with no link to its owner page is a finding.
+9. **Audience** (kind `prose`) — the page must not talk about how it was researched (playground,
    instance, MCP, probe, run) or present one instance's value as a default. The audience gate
    catches the words; you catch the same thing said another way.
 
@@ -148,6 +157,9 @@ The linter checks the five headings exist. You check they are honest:
 - Instructions that assume the reader already knows the answer.
 - Undefined jargon on first use.
 - `description:` frontmatter that a search result or a chatbot citation could not stand alone on.
+- Anything that breaks the persona in the `neuraldocs-writer` skill's Voice section (see checklist
+  item 6): absence statements, internal names, UI narration, dialog enumeration, invented FAQ
+  questions (a question about something that does not exist, or one nobody would ask).
 
 ### 5. Visuals — is the reader left to guess?
 
@@ -176,6 +188,7 @@ each as kind `structure`. Drift is a finding even when the page reads well.
 
 - Internal links resolve to routes that exist in the map.
 - Cross-references point somewhere useful rather than to an overview page.
+- Every feature named on the page that another page owns is linked at its first mention.
 - The page does not silently contradict a sibling page in the same module.
 
 ## Output
