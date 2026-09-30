@@ -9,11 +9,13 @@
  *   2. status → "auto" in scripts/migration-map.json, by string surgery on the route's block.
  *      `bun run stubs` never touches an `auto` page, and `adopted` is a human's mark, so
  *      the pipeline sets exactly this and nothing else.
- *   3. If the page does not exist yet (a route the IA stage added) a minimal page is created
- *      from the map's title/description so the writer has a file to edit.
+ *   3. If the page does not exist yet (a route the IA stage added) a page is created from the
+ *      map's title/description with its type's contract skeleton (contract.ts), so the writer
+ *      starts from the right headings.
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
+import { isPageType, skeleton } from './contract';
 import { DOCS_DIR, loadMap, MAP_PATH, parseArgs, patchRouteBlock, ROOT, routeDir } from './lib';
 
 const args = parseArgs(process.argv.slice(2));
@@ -39,7 +41,7 @@ if (!existsSync(page)) {
 	mkdirSync(dirname(page), { recursive: true });
 	writeFileSync(
 		page,
-		`---\ntitle: ${JSON.stringify(info.title)}\ndescription: ${JSON.stringify(info.description ?? `${info.title} — NeuralSeek documentation.`)}\n---\n\n## What is it\n`
+		`---\ntitle: ${JSON.stringify(info.title)}\ndescription: ${JSON.stringify(info.description ?? `${info.title} — NeuralSeek documentation.`)}\n---\n\n${skeleton(isPageType(info.type) ? info.type : 'concept')}`
 	);
 	result.created = true;
 }

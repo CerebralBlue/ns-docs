@@ -300,9 +300,8 @@ A page is finished when all five hold:
    with a `<!-- SCREENSHOT: -->` instruction. No old-docs screenshot survives unchanged.
 2. The `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment is worked through and deleted, and no
    `<!-- MERGE: -->` or `<!-- ASK: -->` marker is left behind.
-3. The page follows `planning/templates/feature-page.md` — What is it / Why it matters / When to
-   use it / How it works / FAQ. Consistency is functional here: the chatbot retrieves against
-   this shape.
+3. The page follows the contract of its `type` (`references/page-contract.md`,
+   `planning/templates/<type>.md`): intro, the type's headings, optional FAQ, Related last.
 4. `"status"` is `auto` (pipeline-written) or `adopted` (a human checked it) in
    `scripts/migration-map.json` — never `stub`.
 5. `bun scripts/doc-lint.ts <route>` is clean **and** `bun run verify` passes. `verify` is

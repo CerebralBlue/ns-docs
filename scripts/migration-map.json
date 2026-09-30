@@ -9,6 +9,7 @@
       "sources": ["index.md"],
       "action": "rewrite",
       "status": "auto",
+      "type": "concept",
       "console": ["home", "seek"]
     },
     "getting-started/quickstart-seek": {
@@ -17,7 +18,8 @@
       "sources": [],
       "action": "new",
       "console": ["home", "seek"],
-      "status": "auto"
+      "status": "auto",
+      "type": "quickstart"
     },
     "getting-started/quickstart-maistro": {
       "title": "Quickstart: mAIstro",
@@ -25,7 +27,8 @@
       "sources": [],
       "action": "new",
       "console": ["home", "maistro"],
-      "status": "auto"
+      "status": "auto",
+      "type": "quickstart"
     },
     "getting-started/concepts": {
       "title": "Core concepts",
@@ -33,7 +36,8 @@
       "sources": [],
       "action": "new",
       "console": ["home"],
-      "status": "auto"
+      "status": "auto",
+      "type": "concept"
     },
     "getting-started/onboarding-wizard": {
       "title": "Onboarding wizard",
@@ -42,6 +46,7 @@
       "action": "new",
       "console": ["home"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "The six wizard steps: Basics, Data, LLM, About, Tune, Q&A (Admin Tools > QA Tools)",
         "The already-onboarded gate — the page becomes a 'use Configure instead' dead end",
@@ -54,6 +59,7 @@
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
+      "type": "concept",
       "console": ["home"],
       "gaps": [
         "Renamed from 'Deployment options' per Robert's review (2026-08-04)",
@@ -61,13 +67,13 @@
         "Support plans — Home > Update Support Plan bills immediately, then rebills every 30 days (cross-link configuration/administration/support-plans)"
       ]
     },
-
     "seek/overview": {
       "title": "Seek overview",
       "description": "Discover NeuralSeek's Seek feature, offering precise, context-rich answers from your KnowledgeBase. Ensure transparency with source highlights and semantic match scores for reliable, trustworthy insights.",
       "sources": ["ui/seek/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "type": "concept",
       "console": ["seek"],
       "gaps": [
         "KnowledgeBase Context accordions — the passage used from each source document",
@@ -85,6 +91,7 @@
       "sources": ["guides/data/tuning_guide/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["neural-config:advanced", "seek"],
       "gaps": [
         "Answer Engineering & Preferences accordion (IA 2026-09-19): this page owns the whole section until configuration/neural-config/answer-engineering exists — the 'How verbose should an average answer be?' slider, 'Force Answers from the Knowledgebase', and the Regular Expression / Replacement post-processing table with its 'Add a new row.' control",
@@ -97,6 +104,7 @@
       "sources": ["guides/data/virtual_kb/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["neural-config:advanced", "seek"]
     },
     "seek/dynamic-filters": {
@@ -105,6 +113,7 @@
       "sources": ["guides/data/dynamic_filters/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["seek", "neural-config:advanced"]
     },
     "seek/conversational-context": {
@@ -116,6 +125,7 @@
       ],
       "action": "merge",
       "status": "auto",
+      "type": "concept",
       "console": ["neural-config:advanced", "seek"]
     },
     "seek/caching": {
@@ -124,6 +134,7 @@
       "sources": ["features/caching/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["neural-config:advanced", "seek"]
     },
     "seek/personalization": {
@@ -132,6 +143,7 @@
       "sources": ["features/dynamic_pers/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["seek", "neural-config:advanced"],
       "gaps": [
         "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced)",
@@ -147,6 +159,7 @@
       "sources": ["ui/curate/index.md", "features/answer_curation/index.md"],
       "action": "merge",
       "status": "auto",
+      "type": "task",
       "console": ["curate"],
       "gaps": [
         "Delete user data — the bulk GDPR/CCPA erasure path",
@@ -165,19 +178,20 @@
       "sources": ["ui/chat/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "type": "task",
       "console": ["chat"],
       "gaps": [
         "Edit Configuration — chat against a specific configuration or category; this is how routing is tested",
         "Rename Chat and running several test conversations side by side"
       ]
     },
-
     "maistro/overview": {
       "title": "mAIstro overview",
       "description": "Explore mAIstro, a dynamic platform for retrieval-augmented generation. Seamlessly integrate your preferred LLM, enhance data quality, and enjoy user-friendly content creation with expert guidance.",
       "sources": ["ui/maistro/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "type": "concept",
       "console": ["maistro"]
     },
     "maistro/visual-editor": {
@@ -186,7 +200,8 @@
       "sources": [],
       "action": "new",
       "console": ["maistro"],
-      "status": "stub"
+      "status": "stub",
+      "type": "concept"
     },
     "maistro/inspector": {
       "title": "Running and inspecting an agent",
@@ -195,6 +210,7 @@
       "action": "new",
       "console": ["runagent", "maistro"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "Inspector > Timeline — where run time went, per node, for this run",
         "Output format previews — Word, PDF, CSV and PPT, which verify document-creating nodes",
@@ -209,6 +225,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "What the graph is built from and how to read it",
         "Visualizer vs Agent Editor — 'what calls this agent' vs 'what does this agent do'",
@@ -222,6 +239,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "Create Registry and Edit Registry",
         "Why registries exist — they are the pool run-time agent selection draws from",
@@ -235,6 +253,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "Browse experience — search by name, description, audience or capability; filter by type and category",
         "Pre-built agents vs starter templates — which to load and which to modify",
@@ -248,6 +267,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "Recurrence options",
         "Parameters passed on each scheduled run",
@@ -262,6 +282,7 @@
       "action": "new",
       "console": ["runagent", "maistro"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "Run Agents vs Custom Governance — same mechanism, 'do work' vs 'watch metrics'",
         "Add Dashboard / Add Panel — bind an agent to a tile with a title, columns and rows",
@@ -278,6 +299,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "What NeuralEdit is and where it lives (NeuralEdit in the navbar)",
         "Permission bundling — the Run Agents permission also grants NeuralEdit; they cannot be separated"
@@ -290,6 +312,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "What a context file is, how it differs from the file being edited, and how to add one"
       ]
@@ -301,6 +324,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "File Browser and Create File",
         "Compare Changes — review the diff before accepting",
@@ -318,6 +342,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "The NeuralEdit Input node and the shape of a NeuralEdit agent",
         "Cross-link: maistro/ntl/pipeline-hooks"
@@ -330,6 +355,7 @@
       "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "TOOLING (not a page): the NTL doc generator has stopped detecting nodes; fixing it closes 103 of 112 node gaps",
         "TOOLING: retarget the generator at this site — output location, aside syntax, per-page frontmatter, drop the old nav file",
@@ -337,34 +363,37 @@
         "27 label mismatches between doc headings and the product's node names (e.g. KB Search vs KB Documentation)"
       ]
     },
-
     "maistro/ntl/get-data": {
       "title": "Get Data",
       "description": "User input text or prompting.",
       "sources": ["ui/maistro/features/ntl_functions/get_data.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/upload-data": {
       "title": "Upload Data",
       "description": "Read a local document :::note[Parameters]",
       "sources": ["ui/maistro/features/ntl_functions/upload_data.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/generate-data": {
       "title": "Generate Data",
       "description": "This node takes all text flowing into it and sends it to an LLM.",
       "sources": ["ui/maistro/features/ntl_functions/generate_data.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/local-cache": {
       "title": "Local Cache",
       "description": "Read from local cache :::note[Parameters]",
       "sources": ["ui/maistro/features/ntl_functions/local_cache.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/extract-data": {
       "title": "Extract Data",
@@ -372,6 +401,7 @@
       "sources": ["ui/maistro/features/ntl_functions/extract_data.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "gaps": ["Gather — collect values from a user using slots defined on the Extract tab"]
     },
     "maistro/ntl/multi-agent": {
@@ -380,6 +410,7 @@
       "sources": ["ui/maistro/features/ntl_functions/multi-agent.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "LLM Plan / LLM Act — build a plan in JSON, then execute it via sub-LLM calls",
         "Make & Test NTL — generate NTL, test it, iterate",
@@ -391,14 +422,16 @@
       "description": "This node allows for comments and description of surrounding NTL :::note[Parameters]",
       "sources": ["ui/maistro/features/ntl_functions/control_flow.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/rag-tools": {
       "title": "RAG Tools",
       "description": "Use with a custom RAG flow to send answers to Curate and Analytics.",
       "sources": ["ui/maistro/features/ntl_functions/rag_tools.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/guardrails": {
       "title": "GuardRails",
@@ -406,6 +439,7 @@
       "sources": ["ui/maistro/features/ntl_functions/guardrails.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "HTTP Guardrails — block outbound HTTP after this node; affects everything downstream",
         "Create / Validate JWT — sign and verify JWTs inside an agent",
@@ -418,7 +452,8 @@
       "description": "Insert the current date.",
       "sources": ["ui/maistro/features/ntl_functions/system_variables.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/sandboxes": {
       "title": "Sandboxes",
@@ -426,6 +461,7 @@
       "sources": ["ui/maistro/features/ntl_functions/sandboxes.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Custom Connector — call another agent as an isolated connector (not in the node menu)"
       ]
@@ -435,7 +471,8 @@
       "description": "Send a REST request and return the received data :::note[Parameters]",
       "sources": ["ui/maistro/features/ntl_functions/send_data.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/agent-registry": {
       "title": "Agent Registry node",
@@ -443,6 +480,7 @@
       "sources": ["ui/maistro/features/ntl_functions/agent_registry.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Retitled 'Agent Registry node' to disambiguate from the maistro/agent-registry product screen"
       ]
@@ -453,6 +491,7 @@
       "sources": ["ui/maistro/features/ntl_functions/database_connections.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "The IBM DB2 node is documented but no such node appears in the product — verify before publishing"
       ]
@@ -463,6 +502,7 @@
       "sources": [],
       "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "14 pipeline-hook nodes that make 9 Neural Config settings usable",
         "Pre-llm Governance In/Out and Governance Input/Output (Guardrails > Custom Governance)",
@@ -481,6 +521,7 @@
       "sources": [],
       "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "6 chart nodes: bar, line, pie, area, doughnut, bubble (mAIstro > Charting & Graphs)",
         "4 telemetry nodes: GUI logins, Seek users, mAIstro users, agent details (mAIstro > Instance Data)",
@@ -494,6 +535,7 @@
       "sources": [],
       "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Speech to Text — send audio to a speech model and return text (not in the node menu)",
         "Owned by the NTL doc generator once it is fixed — this stub reserves the route"
@@ -504,70 +546,80 @@
       "description": "Summarize a large block of text into a smaller set of extracted sentences.",
       "sources": ["ui/maistro/features/ntl_functions/modify_data/transform.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/modify-data/string-toolbox": {
       "title": "String Toolbox",
       "description": "Convert a string to UPPERCASE.",
       "sources": ["ui/maistro/features/ntl_functions/modify_data/string_toolbox.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/modify-data/json-toolbox": {
       "title": "JSON Toolbox",
       "description": "Turn a JSON object into flattened variables for use in later steps.",
       "sources": ["ui/maistro/features/ntl_functions/modify_data/json_toolbox.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/modify-data/xml-toolbox": {
       "title": "XML Toolbox",
       "description": "Turn XML into JSON",
       "sources": ["ui/maistro/features/ntl_functions/modify_data/xml_toolbox.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/modify-data/code-toolbox": {
       "title": "Code Toolbox",
       "description": "Extract code from markdown.",
       "sources": ["ui/maistro/features/ntl_functions/modify_data/code_toolbox.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/aws-s3": {
       "title": "AWS S3",
       "description": "Connect to AWS s3 and read a file :::note[Parameters]",
       "sources": ["ui/maistro/features/ntl_functions/integrations/aws_s3.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/databases": {
       "title": "Databases",
       "description": "Connect to a DB2 database and run a sql query, returning the data.",
       "sources": ["ui/maistro/features/ntl_functions/integrations/databases.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/github": {
       "title": "GitHub",
       "description": "Connect to Github and run a search for Issues and Pull Requests based on the provided query, returning the data.",
       "sources": ["ui/maistro/features/ntl_functions/integrations/github.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/google-drive": {
       "title": "Google Drive",
       "description": "Read from Google Drive.",
       "sources": ["ui/maistro/features/ntl_functions/integrations/google_drive.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/jira": {
       "title": "Jira",
       "description": "Connect to Jira and run a search based on the provided query, returning the data.",
       "sources": ["ui/maistro/features/ntl_functions/integrations/jira.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/knowledgebases": {
       "title": "Knowledge Bases",
@@ -575,6 +627,7 @@
       "sources": ["ui/maistro/features/ntl_functions/integrations/knowledgebases.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "ES KB Add Document — chunk, embed and index a document into Elasticsearch (not in the node menu)"
       ]
@@ -585,6 +638,7 @@
       "sources": [],
       "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "The MCP client node — calling an external MCP agent",
         "Cross-link: integrations/mcp-server is the other direction (exposing your agents)",
@@ -597,6 +651,7 @@
       "sources": [],
       "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "The a2a client node — calling an external a2a agent",
         "Cross-link: integrations/a2a-server is the other direction (exposing your agents)",
@@ -608,37 +663,41 @@
       "description": "Connect to SharePoint and list files.",
       "sources": ["ui/maistro/features/ntl_functions/integrations/sharepoint.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/slack": {
       "title": "Slack",
       "description": "Connect to Slack and run a search for messages based on the provided query.",
       "sources": ["ui/maistro/features/ntl_functions/integrations/slack.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/trello": {
       "title": "Trello",
       "description": "Connect to Trello and run a search :::note[Parameters]",
       "sources": ["ui/maistro/features/ntl_functions/integrations/trello.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/watsonx-governance": {
       "title": "watsonx.governance",
       "description": "Connect to watsonx.governance and log a Seek.",
       "sources": ["ui/maistro/features/ntl_functions/integrations/watsonx.governance.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
     "maistro/ntl/integrations/web-search": {
       "title": "Web Search",
       "description": "Search the web using Google.",
       "sources": ["ui/maistro/features/ntl_functions/integrations/web_searches.md"],
       "action": "keep",
-      "status": "auto"
+      "status": "auto",
+      "type": "reference"
     },
-
     "knowledge/ingestion-overview": {
       "title": "Getting documents in",
       "description": "The six ways documents reach a NeuralSeek knowledge base, and how to choose between them.",
@@ -646,6 +705,7 @@
       "action": "new",
       "console": ["knowledge", "data-loader"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "Route readers between the six ingestion paths: Load, Crawler, SharePoint sync, KB API, ES KB Add Document node, and connecting an existing index"
       ]
@@ -656,6 +716,7 @@
       "sources": ["ui/integrate/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "type": "task",
       "console": ["neural-config", "knowledge"]
     },
     "knowledge/supported-knowledgebases": {
@@ -664,6 +725,7 @@
       "sources": ["ui/integrate/integrations/supported_knowledgebases/supported_knowledgebases.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "console": ["neural-config"],
       "gaps": [
         "Six KB types missing from the support matrix: Watson Discovery on CP4D, Postgres, Coveo, Virtual KB, NeuralSeek KB, and No KnowledgeBase"
@@ -676,6 +738,7 @@
       "action": "new",
       "console": ["knowledge"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "Where it is: KnowledgeBase in the navbar",
         "Search and the document count",
@@ -691,6 +754,7 @@
       "action": "new",
       "console": ["neural-config", "knowledge"],
       "status": "auto",
+      "type": "concept",
       "gaps": [
         "Query Type: Semantic — an Elasticsearch semantic query via an inference endpoint",
         "'Use NeuralSeek embedding models?' — whether NeuralSeek or Elasticsearch computes the query vector",
@@ -704,6 +768,7 @@
       "sources": ["guides/integration/pinecone_configuration/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["neural-config"]
     },
     "knowledge/elasticsearch-vector-model": {
@@ -712,6 +777,7 @@
       "sources": ["guides/integration/elasticsearch_vector_model/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["neural-config", "neural-config:advanced"]
     },
     "knowledge/load": {
@@ -720,6 +786,7 @@
       "sources": ["ui/load/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "type": "task",
       "console": ["data-loader", "knowledge"],
       "gaps": [
         "Loader template selector — which mAIstro template processes the upload",
@@ -733,6 +800,7 @@
       "sources": ["ui/extract/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "type": "task",
       "console": ["admin-tools"],
       "gaps": [
         "Custom Entities tab — define your own entity types",
@@ -747,6 +815,7 @@
       "sources": ["features/table_understanding/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["knowledge"],
       "gaps": [
         "Guidance is stale: re-crawl and re-load now re-process and cost, but the docs still say crawls are ineligible"
@@ -758,6 +827,7 @@
       "sources": ["features/auto_data_cleanse/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["knowledge"]
     },
     "knowledge/managed-knowledgebase/overview": {
@@ -767,6 +837,7 @@
       "action": "new",
       "console": ["knowledge"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "KnowledgeBase > General (managed plans only) — language and document count",
         "When the managed KB is available at all, and what it replaces"
@@ -779,6 +850,7 @@
       "action": "new",
       "console": ["knowledge"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "Crawl a domain; weekly or monthly recrawl",
         "What crawling triggers: Auto Data Cleanse, and re-triggering Table Understanding costs"
@@ -791,6 +863,7 @@
       "action": "new",
       "console": ["knowledge"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "Defining synonym sets",
         "Synonyms vs stopwords vs allowed words — three different levers, easily confused"
@@ -803,12 +876,12 @@
       "action": "new",
       "console": ["knowledge"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "KnowledgeBase > API",
         "How it differs from the runtime API and the Console API (cross-link integrations/rest-and-console-api)"
       ]
     },
-
     "integrations/overview": {
       "title": "What can we connect to?",
       "description": "One map of every external system NeuralSeek connects to — knowledge bases, LLMs, virtual agents, chat platforms, protocol servers and the APIs — with a link to each setup guide.",
@@ -816,6 +889,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "concept",
       "gaps": [
         "Requested by Robert (2026-08-04): a sitemap page that ties every external connection together",
         "Linked from Getting Started as well as from Integrations — intentionally the same page in two places",
@@ -828,6 +902,7 @@
       "sources": ["ui/integrate/integrations/supported_virtual_agents/supported_virtual_agents.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["admin-tools"]
     },
     "integrations/virtual-agents/watsonx-assistant": {
@@ -837,6 +912,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Watson OpenAPI: two downloads — the full spec file vs the Watson Custom file, and when to use each",
         "Watson Logs setup — round-trip logging from watsonx Assistant"
@@ -849,6 +925,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "LexV2 Lambda — route the Lex fallback intent to NeuralSeek",
         "LexV2 Logs — round-trip logging",
@@ -862,6 +939,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": ["KoreAI Logs — round-trip monitoring via Kore.ai event tasks"]
     },
     "integrations/training-virtual-agents": {
@@ -870,6 +948,7 @@
       "sources": ["guides/integration/training_virtual_agents/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["curate", "admin-tools"]
     },
     "integrations/watsonx-assistant-streaming": {
@@ -878,6 +957,7 @@
       "sources": ["guides/integration/wa_context_guide/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["admin-tools"]
     },
     "integrations/nice-cxone": {
@@ -886,6 +966,7 @@
       "sources": ["guides/integration/nice_cxone_integration/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["admin-tools"]
     },
     "integrations/slack-extension": {
@@ -895,6 +976,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Credentials and manifest generation",
         "Event handler agents (cross-link maistro/ntl/pipeline-hooks: Slack Event In, Out, Cancel)",
@@ -909,6 +991,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Azure Bot credentials, welcome message, app package download",
         "Single-tenant vs multi-tenant — Tenant ID is required for single-tenant and left empty for multi-tenant"
@@ -921,6 +1004,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Admin Tools > Integrate > MCP Server — endpoint and Bearer auth",
         "Which agents are exposed and how they appear as tools",
@@ -935,6 +1019,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Admin Tools > Integrate > a2a Server",
         "Cross-link: maistro/ntl/integrations/a2a is the client direction",
@@ -948,6 +1033,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "The four-step wizard",
         "Capture access control — pull SharePoint permissions for per-user document filtering",
@@ -962,6 +1048,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": ["Admin Tools > Integrate > WebHook — the generic inbound entry point"]
     },
     "integrations/rest-and-console-api": {
@@ -971,6 +1058,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Console API — the management API for configuration, curation and governance data",
         "Three API surfaces: runtime API, Console API, and the managed KB API are different things",
@@ -985,6 +1073,7 @@
       "sources": ["guides/integration/chat_sdk_integration/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["chat"]
     },
     "integrations/feedback": {
@@ -993,15 +1082,16 @@
       "sources": ["guides/integration/implementing_feedback/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["seek", "curate"]
     },
-
     "configuration/overview": {
       "title": "Configuration overview",
       "description": "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that send matching questions to Answer Generation or to a mAIstro agent (mAIstro-led) and can carry a configuration of their own, and Guardrails nodes — this page maps the screen and links each part to its own page.",
       "sources": ["ui/configure/index.md"],
       "action": "rewrite",
       "status": "auto",
+      "type": "concept",
       "console": ["neural-config", "neural-config:advanced"],
       "gaps": [
         "The routing tree itself (Default Config root, Answers (N), Add Intent, Category Routing, Guardrails nodes) and the Edit Category dialog — owned here (IA 2026-09-18); using-this-page owns the framing controls (Toggle Advanced, Save vs Propose, Add Intent modal, Default Action, Delete Configuration)"
@@ -1014,6 +1104,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Two of the fourteen Edit Configuration sections have no page of their own: Company / Organization Preferences and Answer Engineering & Preferences. Until those routes are accepted, both entries in this directory point at Tuning answers (/seek/tuning/), which owns their controls — do not leave them as dead entries (IA 2026-09-19)",
         "Corporate Document Filter and Corporate Logging are sections of this accordion whose pages live in Governance — link out to /governance/corporate-document-filter/ and /governance/logging/ (IA 2026-09-19)"
@@ -1026,6 +1117,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Toggle Advanced — half the settings are hidden until it is on (no control by that name exists in any of the 34 states of the 2026-09-19 capture; confirm the build has it before writing, and if it does not, say so instead of describing it — IA 2026-09-19)",
         "Save vs Propose Changes, Version, Change Logs",
@@ -1042,6 +1134,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Watson Discovery on CP4D — adds an Auth URL field",
         "watsonx Discovery — endpoint, private key, index, plus the Generate Key helper",
@@ -1066,6 +1159,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "mAIstro Post-KB Agent — run an agent over retrieved documents before they reach the LLM (cross-link maistro/ntl/pipeline-hooks)",
         "Expansion Window — chunks to grab either side of the match (NeuralSeek KB only)",
@@ -1080,6 +1174,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "The 20 assignable LLM functions",
         "Additional LLMs default to opted out of everything except mAIstro",
@@ -1099,6 +1194,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Add an LLM → Platform NeuralSeek → LLM Selection: the managed models (Managed GPT, gpt-5-mini, gpt-oss-120b/20b, Managed Claude Opus/Sonnet/Haiku, gpt-4o-mini-tts, gpt-image, Translate) — what each is for and its capabilities"
       ]
@@ -1110,6 +1206,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Adding an embedding model (Neural Config > Default Config > Edit Configuration > Embedding Models — the 2026-09-19 capture has no Toggle Advanced control; the section is a plain accordion header)",
         "Assigning a model to retrieval, agents or intent matching",
@@ -1124,6 +1221,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Registering an external marketplace: endpoint plus API key for each",
         "Cross-link: maistro/agent-marketplace is where they show up"
@@ -1136,6 +1234,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Context Timeout — Session: how long a session-based conversation keeps its context",
         "Context Timeout — User Only: the same for user-only requests, which expires far sooner",
@@ -1157,6 +1256,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Temperature — how much variability the LLM may use",
         "Top Probability — share of the probability mass sampled at each step",
@@ -1172,6 +1272,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Rebuild Vector Intents — recompute vectors for every intent; expensive",
         "Require Cache to Follow Context? — only serve a cached answer if the conversation context matches",
@@ -1187,6 +1288,7 @@
       "action": "new",
       "console": ["neural-config"],
       "status": "auto",
+      "type": "reference",
       "gaps": [
         "Secrets behave differently on on-prem installs",
         "`prompt: false` parameters fall back to the secret store — pass the parameter explicitly to override"
@@ -1199,6 +1301,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Bulk create — 1 to 100 keys at once, auto-numbered from the name you give",
         "Key expiration — optional expiry date, with Expires and Expired badges",
@@ -1217,6 +1320,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Admin Tools > Integrate > Embed Seek & mAIstro",
         "Embed code vs API key — embed codes are safe in browser code, API keys are not"
@@ -1229,6 +1333,7 @@
       "action": "new",
       "console": ["profile"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Users page — manage authorized users and their permissions (avatar > Users)",
         "Profile page — your user ID and your enabled capabilities",
@@ -1244,6 +1349,7 @@
       "action": "new",
       "console": ["profile"],
       "status": "auto",
+      "type": "task",
       "gaps": ["avatar > Default Permissions — the baseline every new user starts from"]
     },
     "configuration/administration/self-hosting-an-llm": {
@@ -1253,6 +1359,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "auto",
+      "type": "task",
       "gaps": [
         "Admin Tools > Integrate > Self-Hosted LLM (BYOLLM plans only)",
         "HuggingFace TGI and vLLM, wired to the Generic platform option",
@@ -1266,6 +1373,7 @@
       "action": "new",
       "console": ["admin-tools"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "Admin Tools > Customize (Flex plan) — self-report installs and users, download a license file",
         "Sizing: roughly 12 cores, 64 GB RAM, 100 GB disk plus an A10G-class GPU; ~10,000 users per instance"
@@ -1278,6 +1386,7 @@
       "action": "new",
       "console": [],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "Home > Update Support Plan — changing plan bills immediately, then rebills every 30 days"
       ]
@@ -1288,6 +1397,7 @@
       "sources": ["ui/integrate/integrations/supported_llms/supported_llms.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "console": ["neural-config"],
       "gaps": [
         "xAI is missing from the supported-LLM platform list",
@@ -1300,6 +1410,7 @@
       "sources": ["features/multi_llm/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["neural-config"]
     },
     "configuration/multimodal": {
@@ -1308,6 +1419,7 @@
       "sources": ["guides/models/multimodal/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["neural-config"]
     },
     "configuration/semantic-model": {
@@ -1316,6 +1428,7 @@
       "sources": ["guides/models/semantic_model/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["neural-config:advanced"],
       "gaps": [
         "This page owns the Semantic Model Tuning modal (the button on the Guardrails > Semantic Scoring tab; never opened in the 2026-09-19 capture). The six toggles on that tab — Enable the Semantic Score Model, Use Semantic Score as the basis for Warning & Minimum confidence., Rerank the search results based on the Semantic Match, Check document titles / URL's as part of the Semantic Match, Remove sentences containing hallucinated key words — belong to governance/guardrails/semantic-scoring; name them here as the way in and link there rather than describing each (IA 2026-09-19)"
@@ -1327,6 +1440,7 @@
       "sources": ["features/language/index.md", "features/language_indentification/index.md"],
       "action": "merge",
       "status": "auto",
+      "type": "reference",
       "console": ["neural-config:advanced"]
     },
     "configuration/backup-restore": {
@@ -1335,6 +1449,7 @@
       "sources": ["guides/integration/backup_and_restore/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "task",
       "console": ["neural-config"],
       "gaps": [
         "Change Logs per-category tabs — a Default Config tab plus one tab per category (the tab shares its name with the routing tree's root node, which configuration/overview owns; this page documents the tab only — IA 2026-09-19)",
@@ -1345,13 +1460,13 @@
         "Change Log table — columns Proposal ID / Configuration Date, User, Version (can carry a free-text label instead of 'Version N'), Action; a row expands to the changed keys plus a note, and carries a Rollback icon"
       ]
     },
-
     "governance/overview": {
       "title": "Governance overview",
       "description": "Explore NeuralSeek's Governance tab for a comprehensive view of RAG governance. Access insights on system performance, semantic confidence, and documentation metrics to make informed decisions.",
       "sources": ["ui/governance/index.md", "reference_material/governance/governance.md"],
       "action": "merge",
       "status": "auto",
+      "type": "concept",
       "console": ["governance"],
       "gaps": [
         "The old standalone governance page is empty — decide what it contributes before merging it in"
@@ -1364,6 +1479,7 @@
       "action": "new",
       "console": ["governance", "neural-config"],
       "status": "auto",
+      "type": "concept",
       "gaps": [
         "How the 10 tabs relate; which fire before vs after generation",
         "This is the map page for the whole governance/guardrails/ subtree",
@@ -1379,6 +1495,7 @@
       "action": "new",
       "console": ["governance", "neural-config"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "HAP allow-list — words the profanity filter should ignore",
         "HAP block-list — words to block on top of the built-in corpus",
@@ -1393,6 +1510,7 @@
       "action": "new",
       "console": ["governance", "neural-config"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "'Try it Out' — score a candidate prompt before setting a threshold",
         "How the two thresholds interact: removal runs first, then the block threshold is evaluated",
@@ -1407,6 +1525,7 @@
       "action": "new",
       "console": ["governance", "neural-config"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "LLM Decline Penalty — penalty when the answer looks like a refusal (Semantic Model Tuning)",
         "The five sub-toggles are disabled until the semantic model is switched on",
@@ -1423,6 +1542,7 @@
       "action": "new",
       "console": ["governance", "neural-config"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Attribution tolerance is 3 discrete levels (Rigid, medium, Standard), not a continuous slider"
       ]
@@ -1434,6 +1554,7 @@
       "action": "new",
       "console": ["governance", "neural-config"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Pre-run min confidence agent — runs the fallback agent speculatively for speed, and costs a run every time",
         "URL Fallback > Category — resolve the fallback URL from the matched intent category",
@@ -1449,6 +1570,7 @@
       "action": "new",
       "console": ["governance", "neural-config"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "The Custom Governance tab as a whole",
         "Pre-LLM custom governance agent — rewrite or block user input before retrieval and generation",
@@ -1463,6 +1585,7 @@
       "sources": ["features/pii_detect/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["governance", "neural-config:advanced"],
       "gaps": [
         "Extra PII names list — add personal names a general model will not recognise (PII tab > NeuralSeek PII Detectors)",
@@ -1477,6 +1600,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "Governance > mAIstro Governance > Red Team Testing",
         "The 5 test categories: Prompt Injection, Data Exfiltration, SQL Injection, Unauthorized Access, Service Disruption",
@@ -1490,6 +1614,7 @@
       "sources": ["features/RT_logging/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["governance", "neural-config:advanced"],
       "gaps": [
         "Corporate Logging: Logger Service — ElasticSearch, OpenSearch or mAIstro; the choice changes every field below it",
@@ -1509,6 +1634,7 @@
       "action": "new",
       "console": ["neural-config", "governance"],
       "status": "auto",
+      "type": "concept",
       "gaps": [
         "The assembled filter request URL the page shows inline",
         "Together with SharePoint access control this is the per-user document-security story (cross-link integrations/sharepoint-sync)"
@@ -1520,6 +1646,7 @@
       "sources": ["features/replay_feature/index.md", "guides/data/replay_guide/index.md"],
       "action": "merge",
       "status": "auto",
+      "type": "task",
       "console": ["governance"]
     },
     "governance/data-security": {
@@ -1528,6 +1655,7 @@
       "sources": ["more_about_NS/data_security_and_privacy.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["governance"]
     },
     "governance/analytics/reading-the-dashboards": {
@@ -1537,6 +1665,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "The Filter modal — slice any dashboard by intent category or by runtime filter",
         "BYOLLM gating — four Token/Cost pages do not exist on non-BYOLLM instances",
@@ -1551,6 +1680,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Governance Rings — composite view of guardrail activity",
         "Category Landscape — traffic distribution across intent categories",
@@ -1567,6 +1697,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "LLM Token Intensity — token consumption per model",
         "Cost Orbit — cost distribution visualisation",
@@ -1581,6 +1712,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Edit Category from a log row — re-categorise an intent; this trains future categorisation",
         "Configuration Insights page — configuration change history as an audit view"
@@ -1593,6 +1725,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Agent Execution Timeline — when agents ran and for how long",
         "Agent Run Ranking — agents ranked by runs, cost or duration",
@@ -1611,6 +1744,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "mAIstro Logs page — per-run agent logs behind the Agent Details aggregates",
         "Agent token and cost pages (BYOLLM only)"
@@ -1623,6 +1757,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Seek Model Comparison — run one Seek across your configured models and compare",
         "Agent Model Comparison — run one agent across multiple models and compare"
@@ -1635,6 +1770,7 @@
       "action": "new",
       "console": ["governance"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Custom Governance dashboards — panels that are mAIstro agents",
         "Add Dashboard / Add Panel — bind an agent to a tile with a title, columns and rows",
@@ -1652,6 +1788,7 @@
       "sources": ["features/semantic_analytics/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["governance", "seek"],
       "gaps": [
         "Absorbs the Seek > Semantic Insights dashboard",
@@ -1667,6 +1804,7 @@
       "sources": ["features/content_analytics/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["governance"],
       "gaps": [
         "Absorbs the Documentation Insights dashboard",
@@ -1679,6 +1817,7 @@
       "sources": ["features/sentiment/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["governance"]
     },
     "governance/intent-categorization": {
@@ -1687,6 +1826,7 @@
       "sources": ["features/intent_cat/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["governance"],
       "gaps": [
         "Absorbs the Neural Config > Intent Categorization panel",
@@ -1705,15 +1845,16 @@
       "sources": ["features/entity_extraction/index.md"],
       "action": "keep",
       "status": "auto",
+      "type": "concept",
       "console": ["admin-tools", "governance"]
     },
-
     "reference/changelog": {
       "title": "Changelog",
       "description": "NeuralSeek's release notes, month by month from February 2023 to July 2026, with the newest items also listed under Newest features on the Home screen.",
       "sources": ["changelog.md"],
       "action": "keep",
       "status": "auto",
+      "type": "reference",
       "console": ["home"]
     },
     "reference/deployment": {
@@ -1722,6 +1863,7 @@
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
+      "type": "concept",
       "console": ["home"],
       "gaps": [
         "Split out of getting-started/deployment per Robert's review (2026-08-04): mechanics live here, plans and purchasing live in Getting Started",
@@ -1735,6 +1877,7 @@
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
+      "type": "reference",
       "console": ["home"],
       "gaps": [
         "Boundary: this page is the gating reference; purchasing lives in getting-started/how-to-get-neuralseek",

@@ -103,8 +103,12 @@ export type Route = {
 	sources: string[];
 	action: string;
 	status: 'stub' | 'auto' | 'adopted';
+	/** Page contract type — scripts/agentic/contract.ts. */
+	type?: 'concept' | 'task' | 'reference' | 'quickstart';
 	description?: string;
 	gaps?: string[];
+	/** Gaps a capture disproved, moved here by the IA stage (never documented as absences). */
+	gapsResolved?: { gap: string; run: string; why: string }[];
 	console?: string[];
 	note?: string;
 };

@@ -14,7 +14,7 @@
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { captureDir, DOCS_DIR, parseArgs, readJson, routeDir, runDir } from './lib';
+import { captureDir, DOCS_DIR, loadMap, parseArgs, readJson, routeDir, runDir } from './lib';
 
 export type Coverage = {
 	status: 'PASS' | 'FAIL' | 'ABSENT';
@@ -66,6 +66,17 @@ export function coverageOf(
 			readJson<any>(join(runDir(runId), 'area.json'));
 		const info = area?.routes?.find((r: any) => r.route === route);
 		const reference = area?.kind === 'reference' || (info && !(info.console ?? []).length);
+		// Only a settings-reference page must own controls; a concept/task/quickstart page may not.
+		const pageType = loadMap().map.routes?.[route]?.type ?? 'concept';
+		if (!reference && pageType !== 'reference')
+			return {
+				status: 'PASS',
+				total: 0,
+				covered: 0,
+				missing: [],
+				percent: 100,
+				detail: `no controls assigned — fine for a ${pageType} page`,
+			};
 		return {
 			status: reference ? 'PASS' : 'FAIL',
 			total: 0,

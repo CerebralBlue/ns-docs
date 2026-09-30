@@ -118,7 +118,7 @@ and sidebar; the writers fill them in the same run. No brief, no page.
 ```md
 # <route> — <title>
 
-Screen: <area> (<url>). Also reads: <areas>. Status today: <stub|auto>. Kind: console|reference.
+Screen: <area> (<url>). Also reads: <areas>. Status today: <stub|auto>. Kind: console|reference. Type: <concept|task|reference|quickstart>.
 
 ## Sections
 
@@ -164,9 +164,10 @@ titles and `area.json.sidebar`; the writer links the first mention of each.
 - <what you could not tell from the screen — for the report>
 ```
 
-Keep the page-contract order in mind (`.claude/skills/neuraldocs-writer/references/page-contract.md`):
-What is it · Why it matters · When to use it · How it works · FAQ. Your `## Sections` are the
-`How it works` subsections; the writer writes the first three from your brief's purpose lines.
+Write for the route's page **type** (the map's `type`; `.claude/skills/neuraldocs-writer/references/page-contract.md`)
+and put it in the brief header (`Type: reference`). Your `## Sections` become the `###`s under
+the type's main `##` — Settings (reference), How it works (concept), the task `##`s (task), the
+Steps (quickstart); the writer writes the intro from your Purpose lines.
 
 **3. `R/probes.json`** (append if it exists; batches add their own with ids `p<batch><n>`) — at most 10 for the whole area, only behaviours no screen shows (what
 an answer looks like with a setting on, what an agent returns, what a KB query returns):

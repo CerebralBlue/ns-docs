@@ -453,12 +453,12 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
 - **The old prose is background, never a fact.** The writer may read the verbatim-ported page
   for the _why_ and the vocabulary; a fact from it that no snapshot, probe or config shows
   carries `<!-- UNCONFIRMED: … -->` on the line above (the `facts` gate parks a page with more
-  than four). Every page ends with `## FAQ` (≥ 3 questions; the `contract` gate checks).
+  than four). Every page follows the contract of its `type` (map field: concept · task · reference · quickstart; `scripts/agentic/contract.ts`, templates in `planning/templates/`): an intro with no heading, the type's `##`s, an optional FAQ (≥ 2 real questions), `## Related` last.
 - **Coverage is the metric.** `gates.ts` = lint · contract · links (a link whose sentence
   promises a topic the still-unwritten target page lacks is a **warning**, never a fail) ·
   images (no old-docs screenshot survives; hashes) · **coverage** (the page names ≥ 90 % of the
-  labels `coverage-plan.json` assigns to it — **owned ∪ shared-for-route**; zero on a console
-  route FAILs; `coverage.ts`, also the writer's own check, and `--outline` on the plan before
+  labels `coverage-plan.json` assigns to it — **owned ∪ shared-for-route**; zero FAILs only on
+  a `reference`-type console route; `coverage.ts`, also the writer's own check, and `--outline` on the plan before
   prose) · **section-image** (a `###` that names an assigned control must carry a real image)
   · facts · **values** (WARN: `values.ts` lists every bold label / code value the capture's
   snapshots do not contain and no UNCONFIRMED marker covers — the reviewer rules on each:

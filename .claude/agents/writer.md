@@ -60,8 +60,14 @@ the outline too and reports drift between outline and page.
 
 ## Shape
 
-Exactly the contract: `## What is it` · `## Why it matters` · `## When to use it` · `## How it
-works` (the brief's sections as `###`) · `## FAQ` (optional — 2 to 6 real questions a customer would ask; leave it out rather than invent one). No in-body H1.
+The contract of the page's **type** (the brief's header and the map's `type`; definition in
+`scripts/agentic/contract.ts`, starting file `planning/templates/<type>.md`, rationale in the
+skill's `references/page-contract.md`): an intro paragraph with no heading · the type's `##`s —
+concept: How it works · When to use it; task: one `##` per task with numbered steps · Verify or
+Troubleshooting; reference: Where to find it · Settings (the brief's sections as `###`);
+quickstart: Before you begin · Step … · Next steps — · optional `## FAQ` (2–6 real questions;
+leave it out rather than invent one) · `## Related` last. Name headings after the topic, not the
+template ("How Seek caching works"). No in-body H1.
 `title`/`description` in the frontmatter, description one citable sentence. Links authored
 without `/ns-docs`. Every image: an explorer capture (`/img/<area>/<state>[-panel].png`), or
 `/img/_placeholder.svg` followed within 3 lines by

@@ -30,6 +30,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { contractProblems, isPageType } from './agentic/contract';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const MAP_PATH = join(ROOT, 'scripts/migration-map.json');
@@ -54,9 +55,6 @@ if (!all && prefixes.length === 0) {
 
 const map: { routes: Record<string, any> } = JSON.parse(readFileSync(MAP_PATH, 'utf8'));
 const staleHashes = oldDocsImageHashes();
-
-/** The required sections of planning/templates/feature-page.md (FAQ is optional since 2026-09-30). */
-const CONTRACT_SECTIONS = ['What is it', 'Why it matters', 'When to use it', 'How it works'];
 
 /**
  * The visible "screenshot pending" graphic. A page referencing it is honest about a gap
@@ -107,7 +105,7 @@ function splitFrontmatter(raw: string): { fm: string; body: string; offset: numb
 	return { fm: m[1], body: raw.slice(m[0].length), offset: m[0].split('\n').length - 1 };
 }
 
-function lintPage(status: string, raw: string, findings: Finding[]) {
+function lintPage(status: string, type: string | undefined, raw: string, findings: Finding[]) {
 	const { fm, body, offset } = splitFrontmatter(raw);
 
 	if (!/^title:\s*\S/m.test(fm))
@@ -308,22 +306,9 @@ function lintPage(status: string, raw: string, findings: Finding[]) {
 	// contract would print the same warning on 121 routes and drown the real ones.
 	if (status === 'stub') return;
 
-	const present = new Set(headings.filter((h) => h.depth === 2).map((h) => h.text.toLowerCase()));
-	const missing = CONTRACT_SECTIONS.filter((s) => !present.has(s.toLowerCase()));
-	if (missing.length && missing.length < CONTRACT_SECTIONS.length)
-		findings.push({
-			level: 'warn',
-			line: 1,
-			rule: 'page-contract',
-			message: `missing section(s): ${missing.join(', ')}`,
-		});
-	else if (missing.length === CONTRACT_SECTIONS.length)
-		findings.push({
-			level: 'warn',
-			line: 1,
-			rule: 'page-contract',
-			message: 'follows none of the feature-page template sections',
-		});
+	// The per-type page contract (scripts/agentic/contract.ts) — one warning per problem.
+	for (const problem of contractProblems(fm, body, isPageType(type) ? type : 'concept'))
+		findings.push({ level: 'warn', line: 1, rule: 'page-contract', message: problem });
 }
 
 let errors = 0;
@@ -348,7 +333,7 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 			message: 'no page file — run `bun run stubs`',
 		});
 	} else {
-		lintPage(info.status, readFileSync(path, 'utf8'), findings);
+		lintPage(info.status, info.type, readFileSync(path, 'utf8'), findings);
 	}
 
 	// A draft is allowed to be unfinished; "adopted" means a human called it done.

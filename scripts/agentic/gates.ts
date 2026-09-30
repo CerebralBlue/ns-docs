@@ -9,15 +9,17 @@
  * Result → runs/<id>/<route>/gates.json.
  *
  *   lint       bun scripts/doc-lint.ts <route> --strict — any ERROR fails
- *   contract   the four h2s in order, an optional FAQ with ≥ 2 entries when present, title + description present,
- *              no leftover MERGE / STILL TO DOCUMENT / ASK marker
+ *   contract   the page type's contract (contract.ts: concept · task · reference · quickstart) —
+ *              title + description, intro paragraph, the type's h2s, a closing Related, an
+ *              optional FAQ with ≥ 2 entries, no leftover MERGE / STILL TO DOCUMENT / ASK marker
  *   links      every internal ](/…) link resolves to a route, a renamed key, or a file; a link
  *              whose sentence names a **topic** the (unwritten) target page does not mention is
  *              a warning line, never a FAIL
  *   images     every image exists, is not an old-docs carry-over, is used once per page, and a
  *              placeholder is followed by a SCREENSHOT marker within 3 lines
  *   coverage   the page names ≥ 90 % of the controls coverage-plan.json assigns to it — owned
- *              plus the shared ones naming the route; zero on a console route FAILs
+ *              plus the shared ones naming the route; zero FAILs only on a `reference`-type
+ *              console route (a concept, task or quickstart page may own no controls)
  *              (coverage.ts — the writer's own check, re-run here)
  *   section-image  every ### section that names an assigned control carries a real image
  *              (the capture has a crop per section; a placeholder there is a writer omission)
@@ -34,6 +36,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { coverageOf } from './coverage';
+import { contractProblems, IMAGE_SECTION, isPageType, type PageType } from './contract';
 import { unbackedValues } from './values';
 import {
 	captureDir,
@@ -59,6 +62,8 @@ const gates: Record<string, { status: Status; detail: string[] }> = {};
 const gate = (name: string, status: Status, detail: string[] = []) =>
 	(gates[name] = { status, detail });
 const { map } = loadMap();
+const mapType = map.routes?.[route]?.type;
+const pageType: PageType = isPageType(mapType) ? mapType : 'concept';
 const rd = routeDir(runId, route);
 const pagePath = join(DOCS_DIR, `${route}.md`);
 
@@ -107,36 +112,14 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 		);
 }
 // ── contract ──────────────────────────────────────────────────────────────────
+// Per page type (scripts/agentic/contract.ts): concept · task · reference · quickstart.
 {
-	// FAQ is optional (2026-09-30): an invented question is worse than none.
-	const CONTRACT = ['What is it', 'Why it matters', 'When to use it', 'How it works'];
-	const detail: string[] = [];
-	if (!/^title:\s*\S/m.test(fm)) detail.push('frontmatter: no title');
-	if (!/^description:\s*\S/m.test(fm)) detail.push('frontmatter: no description');
-	const h2: string[] = [];
-	outsideFences((line) => {
-		const m = line.match(/^##\s+(.+?)\s*$/);
-		if (m) h2.push(m[1].toLowerCase());
-	});
-	const positions = CONTRACT.map((s) => h2.indexOf(s.toLowerCase()));
-	const missing = CONTRACT.filter((s, i) => positions[i] < 0);
-	if (missing.length) detail.push(`missing h2: ${missing.join(', ')}`);
-	const present = positions.filter((p) => p >= 0);
-	if (present.some((p, i) => i > 0 && p < present[i - 1]))
-		detail.push('contract sections out of order');
-	if (/^#\s/m.test(body)) detail.push('in-body H1');
-	// FAQ, when present: ≥ 2 questions (a `### Q` heading or a bold/`**Q**` line ending in `?`).
-	const faqStart = lines.findIndex((l) => /^##\s+FAQ\s*$/i.test(l));
-	if (faqStart >= 0) {
-		const faq = lines.slice(faqStart + 1).join('\n');
-		const questions = (
-			faq.match(/^(###\s+.+\?|\*\*[^*]+\?\*\*|-\s+\*\*Q:?\*\*.+|<details>)\s*$/gm) ?? []
-		).length;
-		if (questions < 2) detail.push(`FAQ has ${questions} question(s); 2 or more when present`);
-	}
-	if (/<!--\s*(MERGE|STILL TO DOCUMENT|ASK):/.test(body))
-		detail.push('a MERGE / STILL TO DOCUMENT / ASK marker is still on the page');
-	gate('contract', detail.length ? 'FAIL' : 'PASS', detail);
+	const detail = contractProblems(fm, body, pageType);
+	gate(
+		'contract',
+		detail.length ? 'FAIL' : 'PASS',
+		detail.length ? detail : [`${pageType} contract`]
+	);
 }
 // ── links ─────────────────────────────────────────────────────────────────────
 {
@@ -264,8 +247,9 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 	else {
 		const detail: string[] = [];
 		// split the body into ### sections (outside fences)
-		// Only the ### sections under "How it works" are illustrated sections; the FAQ and the
-		// contract's first three h2s are prose. A section passes with its own real image, or when
+		// Only the ### sections under the type's illustrated h2 (contract.ts IMAGE_SECTION: How it
+		// works · Settings · Step …; any h2 for a task page) are illustrated sections; the intro,
+		// FAQ, Related and Before you begin are prose. A section passes with its own real image, or when
 		// every control it names is already illustrated by a crop elsewhere on the page (a
 		// "Staleness" paragraph about a slider shown two sections up needs no second picture).
 		let cur: { title: string; start: number; text: string[] } | null = null;
@@ -274,7 +258,11 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 		outsideFences((line, i) => {
 			const h2 = line.match(/^##\s+(.+?)\s*$/);
 			if (h2) {
-				inHow = /^how it works$/i.test(h2[1]);
+				const t = h2[1].toLowerCase();
+				const want = IMAGE_SECTION[pageType];
+				inHow = want
+					? t.includes(want)
+					: !/faq|related|before you begin|verify|troubleshoot/.test(t);
 				cur = null;
 				return;
 			}

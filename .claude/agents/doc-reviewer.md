@@ -28,7 +28,7 @@ A route (e.g. `seek/curation`). Everything else you look up:
 | Its map entry — `action`, `status`, `sources`, `gaps`, `title`, `description` | `scripts/migration-map.json`                                                                                                                                                                                                                                                  |
 | The pipeline's brief, when `/docs-explore` ran for the route                  | `<capture>/briefs/<route with / → ->/brief.md` — the controls the screen has (the prompt names the capture folder); `<capture>/states/*.yml` are the raw snapshots; `<run>/answers.md` what the product did; `<run>/<route folder>/outline.md` the writer's plan for the page |
 | The console's structure                                                       | `_private/component-map/<area>.json`                                                                                                                                                                                                                                          |
-| The page contract                                                             | `planning/templates/feature-page.md`                                                                                                                                                                                                                                          |
+| The page contract                                                             | the route's `type` → `scripts/agentic/contract.ts`, `planning/templates/<type>.md`                                                                                                                                                                                            |
 | Repo conventions                                                              | `CLAUDE.md`                                                                                                                                                                                                                                                                   |
 
 ## Your evidence arrives with the prompt — work the checklist, in order
@@ -140,15 +140,19 @@ Only when the route has `sources`. Diff the meaning, not the words:
 
 ### 3. The page contract, in substance
 
-The linter checks the five headings exist. You check they are honest:
+The contract gate checks the headings of the page's type exist. You check they are honest:
 
-- **What is it** — a plain definition, not a restatement of the title.
-- **Why it matters** — the problem it solves, and **when it is the wrong tool**. A page that
-  never says when not to use the feature has not done this section.
-- **When to use it** — concrete scenarios, not abstractions.
-- **How it works** — actual mechanics: settings, request/response shape, defaults, limits.
-- **FAQ** — questions phrased the way a user would ask them, each answered directly. This is
-  what the docs chatbot retrieves against, so a vague FAQ degrades the product.
+- **Intro** — says what this is and who it is for, not a restatement of the title.
+- **concept** — How it works gives actual mechanics; When to use it gives concrete situations
+  **and when it is the wrong tool**.
+- **task** — each step is one action, verb first; Verify/Troubleshooting lets the reader check
+  the result.
+- **reference** — Where to find it gives the navigation path; every `###` under Settings says
+  what each control does and when to change it (a label restated is a finding).
+- **quickstart** — every step ends with something the reader can see working.
+- **Related** — the owner pages of concepts named on the page, and the next page a reader needs.
+- **FAQ** (optional) — real questions phrased the way a user asks them; an invented question, or
+  one about something that does not exist, is a finding.
 
 ### 4. Prose quality
 
