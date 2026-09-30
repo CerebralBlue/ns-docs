@@ -1,126 +1,138 @@
 ---
 title: "How to get NeuralSeek"
-description: "The plans NeuralSeek is sold under, what each one includes, and how to get an instance. Deployment and platform detail lives in Reference > Deployment."
+description: "NeuralSeek is sold under plans that differ in which LLM you can use and where the product can run; this page compares the plans, says where to get an instance, and shows where to change your support and development subscription from Home."
 ---
 
-## Pay-per-answer
-Create natural language answers to user questions based on your raw Corporate KnowledgeBase. This plan uses our curated LLM and does not offer connectivity to other LLMs. All other features are available with this plan. The NeuralSeek Curated LLM is kept pinned to the industry's highest price-performing LLM.  Specifics such as exact LLM used for the curated LLM are discussable only under NDA with Cerebral Blue.  We automatically update the underlying minor version of the LLM, and major version changes are controllable by the end user. The BYOLLM (Bring your own LLM) plan is available if you require a specific LLM.
+## What is it
 
-This plan's features include, but are not limited to:
+This page covers the commercial side of NeuralSeek: the plans it is sold under, what separates
+them, where to get an instance, and the one purchasing control that lives inside the product —
+the **Support & Development Subscription** button on the Home screen.
 
-- Automatic catalog, curation and grouping of questions and answers 
-- Export to a Virtual Agent
-- Round-trip monitoring to a Virtual Agent
-- Sentiment scoring
-- Automatic language detection
-- Translate text into other languages
-- Extract Entities from text
-- Categorize text by matching categories and matching or creating Intents
-- Connect to any supported KnowledgeBase, including Watson Discovery, Watsonx Discovery, Elastic, Kendra, pinecone, Milvus, or a Virtual KB based on any connection in mAIstro...
+How and where NeuralSeek runs once you have it — SaaS, on-premise, Flex installs, hardware
+sizing — is covered in [Deployment](/reference/deployment/). Which features each plan or platform
+unlocks, and why a screen might be missing from your console, is covered in
+[Plans & platforms](/reference/plans-and-platforms/).
 
-## Flex
-The NeuralSeek Flex plan is a bring-your-own LLM plan featuring unlimited usage, and a flex license allowing you to optionally and additionally install NeuralSeek components on your hardware, behind your firewall as needed to meet your security requirements while you are subscribed to this flex plan. All NeuralSeek features are supported on this plan. 
+## Why it matters
 
-This plan's features include, but are not limited to:
+The plan decides three things: whether you use NeuralSeek's curated LLM or connect your own,
+whether you may install NeuralSeek on your own hardware, and which answer-channel features
+(virtual-agent export, round-trip monitoring, sentiment, language detection) are available.
+Picking the plan that matches your security and LLM requirements up front saves switching plans
+after go-live.
 
-- Automatic catalog, curation and grouping of questions and answers 
-- Export to a Virtual Agent
-- Round-trip monitoring to a Virtual Agent
-- Sentiment scoring
-- Automatic language detection
-- Translate text into other languages
-- Extract Entities from text
-- Categorize text by matching categories and matching or creating Intents
-- Unlimited instances within a deployment to allow for logical separation of usecases
-- Connect to any supported LLM
-- Connect to any supported KnowledgeBase, including Watson Discovery, Watsonx Discovery, Elastic, Kendra, pinecone, Milvus, or a Virtual KB based on any connection in mAIstro
+The support and development subscription is separate from the plan: it is what you change when
+you need a different level of support for an instance you already have.
 
-Each base instance (or install) is licensed for 10,000 users. Additional users may be added in blocks of 10,000. 
+## When to use it
 
-:::note
-Upon Flex plan purchase, we provide a free working session (up to 1 hour) designed to guide users live through the installation process and grant access to the docker repository. This is generally sufficient time to complete product installation with basic authentication. Integrating Single Sign-on (SSO) may take additional time.
-:::
+- **You are choosing how to buy NeuralSeek.** Compare the plans below, then get an instance from
+  the channel that suits you.
+- **You already have an instance and want a different support plan.** Use the
+  **Support & Development Subscription** button on Home — see
+  [Support and development subscription](#support-and-development-subscription).
+- **You need installation steps or sizing.** This is the wrong page; go to
+  [Deployment](/reference/deployment/) and, for Flex installs, [Flex licensing](/configuration/administration/flex-licensing/).
+- **A screen is missing from your console.** Go to [Plans & platforms](/reference/plans-and-platforms/).
 
-### On-Premise Details
-The Flex plan grants license for you to install NeuralSeek on-premise or on your cloud provider of choice, on your your hardware, behind your firewall to meet security requirements. The flex plan allows for complete network isolation, as well as projects that require compliance with FedRamp, GovCloud, and HIPAA regulations. Neuralseek on-premise runs as containers on top of OpenShift (OCP) or Kubernetes.
+## How it works
 
-#### Installation Requirements
-Minimum sizing requirements for on-prem installation include: 
+![The NeuralSeek Home screen with the Support & Development Subscription button at the top right](/img/home/default.png)
 
-- 12 Core CPU
-- 64 GB RAM/Memory
-- 100 GB Available Disc Space
-- If self-hosting an LLM (not using watsonx.ai or sagemaker) your self-hosted LLM will require a GPU VM that is equivalent or better to a single NVIDIA A10G
+Home is the first screen after you sign in. Its heading reads "Watch. Learn. Build faster.", with
+the **Support & Development Subscription** button at the top right, next to it.
 
-#### Installation Steps
+### Support and development subscription
 
-1. Log onto Red Hat OpenShift console with appropriate domain.
-2. Modify the appropriate .yml file with the corresponding hostname OpenShift external URL. 
-    - .yml files are provided during consultation meeting.
-3. Verify connectivity to the Cerebral Blue docker in .yml files. 
-    - Permission access will be granted during consultation meeting. Provide the appropriate username.
-4. Copy the contents of the .yml files into your OpenShift console by clicking the plus icon, then click create. 
-5. Route will be created manually by navigating to **Networking → Routes → Create Route**.
-    - Add a unique name. 
-    - Select the service to route to.
-    - Select the target port for traffic.
-    - Optionally, provide a TLS certificate. Default will set to HTTP. 
-6. Click the link to the route to open the NeuralSeek User Interface. 
+![The Get more value from NeuralSeek panel on Home, with the Get a support and development subscription tile](/img/home/default--get-more-value-from-neuralseek.png)
 
-:::note
-It will take approximately 15 minutes for the pods to run. View their status in the OpenShift console under **Workloads → Pods**. 
-:::
+Two things on Home point you to a support and development subscription:
 
-## Bring-your-own-LLM
-Leverage all of NeuralSeek's features, but instead of using our curated LLM, you can connect via our no-code connectors to leading commercial and open-source LLM's. This enables you to run within a single datacenter or country, or choose the commercial LLM that best fits your business and pricing needs.
+- **Support & Development Subscription** — the button at the top right of Home (screen readers
+  announce it as "Open support and development subscription options"). It opens the
+  support-plan options for your instance.
+- **Get a support and development subscription** — a tile in the **Get more value from
+  NeuralSeek** panel lower on Home. It is a reminder, not a link: use the button at the top to
+  act on it.
 
-**Refer to our Integrations documentation for a list of supported LLM's.**
+The support-plan options appear in a dialog titled **Update Support Plan**. It has two buttons:
+**Update** confirms the change to your support plan, and **Close** leaves the dialog without
+changing anything. Because **Update** changes what you are billed for, review the
+dialog before you confirm.
 
-This plan's features include, but are not limited to:
+![Screenshot needed — Home ▸ Support & Development Subscription ▸ Update Support Plan dialog](/img/_placeholder.svg)
 
-- Automatic catalog, curation and grouping of questions and answers 
-- Export to a Virtual Agent
-- Round-trip monitoring to a Virtual Agent
-- Sentiment scoring
-- Automatic language detection
-- Translate text into other languages
-- Extract Entities from text
-- Categorize text by matching categories and matching or creating Intents
-- Connect to any supported LLM
-- Connect to any supported KnowledgeBase, including Watson Discovery, Watsonx Discovery, Elastic, Kendra, pinecone, Milvus, or a Virtual KB based on any connection in mAIstro
+<!-- SCREENSHOT: /img/home/update-support-plan.png — Home, click Support & Development Subscription (top right), capture the Update Support Plan dialog with its plan list and prices, then click Close. Never click Update: it changes billing. -->
 
-## Search
-The Search Plan is for use cases not requiring a Virtual Agent. NeuralSeek provides a search interface to supported KnowledgeBases, and will provide search responses plus generative AI summaries. Any generated AI summary incurs a per-call usage fee. Cache responses are included at no additional cost. This plan uses our curated LLM and does not offer connectivity to other LLMs. The NeuralSeek Curated LLM is kept pinned to the industry's highest price-performing LLM.  Specifics such as exact LLM used for the curated LLM are discussable only under NDA with Cerebral Blue.
+When a change is billed is answered in the
+[FAQ](#when-am-i-billed-for-a-support-plan-change) below. How support plans are billed and what each one includes is covered on
+[Support plans](/configuration/administration/support-plans/).
 
-This plan's features are identical to the pay-per-answer plans EXCEPT: 
+### Plans
 
-- No export to a Virtual Agent is allowed
-- No round-trip monitoring to a Virtual Agent is allowed
-- No sentiment scoring
-- No automatic language detection
+<!-- UNCONFIRMED: the five plans, their shared features, LLM rules, feature exclusions and Flex licensing (10,000 users per base instance, blocks of 10,000, one free working session of up to 1 hour at purchase) — old page "Deployment options" (documentation.neuralseek.com), no plan list on any captured screen -->
 
-## Small Business
-The Small Business plan is the easiest plan to get NeuralSeek running in minutes with no experience required. This plan is pre-connected to both our curated LLM and a KnowledgeBase, and you cannot swap these out. Simply point NeuralSeek at your website or upload documents, connect to a Virtual Agent, and go-live! This plan uses our curated LLM and does not offer connectivity to other LLMs. All other features are available with this plan. The NeuralSeek Curated LLM is kept pinned to the industry's highest price-performing LLM.  Specifics such as exact LLM used for the curated LLM are discussable only under NDA with Cerebral Blue.
+The plans differ mainly in the LLM behind the answers and in where NeuralSeek may run. Every plan
+includes the core answer features: cataloguing, curating and grouping questions and answers,
+translation, entity extraction, and categorising text into categories and intents.
 
-This plan's features include, but are not limited to:
+| Plan | LLM | What is different |
+| --- | --- | --- |
+| Pay-per-answer | NeuralSeek's curated LLM only | All features, with any supported KnowledgeBase. Minor LLM versions update automatically; you choose when a major version change applies. |
+| Bring-your-own-LLM | Any supported LLM, connected without code | All features, with the LLM you choose — for example one that keeps processing in a given datacenter or country. |
+| Flex | Any supported LLM | Bring-your-own-LLM plus unlimited usage, unlimited instances per deployment, and a licence to install on your own hardware while you are subscribed. |
+| Search | NeuralSeek's curated LLM only | Search results with generated summaries, for use cases without a virtual agent. Each summary is charged per call; cached responses are not. No virtual-agent export, round-trip monitoring, sentiment scoring or automatic language detection. |
+| Small Business | NeuralSeek's curated LLM with a pre-connected KnowledgeBase; neither can be changed | You point NeuralSeek at your website or upload documents, then connect a virtual agent. |
 
-- Automatic catalog, curation and grouping of questions and answers 
-- Export to a Virtual Agent
-- Round-trip monitoring to a Virtual Agent
-- Sentiment scoring
-- Automatic language detection
-- Translate text into other languages
-- Extract Entities from text
-- Categorize text by matching categories and matching or creating Intents
+On Flex, each base instance covers 10,000 users, and more users are added in blocks of 10,000. A
+Flex purchase includes one live working session of up to one hour for the first installation.
 
-&nbsp;
+The installation itself — platforms, sizing, steps — is on [Deployment](/reference/deployment/), and
+reporting installs and users on a Flex licence is on
+[Flex licensing](/configuration/administration/flex-licensing/). The LLMs you can connect on
+Bring-your-own-LLM and Flex are listed under [LLM Details](/configuration/neural-config/llm-details/).
 
-&nbsp;
+### Getting an instance
 
-**For cloud-specific available plans, see cloud provider for up-to-date cost information.**
+NeuralSeek is available directly and through cloud marketplaces. Plans and prices on a
+marketplace are set in that provider's listing, so check the listing for current cost.
 
-<!-- STILL TO DOCUMENT ON THIS PAGE:
-  - Renamed from 'Deployment options' per Robert's review (2026-08-04)
-  - Boundary: plans, pricing model and purchasing live here; platform/deployment mechanics live in reference/deployment
-  - Support plans — Home > Update Support Plan bills immediately, then rebills every 30 days (cross-link configuration/administration/support-plans)
--->
+<!-- UNCONFIRMED: NeuralSeek is listed in the IBM Cloud catalog, AWS Marketplace and Azure Marketplace — old what-is-neuralseek page -->
+
+The listings are the IBM Cloud catalog, AWS Marketplace and Azure Marketplace.
+
+Which platforms NeuralSeek runs on, and what changes about the product on each, is on
+[Deployment](/reference/deployment/).
+
+## FAQ
+
+### How do I change my support plan?
+
+Open Home and select **Support & Development Subscription** at the top right. The
+**Update Support Plan** dialog opens; confirm a change with **Update**, or leave with **Close**. [Support plans](/configuration/administration/support-plans/) has the detail.
+
+### Which plan lets me use my own LLM?
+
+<!-- UNCONFIRMED: Bring-your-own-LLM and Flex are the plans that connect your own LLM — old page "Deployment options" -->
+
+Bring-your-own-LLM and Flex. Pay-per-answer, Search and Small Business use NeuralSeek's curated
+LLM only.
+
+### Can I run NeuralSeek on my own hardware?
+
+Installing on your own hardware is a matter of plan and deployment, not a console setting. See
+[Deployment](/reference/deployment/) for where NeuralSeek can run and how an on-premise install
+works.
+
+### When am I billed for a support-plan change?
+
+<!-- UNCONFIRMED: changing the support plan bills immediately, then rebills every 30 days — old gap note on this page (configuration/administration/support-plans gap list); Home does not state it -->
+
+Immediately, when you confirm the change with **Update** in the **Update Support Plan** dialog,
+and then again every 30 days. Selecting **Close** leaves your plan unchanged.
+
+### Where do I see why a screen is missing from my console?
+
+Features vary by plan and platform; [Plans & platforms](/reference/plans-and-platforms/) lists
+what each one unlocks.

@@ -1,125 +1,136 @@
 ---
 title: "Plans & platforms"
-description: "Explore NeuralSeek's diverse plans tailored for your needs, from pay-per-answer to bring-your-own-LLM options. Enhance your business with advanced AI features and seamless integration."
+description: "Which areas the NeuralSeek console navbar shows, and which plan, deployment or user-permission condition can hide a page that the documentation describes."
 ---
 
-## Pay-per-answer
-Create natural language answers to user questions based on your raw Corporate KnowledgeBase. This plan uses our curated LLM and does not offer connectivity to other LLMs. All other features are available with this plan. The NeuralSeek Curated LLM is kept pinned to the industry's highest price-performing LLM.  Specifics such as exact LLM used for the curated LLM are discussable only under NDA with Cerebral Blue.  We automatically update the underlying minor version of the LLM, and major version changes are controllable by the end user. The BYOLLM (Bring your own LLM) plan is available if you require a specific LLM.
+## What is it
 
-This plan's features include, but are not limited to:
+This page is the gating reference for the NeuralSeek console. It lists the top-level areas the navbar shows, where each one leads, and the conditions that can make a documented page missing from your console: your plan, your deployment (cloud or on-prem), or the permissions your user has.
 
-- Automatic catalog, curation and grouping of questions and answers 
-- Export to a Virtual Agent
-- Round-trip monitoring to a Virtual Agent
-- Sentiment scoring
-- Automatic language detection
-- Translate text into other languages
-- Extract Entities from text
-- Categorize text by matching categories and matching or creating Intents
-- Connect to any supported KnowledgeBase, including Watson Discovery, Watsonx Discovery, Elastic, Kendra, pinecone, Milvus, or a Virtual KB based on any connection in mAIstro...
+It is not a buying guide. Plans, prices, the plan catalogue and support subscriptions are covered in [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/). Installing and running NeuralSeek on your own infrastructure is covered in [Deployment](/reference/deployment/).
 
-## Flex
-The NeuralSeek Flex plan is a bring-your-own LLM plan featuring unlimited usage, and a flex license allowing you to optionally and additionally install NeuralSeek components on your hardware, behind your firewall as needed to meet your security requirements while you are subscribed to this flex plan. All NeuralSeek features are supported on this plan. 
+## Why it matters
 
-This plan's features include, but are not limited to:
+The documentation describes every feature NeuralSeek has, across all plans and deployments. A single console shows only the part that applies to it. When a page in these docs names a screen you cannot find, the cause is usually one of three things, and each one has a different fix: a permission an admin can grant, a plan feature, or a deployment difference. Knowing which one you are looking at saves a support ticket.
 
-- Automatic catalog, curation and grouping of questions and answers 
-- Export to a Virtual Agent
-- Round-trip monitoring to a Virtual Agent
-- Sentiment scoring
-- Automatic language detection
-- Translate text into other languages
-- Extract Entities from text
-- Categorize text by matching categories and matching or creating Intents
-- Unlimited instances within a deployment to allow for logical separation of usecases
-- Connect to any supported LLM
-- Connect to any supported KnowledgeBase, including Watson Discovery, Watsonx Discovery, Elastic, Kendra, pinecone, Milvus, or a Virtual KB based on any connection in mAIstro
+## When to use it
 
-Each base instance (or install) is licensed for 10,000 users. Additional users may be added in blocks of 10,000. 
+- A page in the docs describes a screen, menu item or dashboard that your console does not show.
+- You want to check which areas a console has, and where each label in the navbar leads.
+- You are comparing plans and want the feature differences without the sales copy. To buy or change a plan, go to [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/) instead.
 
-:::note
-Upon Flex plan purchase, we provide a free working session (up to 1 hour) designed to guide users live through the installation process and grant access to the docker repository. This is generally sufficient time to complete product installation with basic authentication. Integrating Single Sign-on (SSO) may take additional time.
+This page is the wrong place for prices, licence sizing or installation steps; see [Where plans and deployment are covered instead](#where-plans-and-deployment-are-covered-instead).
+
+## How it works
+
+### The navbar
+
+![The NeuralSeek console navbar with Home, Neural Config, Seek, KnowledgeBase, mAIstro, NeuralEdit, Governance, Run Agents and Admin Tools, and the profile icon at the far right](/img/home/default.png)
+
+Every console page carries the same bar across the top. On the Home page it shows these items, left to right:
+
+| Navbar item       | What it opens                                                                                      | Documented in                                                                                   |
+| ----------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Home**          | `/home`: the video browser ("Watch. Learn. Build faster.") and the "Get more value from NeuralSeek" panel | [What is NeuralSeek](/getting-started/what-is-neuralseek/)                                      |
+| **Neural Config** | `/configure`: the configuration tree and its settings                                              | [Neural Config options](/configuration/neural-config/)                                          |
+| **Seek**          | `/seek`: ask questions and trace answers back to their sources                                     | [Seek overview](/seek/overview/)                                                                |
+| **KnowledgeBase** | `/knowledge`: the documents NeuralSeek answers from                                                | [Connect a knowledge base](/knowledge/connect-a-kb/)                                             |
+| **mAIstro**       | `/maistro`: build LLM-backed agents with no code                                                   | [mAIstro overview](/maistro/overview/)                                                          |
+| **NeuralEdit**    | `/neuralEdit`: agent-assisted document creation and editing                                        | [NeuralEdit overview](/maistro/neuraledit/overview/)                                            |
+| **Governance**    | `/go-overview`: the governance dashboards and charts                                               | [Governance overview](/governance/overview/)                                                    |
+| **Run Agents**    | `/runagent`: run your mAIstro agents                                                               | [Run Agents](/maistro/run-agents/)                                                              |
+| **Admin Tools**   | A menu, not a page (see below)                                                                     | This page                                                                                       |
+
+**Admin Tools** is a button that opens a menu instead of a page. The menu lists, in this order:
+
+- **API's & Integration**: see [API keys](/configuration/administration/api-keys/) and [What can we connect to?](/integrations/overview/).
+- **Data Loader**: see [Loading documents](/knowledge/load/).
+- **Entity Extraction**: see [Entity extraction](/governance/entity-extraction/).
+- **Chat SDK**: see [Chat SDK](/integrations/chat-sdk/).
+- **QA Tools**
+- **Curate**: see [Answer curation](/seek/curation/).
+
+The round profile icon at the far right of the bar opens your user profile.
+
+Two things about the navbar are easy to miss:
+
+- **Curate is not a top-level item.** It is the last entry in the Admin Tools menu. The Home page also links to it from its next-steps panel ("Edit, organize, and train Answers on style and content on your Q&A content on the Curate tab").
+- **The navbar is not identical on every page.** While you are inside API's & Integration, an extra **API's & Integration** item appears between **Run Agents** and **Admin Tools**. It is not there on Home.
+
+The list above is what a signed-in administrator sees. A user with fewer permissions, or a console on a different plan or deployment, can see fewer items; the next section lists the known conditions.
+
+### Why can't I see this page?
+
+If a page in these docs is missing from your console, look up the condition here.
+
+:::caution[Not checked against every plan]
+The conditions below come from product notes and the earlier plan descriptions. They have not been verified on every plan and deployment, and it is not documented whether a gated feature is hidden outright or shown disabled.
 :::
 
-### On-Premise Details
-The Flex plan grants license for you to install NeuralSeek on-premise or on your cloud provider of choice, on your your hardware, behind your firewall to meet security requirements. The flex plan allows for complete network isolation, as well as projects that require compliance with FedRamp, GovCloud, and HIPAA regulations. Neuralseek on-premise runs as containers on top of OpenShift (OCP) or Kubernetes.
+<!-- UNCONFIRMED: all nine conditions in this table — product gap audit (document-manager, deployment, secrets, self-hosting-an-llm, reading-the-dashboards, flex-licensing) and the old plans page; no captured screen shows a hidden item -->
 
-#### Installation Requirements
-Minimum sizing requirements for on-prem installation include: 
+| Condition                                              | What is reported to disappear or change (not verified on every plan)                                                                                                                                                        | Where it is documented                                                         |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| On-prem deployment                                     | Reported: the Document Manager is not available on on-prem installs. On cloud consoles it is reached from **KnowledgeBase**.                                                                                               | [Document Manager](/knowledge/document-manager/)                               |
+| On-prem deployment                                     | Reported: Secrets behave differently from the cloud console.                                                                                                                                                               | [Secrets](/configuration/neural-config/secrets/)                               |
+| Bring-your-own-LLM (BYOLLM) plans only                 | Reported: Self-Hosted LLM, the last entry in the side list of **Admin Tools** → API's & Integration, is limited to BYOLLM plans.                                                                                            | [Self-hosting an LLM](/configuration/administration/self-hosting-an-llm/)      |
+| BYOLLM plans only                                      | Reported: the token and cost dashboards under **Governance** (Seek tokens and cost, and the mAIstro agent token and cost pages) are limited to BYOLLM plans.                                                                | [Reading the dashboards](/governance/analytics/reading-the-dashboards/)        |
+| Flex plan only                                         | Reported: **Admin Tools** → Customize, where you self-report installs and users and download a licence file, is a Flex feature. The Admin Tools menu shown above (API's & Integration through Curate) has no Customize entry. | [Flex licensing](/configuration/administration/flex-licensing/)                |
+| Curated-LLM plans (Pay-per-answer, Search, Small Business) | Reported: you cannot connect other LLMs; choosing an LLM in **Neural Config** is described as a BYOLLM and Flex capability.                                                                                             | [Supported LLMs](/configuration/supported-llms/)                               |
+| Search plan                                            | Per the plan description: no export to a virtual agent, no round-trip monitoring to a virtual agent, no sentiment scoring, no automatic language detection. Which console screens change as a result is not documented.     | [What each plan includes](#what-each-plan-includes)                            |
+| Small Business plan                                    | Per the plan description: the LLM and the knowledge base are pre-connected and cannot be swapped. Whether the LLM and KnowledgeBase connection settings are hidden or only locked is not documented.                        | [What each plan includes](#what-each-plan-includes)                            |
+| Your user permissions (any plan)                       | A page can be missing because your role does not grant it, even when the plan includes it. For example, the Load permission is reported to grant the Document Manager.                                                     | [Users and permissions](/configuration/administration/users-and-permissions/), [Default permissions](/configuration/administration/default-permissions/) |
 
-- 12 Core CPU
-- 64 GB RAM/Memory
-- 100 GB Available Disc Space
-- If self-hosting an LLM (not using watsonx.ai or sagemaker) your self-hosted LLM will require a GPU VM that is equivalent or better to a single NVIDIA A10G
+**What to do.** Start with permissions: if a colleague on the same console can see the page, the cause is your role, not the plan, and an admin can change it in [Users and permissions](/configuration/administration/users-and-permissions/). If nobody on the console sees it, it is likely a plan or deployment feature; see [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/) for the plans.
 
-#### Installation Steps
+### What each plan includes
 
-1. Log onto Red Hat OpenShift console with appropriate domain.
-2. Modify the appropriate .yml file with the corresponding hostname OpenShift external URL. 
-    - .yml files are provided during consultation meeting.
-3. Verify connectivity to the Cerebral Blue docker in .yml files. 
-    - Permission access will be granted during consultation meeting. Provide the appropriate username.
-4. Copy the contents of the .yml files into your OpenShift console by clicking the plus icon, then click create. 
-5. Route will be created manually by navigating to **Networking → Routes → Create Route**.
-    - Add a unique name. 
-    - Select the service to route to.
-    - Select the target port for traffic.
-    - Optionally, provide a TLS certificate. Default will set to HTTP. 
-6. Click the link to the route to open the NeuralSeek User Interface. 
+NeuralSeek is sold under five plans. The matrix compares the features each plan's description lists. It answers "does my plan include X?"; for prices and how to buy, see [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/).
 
-:::note
-It will take approximately 15 minutes for the pods to run. View their status in the OpenShift console under **Workloads → Pods**. 
-:::
+<!-- UNCONFIRMED: every cell of this matrix and the curated-LLM sentence below it — from the old plans page (the five plan feature lists); no console screen shows plans -->
 
-## Bring-your-own-LLM
-Leverage all of NeuralSeek's features, but instead of using our curated LLM, you can connect via our no-code connectors to leading commercial and open-source LLM's. This enables you to run within a single datacenter or country, or choose the commercial LLM that best fits your business and pricing needs.
+| Feature                                                         | Pay-per-answer | Flex | Bring-your-own-LLM | Search | Small Business       |
+| --------------------------------------------------------------- | -------------- | ---- | ------------------ | ------ | -------------------- |
+| Automatic catalog, curation and grouping of questions and answers | Yes          | Yes  | Yes                | Yes    | Yes                  |
+| Export to a virtual agent                                       | Yes            | Yes  | Yes                | No     | Yes                  |
+| Round-trip monitoring to a virtual agent                        | Yes            | Yes  | Yes                | No     | Yes                  |
+| Sentiment scoring                                               | Yes            | Yes  | Yes                | No     | Yes                  |
+| Automatic language detection                                    | Yes            | Yes  | Yes                | No     | Yes                  |
+| Translate text into other languages                             | Yes            | Yes  | Yes                | Yes    | Yes                  |
+| Extract entities from text                                      | Yes            | Yes  | Yes                | Yes    | Yes                  |
+| Categorize text and match or create intents                     | Yes            | Yes  | Yes                | Yes    | Yes                  |
+| Connect to any supported LLM                                    | No (curated LLM) | Yes | Yes               | No (curated LLM) | No (curated LLM) |
+| Connect to any supported knowledge base                         | Yes            | Yes  | Yes                | Yes    | No (pre-connected)   |
+| Unlimited instances within a deployment                         | No             | Yes  | No                 | No     | No                   |
+| Install on your own hardware, behind your firewall              | No             | Yes  | No                 | No     | No                   |
 
-**Refer to our Integrations documentation for a list of supported LLM's.**
+On the curated-LLM plans, NeuralSeek updates the underlying LLM's minor versions automatically, and major version changes are controllable by you.
 
-This plan's features include, but are not limited to:
+### Where plans and deployment are covered instead
 
-- Automatic catalog, curation and grouping of questions and answers 
-- Export to a Virtual Agent
-- Round-trip monitoring to a Virtual Agent
-- Sentiment scoring
-- Automatic language detection
-- Translate text into other languages
-- Extract Entities from text
-- Categorize text by matching categories and matching or creating Intents
-- Connect to any supported LLM
-- Connect to any supported KnowledgeBase, including Watson Discovery, Watsonx Discovery, Elastic, Kendra, pinecone, Milvus, or a Virtual KB based on any connection in mAIstro
+- **Buying a plan, the plan catalogue, and the Support & Development Subscription button on Home**: [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/) and [Support plans](/configuration/administration/support-plans/).
+- **On-prem installation on OpenShift or Kubernetes, sizing, and installation steps**: [Deployment](/reference/deployment/).
 
-## Search
-The Search Plan is for use cases not requiring a Virtual Agent. NeuralSeek provides a search interface to supported KnowledgeBases, and will provide search responses plus generative AI summaries. Any generated AI summary incurs a per-call usage fee. Cache responses are included at no additional cost. This plan uses our curated LLM and does not offer connectivity to other LLMs. The NeuralSeek Curated LLM is kept pinned to the industry's highest price-performing LLM.  Specifics such as exact LLM used for the curated LLM are discussable only under NDA with Cerebral Blue.
+## FAQ
 
-This plan's features are identical to the pay-per-answer plans EXCEPT: 
+### A page in the docs is not in my navbar. Is it my plan?
 
-- No export to a Virtual Agent is allowed
-- No round-trip monitoring to a Virtual Agent is allowed
-- No sentiment scoring
-- No automatic language detection
+It may be your plan, your deployment (on-prem) or your permissions. Check the table in [Why can't I see this page?](#why-cant-i-see-this-page). If a colleague on the same console can see the page, the cause is your permissions, and an admin can change them.
 
-## Small Business
-The Small Business plan is the easiest plan to get NeuralSeek running in minutes with no experience required. This plan is pre-connected to both our curated LLM and a KnowledgeBase, and you cannot swap these out. Simply point NeuralSeek at your website or upload documents, connect to a Virtual Agent, and go-live! This plan uses our curated LLM and does not offer connectivity to other LLMs. All other features are available with this plan. The NeuralSeek Curated LLM is kept pinned to the industry's highest price-performing LLM.  Specifics such as exact LLM used for the curated LLM are discussable only under NDA with Cerebral Blue.
+### Where is Curate? It is not in the top bar.
 
-This plan's features include, but are not limited to:
+Open **Admin Tools**. **Curate** is the last item in its menu. The Home page also links to it from the "Get more value from NeuralSeek" panel.
 
-- Automatic catalog, curation and grouping of questions and answers 
-- Export to a Virtual Agent
-- Round-trip monitoring to a Virtual Agent
-- Sentiment scoring
-- Automatic language detection
-- Translate text into other languages
-- Extract Entities from text
-- Categorize text by matching categories and matching or creating Intents
+<!-- UNCONFIRMED: the two answers below (Customize is Flex-only; LLM choice limited to BYOLLM and Flex) — product gap audit and the old plans page -->
 
-&nbsp;
+### Why can't I find Admin Tools → Customize?
 
-&nbsp;
+Customize is a Flex-plan feature. On other plans it does not appear in the **Admin Tools** menu. See [Flex licensing](/configuration/administration/flex-licensing/).
 
-**For cloud-specific available plans, see cloud provider for up-to-date cost information.**
+### Can I connect my own LLM on any plan?
 
-<!-- STILL TO DOCUMENT ON THIS PAGE:
-  - Boundary: this page is the gating reference; purchasing lives in getting-started/how-to-get-neuralseek
-  - 'Why can't I see this page?' — the nine plan and deployment conditions that change what appears in the navbar
--->
+No. LLM choice is part of the Bring-your-own-LLM and Flex plans. Pay-per-answer, Search and Small Business use NeuralSeek's curated LLM. See [Supported LLMs](/configuration/supported-llms/).
+
+### Where do I buy or change a plan?
+
+Not on this page. See [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/); support and development subscriptions are covered in [Support plans](/configuration/administration/support-plans/).

@@ -242,6 +242,10 @@ export default defineConfig({
 						},
 						{ label: 'Supported LLMs', slug: 'configuration/supported-llms' },
 						{ label: 'Multi-LLM', slug: 'configuration/multi-llm' },
+						{
+							label: 'Self-hosting an LLM',
+							slug: 'configuration/administration/self-hosting-an-llm',
+						},
 						{ label: 'Multimodal', slug: 'configuration/multimodal' },
 						{ label: 'Semantic model tuning', slug: 'configuration/semantic-model' },
 						{ label: 'Language handling', slug: 'configuration/language' },
@@ -259,10 +263,6 @@ export default defineConfig({
 								{
 									label: 'Default permissions',
 									slug: 'configuration/administration/default-permissions',
-								},
-								{
-									label: 'Self-hosting an LLM',
-									slug: 'configuration/administration/self-hosting-an-llm',
 								},
 								{ label: 'Flex licensing', slug: 'configuration/administration/flex-licensing' },
 								{ label: 'Support plans', slug: 'configuration/administration/support-plans' },

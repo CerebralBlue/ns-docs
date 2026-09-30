@@ -15,4 +15,7 @@ This page is brand new for the restructured docs.
 - Compare Changes — review the diff before accepting
 - Undo / Redo / Save File
 - NeuralEdit Settings — confirm whether the panel is enabled before documenting it
+- Download options beside Current file: Download text file, Download as Word document (.docx), Download as PowerPoint (.pptx), Download as HTML (.html)
+- Rich text formatting toolbar — B / I / U, lists, H1 / H2 / P, Code, alignment, Quote, Font family, Font size, Text and Fill colour, Table, Card, Link, Clear
+- AI Chat Assistant panel — Send a request to the agent; the — / + buttons minimise and restore the panel
 

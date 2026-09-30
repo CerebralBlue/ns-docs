@@ -5,7 +5,7 @@
   "routes": {
     "getting-started/what-is-neuralseek": {
       "title": "What is NeuralSeek",
-      "description": "Discover NeuralSeek, the AI-powered Answers-as-a-Service that enhances virtual agents with precise, fact-checked responses. Explore seamless integrations, cloud options, and hands-on training today!",
+      "description": "NeuralSeek answers questions from your own KnowledgeBase with a large language model, shows the sources behind each answer, and lets you build no-code LLM routines in mAIstro — this page walks through the Home screen and each navbar item.",
       "sources": ["index.md"],
       "action": "rewrite",
       "status": "auto",
@@ -17,23 +17,23 @@
       "sources": [],
       "action": "new",
       "console": ["home", "seek"],
-      "status": "stub"
+      "status": "auto"
     },
     "getting-started/quickstart-maistro": {
       "title": "Quickstart: mAIstro",
-      "description": "Build and run your first mAIstro agent.",
+      "description": "Open mAIstro from the NeuralSeek Home page, learn that a first agent is a flow of NTL nodes built around the LLM node, and find the two places agents run: Run Agents and Seek.",
       "sources": [],
       "action": "new",
       "console": ["home", "maistro"],
-      "status": "stub"
+      "status": "auto"
     },
     "getting-started/concepts": {
       "title": "Core concepts",
-      "description": "The Seek pipeline, mAIstro agents, knowledge bases, and the curation lifecycle — how the pieces fit together.",
+      "description": "NeuralSeek's core concepts: Seek answers a question from your KnowledgeBase through an LLM and scores the answer, mAIstro builds agents, KnowledgeBase holds the documents, and Curate is where answers are reviewed and trained — each reached from a label in the console.",
       "sources": [],
       "action": "new",
       "console": ["home"],
-      "status": "stub"
+      "status": "auto"
     },
     "getting-started/onboarding-wizard": {
       "title": "Onboarding wizard",
@@ -50,7 +50,7 @@
     },
     "getting-started/how-to-get-neuralseek": {
       "title": "How to get NeuralSeek",
-      "description": "The plans NeuralSeek is sold under, what each one includes, and how to get an instance. Deployment and platform detail lives in Reference > Deployment.",
+      "description": "NeuralSeek is sold under plans that differ in which LLM you can use and where the product can run; this page compares the plans, says where to get an instance, and shows where to change your support and development subscription from Home.",
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
@@ -161,7 +161,7 @@
     },
     "seek/chat-client": {
       "title": "Chat client",
-      "description": "Explore NeuralSeek's Chat feature for dynamic, one-on-one dialogues with a virtual agent. Easily embed it on your site for engaging, context-aware interactions.",
+      "description": "The Chat screen in the NeuralSeek console lets you hold test conversations in the same chat widget your visitors get when you embed it, and keeps every conversation in Chat History to reopen, rename, delete or download.",
       "sources": ["ui/chat/index.md"],
       "action": "rewrite",
       "status": "auto",
@@ -305,7 +305,10 @@
         "File Browser and Create File",
         "Compare Changes — review the diff before accepting",
         "Undo / Redo / Save File",
-        "NeuralEdit Settings — confirm whether the panel is enabled before documenting it"
+        "NeuralEdit Settings — confirm whether the panel is enabled before documenting it",
+        "Download options beside Current file: Download text file, Download as Word document (.docx), Download as PowerPoint (.pptx), Download as HTML (.html)",
+        "Rich text formatting toolbar — B / I / U, lists, H1 / H2 / P, Code, alignment, Quote, Font family, Font size, Text and Fill colour, Table, Card, Link, Clear",
+        "AI Chat Assistant panel — Send a request to the agent; the — / + buttons minimise and restore the panel"
       ]
     },
     "maistro/neuraledit/authoring-an-agent": {
@@ -829,7 +832,7 @@
     },
     "integrations/virtual-agents/watsonx-assistant": {
       "title": "watsonx Assistant",
-      "description": "Wire NeuralSeek into watsonx Assistant with the custom extension, and send its logs back for round-trip monitoring.",
+      "description": "Connect IBM watsonx Assistant to NeuralSeek by uploading the Watson Custom OpenAPI file as a custom extension with API key auth, and send the assistant's logs back through a log webhook so NeuralSeek can flag curated intents that need updating.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
@@ -848,7 +851,8 @@
       "status": "auto",
       "gaps": [
         "LexV2 Lambda — route the Lex fallback intent to NeuralSeek",
-        "LexV2 Logs — round-trip logging"
+        "LexV2 Logs — round-trip logging",
+        "The Lambda Archive download on both LexV2 screens, and the AWS console links the steps use: LexV2, Functions, Log Groups, Rules"
       ]
     },
     "integrations/virtual-agents/kore-ai": {
@@ -900,7 +904,7 @@
     },
     "integrations/teams-extension": {
       "title": "Microsoft Teams extension",
-      "description": "Put NeuralSeek in Teams: Azure Bot credentials, the welcome message, and the downloadable app package.",
+      "description": "The Teams Extension connects NeuralSeek to Microsoft Teams through an Azure Bot: you point the bot's messaging endpoint at NeuralSeek, save its Microsoft App ID, client secret and (for a Single Tenant bot) Tenant ID in Teams Credentials, then install the Teams app package NeuralSeek generates.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
@@ -920,7 +924,8 @@
       "gaps": [
         "Admin Tools > Integrate > MCP Server — endpoint and Bearer auth",
         "Which agents are exposed and how they appear as tools",
-        "Cross-link: maistro/ntl/integrations/mcp is the client direction"
+        "Cross-link: maistro/ntl/integrations/mcp is the client direction",
+        "The screen's link to the protocol site, https://modelcontextprotocol.io/"
       ]
     },
     "integrations/a2a-server": {
@@ -932,16 +937,17 @@
       "status": "auto",
       "gaps": [
         "Admin Tools > Integrate > a2a Server",
-        "Cross-link: maistro/ntl/integrations/a2a is the client direction"
+        "Cross-link: maistro/ntl/integrations/a2a is the client direction",
+        "The screen's link to the protocol repository, https://github.com/a2aproject/A2A"
       ]
     },
     "integrations/sharepoint-sync": {
       "title": "SharePoint sync",
-      "description": "Sync SharePoint sites into an index with the four-step wizard, optionally carrying each document's permissions across for per-user filtering.",
+      "description": "The SharePoint Online Background Connector indexes SharePoint Online documents into the NeuralSeek managed KnowledgeBase or your own Elasticsearch index, configured in four steps: credentials, site collections, sync target, and schedule.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "auto",
       "gaps": [
         "The four-step wizard",
         "Capture access control — pull SharePoint permissions for per-user document filtering",
@@ -951,7 +957,7 @@
     },
     "integrations/webhook": {
       "title": "Webhook",
-      "description": "The generic inbound entry point — call NeuralSeek from anything that can send an HTTP request.",
+      "description": "The WebHook screen gives you the Seek endpoint URL and the instance ID that a chatbot or any other HTTP client needs, together with an API key you create, to ask NeuralSeek a question.",
       "sources": [],
       "action": "new",
       "console": ["admin-tools"],
@@ -968,7 +974,9 @@
       "gaps": [
         "Console API — the management API for configuration, curation and governance data",
         "Three API surfaces: runtime API, Console API, and the managed KB API are different things",
-        "Which credential each surface accepts (cross-link configuration/administration/api-keys)"
+        "Which credential each surface accepts (cross-link configuration/administration/api-keys)",
+        "Admin Tools > API's & Integration > API and Console API — the in-console API reference: the ./neuralseek.json and ./consoleapi.json spec files, Authorize, and Schemas",
+        "The Console API's operation list (POST /addIntent … POST /agentpanels) — summarise what the operations manage, grouped, rather than listing each one"
       ]
     },
     "integrations/chat-sdk": {
@@ -1198,7 +1206,8 @@
         "Per-key scoping across 5 areas: Functions, Configs, Agents, API, Console API",
         "Unscoped = full access — leaving everything unchecked makes it an admin key",
         "Function vs API scopes are mutually exclusive — pick one model per key",
-        "Endpoint-level permissions — method plus path pattern, for the API and Console API scopes"
+        "Endpoint-level permissions — method plus path pattern, for the API and Console API scopes",
+        "The list toolbar and table: Search API keys, Delete all expired, Create ApiKey, Select all API keys, the sortable Name / Key / Last used / Expires columns, and the + Details row expander"
       ]
     },
     "configuration/administration/embed-codes": {
@@ -1239,14 +1248,15 @@
     },
     "configuration/administration/self-hosting-an-llm": {
       "title": "Self-hosting an LLM",
-      "description": "Point NeuralSeek at a model you host yourself with HuggingFace TGI or vLLM, wired through the Generic platform option.",
+      "description": "The Self-Host an LLM screen in API's & Integration names the two inference servers NeuralSeek supports for running your own model, vLLM and Huggingface TGI, and the model is then connected in Neural Config through Add an LLM with the Generic (OpenAI-compatible) platform.",
       "sources": [],
       "action": "new",
-      "console": [],
-      "status": "stub",
+      "console": ["admin-tools"],
+      "status": "auto",
       "gaps": [
         "Admin Tools > Integrate > Self-Hosted LLM (BYOLLM plans only)",
-        "HuggingFace TGI and vLLM, wired to the Generic platform option"
+        "HuggingFace TGI and vLLM, wired to the Generic platform option",
+        "The Self-Host an LLM screen (Admin Tools > API's & Integration): vLLM's Installation, Quickstart and Supported Models links, and the vLLM and Huggingface TGI GitHub repositories"
       ]
     },
     "configuration/administration/flex-licensing": {
@@ -1700,7 +1710,7 @@
 
     "reference/changelog": {
       "title": "Changelog",
-      "description": "Discover the latest updates in NeuralSeek's changelog! From new out-of-the-box integrations supporting the market's leading models, to new no-code toolsets for building AI Agents in mAIstro, stay in the know on NeuralSeek's powerful new releases that elevate your AI experience.",
+      "description": "NeuralSeek's release notes, month by month from February 2023 to July 2026, with the newest items also listed under Newest features on the Home screen.",
       "sources": ["changelog.md"],
       "action": "keep",
       "status": "auto",
@@ -1708,7 +1718,7 @@
     },
     "reference/deployment": {
       "title": "Deployment",
-      "description": "Where NeuralSeek runs — SaaS, on-prem and Flex — and what changes about the product on each.",
+      "description": "NeuralSeek runs either as a SaaS service or, under the Flex plan, installed on your own hardware on OpenShift or Kubernetes; this page covers what changes in the product on each, and how an on-prem install is sized and installed.",
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
@@ -1721,7 +1731,7 @@
     },
     "reference/plans-and-platforms": {
       "title": "Plans & platforms",
-      "description": "Explore NeuralSeek's diverse plans tailored for your needs, from pay-per-answer to bring-your-own-LLM options. Enhance your business with advanced AI features and seamless integration.",
+      "description": "Which areas the NeuralSeek console navbar shows, and which plan, deployment or user-permission condition can hide a page that the documentation describes.",
       "sources": ["more_about_NS/plans.md"],
       "action": "distill",
       "status": "auto",
