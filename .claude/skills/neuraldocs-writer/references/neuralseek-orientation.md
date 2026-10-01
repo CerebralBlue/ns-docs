@@ -1,7 +1,7 @@
 # NeuralSeek orientation for the writer
 
 Enough product context to write about NeuralSeek without inventing things, plus the tools that
-let you check a fact. Read this before authoring a Path B page, or before writing anything that
+let you check a fact. Read this before writing a page from scratch, or before writing anything that
 touches the API or NTL.
 
 Everything here is orientation. Nothing here is a substitute for verifying a specific parameter,
@@ -124,22 +124,21 @@ set; the condition grammar is literal-only (single-quoted strings, bare numbers,
 
 ## The MCP tooling, and how to probe for it
 
-Two different MCP servers may be connected, with **different tool names**. Check which you
-actually have before planning around either.
+In this repo the MCP is **`neuralseek-node`** (local STDIO, `mcpns`; unprefixed tools: `seek`,
+`list_agents`, `get_agent`, `call_agent`, `run_agent`, `create_agent`, `upload_agent`,
+`delete_agent`, `get_logs`, `backup_instance`, …). It reads `.neuralseekrc.json` from the repo
+root, which points at the **playground** instance named in `_private/agentic-v2/instances.json`.
+`.claude/hooks/mcp-policy.sh` denies every tool unless the rc points at the playground, lets
+`delete_agent` remove only `docs-*` agents, and logs run tools to the run's `spend.log`.
 
-| Server                      | Transport              | Tool names                                                                                                                                                                                    | Notes                                                                                                                                                       |
-| --------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `neuralseek-fabio-instance` | HTTP (platform-native) | `mcp_`-prefixed: `mcp_seek`, `mcp_list_agents`, `mcp_get_agent`, `mcp_save_agent`, `mcp_call_agent`, `mcp_get_logs`, `mcp_replay_run`, `mcp_example`, `mcp_generate_ntl`, `mcp_improve_agent` | Its `mcp_save_agent` has been unreliable — irrelevant for documentation work, which is read-only                                                            |
-| `neuralseek-node`           | local STDIO (`mcpns`)  | unprefixed: `seek`, `list_agents`, `get_agent`, `run_agent`, `get_logs`, `replay_run`, `sync_agents`                                                                                          | Reads `.neuralseekrc.json` **from the working directory**, and `ns-docs` has none — so it is probably pointed at another project's instance, or unavailable |
+Inside the pipeline only the `runner` (probes) and `cleanup` agents call it, and the writer never
+does — it reads the runner's `answers.md`. Working by hand, prefer read-only calls: `list_agents`
+/ `get_agent` for real agent shapes, `seek` for product Q&A. Never `call_agent` the playground's
+`support_*` demo agents — they fan out, loop or draft outbound messages.
 
-For documentation work the useful calls are read-only: `list_agents` / `get_agent` for real agent
-shapes, `seek` for product Q&A, `example` for a worked node pattern, `get_logs` / `replay_run` when
-documenting an error path.
-
-**The caveat that matters most:** a `seek` call answers from _that instance's_ knowledge base. The
-connected instance is not necessarily loaded with NeuralSeek's own product documentation, so an
-answer may be confident and irrelevant. Treat it as a lead to confirm against the old docs clone or
-the live portal, not as a citable fact.
+**The caveat that matters most:** a `seek` call answers from the playground's knowledge base. Its
+answer is evidence of what the product returned for that input, not a citable fact about the
+product in general; quote it as "the product returned …" with the input, never as documentation.
 
 **The NTL resources** — `ntl://reference` (full node dictionary and syntax), `ntl://gotchas`
 (silent failure modes and platform limits), `ntl://agent-patterns` (building blocks, condition

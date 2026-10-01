@@ -95,7 +95,8 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
     **It reparents itself to `<body>` on mount** — see the stacking-context note below.
 - `src/assets/` — logos (`neuraldocs-logo-light/dark.svg` = wordmark, `neuraldocs-icon.png` = N mark).
 - `public/` — `favicon.png`, hero art.
-- `planning/` — IA proposal (`structure-sketch.md`) + page template.
+- `planning/templates/` — one starting file per page type (`concept`, `task`, `reference`,
+  `quickstart`); the contract itself is `scripts/agentic/contract.ts`.
 - `scripts/` — `migration-map.json` (old→new route map, drives stub/content generation) +
   `gen-stubs.ts` + `gen-graph.ts` (writes the gitignored `public/graph.json`; runs from
   `bun run dev` and `bun run build`, or `bun run graph` on its own).
@@ -334,43 +335,33 @@ None of this is fixable from inside this repo — it is a NeuralSeek instance/KB
 identities, the ingestion state, and the unverified doc-automation side are in
 `_private/notes/chatbot-and-kb.md`.
 
-## Old docs (migration source)
+## Old docs (the finished migration)
 
 The content came from the previous MkDocs site — `CerebralBlue/knowledge`, path
-`neuralseek/documentation/docs`, pinned in `scripts/migration-map.json` as `sourceRoot` +
-`sourceCommit`. **Every sourced page was ported verbatim on 2026-09-17 and the clone is no longer
-needed**: the stale-screenshot check reads `scripts/old-docs-image-hashes.json` instead of walking
-it. The toolchain that did the port (audit → convert → check → close-dependency, TypeScript on
-bun) was retired the same day so it can never overwrite a page again; it lives in git at commit
-`80ee3b9` (`scripts/migration/`) and, with its reports and the pre-migration copy of every
-overwritten page, in the gitignored `_private/archive/verbatim-migration/`. To re-port a route
-after a map change, restore that folder from git and run it with `--source <clone>`.
+`neuralseek/documentation/docs`, at the `sourceCommit` recorded in the map's `redirects` block.
+**Every sourced page was ported verbatim on 2026-09-17**; the port toolchain is retired (git
+`80ee3b9`, `scripts/migration/`; reports and pre-port copies in
+`_private/archive/verbatim-migration/`), and its procedure is archived in the writer skill's
+`references/archive-migration.md`. The stale-screenshot check reads
+`scripts/old-docs-image-hashes.json`; no clone is needed. Old URLs → new routes live in the map's
+`redirects` block for the domain cutover (`scripts/url-inventory.ts`).
 
-Conversion hazards the port handled, all learned the hard way and still true for anyone writing
-pages: `!!!` admonitions (→ `:::` asides, nested ones get one more colon per level), `???`
-collapsibles (→ `<details>`), in-body H1s (the title one is dropped, any other becomes `##`),
-old-domain and relative `.md` links, ` ```ntl ` fences, uppercase fence languages, `:material-*:`
-icons, `{ .md-button }` attr_lists, and — the non-obvious one — **`:word` in prose is a
-remark-directive text directive and vanishes in the build** (`user:pass@host` rendered as
-`user@host`); escape it as `user\:pass`.
+One port hazard is still live for anyone writing pages: **`:word` in prose is a remark-directive
+text directive and vanishes in the build** (`user:pass@host` renders as `user@host`) — escape it
+as `user\:pass`.
 
-## Migration status
+## Content status
 
 **Structure is complete; content is the remaining work.** 151 routes exist, are in the sidebar
-and build. They split in two halves:
+and build. Pages are written from the running product by the `/docs-explore` pipeline (below)
+or by hand with the `neuraldocs-writer` skill; the ported MkDocs prose is background, never a
+fact. Each route has a `type` (concept · task · reference · quickstart — the page contract) and
+a `status`.
 
-- **76 routes had an old MkDocs page**, ported verbatim (now `status: draft` until rewritten). The prose is a
-  starting point for structure only — the facts in it are stale, so every claim is re-checked
-  against the running product. The 5 `merge` routes still carry a `<!-- MERGE: -->` marker and
-  the 3 routes sharing `more_about_NS/plans.md` carry identical text; both are for the writer.
-- **75 routes have nothing to migrate** and must be written with the product open — MCP, a2a,
-  NeuralEdit, Run Agents, the dashboards, API keys, permissions, Red Team Testing, most of
-  Neural Config. This is the bigger half.
-
-**The gap audit lives in the repo, not in chat.** Every route in `scripts/migration-map.json`
-can carry a `gaps` array listing the undocumented product surfaces that route must cover; 96
-routes have one. `gen-stubs.ts` renders it as a visible "To document on this page" worklist; converted pages
-carry it as an invisible `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment.
+**The gap audit lives in the repo.** A route's `gaps` array lists what it must still cover;
+`gen-stubs.ts` renders it on stubs as a visible "To document on this page" list, older ported
+pages carry it as an invisible `<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment. A gap a
+capture disproves moves to `gapsResolved` and is never documented as an absence.
 
 **`status` is load-bearing** (2026-09-30): `stub` → `draft` → `written` → `adopted`. `stub` is
 overwritten by `bun run stubs`; nothing else is regenerated. `draft` = prose not yet checked
@@ -391,7 +382,7 @@ Open items that affect anyone touching content:
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
 
-## The `/docs-explore` pipeline (agentic workflow v3.4, screen-first, capture once — write many, a bounded orchestrator, variants + experiments)
+## The `/docs-explore` pipeline (agentic workflow v3.5, screen-first, capture once — write many, a bounded orchestrator, variants + experiments, capture library + image review)
 
 The workflow that writes pages from the **running product's screens**. One run = one **console
 area** (a screen in `_private/agentic-v2/areas.json`). Fabio runs it (`/docs-explore <area>`,
@@ -415,6 +406,24 @@ state is in git at `6fbb837^`, nothing else of them survives.
   reported), then writers in parallel. **The capture decides, not ownership**: any route whose
   controls are on that screen may be written from it (`crossArea` in the report); the map's
   `console[0]` only sets the night's default. `lib.ts captureDir()`/`briefDir()` resolve paths.
+- **The capture library and image review (v3.5, 2026-09-30).** Every capture is filed by
+  `scripts/agentic/library.ts build` into the gitignored `_private/capture-library/<area>/<state>/`
+  (`README.md` — what it shows, how to reach it, the named elements, the run — plus
+  `viewport/panel/dialog.png`, `sections/<id>/`, `options/<id>/`). `public/img/` keeps only images
+  a page uses (`publish` before the gates, `prune-public --apply` at the end of a run). The
+  explorer now crops the **expanded accordion item** (`explore-plan.ts diff --expect`), not the
+  whole dialog, and `compose-panel.ts` adds the dialog footer under it.
+  `image-check.ts` (pixel flags) + the `image-reviewer` agent judge every placed image; the
+  section-image gate asks for images only for labels that are named elements on some screen.
+  `/docs-verify` re-checks one section from the library. **The design and diagrams:
+  `_private/agentic-v2/diagrams/architecture.html` — the source of truth; update it with every
+  pipeline change.**
+- **Writing rules (2026-09-30).** The writer persona lives in the `neuraldocs-writer` skill's
+  Voice section. Gaps a capture disproves are dropped (`staleGaps` → `gapsResolved`), never
+  documented as absences; standard buttons are not controls; briefs list "Concepts → owner
+  pages" and the writer links them. Models: planner opus/xhigh (checkpoints opus/high),
+  understand opus/xhigh, writer · ia-agent · doc-reviewer opus/high, image-reviewer ·
+  consistency · experimenter sonnet/high.
 - **Settings-dependent screens and experiments (v3.4, 2026-09-26).** Design:
   `_private/agentic-v2/design/variants-v4.md`; evidence: `_private/tools/playwright/output/spike-variants/SPIKE.md`.
   - **Variants** (`areas.json` `variants[]` / `sweeps[]`): the same state with dropdown options
@@ -444,12 +453,14 @@ state is in git at `6fbb837^`, nothing else of them survives.
   route with the controls it must document by exact label, `coverage-plan.<batch>.json`, ≤ 10
   `probes.json`, ≤ 5 `experiments.json`) → `experimenter` (browser: change → save a version → Seek →
   roll back → verify; restore gate) → `runner` (the probes, on the playground through the MCP → `answers.md`,
-  verbatim quotes) → `ia-agent` (only when a control is unowned, a route is empty or batches
-  conflict or a new page is briefed; **assigns, relabels, reorders, merges, and adds a route only
+  verbatim quotes) → `ia-agent` (on every explore run — the sidebar mirrors the platform — and
+  whenever a control is unowned, a route is empty, batches conflict, a gap is stale or a new page
+  is briefed; **assigns, relabels, reorders, merges, and adds a route only
   when understand briefed it (`newPages`) — every addition is listed in the report**; then `bun run
 stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline first, then the
-  page, **Write/Edit only**) → `gates.ts` → `sync-map.ts` (page description → map) →
-  `doc-reviewer` (findings only, incl. outline drift; no rewrite loop) → `bun run verify` once
+  page, **Write/Edit only**) → `library.ts publish` (the page's images from the capture library)
+  → `gates.ts` → `sync-map.ts` (page description → map, `status: written`) → `image-reviewer`
+  → `doc-reviewer` (findings only, incl. image verdicts and outline drift) ⟲ writer fix mode once → `bun run verify` once
   → `cleanup` (delete `docs-*` agents, on every exit) → `report.ts` (also updates
   `index.json`: route → {runId, captureRun}) → `learn.ts`. Everything lands as an
   **uncommitted diff**; the pipeline sets `draft`/`written`, never `adopted`.
@@ -529,23 +540,28 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
 
 ## The `neuraldocs-writer` skill
 
-`.claude/skills/neuraldocs-writer/` — a Claude Code skill holding the writing workflow for this
-repo: a technical-writer persona, the two Phase-5 paths (convert an old MkDocs page vs author a
-from-scratch one), an ordered source-of-truth ladder (NeuralSeek MCP → the old-docs clone → the
-live portal → ask), and the definition of done. It triggers on any request to migrate, convert,
-finish or write a page under `src/content/docs/`, or to edit `scripts/migration-map.json`.
+`.claude/skills/neuraldocs-writer/` — the authoring workflow for this repo (the pipeline's writer,
+understand and reviewer load it as their craft): the **Voice** (the writer persona — senior
+technical writer for admins and developers, task-first, explain why, document what exists, only
+customer-visible names, no UI narration, link don't repeat, real FAQ questions only), Step 0
+(map entry, latest capture, backlog), picking the page type, the evidence ladder (capture +
+capture library → config/NTL resources → old prose as background → ask), visuals from the
+library, the checks, and the definition of done. It triggers on any request to write, finish,
+rewrite or fix a page under `src/content/docs/`, or to edit `scripts/migration-map.json`.
 
-Four `references/` files carry the detail that would otherwise bloat the always-loaded body:
-`page-contract.md`, `conversion-hazards.md`, `migration-map.md`, `neuralseek-orientation.md`.
+`references/`: `page-contract.md` (the four page types, house style, directive mechanics),
+`migration-map.md` (the route registry: status, type, console, gaps, redirects),
+`neuralseek-orientation.md`, and `archive-migration.md` (the finished MkDocs migration — history).
 
 It restates rather than replaces what is above — the `ns-*` directive rules, the base-path link
-rule, the old-docs hazards. If one of those changes here, change it in the skill too.
+rule. If one of those changes here, change it in the skill too.
 
-Two committed pieces work with it:
+The pieces that work with it:
 
 - **`scripts/doc-lint.ts`** — the deterministic half of a page review: leftover `MERGE:`/gap
   markers, in-body H1s, heading depth, hand-written `/ns-docs` prefixes, old-domain links,
-  missing images, ` ```ntl ` fences, directive colon nesting, missing template sections.
+  missing images, ` ```ntl ` fences, directive colon nesting, the page contract of the route's
+  `type`, and `changed-since-review` on adopted pages a newer run rewrote.
   Severity follows the route's `status`: errors on `adopted`, warnings on drafts, `--strict`
   removes the downgrade. **Deliberately not part of `bun run verify`** — ~70 draft pages are
   unfinished on purpose and would fail CI. Run it per module; revisit before launch.
@@ -562,11 +578,17 @@ Two committed pieces work with it:
   **Image rules are warnings at every status and never block**, including under `--strict` —
   capturing a screenshot needs somebody with the product open, so prose is not held hostage.
 
-- **`.claude/agents/doc-reviewer.md`** — a read-only subagent that re-verifies a finished page's
-  factual claims with no memory of writing it, then returns findings. Spawn it after the linter
-  is clean. It never edits and never flips a status.
+- **`.claude/agents/doc-reviewer.md`** (opus/high) — a read-only subagent that re-verifies a
+  finished page's factual claims with no memory of writing it, plus Voice breaches and missing
+  owner links, then returns findings. It never edits and never flips a status.
+- **`.claude/agents/image-reviewer.md`** + `scripts/agentic/image-check.ts` — the same for the
+  images: right section, no neighbour section, not cut off, no tiny crops, no artefacts or
+  sensitive values; proposes recrop / swap / drop / recapture from the capture library.
+- **`/docs-verify <route> [<section>]`** (`.claude/skills/docs-verify/`) — when one section looks
+  wrong after the fact: locate what it was written from in the capture library, run both
+  reviewers, propose the fix, apply only what Fabio approves, re-gate. No browser.
 
-All three are committed, so the same bar applies to every module.
+All of these are committed, so the same bar applies to every module.
 
 > Anything that cannot go in a public repo — team assignments, personal task notes, internal
 > plans and status — lives in `_private/` (gitignored). Nothing in this file should name a
