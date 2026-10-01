@@ -402,7 +402,7 @@ state is in git at `6fbb837^`, nothing else of them survives.
   (`runs/<capture>/briefs/<route>/brief.md` + `coverage-plan.json`) are the capture;
   `_private/agentic-v2/captures.json` indexes the latest per area. A **write-only run**
   (`area.json.captureRun`) reuses it: no browser, briefs only for routes without one (in
-  parallel batches of ≤ 8, merged by `briefs.ts merge` — first assignment wins, conflicts
+  parallel batches of ≤ 4, merged by `briefs.ts merge` — first assignment wins, conflicts
   reported), then writers in parallel. **The capture decides, not ownership**: any route whose
   controls are on that screen may be written from it (`crossArea` in the report); the map's
   `console[0]` only sets the night's default. `lib.ts captureDir()`/`briefDir()` resolve paths.
@@ -422,8 +422,11 @@ state is in git at `6fbb837^`, nothing else of them survives.
   Voice section. Gaps a capture disproves are dropped (`staleGaps` → `gapsResolved`), never
   documented as absences; standard buttons are not controls; briefs list "Concepts → owner
   pages" and the writer links them. Models: planner opus/xhigh (checkpoints opus/high),
-  understand opus/xhigh, writer · ia-agent · doc-reviewer opus/high, image-reviewer ·
-  consistency · experimenter sonnet/high.
+  understand · writer · ia-agent · doc-reviewer opus/high, image-reviewer · consistency ·
+  experimenter sonnet/high. **Turn limits (2026-10-01):** understand and the planner have no
+  `maxTurns` (their work grows with the capture and the backlog — at 60/40 every Neural Config
+  batch was cut off); writer 120, reviewers 80; the browser agents keep theirs (explorer 300,
+  experimenter 120).
 - **Settings-dependent screens and experiments (v3.4, 2026-09-26).** Design:
   `_private/agentic-v2/design/variants-v4.md`; evidence: `_private/tools/playwright/output/spike-variants/SPIKE.md`.
   - **Variants** (`areas.json` `variants[]` / `sweeps[]`): the same state with dropdown options
@@ -523,7 +526,14 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
   second fix on a page, unbriefed routes, captures. **The script executes; the planner decides
   what and in which order; hooks, gates and limits decide whether.** `--no-plan` = pure v3.2.
 - **Resilience.** Every `agent()` in the Workflow script goes through `A()` (a throw costs one
-  route, never the run — and is recorded for the checkpoint's digest); an agent's return value
+  route, never the run — and is recorded for the checkpoint's digest). **An agent that stops
+  before returning is PARTIAL, not failed** (2026-10-01): `A()` logs its error text, then resumes
+  the same task once with a RESUME note (keep the files already written, finish the rest) — not
+  for the explorer (own batch loop), the experimenter (never repeat a Save) or the haiku
+  wrappers; everything lands in `runs/<id>/agent-failures.json` and the report's "Partial
+  agents" section. The transcripts that explain a stop are
+  `~/.claude/projects/<project>/<session>/subagents/workflows/<wf-id>/agent-<id>.jsonl` (ends at
+  the turn limit = cut off); an agent's return value
   is written to its file by a haiku wrapper when the agent forgot; `--attempt <n>` on a resume
   busts the script-wrapper cache. **Never delete a run folder from `current-run`** —
   `queue.ts --dry-run` previews without opening a run (the first v3 ledger was lost that way

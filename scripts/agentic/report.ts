@@ -325,6 +325,17 @@ const summary = {
 			fallbacks: pl.fallbacks ?? [],
 		};
 	})(),
+	// Agents that stopped before returning (partial), the error text and whether the resume worked
+	// — written by the workflow's A() wrapper at finish().
+	partials: (() => {
+		const p = join(dir, 'agent-failures.json');
+		if (!existsSync(p)) return [];
+		try {
+			return JSON.parse(readFileSync(p, 'utf8'));
+		} catch {
+			return [{ label: 'agent-failures.json', error: 'unreadable' }];
+		}
+	})() as any[],
 	decisions: (() => {
 		const p = join(dir, 'decisions.jsonl');
 		if (!existsSync(p)) return [];
@@ -459,6 +470,17 @@ const md = [
 							`Fallbacks (${summary.plan.fallbacks.length}): ${summary.plan.fallbacks.join(' · ')}`,
 						]
 					: []),
+				'',
+			]
+		: []),
+	...(summary.partials.length
+		? [
+				`## Partial agents — ${summary.partials.filter((f: any) => f.attempt === 1).length} stopped early, ${summary.partials.filter((f: any) => f.resumed).length} resumed`,
+				'',
+				...summary.partials.map(
+					(f: any) =>
+						`- ${f.label} (${f.agentType ?? '?'}, attempt ${f.attempt ?? '?'})${f.attempt === 1 ? (f.resumed ? ' → resumed' : f.resumed === false ? ' → resume failed' : ' → not resumed') : ''}: ${String(f.error ?? '').slice(0, 200)}`
+				),
 				'',
 			]
 		: []),

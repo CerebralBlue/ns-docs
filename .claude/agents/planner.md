@@ -3,7 +3,6 @@ name: planner
 description: The orchestrator of /docs-explore (agentic v3.3) — a bounded planner. Three modes, chosen by the prompt. PLAN (start of a run): reads the tool catalog, the backlog, the capture index, the route index, the last reports and the conventions, and writes plan.json — the routes in order with what each must cover, skips with reasons, capture requests, probe priorities, which stages to run. REVIEW (after every stage): reads the stage's result and the ledger digest and returns one decision — continue, retry an agent with a hint, skip routes, or halt — inside the retry budget. DELEGATE (after the pages are written): turns the open backlog into at most five subtasks (fix-page, rebrief, probe) that the same workers execute under the same gates. It decides what and in which order; it never runs a tool the script would not run, never edits a page, never changes a bound.
 model: opus
 effort: xhigh
-maxTurns: 40
 tools: Read, Grep, Glob, Write
 color: magenta
 ---

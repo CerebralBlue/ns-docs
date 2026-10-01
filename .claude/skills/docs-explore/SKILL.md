@@ -32,7 +32,7 @@ The design, with the diagram: `_private/agentic-v2/diagrams/architecture.html`.
   them cross-area). `--all-briefed` writes every route that has a brief in the capture and no
   page written by a v3 run yet (`--rewrite` ignores that and re-writes them too — after a
   fresh capture, for instance). The understand step runs only for routes without a brief, in
-  parallel batches of ≤ 8.
+  parallel batches of ≤ 4.
 - **`--no-plan`**: run pure v3.2 — no planner, no checkpoints, no delegation (the defaults
   the planner would otherwise override). Pass `"noPlan": true` in the Workflow args.
 - **`--capture-only`**: explore (incl. variants) + understand + experiments only — a fresh
@@ -114,14 +114,62 @@ export const meta = {
 
 // A subagent that dies (context exhausted before StructuredOutput, API error) must cost one
 // route, not the run: every agent call goes through A(), which turns a throw into null.
+//
+// PARTIAL + RESUME (2026-10-01). A subagent that stops before returning — it hit its maxTurns,
+// died on an API error, or was skipped — comes back as a throw or null, with no reason. That is
+// recorded as PARTIAL (not "failed": its files are on disk), logged with whatever error text
+// there is, and the same task is RESUMED once by a continuation agent told to keep what exists
+// and finish the rest. Every agent here writes its outputs as it goes, so a resume continues
+// instead of starting over. Not resumed: the explorer (it resumes through its own batch loop),
+// the experimenter (it must never repeat a Save), the haiku script wrappers (cheap; the caller
+// handles a missing result). Everything is written to R/agent-failures.json at finish().
 const failures = [];
-const A = (prompt, opts) =>
-  agent(prompt, opts).catch((e) => {
-    const msg = `agent failed (${(opts && opts.label) || '?'}): ${String(e && e.message ? e.message : e).slice(0, 160)}`;
-    log(msg);
-    failures.push(msg);
-    return null;
+const NO_RESUME = new Set(['explorer', 'experimenter']);
+const RESUME_NOTE = (why) =>
+  `\n\nRESUME — a previous attempt at this exact task stopped before returning its result (${why}). That attempt is PARTIAL, not wrong: everything it already wrote is on disk. First check which of the output files named above already exist and are complete, keep them, and do only what is missing. Then return the result for the WHOLE task, as asked above.`;
+const errText = (e) =>
+  e
+    ? String(e && e.message ? e.message : e).slice(0, 400)
+    : 'returned nothing — turn limit, API error or skipped';
+const once = (prompt, opts) =>
+  agent(prompt, opts).then(
+    (r) => ({ r }),
+    (e) => ({ e: errText(e) })
+  );
+const A = async (prompt, opts = {}) => {
+  const label = opts.label || '?';
+  let { r, e } = await once(prompt, opts);
+  if (r != null) return r;
+  const first = {
+    label,
+    agentType: opts.agentType || 'workflow',
+    attempt: 1,
+    partial: true,
+    error: e || errText(null),
+  };
+  failures.push(first);
+  log(`partial: ${label} — ${first.error.slice(0, 160)}`);
+  if (opts.noResume || NO_RESUME.has(opts.agentType) || opts.model === 'haiku') return null;
+  ({ r, e } = await once(prompt + RESUME_NOTE(first.error.slice(0, 200)), {
+    ...opts,
+    label: `${label}:resume`,
+  }));
+  if (r != null) {
+    first.resumed = true;
+    log(`resumed: ${label}`);
+    return r;
+  }
+  first.resumed = false;
+  failures.push({
+    label: `${label}:resume`,
+    agentType: opts.agentType || 'workflow',
+    attempt: 2,
+    partial: true,
+    error: e || errText(null),
   });
+  log(`partial again, giving up: ${label}`);
+  return null;
+};
 const REPO = args.repo;
 const RUN = args.runId;
 const R = `${REPO}/_private/agentic-v2/runs/${RUN}`;
@@ -416,6 +464,12 @@ const finish = async (extra) => {
   finished = { runId: RUN, pending: true };
   const cleaned = await cleanup();
   const restore = await restoreGate('finish');
+  // The partial/resume ledger — every agent that stopped early, its error text, whether it resumed.
+  await run(
+    `echo '${JSON.stringify(failures).replace(/'/g, "'\\''")}' > ${R}/agent-failures.json && echo '{"written":${failures.length}}'`,
+    'failures:log',
+    'Report'
+  );
   const report = await run(`bun scripts/agentic/report.ts ${RUN} --json`, 'report', 'Report');
   // public/ keeps only what pages use; everything else stays in the capture library.
   await run(

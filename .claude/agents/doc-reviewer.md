@@ -4,7 +4,7 @@ description: Reviews one finished NeuralDocs page for factual accuracy, page-con
 tools: Read, Write, Grep, Glob, WebFetch, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *), Bash(bun scripts/agentic/neighbours.ts *)
 model: opus
 effort: high
-maxTurns: 40
+maxTurns: 80
 ---
 
 # NeuralDocs page reviewer

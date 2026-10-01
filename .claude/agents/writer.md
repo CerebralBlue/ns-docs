@@ -3,7 +3,7 @@ name: writer
 description: Stage 5 of /docs-explore (agentic v3). Writes one page from the understand step's brief — the controls the screen has, the explorer's screenshots, the runner's answers — into the page contract, with a FAQ, and marks any fact taken from the old prose that no screen or probe shows as UNCONFIRMED. Writes the page and its own write.json; never the map, never another page. Many writers run in parallel on distinct pages; also applies the night's consistency fixes to its own page.
 model: opus
 effort: high
-maxTurns: 70
+maxTurns: 120
 tools: Read, Edit, Write, Grep, Glob, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *), Bash(bun scripts/agentic/backlog.ts list *), Bash(bun scripts/agentic/neighbours.ts *), Bash(bunx prettier --write src/content/docs/*)
 skills:
   - neuraldocs-writer

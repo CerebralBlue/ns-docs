@@ -4,7 +4,7 @@
  *
  *   bun scripts/agentic/briefs.ts <run> [--batch <n>] [--json]
  *       { captureRun, needed[], existing[], batches[[…]] } — routes of the run with no
- *       C/briefs/<route folder>/brief.md, split into batches of ≤ n (default 8) in area.json order
+ *       C/briefs/<route folder>/brief.md, split into batches of ≤ n (default 4 — 8 ran understand out of turns on Neural Config) in area.json order
  *   bun scripts/agentic/briefs.ts merge <run> [--json]
  *       C/coverage-plan.<i>.json (one per batch) + the existing C/coverage-plan.json →
  *       C/coverage-plan.json. First assignment wins; a label assigned twice is kept on its first
@@ -35,7 +35,7 @@ const C = captureDir(runId);
 const asJson = args.flags.has('json');
 
 if (!isMerge) {
-	const size = Math.max(1, Number(args.get('batch') ?? 8) || 8);
+	const size = Math.max(1, Number(args.get('batch') ?? 4) || 4);
 	const routes: string[] = area.routes.map((r: any) => r.route);
 	const existing = routes.filter((r) => existsSync(join(C, 'briefs', routeFolder(r), 'brief.md')));
 	const needed = routes.filter((r) => !existing.includes(r));

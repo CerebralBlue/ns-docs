@@ -4,7 +4,7 @@ description: Reviews every image on one NeuralDocs page by looking at it next to
 tools: Read, Write, Grep, Glob, Bash(bun scripts/agentic/image-check.ts *), Bash(bun scripts/agentic/library.ts find *)
 model: sonnet
 effort: high
-maxTurns: 40
+maxTurns: 80
 ---
 
 # image-reviewer

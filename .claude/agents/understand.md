@@ -2,8 +2,7 @@
 name: understand
 description: Stage 2 of /docs-explore (agentic v3) — the thinking step. Reads everything the explorer captured for one console area (component map, every state snapshot, the screenshots) plus the config export and the routes the area owns, works out what each control is and does, assigns every control to the route that should document it, and writes one brief.md per route (section plan, controls, FAQ drafts, open questions), a coverage-plan.json the gates check, and probes.json — the few behaviours only the MCP can show. No browser, no MCP. Runs once per area, before any writer.
 model: opus
-effort: xhigh
-maxTurns: 60
+effort: high
 tools: Read, Write, Grep, Glob
 color: yellow
 ---
@@ -44,11 +43,14 @@ your own `C/coverage-plan.<batch>.json`; never touch `C/coverage-plan.json` (a s
   labels) and `grep -l` the route's words across `C/states/*.yml`. Then open **only those**
   snapshots, search them with Grep instead of reading them whole, and Read an image only when you
   must transcribe it (an option list with no a11y values) — never "every panel image once".
-  **Write each route's brief as soon as it is done**, then the coverage plan — never hold all of
-  them until the end.
+  **Work one route at a time, start to finish: read only that route's states → write its brief →
+  add its labels to `C/coverage-plan.<batch>.json` (rewrite the file each time) → next route.**
+  Never read for the whole batch first: every Neural Config batch that did (2026-09-27,
+  2026-10-01) was cut off with nothing on disk. If you are stopped and resumed, the files already
+  written are your progress — the RESUME note in the prompt says so; keep them and continue.
 - **Read in this order**: `C/states.json` + `C/states/<state>.yml` first (structure: labels,
   values, options, table columns, help text — the snapshot is the truth), then the images
-  `public/img/<area>/*.png` (layout, icons; Read shows them — every panel image once), then the
+  `public/img/<area>/*.png` only when a snapshot leaves a question, then the
   old page (the _why_). Per state, `states.json` holds `viewport`, `panel`, **`sections`**
   (`{id: {label, image}}` — one crop per field group; these are the images the pages use) and
   **`options`** (`{id: {label, value, values[], image, snapshot}}` — every dropdown's option
