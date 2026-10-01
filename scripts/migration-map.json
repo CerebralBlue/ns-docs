@@ -1189,8 +1189,14 @@
       "type": "reference",
       "console": ["neural-config"],
       "gaps": [
-        "xAI is missing from the supported-LLM platform list",
         "The model catalogue is stale — around 287 models are offered and the list is roughly two generations behind"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "xAI is missing from the supported-LLM platform list",
+          "run": "202610011731-neural-config",
+          "why": "xAI is the 13th of 14 Platform values in the Add an LLM dialog (capture 202609270311, states/add-an-llm--options-platform.yml:789), and the variant add-an-llm@llm-platform-xai shows LLM Selection grok-code-fast-1 with its LLM Notes"
+        }
       ]
     },
     "configuration/multi-llm": {
