@@ -140,12 +140,12 @@ export default defineConfig({
 						{ label: 'Getting documents in', slug: 'knowledge/ingestion-overview' },
 						{ label: 'Connect a knowledge base', slug: 'knowledge/connect-a-kb' },
 						{ label: 'Supported knowledge bases', slug: 'knowledge/supported-knowledgebases' },
-						{ label: 'Pinecone setup', slug: 'knowledge/pinecone' },
 						{ label: 'Elasticsearch vector model', slug: 'knowledge/elasticsearch-vector-model' },
 						{
 							label: 'Hybrid, vector & semantic search',
 							slug: 'knowledge/hybrid-vector-semantic-search',
 						},
+						{ label: 'Pinecone setup', slug: 'knowledge/pinecone' },
 						{ label: 'Loading documents', slug: 'knowledge/load' },
 						{ label: 'Extracting data', slug: 'knowledge/extract' },
 						{ label: 'Document Manager', slug: 'knowledge/document-manager' },

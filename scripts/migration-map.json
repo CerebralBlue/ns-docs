@@ -82,7 +82,7 @@
     },
     "seek/virtual-kb": {
       "title": "Virtual KB",
-      "description": "Virtual KB is a KnowledgeBase Type that answers from a mAIstro agent instead of an indexed store: you set KnowledgeBase Type to Virtual KB in KnowledgeBase Connection and choose the agent in mAIstro Virtual KB agent, with no connection or field-mapping settings to fill in.",
+      "description": "Virtual KB is a KnowledgeBase Type that makes a mAIstro agent the knowledge source for Seek: set KnowledgeBase Type to Virtual KB in KnowledgeBase Connection and choose the agent in mAIstro Virtual KB agent, with no connection or field-mapping settings to fill in.",
       "status": "written",
       "type": "concept",
       "console": ["neural-config:advanced", "seek"]
@@ -96,14 +96,14 @@
     },
     "seek/conversational-context": {
       "title": "Conversational context",
-      "description": "NeuralSeek answers a follow-up question in the light of earlier turns of the same conversation, held together by a constant session_id (or by the user when no session_id is sent), and the Platform Preferences settings Context Turns, Context Timeout - Session, Context Timeout - User Only, Context detection and Force carry context decide how much history is carried, for how long, and how a follow-up is recognised.",
+      "description": "NeuralSeek answers a follow-up question in the light of earlier turns of the same conversation, and the Platform Preferences settings Context Turns, the two context timeouts, Context detection and Force carry context decide how much history the LLM sees, how long it is kept and how a follow-up is recognised.",
       "status": "written",
       "type": "concept",
       "console": ["neural-config:advanced", "seek"]
     },
     "seek/caching": {
       "title": "Caching",
-      "description": "NeuralSeek has three caches — the KnowledgeBase Query Cache on search results and the Edited and Normal answer caches on answers — each set in the Neural Config Edit Configuration dialog.",
+      "description": "NeuralSeek caches at two levels — KnowledgeBase search results for a set number of minutes, and finished answers through the Edited answer cache and the Normal answer cache — to answer repeated questions faster and with the same wording.",
       "status": "written",
       "type": "concept",
       "console": ["neural-config:advanced", "seek"]
@@ -115,11 +115,18 @@
       "type": "concept",
       "console": ["seek", "neural-config:advanced"],
       "gaps": [
-        "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced)",
+        "Enable Dynamic Personalization — the on/off switch",
         "Personalization agent — the agent that adjusts answers using the personalization details",
         "Its NTL surface: the Personalization In/Out node pair (cross-link maistro/ntl/pipeline-hooks)",
         "Its test surface: the Seek > Personalize modal",
         "The Dynamic Personalization accordion by label (IA 2026-09-19): the section header 'Dynamic Personalization', 'Enable Dynamic Personalization' and 'mAIstro Personalization Agent' — Neural Config > Default Config > Edit Configuration > Dynamic Personalization"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced) — the 'Toggle Advanced' path",
+          "run": "202610011319-neural-config",
+          "why": "no Toggle Advanced control in capture 202610010144; Enable Dynamic Personalization sits in the plain Dynamic Personalization accordion of Edit Configuration (state dynamic-personalization)"
+        }
       ]
     },
     "seek/curation": {
@@ -591,7 +598,14 @@
       "type": "reference",
       "console": ["neural-config"],
       "gaps": [
-        "Six KB types missing from the support matrix: Watson Discovery on CP4D, Postgres, Coveo, Virtual KB, NeuralSeek KB, and No KnowledgeBase"
+        "Five KB types missing from the support matrix: Watson Discovery on CP4D, Postgres, Virtual KB, NeuralSeek KB, and No KnowledgeBase"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Six KB types missing from the support matrix: … Coveo … (the Coveo part)",
+          "run": "202610011319-neural-config",
+          "why": "Coveo is not a KnowledgeBase Type: the option list in knowledgebase-connection--options-knowledgebase-type (capture 202610010144) has 16 values — Watson Discovery … ChromaDB — with no Coveo, and every kb-type sweep variant shows the same list"
+        }
       ]
     },
     "knowledge/document-manager": {
@@ -610,7 +624,7 @@
     },
     "knowledge/hybrid-vector-semantic-search": {
       "title": "Hybrid, vector and semantic search",
-      "description": "The Hybrid & Vector Search Settings section of Edit Configuration, shown only when the KnowledgeBase Type is ElasticSearch or watsonx Discovery, sets the Elastic Query Type — Lucene, Hybrid, Vector or Semantic — and decides whether NeuralSeek or a model deployed in Elasticsearch turns the question into a query vector.",
+      "description": "The Hybrid & Vector Search Settings section of Neural Config, shown only when the KnowledgeBase Type is ElasticSearch or watsonx Discovery, sets the Elastic Query Type — Lucene, Hybrid, Vector or Semantic — and decides whether NeuralSeek or a model deployed in Elasticsearch turns the question into a query vector.",
       "console": ["neural-config", "knowledge"],
       "status": "written",
       "type": "concept",
@@ -623,14 +637,14 @@
     },
     "knowledge/pinecone": {
       "title": "Pinecone setup",
-      "description": "To use a Pinecone index as NeuralSeek's knowledge base, set KnowledgeBase Type to Pinecone in the KnowledgeBase Connection section of Neural Config, enter the index name, namespace and API key, and map your records' metadata to the Curation Data, Link and Document Name fields.",
+      "description": "To use a Pinecone index as NeuralSeek's knowledge base, set KnowledgeBase Type to Pinecone in the KnowledgeBase Connection section of Neural Config, enter the index name, namespace and API key, map your records' metadata keys, and save.",
       "status": "written",
       "type": "task",
       "console": ["neural-config"]
     },
     "knowledge/elasticsearch-vector-model": {
       "title": "Elasticsearch vector model",
-      "description": "Use an Elasticsearch index that holds embeddings as NeuralSeek's knowledge base: set KnowledgeBase Type to ElasticSearch, fill the connection and field-mapping settings, then set Elastic Query Type to Vector with the model and embedding field the index was built with.",
+      "description": "Connect NeuralSeek to an Elasticsearch index that holds embeddings: set KnowledgeBase Type to ElasticSearch, enter the endpoint, API key and index, map the index fields, then set Elastic Query Type to Vector with the model and embedding field the index was built with.",
       "status": "written",
       "type": "task",
       "console": ["neural-config", "neural-config:advanced"]
@@ -892,12 +906,12 @@
     },
     "configuration/overview": {
       "title": "Configuration overview",
-      "description": "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that send matching questions to Answer Generation or to a mAIstro agent (mAIstro-led) and can carry a configuration of their own, and Guardrails nodes — this page maps the screen and links each part to its own page.",
+      "description": "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that send matching questions to Answer Generation or to a mAIstro agent and can carry a configuration of their own, and Guardrails nodes — this page explains the tree and links each part to its own page.",
       "status": "written",
       "type": "concept",
       "console": ["neural-config", "neural-config:advanced"],
       "gaps": [
-        "The routing tree itself (Default Config root, Answers (N), Add Intent, Category Routing, Guardrails nodes) and the Edit Category dialog — owned here (IA 2026-09-18); using-this-page owns the framing controls (Toggle Advanced, Save vs Propose, Add Intent modal, Default Action, Delete Configuration)"
+        "The routing tree itself (Default Config root, Answers (N), Add Intent, Category Routing, Guardrails nodes) and the Edit Category dialog — owned here (IA 2026-09-18); using-this-page owns the framing controls (Save vs Propose, Add Intent modal, Default Action, Delete Configuration)"
       ]
     },
     "configuration/neural-config/index": {
@@ -913,22 +927,28 @@
     },
     "configuration/neural-config/using-this-page": {
       "title": "Using the Neural Config page",
-      "description": "On the Neural Config screen nothing in a dialog applies until you press Save — which on the configuration accordion asks you to name the new version — and this page also covers Propose Changes, the Add Intent and Default Action dialogs, and the Delete Configuration, Delete Category and routing-mode confirmations.",
+      "description": "On the Neural Config screen a change applies only when you select Save in the dialog footer; this page shows how to save or propose configuration changes, add an intent, choose the agent of a mAIstro-led category, and delete a category's own configuration.",
       "console": ["neural-config"],
       "status": "written",
       "type": "task",
       "gaps": [
-        "Toggle Advanced — half the settings are hidden until it is on (no control by that name exists in any of the 34 states of the 2026-09-19 capture; confirm the build has it before writing, and if it does not, say so instead of describing it — IA 2026-09-19)",
         "Save vs Propose Changes, Version, Change Logs",
         "Add Intent modal — create an intent answered by Seek or by a mAIstro agent",
         "Default Action on the routing root — hand everything to one agent; the product warns against it",
         "Delete Configuration — removes a category's custom configuration and all child settings",
         "The 'Complete' confirmation dialog (Ok) in the /configure markup — assigned here by IA 2026-09-19 as the Save/Propose acknowledgement; it was never seen opening, so confirm which action raises it ('Proposal Activated' is the proposal one and belongs to configuration/backup-restore)"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Toggle Advanced — half the settings are hidden until it is on",
+          "run": "202610011319-neural-config",
+          "why": "no state snapshot of any of the nine neural-config captures (202609181401 … 202610010144) contains 'Toggle Advanced'; every Edit Configuration section is a plain accordion header in edit-configuration-edit (KnowledgeBase Connection … Secrets)"
+        }
       ]
     },
     "configuration/neural-config/knowledgebase-connection": {
       "title": "KnowledgeBase Connection",
-      "description": "KnowledgeBase Connection is the first section of Neural Config's Edit Configuration dialog, where you pick which of sixteen KnowledgeBase Types NeuralSeek retrieves from, state the language of that content, and fill in the connection and field-mapping settings the chosen store needs.",
+      "description": "KnowledgeBase Connection, the first section of Neural Config's Edit Configuration dialog, sets which of sixteen KnowledgeBase Types NeuralSeek retrieves from, the language of that content, the store's connection details, and which document fields become the passage, link and title.",
       "console": ["neural-config"],
       "status": "written",
       "type": "reference",
@@ -940,13 +960,19 @@
         "Bedrock — KB ID, region, keys, and the Bedrock Search Type dropdown",
         "Milvus — host, collection, database, token, one-way TLS, server name",
         "Postgres — pgvector as the store: table, distance metric, embedding column",
-        "Coveo — org ID, search token, and attribute sources in LLM context",
         "Virtual KB (config side) — pick a mAIstro agent to act as the knowledge base",
         "NeuralSeek KB — the built-in option",
         "No KnowledgeBase — run mAIstro-only with no retrieval",
         "Advanced Schema: which payload fields reach the prompt, not just the API response",
         "Combine / separate snippets — merge a document's passages or keep them apart",
         "The 'Generate an API key' dialog (with its Generate button) — assigned here by IA 2026-09-19 as the watsonx Discovery Generate Key helper; it sits in the /configure markup but was never opened during the capture, so confirm which KnowledgeBase Type raises it before writing"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Coveo — org ID, search token, and attribute sources in LLM context",
+          "run": "202610011319-neural-config",
+          "why": "Coveo is not among the 16 KnowledgeBase Type options in knowledgebase-connection--options-knowledgebase-type (capture 202610010144) nor in any kb-type sweep variant's option list"
+        }
       ]
     },
     "configuration/neural-config/knowledgebase-tuning": {
@@ -964,7 +990,7 @@
     },
     "configuration/neural-config/llm-details": {
       "title": "LLM Details",
-      "description": "LLM Details is the section of the Neural Config Edit Configuration dialog where you add language models as cards, choose which of twenty LLM Functions each model performs, and set its LLM ID, languages and load-balancing weight.",
+      "description": "LLM Details is the Neural Config section where you add language models as cards and tick, on each card, the LLM Functions that model performs — a function no card has ticked is disabled, with no fallback.",
       "console": ["neural-config"],
       "status": "written",
       "type": "reference",
@@ -1016,7 +1042,7 @@
     },
     "configuration/neural-config/platform-preferences": {
       "title": "Platform Preferences",
-      "description": "Platform Preferences is the Neural Config section that sets instance-wide request behaviour: the generation timeout, conversation context, cross-language and default output language, filter relaxation, plan streaming and logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords, HTML cleansing, and the mAIstro agents run on save and after each Seek.",
+      "description": "Platform Preferences is the Neural Config section for instance-wide request behaviour: the generation timeout, conversation context, cross-language and output language, filter relaxation, logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords, HTML cleansing, and the mAIstro agents run on save and after each Seek.",
       "console": ["neural-config"],
       "status": "written",
       "type": "reference",
@@ -1183,7 +1209,7 @@
     },
     "configuration/semantic-model": {
       "title": "Semantic model tuning",
-      "description": "The Semantic Model Tuning modal, opened from the Semantic Scoring tab of a configuration's Guardrails dialog, holds the six penalties and weights and the always-allowed terms that decide how NeuralSeek's semantic score rates an answer against its KnowledgeBase sources.",
+      "description": "Semantic model tuning sets the four penalties, two weights and the always-allowed terms that decide how NeuralSeek's semantic score rates a generated answer against the KnowledgeBase sources it was built from.",
       "status": "written",
       "type": "concept",
       "console": ["neural-config:advanced"],
@@ -1193,24 +1219,30 @@
     },
     "configuration/language": {
       "title": "Language handling",
-      "description": "NeuralSeek's language behaviour is set by three Neural Config settings — KnowledgeBase Language, Default Output Language and Cross Language — and carried out by the LLM cards that have the Translate and Fallback Language Id functions enabled.",
+      "description": "NeuralSeek's language behaviour is set by KnowledgeBase Language, Default Output Language and Cross Language in Neural Config, and carried out by the LLM cards that have the Translate and Fallback Language Id functions enabled.",
       "status": "written",
       "type": "reference",
       "console": ["neural-config:advanced"]
     },
     "configuration/backup-restore": {
       "title": "Backup, restore & change logs",
-      "description": "The Neural Config screen's floating toolbar holds Backup & Restore, which downloads or uploads a configuration settings file and backs up or restores the whole instance, and Change Logs, which lists every saved configuration version by date, user and label with a Rollback action per row.",
+      "description": "Use the Neural Config toolbar to download or upload your configuration settings, back up or restore the whole instance, and review every saved configuration version in the Change Log with a Rollback on each row.",
       "status": "written",
       "type": "task",
       "console": ["neural-config"],
       "gaps": [
         "Change Logs per-category tabs — a Default Config tab plus one tab per category (the tab shares its name with the routing tree's root node, which configuration/overview owns; this page documents the tab only — IA 2026-09-19)",
         "Rollback — revert to a previous configuration version",
-        "Activate / Delete Proposal — the proposal lifecycle (legacy but supported)",
         "Propose Changes — save a configuration change without applying it (legacy but supported)",
         "Backup & Restore button on the Neural Config toolbar (bottom-right, beside Change Logs) — the Backup and Restore dialog: Download Settings, Upload Settings (Choose File), Backup, Restore; the old 'Show advanced options' path on this page is stale",
         "Change Log table — columns Proposal ID / Configuration Date, User, Version (can carry a free-text label instead of 'Version N'), Action; a row expands to the changed keys plus a note, and carries a Rollback icon"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Activate / Delete Proposal — the proposal lifecycle (legacy but supported)",
+          "run": "202610011319-neural-config",
+          "why": "no Activate or Delete Proposal control in any of the 59 states of capture 202610010144 (default + variants); only the hidden 'Proposal Activated' acknowledgement is in the page markup, and no Change Log row shows a proposal id"
+        }
       ]
     },
     "governance/overview": {
@@ -1360,7 +1392,7 @@
     },
     "governance/corporate-document-filter": {
       "title": "Corporate document filter",
-      "description": "The corporate document filter sends the ids of the documents NeuralSeek found, plus the user's id, to an endpoint you run on every request — any id the endpoint does not return is blocked.",
+      "description": "The corporate document filter sends the ids of the documents NeuralSeek found, plus the id of the user asking, to an endpoint you run on every request, and blocks any document whose id the endpoint does not return.",
       "console": ["neural-config", "governance"],
       "status": "written",
       "type": "concept",

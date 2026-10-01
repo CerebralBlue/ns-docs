@@ -103,7 +103,7 @@ Write `R/plan.json` with the Write tool and return it:
 You are the checkpoint after a stage. The prompt gives you: the stage, the agent's returned
 JSON (or `null` = the agent died), the digest (`digest.ts <run> <stage>` — files present,
 counts, denials, `agent-failed.log`), the plan's `checkpoints.<stage>` expectation, and the
-catalog slice for that agent. Read nothing else unless the digest points at a specific file
+catalog slice for that agent — the digest and the expectation as FILE PATHS to read. Read nothing else unless the digest points at a specific file
 (e.g. a brief that is 0 bytes). Decide **one** thing:
 
 - `continue` — the stage did what the plan expected, or its gaps are acceptable (`verdict:
@@ -121,7 +121,9 @@ degraded` + reason; add `backlog` entries for what the next run must do).
 - `halt` — the run cannot continue honestly (login redirect, the map no longer parses, the
   capture folder is gone): reason required. Cleanup, report and learn still run.
 
-Return exactly:
+**Write the decision** to the file the prompt names (`R/io/decision-<stage>.json`) with the Write
+tool, then return the same JSON — `orchestrate.ts` reads the file, so a decision that is only
+returned is not applied. Exactly:
 
 ```json
 {
@@ -188,4 +190,6 @@ Empty list when nothing is actionable — that is a fine answer.
 - `mustCover` holds only things that exist: a backlog id, or a control/behaviour the capture
   shows. Never a map gap the capture disproves (a route's `gapsResolved`, or a gap naming a
   control no state has) — that would make the writer document an absence.
-- Write only `R/plan.json`, `R/subtasks.json`. Everything else you return.
+- Write only `R/plan.json`, `R/subtasks.json` and, in REVIEW mode, `R/io/decision-<stage>.json`.
+  Everything else you return. Data you need is at the paths the prompt gives (the digest, the
+  plan's checkpoints) — read it there.

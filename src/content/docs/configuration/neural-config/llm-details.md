@@ -1,184 +1,153 @@
 ---
 title: "LLM Details"
-description: "LLM Details is the section of the Neural Config Edit Configuration dialog where you add language models as cards, choose which of twenty LLM Functions each model performs, and set its LLM ID, languages and load-balancing weight."
+description: "LLM Details is the Neural Config section where you add language models as cards and tick, on each card, the LLM Functions that model performs — a function no card has ticked is disabled, with no fallback."
 ---
 
-## What is it
+**LLM Details** decides which language model does which job in NeuralSeek. Each model you add becomes a card, and each card carries the same list of **LLM Functions** — Seek, translation, PII detection, image generation and so on. Ticking a function on a card sends that work to the card's model. Use this section when you first set up an instance, when you want a different model to take over one job, or when a feature stops working and you need to check whether any model still covers it.
 
-**LLM Details** is the third section of the **Edit Configuration** dialog on the **Neural Config** screen. It holds one card per model NeuralSeek is allowed to call, and on each card the list of jobs — the **LLM Functions** — that model is used for. New models come in through the **Add an LLM** button at the top of the section.
+## Where to find it
 
-The section states its own rules in the paragraph next to that button:
+Open **Neural Config**, select the **Default Config / Answer Generation** node on the routing tree, select **Edit Configuration**, and expand **LLM Details** — the third section, after **KnowledgeBase Connection** and **KnowledgeBase Tuning**. The section's other neighbours are listed on [Neural Config](/configuration/neural-config/).
+
+![The Edit Configuration dialog with LLM Details expanded: the Add an LLM button and the rules beside it, then the Managed GPT and Managed gpt-image cards with Connection Info and LLM Functions, and Propose Changes and Save in the footer](/img/neural-config/llm-details.png)
+
+Changes to a card take effect only after you select **Save** or **Propose Changes** at the foot of the dialog; what each does is on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
+
+## Settings
+
+### Add an LLM
+
+To add a model, select **Add an LLM**, choose the provider and the model in the dialog that opens, and select **Add**. The model appears as a new card in the section.
+
+![The Add an LLM dialog: Platform set to Amazon Bedrock and LLM Selection set to Nova Pro, with the model's LLM Notes on the right, including the functions it does not support, and Cancel and Add in the footer](/img/neural-config/add-an-llm-panel.png)
+
+The providers and their models are listed on [Supported LLMs](/configuration/supported-llms/); the models NeuralSeek hosts for you are on [Managed LLM Details](/configuration/neural-config/managed-llm/). If you run a model yourself, see [Self-hosting an LLM](/configuration/administration/self-hosting-an-llm/). Before you add a model, read the dialog's notes: the "This LLM does not support" line lists the functions that will be greyed out on its card.
+
+The text beside the button states the rules the whole section follows:
 
 > You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them for the selected functions that have multiple LLM's. Features that an LLM are not capable of will be unselectable. If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled.
 
-Those four sentences are the whole model of this screen: at least one card; several cards may share a function; a box the model cannot do is greyed out; and a function no card is assigned to stops working.
+In practice: keep at least one card; give a function to two cards when you want them to share it (see [Multi-LLM](/configuration/multi-llm/)); and before you remove a function from a card, make sure another card has it ticked, or that feature stops working.
 
-## Why it matters
+### The card header and Copy
 
-Almost everything in NeuralSeek that generates text, translates, classifies or produces media goes through a model card here. The checkboxes on a card are therefore not preferences — they are the on/off switches for those features. A function with no model behind it does not fall back to another model; it is disabled until a card claims it.
+Each card is titled with the model's name, for example **Managed GPT**.
 
-The cards are also where cost and capability are divided: which model answers a Seek, which one does bulk work such as categorization or example generation, and which one handles images.
+![The header of the Managed GPT card: an info icon at the left, the model name with the provider logo, and the Copy icon at the top right](/img/neural-config/llm-details--managed-gpt.png)
 
-## When to use it
+<!-- UNCONFIRMED: Copy duplicates the card, so the same model can run with different functions or a different weight — migration gap audit ("Copy LLM — duplicate a model card"); the screen names the icon only "Copy" -->
 
-- You are setting up an instance and need at least one model before anything else works.
-- A capability you expect — translation, image generation, PII detection — is unavailable, and you want to see whether any card is ticked for it.
-- You want a second model to share the load on a function, or to take one job away from an expensive model.
-- You are retiring a model, renaming its identifier, or checking that its connection still works.
+**Copy**, the icon at the card's top right, duplicates the card. Use it when you want the same model on a second card — for example to give it a different set of functions or a different weight.
 
-It is the wrong place for choosing which models exist on each provider — that catalogue is on [Supported LLMs](/configuration/supported-llms/) — and for splitting work across several models as a strategy, which is covered on [Multi-LLM](/configuration/multi-llm/).
+### Connection Info and LLM Languages
 
-## How it works
+**Connection Info** is a sub-section inside each card. On a card for a model NeuralSeek hosts, it holds one setting, **LLM Languages**.
 
-### Open the section
+![The Connection Info sub-section of a card, expanded: a chip reading 187 with a clear icon, the Enabled Languages dropdown, and the LLM Languages label under it](/img/neural-config/llm-details--llm-languages.png)
 
-Open **Neural Config**, click the **Default Config** node on the routing tree, then **Edit Configuration**. The dialog `Configuration: Default Config` opens with its sections as an accordion; **LLM Details** is the third header, after **KnowledgeBase Connection** and **KnowledgeBase Tuning**. The other sections are listed on [Neural Config](/configuration/neural-config/).
+<!-- UNCONFIRMED: a card for a model on your own provider account also takes its connection settings under Connection Info (API or access key, secret, endpoint, region, project id — the provider decides which apply) — previous Neural Config overview; no such card was on the captured screen -->
 
-![The Edit Configuration dialog scrolled to the LLM Details header: the Add an LLM button, the paragraph stating the load-balancing and no-fallback rules, and the top of the Managed GPT and Managed gpt-image cards, with Propose Changes and Save at the foot of the dialog](/img/neural-config/llm-details.png)
+For a model on your own provider account, **Connection Info** is also where the card's connection settings go — the key, endpoint, region or project the provider needs. Which fields a provider needs is on [Supported LLMs](/configuration/supported-llms/).
 
-Expanding **LLM Details** shows the **Add an LLM** button, the rules paragraph, and the model cards side by side. The configuration shown here carries four cards: `Managed GPT`, `Managed gpt-image`, `Translate` and `gpt-oss-20b`.
+**LLM Languages** sets the languages this model is used for. Open the **Enabled Languages** dropdown to tick or untick languages; the chip in front of it shows how many are selected. The list runs from Abkhazian to Zulu. Untick a language when you do not want this model used for it; how NeuralSeek handles the language of a question is on [Language](/configuration/language/).
 
-The dialog's footer carries **Propose Changes** and **Save**, which act on the whole configuration, this section included; what each does is on [Using this page](/configuration/neural-config/using-this-page/).
+![The Enabled Languages list open on a card: a scrolling checklist starting with Abkhazian and Afar, both ticked](/img/neural-config/llm-details--options-llm-languages.png)
 
-### Add an LLM: Platform and LLM Selection
+### LLM Functions
 
-**Add an LLM** opens a dialog of the same name. On the left are two dropdowns; on the right, the **LLM Notes:** panel describes whichever model is selected. The footer has **Cancel** and **Add**, and there is a **Close** × at the top right.
+**LLM Functions** is the grid of checkboxes that assigns work to the card's model. Tick a function to send that work to this model; untick it to take the work away. **Enable All** and **Disable All**, the two icons beside the **LLM Functions** title, tick or untick every selectable function on that card only.
 
-![The Add an LLM dialog: Platform set to Amazon Bedrock and LLM Selection set to Nova Pro on the left; on the right the AWS / Nova Pro notes with the functions it does not support, its languages, Model Code nova-pro, text and image inputs, text output, Context Window 300000 and a capability and creativity chart; Cancel and Add in the footer](/img/neural-config/add-an-llm-panel.png)
+![The LLM Details section with two cards: Managed GPT, where most text functions are selectable and Table Understanding and the media functions are greyed out, and Managed gpt-image, where only Image Generation and Image Edits are selectable; the last function row of each grid ends with the maistro box; each card ends with its LLM ID and Weight row, each with an Edit Name pencil, and the top of its Delete and Test buttons](/img/neural-config/llm-details-panel.png)
 
-- **Platform** — the provider the model runs on. Choosing a platform refills **LLM Selection** with that provider's models. The list offers, in this order: Amazon Bedrock, Azure Cognitive Services, Cloudflare, Generic (OpenAI-compatible), Google Vertex AI, DeepSeek, Perplexity, HuggingFace, NeuralSeek, OpenAI, together.ai, watsonx.ai, xAI, Xiaomi.
+A greyed-out checkbox is a function the model cannot perform — "Features that an LLM are not capable of will be unselectable." In the image above, the **Managed GPT** card cannot take **Table Understanding** or the media functions, and the **Managed gpt-image** card can take only **Image Generation** and **Image Edits**. To get a greyed-out function, tick it on a card whose model supports it, or add such a model.
 
-  ![The Platform dropdown open on Amazon Bedrock](/img/neural-config/add-an-llm--options-platform.png)
+Every card lists the same twenty functions, in this order:
 
-  Two entries behave differently from the rest. **NeuralSeek** lists the models NeuralSeek hosts for you, such as `Managed GPT` — see [Managed LLM](/configuration/neural-config/managed-llm/). **Generic (OpenAI-compatible)** offers `OpenAI Chat Completions`, a card whose notes say it is "only compatible with a /v1/chat/completions endpoint" — the route for a model you host yourself behind HuggingFace TGI or VLLM.
+| Function                    | What it covers                                                     |
+| --------------------------- | ------------------------------------------------------------------ |
+| **Seek**                    | Generating answers — see [Seek](/seek/overview/)                   |
+| **PII Detection**           | [PII detection](/governance/pii-detection/)                        |
+| **Conversation Generation** | —                                                                  |
+| **Entity Extraction**       | [Entity extraction](/governance/entity-extraction/)                |
+| **Slot Filling**            | —                                                                  |
+| **Categorization**          | [Intent categorization](/governance/intent-categorization/)        |
+| **Example Generation**      | —                                                                  |
+| **Intent Creation**         | [Intent categorization](/governance/intent-categorization/)        |
+| **Translate**               | Translation — see [Language](/configuration/language/)             |
+| **Fallback Language Id**    | Language identification — see [Language](/configuration/language/) |
+| **Fallback Sentiment**      | [Sentiment](/governance/sentiment/)                                |
+| **Table Understanding**     | [Table Understanding](/knowledge/table-understanding/)             |
+| **System AI**               | —                                                                  |
+| **Image Generation**        | Media — see [Multimodal](/configuration/multimodal/)               |
+| **Image Edits**             | Media — see [Multimodal](/configuration/multimodal/)               |
+| **Video**                   | Media — see [Multimodal](/configuration/multimodal/)               |
+| **Speech**                  | Media — see [Multimodal](/configuration/multimodal/)               |
+| **Music**                   | Media — see [Multimodal](/configuration/multimodal/)               |
+| **Speech to Text**          | Media — see [Multimodal](/configuration/multimodal/)               |
+| **maistro**                 | Agents — see [mAIstro](/maistro/overview/)                         |
 
-- **LLM Selection** — the model on the chosen platform. Each platform has its own list: for Amazon Bedrock it holds 19 models, starting with `Nova Pro`. The per-platform lists are on [Supported LLMs](/configuration/supported-llms/).
+The **maistro** box on a model card is written in lower case; the **mAIstro** box on an embedding card is a different setting, covered on [Embedding models](/configuration/neural-config/embedding-models/).
 
-  ![The LLM Selection dropdown open on Nova Pro](/img/neural-config/add-an-llm--options-llm-selection.png)
+### LLM ID, Weight and Delete
 
-The dialog itself asks for no key or endpoint — only **Platform** and **LLM Selection**.
+The row at the foot of each card shows two values, each with a pencil icon named **Edit Name**:
 
-<!-- UNCONFIRMED: Add creates a new card in LLM Details, and a model on your own provider account takes its connection settings (API or access key, secret, endpoint, region, project id) under that card's Connection Info — the section layout and the previous Neural Config overview; Add was not pressed and no provider-model card appears on the screens documented here -->
+- **LLM ID** — the card's identifier in this configuration, for example `ns-gpt-5` on Managed GPT. It is also the value an NTL `LLM` step takes in `modelCard` (below).
+- **Weight** — the card's share when it handles a function together with other cards. How weights divide the work is on [Multi-LLM](/configuration/multi-llm/).
 
-**Add** puts the selected model into **LLM Details** as a new card; **Cancel** leaves the section as it was. For a model on your own provider account, the connection settings — an API or access key, an endpoint, a region or project id, depending on the provider — are entered under the new card's **Connection Info**.
+<!-- UNCONFIRMED: the pencil beside LLM ID opens the Edit Card ID dialog and the pencil beside Weight opens the Load Balancing Weight dialog (a 1 to 100 scale), each with Cancel and Update — both dialogs are in the captured screen, but neither was opened -->
 
-### LLM Notes: what the model can do
+To change either value, select its **Edit Name** pencil: the one beside **LLM ID** opens **Edit Card ID**, and the one beside **Weight** opens **Load Balancing Weight**, which runs from 1 to 100. Select **Update** to apply the new value.
 
-The **LLM Notes:** panel is the place to check a model before you add it. Its lines, for the model selected:
+![Screenshot pending: the Load Balancing Weight dialog opened from a card's Weight pencil](/img/_placeholder.svg)
 
-![Add an LLM with Platform NeuralSeek and LLM Selection Managed GPT: the OpenAI / Managed GPT notes say the model does not support Table Understanding, Image Generation, Image Edits, Video, Speech, Music and Speech to Text, supports 187 languages, Model Code ns-gpt-5, text and image inputs, text output, Context Window 1000000, Seek Multiplier 4.5, and the capability and creativity chart](/img/neural-config/add-an-llm@llm-ns-managed-panel.png)
+<!-- SCREENSHOT: /img/neural-config/llm-details--load-balancing-weight.png — Neural Config > Default Config / Answer Generation > Edit Configuration > LLM Details > the Edit Name pencil beside Weight on any card: the open Load Balancing Weight dialog with its 1–100 scale and Cancel / Update. Why: the reader has only the closed Weight row to go on. -->
 
-- A heading with the model's maker and name (`AWS / Nova Pro`, `OpenAI / Managed GPT`) and a one-paragraph description.
-- **This LLM does not support:** — the LLM Functions this model cannot perform. These are exactly the boxes that will be greyed out on its card. For `Managed GPT` the notes list Table Understanding, Image Generation, Image Edits, Video, Speech, Music and Speech to Text, and those seven are the greyed-out boxes on the `Managed GPT` card.
-- The languages it supports — "This LLM supports all languages" for most provider models, "This LLM supports 187 languages" for `Managed GPT`.
-- **Model Code** — the model's code, for example `nova-pro` or `ns-gpt-5`. On the `Managed GPT` card the same value, `ns-gpt-5`, is the card's **LLM ID:**.
-- **Inputs** and **Outputs** — icons for the media the model reads and produces (text, image).
-- **Context Window** — the model's context size as the notes give it, for example `300000` for Nova Pro and `1000000` for Managed GPT.
-- **Seek Multiplier** — shown for some models only (`4.5` on Managed GPT); it is explained on [Multi-LLM](/configuration/multi-llm/).
-- A **Capability/Creativity chart** — two lines plotting the model's capability and creativity scores (Nova Pro: capability 15, creativity 13; Managed GPT: capability 20, creativity 15).
+An NTL `LLM` step accepts a card's **LLM ID** in its `modelCard` parameter (see [Generate data](/maistro/ntl/generate-data/)). This one-step agent, given the Managed GPT card's ID:
 
-### A model card
+```text
+{{ LLM | prompt: "Reply with the word OK." | modelCard: "ns-gpt-5" }}
+```
 
-Every model is one card, and every card has the same parts. Reading `Managed GPT` from top to bottom:
+ran without error and returned:
 
-![The header of the Managed GPT card: an info icon at the left, the card name with the provider logo, and the Copy icon at the right](/img/neural-config/llm-details--managed-gpt.png)
+```text
+OK
+```
 
-<!-- UNCONFIRMED: Copy duplicates the card so the same model can be used under different function assignments or a different weight — migration gap audit ("Copy LLM — duplicate a model card"); the screen names the control only "Copy" -->
+When you rename a card's **LLM ID**, update every agent that names it.
 
-- The header — an info icon, the card name with the provider logo, and **Copy** at the top right. Copy duplicates the card, the quickest way to run the same model twice with different functions or a different weight.
-- **Connection Info** — a sub-accordion holding the card's connection settings. On the four NeuralSeek-managed cards it holds one control, the language list.
+<!-- UNCONFIRMED: Delete removes the card from the configuration; Test runs a test completion against the model to verify its credentials and does not save the configuration — previous Neural Config overview -->
 
-  ![The Connection Info sub-section of a card, expanded: a chip reading 187 with a clear button, the Enabled Languages dropdown, and the LLM Languages label under it](/img/neural-config/llm-details--llm-languages.png)
+**Delete**, at the foot of the card, removes the card from the configuration. Every function that only this card had ticked is disabled until another card takes it. **Test**, beside it, sends a test call to the model to check its connection; it does not save the configuration, so select **Save** afterwards to keep your changes.
 
-- **LLM Languages** — the languages this model is used for. The control is a dropdown named **Enabled Languages** with a count chip in front of it: `187` on `Managed GPT`, `Managed gpt-image` and `gpt-oss-20b`, `96` on `Translate`. Opening it shows a checklist of languages from `Abkhazian` to `Zulu`; on `Managed GPT` all 187 are ticked. The ticked languages are the ones the card is enabled for, and the chip counts them. How languages are handled across the instance is on [Language support](/configuration/language/).
+## Limits and interactions
 
-  ![The Enabled Languages list open on the Managed GPT card: a scrolling checklist starting Abkhazian, Afar, every visible box ticked](/img/neural-config/llm-details--options-llm-languages.png)
-
-- **LLM Functions** — the twenty checkboxes, with **Enable All** and **Disable All** as two icon controls beside the group's label. They apply to the card you click them on, not to the whole section. The functions are the next section.
-- **LLM ID:** — the identifier of this card, shown as text (`LLM ID: ns-gpt-5`) with an **Edit Name** pencil beside it. The four cards here carry `ns-gpt-5`, `ns-gpt-image`, `translate-ns` and `gpt-oss-20b-ns`. The pencil opens the **Edit Card ID** dialog, with **Cancel** and **Update**.
-- **Weight:** — the card's load-balancing weight, `Weight: 100` on every card here, with its own **Edit Name** pencil that opens the **Load Balancing Weight** dialog (see [Load balancing](#load-balancing-and-the-no-fallback-rule) below). Both pencils carry the accessible name **Edit Name**, so a screen reader announces the weight control as "Edit Name" too.
-- **Delete** — the red trash-can button at the foot of the card. It removes the card, and with it every function that card was the only one ticked for.
-- **Test** — the blue button beside **Delete**.
-
-<!-- UNCONFIRMED: Test runs a test call against the model to check its connection and credentials, and does not save the configuration — previous Neural Config overview ("Run a test completion against the LLM, verifying the credentials. This does not 'save'") -->
-
-**Test** sends a test call to the model to check that its connection works; it does not save the configuration.
-
-**Connection Info**, **Copy**, **Test**, **Delete**, **Enable All**, **Disable All** and **Edit Name** work the same way on the embedding cards described on [Embedding models](/configuration/neural-config/embedding-models/).
-
-The **LLM ID:** is the natural handle for pointing an agent at one card. The NTL `LLM` node has a `modelCard` parameter that `ntl://reference` describes as "Override the default LLM model"; the reference does not say which value it expects, so whether it takes the **LLM ID:** exactly as shown (`ns-gpt-5`) is not confirmed here.
-
-### LLM Functions: the twenty checkboxes
-
-Under **LLM Functions** each card carries the same twenty checkboxes. In screen order: **Seek**, **PII Detection**, **Conversation Generation**, **Entity Extraction**, **Slot Filling**, **Categorization**, **Example Generation**, **Intent Creation**, **Translate**, **Fallback Language Id**, **Fallback Sentiment**, **Table Understanding**, **System AI**, **Image Generation**, **Image Edits**, **Video**, **Speech**, **Music**, **Speech to Text** and **maistro**.
-
-Tick a box to make this model do that job; untick it to take the job away. Two spellings to keep apart: the lower-case **maistro** box on a model card is this page's control; the **mAIstro** checkbox on an embedding card belongs to [Embedding models](/configuration/neural-config/embedding-models/).
-
-A checkbox is in one of three states, and each says something different. All three examples are from the `Managed GPT` card:
-
-- Ticked — this model performs that job. **System AI** is ticked on `Managed GPT`:
-
-  ![The System AI checkbox on the Managed GPT card, ticked](/img/neural-config/llm-details--system-ai.png)
-
-- Clear — the model can do the job but is not assigned to it. **Seek** is clear on `Managed GPT`:
-
-  ![The Seek checkbox on the Managed GPT card, clear](/img/neural-config/llm-details--seek.png)
-
-- Greyed out — the model cannot do it; the function is on the "This LLM does not support" list in its notes. **Table Understanding** is greyed out on `Managed GPT`:
-
-  ![The Table Understanding checkbox on the Managed GPT card, greyed out](/img/neural-config/llm-details--table-understanding.png)
-
-The four cards shown here divide the work between them:
-
-| Card                | Ticked                                                                                                                                                                                         | Greyed out                                                                                                           |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `Managed GPT`       | **System AI**                                                                                                                                                                                  | **Table Understanding**, **Image Generation**, **Image Edits**, **Video**, **Speech**, **Music**, **Speech to Text** |
-| `Managed gpt-image` | **Image Generation**, **Image Edits**                                                                                                                                                          | every other function                                                                                                 |
-| `Translate`         | **Translate**                                                                                                                                                                                  | every other function                                                                                                 |
-| `gpt-oss-20b`       | **Seek**, **PII Detection**, **Entity Extraction**, **Categorization**, **Example Generation**, **Intent Creation**, **Translate**, **Fallback Language Id**, **Fallback Sentiment**, **maistro** | **Conversation Generation**, **Slot Filling**, **Table Understanding**, **System AI** and the six media functions    |
-
-Reading the table: **Seek** is answered by exactly one card, `gpt-oss-20b`. **Translate** is ticked on two cards, `Translate` and `gpt-oss-20b`, so it is load-balanced between them — while on `Managed GPT` the same box is left clear:
-
-![The Translate checkbox on the Managed GPT card, clear](/img/neural-config/llm-details--translate.png)
-
-**Conversation Generation** and **Slot Filling** are ticked on no card — clear on `Managed GPT`, greyed out everywhere else — so by the section's own rule those two functions are disabled in this configuration.
-The six media functions — **Image Generation**, **Image Edits**, **Video**, **Speech**, **Music** and **Speech to Text** — are covered on [Multimodal LLM configuration](/configuration/multimodal/); **Translate** and **Fallback Language Id** on [Language support](/configuration/language/).
-
-### Load balancing and the no-fallback rule
-
-Two rules govern what happens once more than one card exists, both from the paragraph at the top of the section:
-
-![The LLM Details section: the Add an LLM button, the rules paragraph beside it, and the Managed GPT and Managed gpt-image cards with their Connection Info and LLM Languages](/img/neural-config/llm-details-panel.png)
-
-- Tick the same function on two cards and NeuralSeek "will load-balance across them" for that function. **Weight:** sets each card's share: the pencil beside it opens the **Load Balancing Weight** dialog, whose range runs from `1` to `100`, with **Cancel** and **Update**. Every card here sits at `100`, so no card is favoured. How weights combine across several models is on [Multi-LLM](/configuration/multi-llm/).
-- Tick a function on no card and that function is off. In the product's words, "there is no fallback and that function of NeuralSeek will be disabled." Clicking **Delete** on the only card that held a function, or **Disable All** on it, is enough. The screen gives no warning when this happens, so check the grids on the remaining cards before you delete one.
-
-![Screenshot needed — the Load Balancing Weight dialog](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: /img/neural-config/llm-details--load-balancing-weight.png — Neural Config > Default Config > Edit Configuration > LLM Details > the pencil beside "Weight:" on any card: the open Load Balancing Weight dialog with its 1–100 range and the Cancel / Update footer. Why: the reader otherwise has only the closed "Weight: 100" row to go on. -->
+- **At least one card.** The section requires at least one LLM.
+- **No fallback.** A function no card has ticked is disabled — NeuralSeek does not borrow another model for it. Check the other cards' **LLM Functions** before you untick a function, select **Disable All**, or delete a card.
+- **Shared functions are load-balanced.** When two or more cards tick the same function, NeuralSeek spreads that function across them, and each card's **Weight** sets its share. Planning a split is covered on [Multi-LLM](/configuration/multi-llm/).
+- **What a model can do is fixed by the model.** Greyed-out functions cannot be ticked on that card; add a model that supports them.
+- **Embedding models are separate.** Embedding cards use the same card buttons but sit in their own section with their own functions; see [Embedding models](/configuration/neural-config/embedding-models/).
 
 ## FAQ
 
-### What happens if no model is assigned to a function?
+### Why can't I tick some functions on a card?
 
-That function stops working. The section says it plainly: "If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled." NeuralSeek does not borrow another model to cover the gap, and the screen does not warn you — read every card's **LLM Functions** grid.
+The model on that card cannot perform them. Functions an LLM is not capable of are unselectable, and they match the "This LLM does not support" line in the model's notes in **Add an LLM**. Tick the function on a card whose model supports it.
 
-### Why are some function checkboxes greyed out?
+### What happens if no model has a function ticked?
 
-Because the model cannot do that job — "Features that an LLM are not capable of will be unselectable." The greyed boxes match the "This LLM does not support" line in the model's **LLM Notes:** in the **Add an LLM** dialog. A greyed-out box is a statement about the model, not about your permissions; to get that function, tick it on a card whose model supports it.
+That function of NeuralSeek is disabled. There is no fallback to another model, so a feature can stop working after you untick a box or delete a card.
 
-### How do I split traffic between two models?
+### Can two models handle Seek?
 
-Tick the same function on both cards; NeuralSeek then load-balances across them for that function. Set each card's share with the pencil beside **Weight:**, which opens the **Load Balancing Weight** dialog and accepts a value from `1` to `100`. See [Multi-LLM](/configuration/multi-llm/) for splitting strategies.
+Yes. Tick **Seek** on both cards and NeuralSeek load-balances answers between them; each card's **Weight** sets its share. See [Multi-LLM](/configuration/multi-llm/).
 
-### Where do I find a model's identifier, and can an agent use it?
+## Related
 
-On the card, as **LLM ID:** — for example `ns-gpt-5` or `gpt-oss-20b-ns`. The **Edit Name** pencil beside it opens the **Edit Card ID** dialog to change it. The NTL `LLM` node's `modelCard` parameter overrides the default model for one step; whether it takes this exact identifier is not confirmed on this page.
-
-### What is the number on the chip next to Enabled Languages?
-
-The count of languages ticked for that model under **LLM Languages**. Three of the cards shown here read `187`; the `Translate` card reads `96`. Open **Enabled Languages** to see and change the list.
-
-### Which providers can I add a model from?
-
-Those on the **Platform** list in **Add an LLM**: Amazon Bedrock, Azure Cognitive Services, Cloudflare, Generic (OpenAI-compatible), Google Vertex AI, DeepSeek, Perplexity, HuggingFace, NeuralSeek, OpenAI, together.ai, watsonx.ai, xAI and Xiaomi. The models each one offers are on [Supported LLMs](/configuration/supported-llms/).
+- [Supported LLMs](/configuration/supported-llms/) — the providers and models you can add
+- [Managed LLM Details](/configuration/neural-config/managed-llm/) — the models NeuralSeek hosts
+- [Multi-LLM](/configuration/multi-llm/) — sharing functions across several models
+- [Multimodal](/configuration/multimodal/) — the image, video, speech and music functions
+- [Embedding models](/configuration/neural-config/embedding-models/) — the embedding cards
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/) — Save and Propose Changes

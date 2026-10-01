@@ -52,17 +52,28 @@ const args = parseArgs(process.argv.slice(2));
 const [verb, a1, a2] = args.positional;
 const asJson = args.flags.has('json');
 
+/**
+ * The map's route id for a page file. `x/index.md` is `x/index` when the map has that route
+ * (configuration/neural-config/index), else `x`. Stripping `/index` unconditionally made
+ * `publish configuration/neural-config/index` find 0 images (2026-10-01).
+ */
+export function routeOfPage(relPath: string, routes: Record<string, unknown>): string {
+	const bare = relPath.replace(/\.mdx?$/, '');
+	if (bare in routes) return bare;
+	const short = bare.replace(/\/index$/, '');
+	return short in routes ? short : bare;
+}
+
 /** every /img/… path each page references (route → paths) */
-function pageImages(): Map<string, string[]> {
+export function pageImages(): Map<string, string[]> {
+	const routes = loadMap().map.routes;
 	const out = new Map<string, string[]>();
 	const walk = (dir: string) => {
 		for (const f of readdirSync(dir, { withFileTypes: true })) {
 			const p = join(dir, f.name);
 			if (f.isDirectory()) walk(p);
 			else if (/\.mdx?$/.test(f.name)) {
-				const route = relative(DOCS_DIR, p)
-					.replace(/\.mdx?$/, '')
-					.replace(/\/index$/, '');
+				const route = routeOfPage(relative(DOCS_DIR, p), routes);
 				const imgs = [...readFileSync(p, 'utf8').matchAll(/\(\/img\/[^)\s"']+\)/g)].map((m) =>
 					m[0].slice(1, -1)
 				);
@@ -261,7 +272,9 @@ function libraryIndex(): Map<string, string> {
 	return idx;
 }
 
-if (verb === 'build') {
+if (!import.meta.main) {
+	// imported (tests): no CLI
+} else if (verb === 'build') {
 	const r = build(args.get('run'));
 	console.log(
 		asJson

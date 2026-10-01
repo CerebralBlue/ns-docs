@@ -525,6 +525,15 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
   understand for one route; `probe` → runner); `orchestrate.ts subtasks --validate` drops a
   second fix on a page, unbriefed routes, captures. **The script executes; the planner decides
   what and in which order; hooks, gates and limits decide whether.** `--no-plan` = pure v3.2.
+- **Data flow (2026-10-01): code moves data, LLMs move pointers.** The Workflow script is
+  `.claude/skills/docs-explore/workflow.js` (the night's consistency pass:
+  `.claude/skills/docs-night/consistency.js`). It has no shell, so a Haiku wrapper runs each
+  command — always as `scripts/agentic/call.ts <run> <label> --as <kind> -- <cmd>`, which keeps the
+  full output in `runs/<id>/io/<label>.json` and prints a small checksummed **receipt**; the script
+  recomputes the checksum, retries once, then halts (`haltedBy: integrity`). Agents get file
+  paths, never pasted data, and write their own files; workflow-born data comes back in the
+  Workflow result and `ingest-result.ts` writes it after the run. Why: a wrapper retyping a 37 KB
+  plan returned 4 of 29 routes. Tests: `bun run test:agentic` (not part of `verify`).
 - **Resilience.** Every `agent()` in the Workflow script goes through `A()` (a throw costs one
   route, never the run — and is recorded for the checkpoint's digest). **An agent that stops
   before returning is PARTIAL, not failed** (2026-10-01): `A()` logs its error text, then resumes
@@ -533,8 +542,8 @@ stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline firs
   wrappers; everything lands in `runs/<id>/agent-failures.json` and the report's "Partial
   agents" section. The transcripts that explain a stop are
   `~/.claude/projects/<project>/<session>/subagents/workflows/<wf-id>/agent-<id>.jsonl` (ends at
-  the turn limit = cut off); an agent's return value
-  is written to its file by a haiku wrapper when the agent forgot; `--attempt <n>` on a resume
+  the turn limit = cut off); a missing agent file is
+  recorded, never fabricated by a wrapper; `--attempt <n>` on a resume
   busts the script-wrapper cache. **Never delete a run folder from `current-run`** —
   `queue.ts --dry-run` previews without opening a run (the first v3 ledger was lost that way
   and rebuilt from the transcripts; see its `RECOVERED.md`).

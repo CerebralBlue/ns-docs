@@ -279,7 +279,13 @@ if (verb === 'record') {
 	const status = args.get('status') as any;
 	const tokens = Number(args.get('tokens') ?? 0) || undefined;
 	let result: any = undefined;
-	if (args.get('result')) {
+	// --result-file: the Workflow's saved output ({…, result}) — read by code (2026-10-01); a pasted
+	// --result '<json>' made the model retype the result into a command line.
+	if (args.get('result-file')) {
+		const f = JSON.parse(readFileSync(args.get('result-file')!, 'utf8'));
+		result = f.result ?? f;
+		if (result && typeof result === 'object') delete result.report;
+	} else if (args.get('result')) {
 		try {
 			result = JSON.parse(args.get('result')!);
 		} catch {

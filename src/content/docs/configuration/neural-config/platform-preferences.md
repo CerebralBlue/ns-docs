@@ -1,269 +1,194 @@
 ---
 title: "Platform Preferences"
-description: "Platform Preferences is the Neural Config section that sets instance-wide request behaviour: the generation timeout, conversation context, cross-language and default output language, filter relaxation, plan streaming and logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords, HTML cleansing, and the mAIstro agents run on save and after each Seek."
+description: "Platform Preferences is the Neural Config section for instance-wide request behaviour: the generation timeout, conversation context, cross-language and output language, filter relaxation, logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords, HTML cleansing, and the mAIstro agents run on save and after each Seek."
 ---
 
-## What is it
+Platform Preferences holds the settings that fit NeuralSeek to the systems around it: how long a request may take before your chatbot gives up, how much of a conversation is carried into the next question, which language answers come back in, what a filtered search does when it finds nothing, and which [mAIstro](/maistro/overview/) agents run on save or after every answer. Some of them change what an answer says or where it comes from — Cross Language, the output language, filter relaxation, stopwords and HTML cleansing — while the rest fit NeuralSeek to the platforms around it. Retrieval and prompting are configured in other sections of the same dialog. The values in the screenshots are one instance's settings, not product defaults.
 
-**Platform Preferences** is the sixth section of the configuration dialog in Neural Config, between **Company / Organization Preferences** and [Corporate Document Filter](/governance/corporate-document-filter/). Its settings have little in common with each other: what unites them is that each applies to the whole instance rather than to one knowledge base, one prompt or one category.
+## Where to find it
 
-Grouped by what they touch, the section holds:
+Open **Neural Config**, select the **Default Config / Answer Generation** node in the routing tree, then select **Edit Configuration**. In the **Configuration: Default Config** dialog, expand **Platform Preferences**. Because the section sits in the Default Config, its settings apply to the whole instance.
 
-- how long a request may take, and how much of the conversation is carried into it and for how long;
-- which language an answer comes back in, and whether cross-language answers are translated;
-- whether a filtered search may be retried without its filter, and what is streamed or logged;
-- whether connected-platform API keys stay visible to Configuration Admins;
-- the output format used when the Curate tab builds a virtual agent, and whether links are embedded in answers;
-- the stopwords and HTML that NeuralSeek strips;
-- the mAIstro agents NeuralSeek runs on save and after each Seek.
+![The Configuration: Default Config dialog with Platform Preferences expanded under Company / Organization Preferences, showing the Timeout, Context Turns and Context Timeout - Session sliders and the Context Timeout - User Only heading, above the Propose Changes and Save footer](/img/neural-config/platform-preferences.png)
 
-Nothing here changes what is retrieved from the knowledge base ([KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/)) or how the prompt is written ([Prompt Engineering](/configuration/neural-config/prompt-engineering/)).
+Change the settings you need, then select **Save** and name the version, or select **Propose Changes** to keep the edit for review. Both are described on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-## Why it matters
+## Settings
 
-Most of the settings that make NeuralSeek fit the platform around it are in this section. A chatbot host with a 30-second request limit, a channel that needs answers in one language, an integration that expects Watson Assistant Actions rather than raw text — all of those are configured here, and a mismatch shows up as a broken integration rather than as a bad answer.
-
-Three of these settings carry a cost that is not obvious from their names. **Context Turns** trades documentation context for conversation memory, and the product's own help text recommends against raising it. **Cross Language** switches Semantic Scoring off for the answers it translates. **Hide API Keys** cannot be turned back off once it is on.
-
-## When to use it
-
-- Your chatbot platform times out before NeuralSeek returns an answer.
-- Follow-up questions lose their subject, or a user's context is kept longer or shorter than you expect.
-- Answers come back in the wrong language, or semantic scores disappeared after a language change.
-- A filtered search returns nothing and you want NeuralSeek to retry without the filter — but never without certain keys.
-- You need to stop Configuration Admins from reading connected-platform API keys.
-- You are exporting a virtual agent from the Curate tab and need a particular format, or links inside the answers.
-- Scraped HTML pages are bringing navigation and boilerplate into answers.
-- Something has to run every time the configuration is saved, or after every Seek, without slowing the answer.
-
-## How it works
-
-### Where the section lives
-
-Open **Neural Config**, click the **Default Config / Answer Generation** node in the routing tree, then **Edit Configuration**. A dialog titled **Configuration: Default Config** opens with an accordion of sections; expand **Platform Preferences** — the sixth header, between **Company / Organization Preferences** and **Corporate Document Filter**.
-
-![The configuration dialog scrolled to Platform Preferences, showing the Timeout, Context Turns and Context Timeout - Session sliders, and the dialog footer with Propose Changes and Save](/img/neural-config/platform-preferences-panel.png)
-
-The dialog footer carries **Propose Changes** and **Save** — nothing in this section takes effect until one of them is used.
-
-:::note
-The values in the screenshots and quoted below are one instance's current settings, not product defaults. The controls in this section carry no default indicator on screen, so read your own instance before assuming a value.
-:::
-
-The first four settings are sliders, each with a number box beside it: drag the slider or type the number. The two numbers at the ends of the track are the range.
+The first four settings are sliders with a number box beside them: drag the slider or type a value. The numbers at each end of the track are the range.
 
 ### Timeout
 
-![The Timeout slider, range 4000 to 90000, reading 25000, with the Context Turns heading below it](/img/neural-config/platform-preferences--timeout.png)
+**Timeout** is the language generation timeout, in milliseconds, with a range of 4000 to 90000. Set it a few seconds below the timeout of your chatbot platform. When the timeout is reached, NeuralSeek tries to serve the closest cached answer, if one is available, instead of failing — so NeuralSeek has to give up before your platform does for that fallback to reach the user. How cached answers are kept is on [Caching](/seek/caching/).
 
-**Timeout** — range `4000` to `90000`; the screen shows `25000`. The help text says what to set it to: "Language Generation Timeout (milliseconds). Set this to a few seconds less than the timeout of your chatbot platform. When timeout is reached Neuralseek will attempt to catch the timeout by serving the closest possible cached answer, if one is available."
-
-So the timeout is not purely a failure boundary. Hitting it makes NeuralSeek fall back to the nearest cached answer where one exists — which is only useful if NeuralSeek gives up before your chatbot platform does. That is the reason for the "a few seconds less" guidance.
+Raise it when long answers or a slow LLM are cut off and your platform allows the extra time; lower it when your platform's own limit is shorter.
 
 ### Context Turns
 
-![The Context Turns slider, range 0 to 50, reading 1, with the Context Timeout - Session heading below it](/img/neural-config/platform-preferences--context-turns.png)
+**Context Turns** sets the maximum number of previous turns of the conversation that are fed to the LLM, from 0 to 50. The screen recommends against increasing it, for two reasons: every earlier turn takes LLM context away from your documentation, and a longer history gives users more room to steer the model toward inappropriate responses.
 
-**Context Turns** — range `0` to `50`; the screen shows `1`. "Maximum number of previous context turns to feed to the LLM. Increasing this is not recommended as it will reduce the available LLM context available to your documentation, and opens additional risk of attack from users trying to elicit inappropriate responses."
-
-Raising it is a trade, and the product names both sides of it: less room in the prompt for retrieved documents, and more surface for a user steering the model through the conversation history. If follow-up questions are failing, try [Force carry context](#force-carry-context) before raising the turn count.
+If follow-up questions lose their subject, try [Force carry context](#force-carry-context) before raising this number. How turns are tied together from the request side is on [Conversational context](/seek/conversational-context/).
 
 ### Context Timeout - Session
 
-![The Context Timeout - Session slider, range 0 to 999999, reading 360000, with the Context Timeout - User Only heading below it](/img/neural-config/platform-preferences--context-timeout-session.png)
-
-**Context Timeout - Session** — range `0` to `999999`; the screen shows `360000`. "Timeout of a session_id based user session." This is the window for callers that pass a `session_id`: how long the conversation context behind that id is kept.
-
-The screen does not label the unit of this slider, so it does not say whether `360000` means seconds or milliseconds.
+**Context Timeout - Session** is the timeout of a conversation identified by a `session_id`, from 0 to 999999. Within that window, a new question carrying the same `session_id` continues the earlier conversation; after it, the question starts fresh.
 
 ### Context Timeout - User Only
 
-![The Context Timeout - User Only slider, range 0 to 999999, reading 1800](/img/neural-config/platform-preferences--context-timeout-user-only.png)
+![The Context Timeout - User Only slider with its help text, Timeout of a user based session with no session_id](/img/neural-config/platform-preferences--context-timeout-user-only.png)
 
-**Context Timeout - User Only** — range `0` to `999999`; the screen shows `1800`. "Timeout of a user based session with no session_id."
-
-This is the second of two separate windows: one for callers that pass a `session_id`, one for callers identified only by user. In the configuration shown, the user-only window is set far shorter than the session one — a choice, not a product rule, but a sensible one, since a user with no session boundary has nothing else to end their context. The unit is not labelled on screen for this slider either.
-
-Which id a caller sends, and what the runtime does with it, is described from the request side on [Conversational context](/seek/conversational-context/); these two sliders and the next two settings are the console half of it.
+**Context Timeout - User Only** is the timeout of a conversation identified by a user but no `session_id`, from 0 to 999999. It is set separately from **Context Timeout - Session**, so you can keep user-only conversations for a different length of time than session-based ones.
 
 ### Context detection
 
-![The Context detection field group: Detection Method reading Model Only, and the greyed-out mAIstro flow selector reading ex_Context_Grammar](/img/neural-config/platform-preferences--context-detection.png)
+![The Context detection group: Detection Method set to Model Only, and the mAIstro flow selector greyed out beside it](/img/neural-config/platform-preferences--context-detection.png)
 
-**Context detection** — "Use our (fast) model for carrying language context or use an LLM-based mAIstro flow for custom PoS tagging." Two selectors sit under it:
+**Context detection** decides how NeuralSeek recognises the language context it carries from one question to the next: with its own fast model, or with an LLM-based mAIstro flow that does custom part-of-speech tagging.
 
-- **Detection Method** — the screen shows `Model Only`. The options are `Model Only`, `Model + mAIstro fallback` and `mAIstro Only`: the built-in model alone, the model with a mAIstro flow as fallback, or the mAIstro flow alone.
-- **mAIstro flow** — the screen shows `ex_Context_Grammar`; the options offered were `Disabled` and `ex_Context_Grammar`. This selector names the agent that does the part-of-speech tagging when the method includes mAIstro. While **Detection Method** reads `Model Only` the selector is greyed out, as in the crop above.
+**Detection Method** has three options:
 
-The built-in model is the fast path; the mAIstro options are for when you need custom tagging that the model does not do, at the cost of running an agent per question.
+| Option                     | What it does                                                 |
+| -------------------------- | ------------------------------------------------------------ |
+| `Model Only`               | Uses NeuralSeek's built-in model alone. The fast path.       |
+| `Model + mAIstro fallback` | Uses the built-in model, with a mAIstro flow as a fallback.  |
+| `mAIstro Only`             | Uses the mAIstro flow selected in **mAIstro flow** for every question. |
 
-The agents this menu offers depend on the instance: the `ex_` name above is what one instance offered, and yours may differ. Open the menu on your instance to see what it lists; the same applies to the selectors under [Save Agents](#save-agents) and [Post-Seek Agent](#post-seek-agent).
+**mAIstro flow** selects the agent that does the tagging. It offers `Disabled` and a list of agents to choose from, and it is greyed out while **Detection Method** is `Model Only`. Choose a mAIstro method when your questions need tagging the built-in model does not do; each question that uses it then runs an agent.
 
 ### Force carry context
 
-![The Force carry context selector reading False, with its help text](/img/neural-config/platform-preferences--force-carry-context.png)
+![The Force carry context selector set to False, with its help text](/img/neural-config/platform-preferences--force-carry-context.png)
 
-**Force carry context** — the screen shows `False`; the options are `True` and `False`. "If no subject / nouns are found in a question assume the question is a follow on to the previous question"
-
-![The Force carry context menu open: True, and False checked](/img/neural-config/platform-preferences--options-force-carry-context.png)
-
-This is the setting for a bare "why?" or "and the second one?". With it on (`True`), a question with no subject is treated as a continuation of the previous question; with it off, it is answered on its own.
+**Force carry context** handles questions with no subject. Set it to `True` and a question in which NeuralSeek finds no subject or nouns — "and the second one?", "why?" — is treated as a follow-on to the previous question. Set it to `False` and such a question is answered on its own.
 
 ### Cross Language
 
-![The Cross Language selector reading False, with the help text that Semantic Scoring is disabled on cross-language generation](/img/neural-config/platform-preferences--cross-language.png)
+![The Cross Language selector set to False, with the help text saying Semantic Scoring is disabled on cross-language generation](/img/neural-config/platform-preferences--cross-language.png)
 
-**Cross Language** — the screen shows `False`; the options are `True` and `False`. "Translate into the KB language when the KB language is different than the Seek Language. Semantic Scoring is not possible on Cross-language response generation, so it will be automatically disabled."
-
-![The Cross Language menu open: True, and False checked](/img/neural-config/platform-preferences--options-cross-language.png)
-
-The second sentence is the part worth reading twice: setting **Cross Language** to `True` removes Semantic Scoring from the answers it translates, and the screen says so only here. If your guardrails depend on the semantic score, they are inactive for those answers. See [Semantic scoring](/governance/guardrails/semantic-scoring/) for what the score does and [Semantic model tuning](/configuration/semantic-model/) for where it is configured. The knowledge base language this setting compares against, and the language settings across the product, are on [Language handling](/configuration/language/).
+**Cross Language** (`True` or `False`) translates into the knowledge base language when it differs from the language of the Seek. Semantic Scoring cannot run on cross-language response generation, so turning this on disables it automatically for those answers — and any guardrail that relies on the [semantic score](/governance/guardrails/semantic-scoring/) is inactive for them. How Cross Language works with the knowledge base language and the other language settings is on [Language handling](/configuration/language/).
 
 ### Relax Filters
 
-![The Relax Filters selector reading False, and below it the Must Keep Keys text box with the placeholder a,b,c](/img/neural-config/platform-preferences--relax-filters.png)
+![The Relax Filters selector set to False, and below it the Must Keep Keys text box](/img/neural-config/platform-preferences--relax-filters.png)
 
-**Relax Filters** — the screen shows `False`. "If no documents are found while filtering, relax the filter and try again." With it on, a filtered search that finds nothing is retried with the filter loosened rather than returning empty.
+**Relax Filters** decides what happens when a [filtered search](/seek/dynamic-filters/) finds no documents. Turned on, NeuralSeek relaxes the filter and tries again, so the user gets an answer from the wider knowledge base instead of none.
 
-<!-- UNCONFIRMED: the old page described Relax Filters as "on by default" — the screen reads False and shows no default marker, so this page does not state a default -->
-
-:::caution
-Relaxing a filter after an empty result can widen what a user is allowed to see. If a filter is doing access control rather than relevance narrowing, list its key under **Must Keep Keys** so it is never relaxed — or leave **Relax Filters** off.
-:::
-
-**Must Keep Keys (filters to never remove) separated by comma** — a text box with the placeholder `a,b,c`, empty in the configuration shown. Keys listed here are excluded from the relaxation above. This is how a tenant, region or entitlement filter stays enforced while relevance filters are allowed to loosen.
+**Must Keep Keys (filters to never remove) separated by comma** lists the filter keys that stay applied even when the rest are relaxed. Use it for any filter that controls what a user may see rather than what is most relevant: without it, relaxing an empty result could widen access.
 
 ### mAIstro Stream Plan
 
-![The mAIstro Stream Plan selector reading True, with its help text](/img/neural-config/platform-preferences--maistro-stream-plan.png)
+![The mAIstro Stream Plan selector set to True, with its help text, Stream the Agent Plan](/img/neural-config/platform-preferences--maistro-stream-plan.png)
 
-**mAIstro Stream Plan** — the screen shows `True`. "Stream the Agent Plan." When an agent runs, its plan is streamed to the caller as it is built rather than delivered with the result. The help text is the whole of what the screen says about it.
+**mAIstro Stream Plan** controls whether the agent plan is streamed while a mAIstro agent runs; set it to `True` to stream the plan.
 
 ### Log Alternate Configs
 
-![The Log Alternate Configs selector reading True, with its help text](/img/neural-config/platform-preferences--log-alternate-configs.png)
+![The Log Alternate Configs selector set to True, with its help text](/img/neural-config/platform-preferences--log-alternate-configs.png)
 
-**Log Alternate Configs** — the screen shows `True`. "When calling seek with a Proposal or Override of the configuration, should the answers be logged to the Curate Tab."
-
-A Seek run against a proposed or overridden configuration is a test of a configuration you have not adopted; this decides whether those answers join your real ones in Curate. Leave it on if you want to review test answers there; turn it off if test traffic would pollute the curation queue.
+**Log Alternate Configs** decides whether answers from a Seek called with a proposal or an override of the configuration are logged to the [Curate](/seek/curation/) tab. Those calls test a configuration you have not adopted. Keep logging on to review the test answers next to real ones; turn it off when test traffic would crowd the curation list. Proposals are described on [Backup, restore & change logs](/configuration/backup-restore/).
 
 ### Hide API Keys
 
-![The Hide API Keys selector reading False, with the help text ending "Once set to true this option cannot be disabled."](/img/neural-config/platform-preferences--hide-api-keys.png)
+![The Hide API Keys selector set to False, with the help text ending Once set to true this option cannot be disabled](/img/neural-config/platform-preferences--hide-api-keys.png)
 
-**Hide API Keys** — the screen shows `False`. The help text reads: "Hide API kets of connected platforms from Configuration Admins. By default API keys are only shown to users with Admin / Configure permissions. Setting this option to true will require you re-enter all API keys when importing a configuration file. Once set to true this option cannot be disabled." ("kets" is a typo on screen; the setting is about API keys.)
+**Hide API Keys** hides the API keys of connected platforms from configuration admins. Without it, API keys are shown only to users with Admin / Configure permissions.
 
-:::danger[This switch is one-way]
-In the screen's own words: "Once set to true this option cannot be disabled." Turning **Hide API Keys** on also means, in the screen's words, that you "re-enter all API keys when importing a configuration file" from then on — which affects every restore from [Backup, restore & change logs](/configuration/backup-restore/). Decide before you save, not after.
+:::caution[This setting is one-way]
+Once **Hide API Keys** is set to `True`, it cannot be disabled. From then on, every API key has to be re-entered in every configuration file you upload with **Upload Settings** on [Backup, restore & change logs](/configuration/backup-restore/). Decide before you save.
 :::
 
 ### Default Language
 
-![The Default Language field group: the Default Output Language selector reading English, with its help text](/img/neural-config/platform-preferences--default-language.png)
+![The Default Language group: the Default Output Language selector set to English, with its help text](/img/neural-config/platform-preferences--default-language.png)
 
-**Default Language** — "Set the default platform language. The language can be overridden on the Seek tab and the api by setting the language option." The selector under it is labelled **Default Output Language**; the screen shows `English`.
+**Default Language** sets the default platform language through **Default Output Language**. The list starts with `Match Input`, followed by the languages by name. The default can be overridden for a single request on the Seek tab or in the API by setting the language option.
 
-This is a default rather than a constraint: a caller that sets the `language` option overrides it per request. The option list opens with `Match Input`, followed by the full alphabetical language list — the same one the KnowledgeBase Language selector offers. The screen does not describe what `Match Input` does.
+<!-- UNCONFIRMED: Match Input answers in the language of the question — inferred from the option name; the screen does not describe it -->
 
-![The Default Output Language menu opening, with English selected and Match Input as the first entry](/img/neural-config/platform-preferences--options-default-output-language.png)
-
-With **Default Output Language** on `English`, a question asked in Spanish — "¿Qué es NeuralSeek y para qué sirve?" — was answered in English:
-
-```text
-NeuralSeek is a platform that lets users query a connected KnowledgeBase and generate answers. Its Seek feature “enables users to test questions and generate answers using content from their connected KnowledgeBase,” while highlighting the sources and using semantic match scores to ensure accuracy and transparency.
-```
-
-A fixed output language is applied even when the question is in another language; to change it for one request, set the `language` option. [Language handling](/configuration/language/) covers the language settings across the product and the full list, including the knowledge base language that **Cross Language** compares against.
+Choose `Match Input` to answer in the language of the question; choose a language to answer in that language whatever the question's language. How the output language works with the knowledge base language and translation is on [Language handling](/configuration/language/).
 
 ### Virtual Agent Type
 
-![The Virtual Agent Type selector reading Watson Assistant Actions, with its help text and the repeated label under it](/img/neural-config/platform-preferences--virtual-agent-type.png)
+![The Virtual Agent Type selector set to Watson Assistant Actions, with its help text](/img/neural-config/platform-preferences--virtual-agent-type.png)
 
-**Virtual Agent Type** — the screen shows `Watson Assistant Actions`, with the label **Virtual Agent Type** repeated under the selector. "When using the Curate tab to auto-buld a virtual agent, what format should be written to." ("auto-buld" is the screen's spelling.)
+**Virtual Agent Type** is the format the [Curate](/seek/curation/) tab writes when it builds a [virtual agent](/integrations/virtual-agents/). Choose the one your chatbot platform imports:
 
-The options are `Watson Assistant Actions`, `AWS Lex V2`, `Kore.ai`, `Cognigy`, `Watson Assistant Dialog`, `Azure Knowledge Base` and `None / Webpage HTML`. Pick the one your chatbot platform imports. The export itself happens on the [Curate](/seek/curation/) tab.
+| Option                     | Writes for                                                                     |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| `Watson Assistant Actions` | [Watson Assistant](/integrations/virtual-agents/watsonx-assistant/), as actions |
+| `AWS Lex V2`               | [Amazon Lex V2](/integrations/virtual-agents/aws-lex/)                         |
+| `Kore.ai`                  | [Kore.ai](/integrations/virtual-agents/kore-ai/)                               |
+| `Cognigy`                  | Cognigy                                            |
+| `Watson Assistant Dialog`  | Watson Assistant, as a dialog                      |
+| `Azure Knowledge Base`     | An Azure knowledge base                            |
+| `None / Webpage HTML`      | No virtual agent platform: a web page, as HTML     |
 
-![The Virtual Agent Type menu opening, with Watson Assistant Actions checked as the first entry](/img/neural-config/platform-preferences--options-virtual-agent-type.png)
+Two switches under the selector, each set with **Disable** or **Enable**, control links in the answers:
 
-Two checkboxes sit directly under the selector, each switching between `Disable` and `Enable`:
-
-- **Embed links into returned responses for Virtual Agent Types that support it.** — unchecked in the configuration shown. Source links are written into the generated answers, for the output formats that can carry them. The qualifier is load-bearing: a format that has no link representation ignores this.
-- **Only show unique embedded links** — unchecked in the configuration shown. When several passages in one answer come from the same document, this keeps a single link instead of repeating it — which only matters once links are being embedded at all.
+- **Embed links into returned responses for Virtual Agent Types that support it.** — writes the source links into the returned answers, on the virtual agent types that can carry them.
+- **Only show unique embedded links** — shows each embedded link once. It matters only when links are embedded.
 
 ### Stopwords
 
-![The Stopwords text box with the placeholder a, and, the, and its help text](/img/neural-config/platform-preferences--stopwords.png)
+![The Stopwords text box with its help text](/img/neural-config/platform-preferences--stopwords.png)
 
-**Stopwords** — a text box with the placeholder `a, and, the`, empty in the configuration shown. "Custom StopWords list. Only use this if you want to override the NeuralSeek default stopwords. Separate stopwords by comma."
+<!-- UNCONFIRMED: stopwords are insignificant words removed during pre-processing — old docs, documentation.neuralseek.com/ui/configure/ -->
 
-Note what the help text says: this is an override, not an addition, so anything you type replaces NeuralSeek's own list rather than extending it. Leaving it empty keeps the product's defaults, which is what the help text recommends unless you have a reason.
+Stopwords are the insignificant words NeuralSeek removes during pre-processing. Use **Stopwords** only when you want to override NeuralSeek's default stopwords: type your list separated by commas — for example `a, and, the`. Leave it empty unless you have a reason to change which words are ignored.
 
 ### HTML Cleansing
 
-![The HTML Cleansing field group: Enable the automatic HTML Cleanser reading True, and the CSS selectors text box holding an empty array](/img/neural-config/platform-preferences--html-cleansing.png)
+![The HTML Cleansing group: Enable the automatic HTML Cleanser set to True, and the CSS selectors text box holding an empty array](/img/neural-config/platform-preferences--html-cleansing.png)
 
-**HTML Cleansing** — "NeuralSeek will automatically cleanse scraped HTML pages in supported KB's." Two controls sit under it:
+**HTML Cleansing** cleans scraped HTML pages in the knowledge base types that support it, so navigation and page furniture do not end up in answers.
 
-- **Enable the automatic HTML Cleanser** — the screen shows `True`; the options are `True` and `False`. `True` lets NeuralSeek cleanse scraped HTML pages automatically; `False` turns that cleansing off.
-
-  ![The Enable the automatic HTML Cleanser menu opening, with True checked as the first entry](/img/neural-config/platform-preferences--options-enable-the-automatic-html-cleanser.png)
-
-- **Provide an array of CSS selectors to remove from the HTML** — a text box with the placeholder `['.mybadclass']`, holding `[]` in the configuration shown. The placeholder shows the expected shape: an array of selector strings, in the same bracket-and-quote notation. This is where you add the selectors the automatic cleanser does not catch — a cookie banner, a navigation rail, a site-wide footer that would otherwise be ingested as content.
+- **Enable the automatic HTML Cleanser** — `True` cleans scraped pages automatically; `False` keeps them as scraped.
+- **Provide an array of CSS selectors to remove from the HTML** — extra elements to strip, written as an array of selectors, such as `['.mybadclass']`. Add the cookie banners, navigation rails or footers that the automatic cleanser leaves in. `[]` removes nothing extra.
 
 ### Save Agents
 
-![The Save Agents field group: the Configuration Save Agent and mAIstro Save Agent selectors, both reading Disabled](/img/neural-config/platform-preferences--save-agents.png)
+![The Save Agents group: Configuration Save Agent and mAIstro Save Agent, both set to Disabled](/img/neural-config/platform-preferences--save-agents.png)
 
-**Save Agents** — "NeuralSeek can trigger mAIstro agents to run upon saving the configuration and/or mAIstro agents". Two selectors:
+**Save Agents** runs a mAIstro agent whenever something is saved. Each selector offers `Disabled` and a list of agents to choose from.
 
-- **Configuration Save Agent** — the screen shows `Disabled`; the options offered were `Disabled` and `ex_config_save_agent`. Runs when the configuration is saved.
-- **mAIstro Save Agent** — the screen shows `Disabled`; the options offered were `Disabled` and `ex_maistro_save_agent`. Runs when a mAIstro agent is saved.
+- **Configuration Save Agent** — runs when the configuration is saved.
+- **mAIstro Save Agent** — runs when a mAIstro agent is saved.
 
-These are the hooks for change notification, approval workflows and external audit trails: an agent here can post the saved change somewhere, or open a ticket for it. The screen says nothing about what input a save agent receives; the In/Out node pair such an agent is built around is on [Pipeline hooks](/maistro/ntl/pipeline-hooks/). As with [Context detection](#context-detection), the agents offered depend on your instance.
+Use them for work that should follow a save, such as sending a notification or recording the change in an external log. How an agent built for these hooks is put together is on [Pipeline hooks](/maistro/ntl/pipeline-hooks/).
 
 ### Post-Seek Agent
 
-![The Post-Seek Agent help text naming the postSeekAgentIn variables, and the Post-Seek mAIstro Agent selector reading Disabled](/img/neural-config/platform-preferences--post-seek-agent.png)
+![The Post-Seek Agent group: its help text naming the postSeekAgentIn variables, and the Post-Seek mAIstro Agent selector set to Disabled](/img/neural-config/platform-preferences--post-seek-agent.png)
 
-**Post-Seek Agent** — "Trigger a mAIstro agent asynchronously after each Seek response. This does not affect Seek latency. Use it to save conversations, log custom analytics, or run any post-processing workflow. The agent receives the full Seek context via `postSeekAgentIn` variables: question, answer, answerId, sessionId, user, score, url, document, langCode, sentiment, semanticScore, params, and options."
+**Post-Seek Agent** runs a mAIstro agent asynchronously after each Seek response, so it does not add to Seek latency. Use it to save conversations, log custom analytics or run any other post-processing. Choose the agent in **Post-Seek mAIstro Agent**; `Disabled` runs nothing.
 
-Its control is **Post-Seek mAIstro Agent**; the screen shows `Disabled`, and in the configuration shown the menu offered `Disabled` and nothing else. The list holds the agents your instance can run here, so yours may offer more.
-
-![The Post-Seek mAIstro Agent menu opening, with Disabled checked](/img/neural-config/platform-preferences--options-post-seek-maistro-agent.png)
-
-Two things in that description are worth keeping: the agent runs _asynchronously_, so it does not sit in the caller's response path, and the context it receives is named — those thirteen `postSeekAgentIn` variables are what your agent has to work with. How a hook agent is built, and how it fits with the save hooks above, is on [Pipeline hooks](/maistro/ntl/pipeline-hooks/); for sending Seek records to your own store, see also [Logging](/governance/logging/).
-
-### Settings that live elsewhere
-
-- Retrieval — how many documents a Seek returns and how they are scored: [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/).
-- Temperature, top probability and maximum tokens: [Prompt Engineering](/configuration/neural-config/prompt-engineering/).
-- The answer and intent caches: [Intent Matching & Cache](/configuration/neural-config/intent-matching-caching/).
-- Per-user document filtering through an external rules engine: [Corporate Document Filter](/governance/corporate-document-filter/).
+The agent receives the full Seek context in the `postSeekAgentIn` variables: `question`, `answer`, `answerId`, `sessionId`, `user`, `score`, `url`, `document`, `langCode`, `sentiment`, `semanticScore`, `params` and `options`.
 
 ## FAQ
 
-### My chatbot times out before NeuralSeek answers — what do I set?
+### My chatbot times out before NeuralSeek answers. What do I set?
 
-**Timeout**, the first slider in this section. The screen's guidance is to set it to "a few seconds less than the timeout of your chatbot platform", so that NeuralSeek is the one that gives up first and can serve "the closest possible cached answer, if one is available" instead of leaving your platform to fail. The slider runs from `4000` to `90000` milliseconds.
+Set **Timeout** a few seconds below your chatbot platform's timeout. NeuralSeek then stops first and tries to serve the closest cached answer, if one is available, instead of leaving your platform to fail the request.
 
-### Which formats can Curate export a virtual agent to?
+### Can I turn Hide API Keys off again?
 
-The seven options of **Virtual Agent Type**: `Watson Assistant Actions`, `AWS Lex V2`, `Kore.ai`, `Cognigy`, `Watson Assistant Dialog`, `Azure Knowledge Base` and `None / Webpage HTML`. The selected one is the format the Curate tab writes when it builds the agent.
+No. Once **Hide API Keys** is set to `True` it cannot be disabled, and every API key has to be re-entered when you import a configuration file afterwards.
 
-### Why did my semantic scores disappear after turning on Cross Language?
+### Why did semantic scores disappear after I turned on Cross Language?
 
-Because they are switched off with it. The help text under **Cross Language** says: "Semantic Scoring is not possible on Cross-language response generation, so it will be automatically disabled." Any guardrail that reads the semantic score is therefore inactive for cross-language answers — see [Semantic scoring](/governance/guardrails/semantic-scoring/).
+Semantic Scoring cannot run on cross-language response generation, so turning on **Cross Language** disables it automatically for those answers. Guardrails that depend on the [semantic score](/governance/guardrails/semantic-scoring/) do not apply to them.
 
-### Can I undo Hide API Keys?
+### How do I run something after every answer without slowing Seek down?
 
-No. The screen states it plainly: "Once set to true this option cannot be disabled." It also changes imports: "Setting this option to true will require you re-enter all API keys when importing a configuration file." Treat it as a permanent change to the instance.
+Choose an agent in **Post-Seek mAIstro Agent**. It runs asynchronously after each Seek response and receives the Seek context through the `postSeekAgentIn` variables.
 
-### A filtered search returns nothing — will NeuralSeek retry without the filter?
+## Related
 
-Only if **Relax Filters** is `True`. The screen shows no default for it, so check your own setting. When it is on, an empty filtered result is retried with the filter loosened — except for any key you have listed in **Must Keep Keys (filters to never remove) separated by comma**, which is never relaxed.
-
-### How do I run something after every answer without slowing Seek?
-
-Point **Post-Seek mAIstro Agent** at an agent under **Post-Seek Agent**. The screen describes it as running "asynchronously after each Seek response" and says it "does not affect Seek latency". The agent receives the request's context in `postSeekAgentIn`: question, answer, answerId, sessionId, user, score, url, document, langCode, sentiment, semanticScore, params, and options. See [Pipeline hooks](/maistro/ntl/pipeline-hooks/) for how to build one.
-
-For configuration changes rather than answers, the equivalent hooks are **Configuration Save Agent** and **mAIstro Save Agent** under **Save Agents**.
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/) — save, name and propose configuration changes
+- [Conversational context](/seek/conversational-context/) — how `session_id` and user tie turns together
+- [Caching](/seek/caching/) — the cached answers a timeout falls back to
+- [Language handling](/configuration/language/) — Cross Language, output language and the knowledge base language
+- [Pipeline hooks](/maistro/ntl/pipeline-hooks/) — agents the platform runs on save
+- [Answer curation](/seek/curation/) — the Curate tab, its logged answers and the virtual agent it builds
+- [Backup, restore & change logs](/configuration/backup-restore/) — proposals, Upload Settings and restoring a configuration
+- [Neural Config options](/configuration/neural-config/) — the other sections of the configuration dialog

@@ -44,22 +44,23 @@ area's own Cleanup stage.**
    it prints are the ones the area owns — they match `next`). Write-only mode:
    `bun scripts/agentic/queue.ts <area> --write-only --only <r1> --only <r2> … --json` with the
    routes `next` listed. Either way → `runId`, `captureRun`, `mode`. Record it:
-   `bun scripts/agentic/night.ts record <section> --ledger <runId>`. Extract the docs-explore
-   script to a file (`sed -n '/^```js$/,/^```$/p' .claude/skills/docs-explore/SKILL.md | sed '1d;$d' > <scratchpad>/docs-explore.js`,
-   once per night) and call the **Workflow** tool with `scriptPath` and
+   `bun scripts/agentic/night.ts record <section> --ledger <runId>`. Call the **Workflow** tool with
+   `scriptPath: <repo>/.claude/skills/docs-explore/workflow.js` and
    `args: { runId, captureRun, mode, area, kind, routes, repo: "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs" }`
    (the planner, checkpoints and delegation run inside; add `noPlan: true` only if Fabio asked
    for a pure v3.2 night).
    Then `bun scripts/agentic/night.ts record <section> --workflow <the Workflow run id>`. **Stop
    the turn** — say which section is running and that the completion notification continues it.
-3. **Launch the consistency pass.** Extract the script below the same way and call the
-   Workflow tool with `args: { nightId, routes, runIds, captureRuns, repo }`. Record `--workflow`. Stop the turn.
+3. **Launch the consistency pass.** Call the Workflow tool with
+   `scriptPath: <repo>/.claude/skills/docs-night/consistency.js` and `args: { nightId, routes, runIds, captureRuns, repo }`. Record `--workflow`. Stop the turn.
 4. **On a completion notification** (its result JSON is in the notification): for a section,
-   `bun scripts/agentic/night.ts record <section> --status <done|halted> --tokens <subagent_tokens
-from the notification's usage> --result '<the result JSON, minified, without the report field>'`
-   — `halted` when the result has `loginHalted: true`, else `done`. A failed Workflow (error,
+   first `bun scripts/agentic/ingest-result.ts <runId> <output-file>` (the notification's
+   `<output-file>`), then `bun scripts/agentic/night.ts record <section> --status <done|halted>
+--tokens <subagent_tokens from the notification's usage> --result-file <output-file>` — the
+   result is read from the file by code, never pasted into a command line
+   — `halted` when the result has `loginHalted: true` or `integrity`, else `done`. A failed Workflow (error,
    no result) → `--status failed`. For the consistency pass, `record consistency --status done
---tokens … --result …`. Then go to 1. Do not summarise mid-night; the report does that.
+--tokens … --result-file <output-file>`. Then go to 1. Do not summarise mid-night; the report does that.
 
 A login halt stops the browser for every later area. Record it, then **stop and tell Fabio** the
 resume command (`/docs-explore <area> --resume <workflowRunId> --run <ledgerRunId>`), then
@@ -75,104 +76,5 @@ plus `/workflows`.
 
 ## The consistency Workflow script
 
-```js
-export const meta = {
-  name: 'docs-night-consistency',
-  description:
-    'Cross-page consistency pass over every route written tonight — one bounded fix per page, no commits',
-  phases: [
-    { title: 'Neighbours', detail: 'neighbours.ts per route' },
-    { title: 'Compare', detail: 'consistency agent per route' },
-    { title: 'Fix', detail: 'writer (own page only) + gates, only when needs-fix' },
-  ],
-};
-const A = (prompt, opts) =>
-  agent(prompt, opts).catch((e) => {
-    log(
-      `agent failed (${(opts && opts.label) || '?'}): ${String(e && e.message ? e.message : e).slice(0, 160)}`
-    );
-    return null;
-  });
-const REPO = args.repo;
-const NIGHT = args.nightId;
-const CD = (r) => `${REPO}/_private/agentic-v2/night/${NIGHT}/consistency/${r.replace(/\//g, '-')}`;
-const RD = (r) => `${REPO}/_private/agentic-v2/runs/${args.runIds[r]}/${r.replace(/\//g, '-')}`;
-const CAP = (r) =>
-  `${REPO}/_private/agentic-v2/runs/${(args.captureRuns && args.captureRuns[r]) || args.runIds[r]}`;
-const SCRIPT = {
-  type: 'object',
-  properties: { ok: { type: 'boolean' }, json: { type: 'object' }, stderr: { type: 'string' } },
-  required: ['ok'],
-};
-const run = (cmd, label, phase) =>
-  A(
-    `From ${REPO}, run exactly this command and nothing else:\n\n${cmd}\n\nReturn {ok: <exit code was 0>, json: <the JSON it printed, parsed>, stderr: <stderr if any>}. Do not fix anything, do not run anything else.`,
-    { label, phase, schema: SCRIPT, model: 'haiku', effort: 'low', agentType: 'general-purpose' }
-  );
-const CONSISTENCY = {
-  type: 'object',
-  properties: {
-    route: { type: 'string' },
-    contradictions: { type: 'array' },
-    duplicates: { type: 'array' },
-    missing_links: { type: 'array' },
-    verdict: { type: 'string', enum: ['consistent', 'needs-fix'] },
-  },
-  required: ['route', 'verdict'],
-};
-const WRITE = {
-  type: 'object',
-  properties: {
-    route: { type: 'string' },
-    edits: { type: 'array' },
-    left_unresolved: { type: 'array' },
-    asks: { type: 'array' },
-    lint: { type: 'string' },
-  },
-  required: ['route', 'edits'],
-};
-
-const results = await pipeline(
-  args.routes,
-  (r) =>
-    run(
-      `bun scripts/agentic/neighbours.ts ${r} --night ${NIGHT} --json`,
-      `neighbours:${r}`,
-      'Neighbours'
-    ),
-  (n, r) =>
-    n && n.ok
-      ? A(
-          `nightId: ${NIGHT}. route: ${r}. Compare this page with its neighbours per your instructions and write ${CD(r)}/consistency.json.`,
-          { agentType: 'consistency', label: `compare:${r}`, phase: 'Compare', schema: CONSISTENCY }
-        )
-      : null,
-  async (c, r) => {
-    if (!c) return null;
-    if (c.verdict !== 'needs-fix') return { route: r, verdict: c.verdict, fixed: false };
-    if (!args.runIds[r]) {
-      log(`${r}: needs-fix but no run to write against — skipped`);
-      return { route: r, verdict: c.verdict, fixed: false };
-    }
-    const w = await A(
-      `runId: ${args.runIds[r]}. route: ${r}. Capture folder C: ${CAP(r)}. Apply the consistency fixes in ${CD(r)}/consistency.json to your page only, per your instructions, and update ${RD(r)}/write.json.`,
-      { agentType: 'writer', label: `fix:${r}`, phase: 'Fix', schema: WRITE }
-    );
-    const g = w
-      ? await run(`bun scripts/agentic/gates.ts ${args.runIds[r]} ${r} --json`, `gates:${r}`, 'Fix')
-      : null;
-    return { route: r, verdict: c.verdict, fixed: !!w, gatesOk: !!(g && g.json && g.json.ok) };
-  }
-);
-const fixed = results
-  .filter(Boolean)
-  .filter((x) => x.fixed)
-  .map((x) => x.route);
-log(`consistency: ${results.filter(Boolean).length} compared, ${fixed.length} fixed`);
-return {
-  nightId: NIGHT,
-  compared: results.filter(Boolean).length,
-  fixed,
-  results: results.filter(Boolean),
-};
-```
+The consistency script is **`.claude/skills/docs-night/consistency.js`** (its own file since
+2026-10-01; same receipt contract as the docs-explore workflow).
