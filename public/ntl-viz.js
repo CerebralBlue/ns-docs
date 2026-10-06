@@ -24,70 +24,21 @@
 		}
 	}
 
-	/* TEMPORARY SHIM — delete once consoleapi serves a fixed ntlEmbed.html.
-	 * The deployed ntlEmbed.html posts to the relative path `/c1/ntlToVisPub`,
-	 * which 404s on the API hosts (the working route is `/ntlToVisPub` on
-	 * consoleapi). The embed builds its own iframe with `iframe.src = <host>/src/
-	 * ntlEmbed.html`, so we fetch that page, patch the three host-relative bits,
-	 * and make the embed's iframe load it via `srcdoc` instead. If the served page
-	 * no longer contains `/c1/ntlToVisPub` (i.e. it was fixed), nothing is patched. */
-	function patchedFrameHtml(scriptUrl) {
-		var origin = new URL(scriptUrl).origin;
-		return fetch(origin + '/src/ntlEmbed.html')
-			.then(function (r) {
-				return r.ok ? r.text() : null;
-			})
-			.then(function (html) {
-				if (!html || html.indexOf("'/c1/ntlToVisPub'") < 0) return null;
-				return html
-					.replace('<head>', '<head><base href="' + origin + '/">')
-					.replace("'/c1/ntlToVisPub'", "'" + origin + "/ntlToVisPub'")
-					.replace('window.location.origin', JSON.stringify(origin));
-			})
-			.catch(function () {
-				return null;
-			});
-	}
-
-	function installSrcdocShim(html) {
-		var d = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src');
-		Object.defineProperty(HTMLIFrameElement.prototype, 'src', {
-			configurable: true,
-			enumerable: d.enumerable,
-			get: d.get,
-			set: function (v) {
-				if (/\/src\/ntlEmbed\.html$/.test(v)) {
-					// srcdoc inherits OUR origin. Accepted for testing (first-party host);
-					// a sandbox attribute stops the embed from rendering.
-					this.srcdoc = html;
-				}
-				else d.set.call(this, v);
-			},
-		});
-	}
-
 	var embedPromise = null;
 	function loadEmbed() {
 		if (window.NeuralSeekEmbed) return Promise.resolve();
 		if (!embedPromise) {
-			var url = embedUrl();
-			embedPromise = patchedFrameHtml(url)
-				.then(function (html) {
-					if (html) installSrcdocShim(html);
-				})
-				.then(function () {
-					return new Promise(function (resolve, reject) {
-						var s = document.createElement('script');
-						s.src = url;
-						s.onload = function () {
-							window.NeuralSeekEmbed ? resolve() : reject(new Error('NeuralSeekEmbed missing'));
-						};
-						s.onerror = function () {
-							reject(new Error('embed failed to load'));
-						};
-						document.head.appendChild(s);
-					});
-				});
+			embedPromise = new Promise(function (resolve, reject) {
+				var s = document.createElement('script');
+				s.src = embedUrl();
+				s.onload = function () {
+					window.NeuralSeekEmbed ? resolve() : reject(new Error('NeuralSeekEmbed missing'));
+				};
+				s.onerror = function () {
+					reject(new Error('embed failed to load'));
+				};
+				document.head.appendChild(s);
+			});
 		}
 		return embedPromise;
 	}
