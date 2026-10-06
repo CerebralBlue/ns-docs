@@ -1,0 +1,65 @@
+/* ============================================================
+   NTL Visualize | Code tabs — markup from remark-ntl-viz.mjs,
+   behaviour from public/ntl-viz.js. Last in the cascade: it only
+   styles our own `.ns-ntl*` classes, so it cannot collide.
+   ============================================================ */
+.ns-ntl {
+	margin-block: 1rem;
+	border: 1px solid var(--sl-color-hairline);
+	border-radius: var(--ns-radius);
+	overflow: hidden;
+}
+
+.ns-ntl__bar {
+	display: flex;
+	background: var(--sl-color-bg-nav);
+	border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+.ns-ntl__tab {
+	appearance: none;
+	margin: 0;
+	padding: 0.5rem 1rem;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	background: none;
+	color: var(--sl-color-gray-3);
+	font: inherit;
+	font-size: var(--sl-text-sm);
+	cursor: pointer;
+	transition: color var(--ns-transition);
+}
+
+.ns-ntl__tab:hover {
+	color: var(--sl-color-white);
+}
+
+.ns-ntl__tab[aria-selected='true'] {
+	color: var(--sl-color-white);
+	border-bottom-color: var(--ns-trust-blue);
+}
+
+.ns-ntl__viz {
+	padding: 0.75rem;
+	overflow-x: auto;
+	background: var(--sl-color-bg);
+}
+
+.ns-ntl__status {
+	color: var(--sl-color-gray-3);
+	font-size: var(--sl-text-sm);
+}
+
+/* Expressive Code adds its own frame/margin; the wrapper already has one. */
+.ns-ntl__code .expressive-code {
+	margin: 0;
+}
+
+.ns-ntl__code .expressive-code .frame {
+	border: 0;
+	border-radius: 0;
+}
+
+.ns-ntl [hidden] {
+	display: none;
+}
