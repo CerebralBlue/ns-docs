@@ -68,6 +68,9 @@
 @import './16-page-splash.css';
 @import './17-page-hero.css';
 
+/* NTL Visualize | Code tabs (our own `.ns-ntl*` classes only) */
+@import './19-component-ntl-viz.css';
+
 /* Site graph — sidebar panel + fullscreen overlay. Last on purpose: its
    selectors are all `.ns-graph*` and collide with nothing, so "after
    everything" is the honest position rather than a negotiated one. */

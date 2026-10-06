@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import remarkNsDirectives from './src/plugins/remark-ns-directives.mjs';
 import remarkBasePath from './src/plugins/remark-base-path.mjs';
+import remarkNtlViz from './src/plugins/remark-ntl-viz.mjs';
 
 /**
  * THE deployment prefix — single source of truth.
@@ -33,7 +34,7 @@ export default defineConfig({
 	// `::ns-button`. remark-ns-directives rewrites those nodes into paragraphs,
 	// after which the attributes are gone.
 	markdown: {
-		remarkPlugins: [[remarkBasePath, { base: BASE }], remarkNsDirectives],
+		remarkPlugins: [[remarkBasePath, { base: BASE }], remarkNsDirectives, remarkNtlViz],
 	},
 	integrations: [
 		starlight({
@@ -46,6 +47,8 @@ export default defineConfig({
 				replacesTitle: true,
 			},
 			favicon: '/favicon.png',
+			// Powers the Visualize | Code tabs on ntl code fences (see remark-ntl-viz.mjs).
+			head: [{ tag: 'script', attrs: { src: `${BASE}/ntl-viz.js`, defer: true } }],
 			// One entry on purpose. The design system is ~19 files under
 			// src/styles/, and their ORDER IS LOAD-BEARING (the CSS is unlayered,
 			// so equal-specificity conflicts resolve by source order). That order
