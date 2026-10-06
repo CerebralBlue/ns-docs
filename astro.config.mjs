@@ -307,10 +307,14 @@ export default defineConfig({
 							label: 'Guardrails',
 							collapsed: true,
 							items: [
+								// Follows the Guardrails dialog's tab strip: Semantic Scoring, Prompt
+								// Injection, PII, Profanity (HAP), Attribution Protection, Warning /
+								// Min Confidence, (Min Text, Max Length: on the overview), Custom Governance.
 								{ label: 'Guardrails overview', slug: 'governance/guardrails/overview' },
-								{ label: 'Profanity (HAP)', slug: 'governance/guardrails/profanity-hap' },
-								{ label: 'Prompt injection', slug: 'governance/guardrails/prompt-injection' },
 								{ label: 'Semantic scoring', slug: 'governance/guardrails/semantic-scoring' },
+								{ label: 'Prompt injection', slug: 'governance/guardrails/prompt-injection' },
+								{ label: 'PII detection', slug: 'governance/pii-detection' },
+								{ label: 'Profanity (HAP)', slug: 'governance/guardrails/profanity-hap' },
 								{
 									label: 'Attribution protection',
 									slug: 'governance/guardrails/attribution-protection',
@@ -326,16 +330,24 @@ export default defineConfig({
 							label: 'Dashboards',
 							collapsed: true,
 							items: [
+								// Follows the Governance side navigation (capture 202610060102, _nav.yml):
+								// Seek Governance (Overview, Semantic / Documentation / Intent Insights,
+								// Token / Cost Insights, Seek Logs, Model Comparison, Configuration
+								// Insights), mAIstro Governance, Custom Governance.
 								{
 									label: 'Reading the dashboards',
 									slug: 'governance/analytics/reading-the-dashboards',
 								},
 								{ label: 'Seek overview', slug: 'governance/analytics/seek-overview' },
+								{ label: 'Semantic analytics', slug: 'governance/semantic-analytics' },
+								{ label: 'Content analytics', slug: 'governance/content-analytics' },
+								{ label: 'Intent categorization', slug: 'governance/intent-categorization' },
 								{ label: 'Seek tokens & cost', slug: 'governance/analytics/seek-tokens-cost' },
 								{
 									label: 'Seek logs & configuration insights',
 									slug: 'governance/analytics/seek-logs-and-config-insights',
 								},
+								{ label: 'Model comparison', slug: 'governance/analytics/model-comparison' },
 								{
 									label: 'Agent insights & details',
 									slug: 'governance/analytics/agent-insights-and-details',
@@ -344,20 +356,15 @@ export default defineConfig({
 									label: 'mAIstro logs, tokens & cost',
 									slug: 'governance/analytics/agent-logs-tokens-cost',
 								},
-								{ label: 'Model comparison', slug: 'governance/analytics/model-comparison' },
 								{ label: 'Custom dashboards', slug: 'governance/analytics/custom-dashboards' },
 							],
 						},
-						{ label: 'PII detection', slug: 'governance/pii-detection' },
 						{ label: 'Red team testing', slug: 'governance/red-team-testing' },
 						{ label: 'Logging', slug: 'governance/logging' },
 						{ label: 'Corporate document filter', slug: 'governance/corporate-document-filter' },
 						{ label: 'Replay', slug: 'governance/replay' },
 						{ label: 'Data security & privacy', slug: 'governance/data-security' },
-						{ label: 'Semantic analytics', slug: 'governance/semantic-analytics' },
-						{ label: 'Content analytics', slug: 'governance/content-analytics' },
 						{ label: 'Sentiment', slug: 'governance/sentiment' },
-						{ label: 'Intent categorization', slug: 'governance/intent-categorization' },
 						{ label: 'Entity extraction', slug: 'governance/entity-extraction' },
 					],
 				},

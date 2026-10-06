@@ -1253,17 +1253,22 @@
     },
     "governance/overview": {
       "title": "Governance overview",
-      "description": "Explore NeuralSeek's Governance tab for a comprehensive view of RAG governance. Access insights on system performance, semantic confidence, and documentation metrics to make informed decisions.",
-      "status": "draft",
+      "description": "Governance is the NeuralSeek console area that reports on Seek answers, mAIstro agent runs, usage and instance health, organised into Seek Governance, mAIstro Governance and Custom Governance dashboards.",
+      "status": "written",
       "type": "concept",
       "console": ["governance"],
-      "gaps": [
-        "The old standalone governance page is empty — decide what it contributes before merging it in"
+      "gaps": [],
+      "gapsResolved": [
+        {
+          "gap": "The old standalone governance page is empty — decide what it contributes before merging it in",
+          "run": "202610060102-governance",
+          "why": "resolved: the merged reference_material page contributed nothing (the MERGE block in the ported page is empty); the brief drops the leftover MERGE / STILL TO DOCUMENT comments"
+        }
       ]
     },
     "governance/guardrails/overview": {
       "title": "Guardrails overview",
-      "description": "The Guardrails dialog in Neural Config holds ten tabs behind one Save — four that act on the user's question, four that act on the generated answer, and one that hooks mAIstro agents onto both sides.",
+      "description": "NeuralSeek's guardrails live in one Neural Config dialog with ten tabs behind a single Save: some screen the user's question before the KnowledgeBase lookup and the LLM call, others check the generated answer, and Custom Governance hooks mAIstro agents onto both sides.",
       "console": ["governance", "neural-config"],
       "status": "written",
       "type": "concept",
@@ -1277,9 +1282,9 @@
     },
     "governance/guardrails/profanity-hap": {
       "title": "Profanity (HAP)",
-      "description": "The hate/abuse/profanity filter, plus the allow-list and block-list that adjust its built-in corpus.",
+      "description": "The Profanity (HAP) guardrail chooses which filter screens questions for hate, abuse and profanity, sets the reply a blocked user reads, and adjusts NeuralSeek's built-in word list with an allow-list and a block-list.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "HAP allow-list — words the profanity filter should ignore",
@@ -1290,22 +1295,28 @@
     },
     "governance/guardrails/prompt-injection": {
       "title": "Prompt injection",
-      "description": "Score, strip and block prompt-injection attempts before they reach the model.",
+      "description": "The Prompt Injection guardrail scores every user question against NeuralSeek's prompt-injection model, strips or blocks input above the thresholds you set, and removes words you list as never allowed.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "'Try it Out' — score a candidate prompt before setting a threshold",
         "How the two thresholds interact: removal runs first, then the block threshold is evaluated",
-        "The tab's controls by label: 'Blocked Word Action' selector (value seen: Remove from the input), the blocked-words list, and the two sliders Prompt Injection Removal Threshold / Prompt Injection Threshold (Disable … 1)",
-        "'Prompt Injection Testing' — the dialog behind 'Try it Out' (a Test button); it is in the /configure markup (IA 2026-09-19, assigned here)"
+        "The tab's controls by label: 'Blocked Word Action' selector (value seen: Remove from the input), the blocked-words list, and the two sliders Prompt Injection Removal Threshold / Prompt Injection Threshold (Disable … 1)"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "'Prompt Injection Testing' — the dialog behind 'Try it Out' (a Test button); it is in the /configure markup (IA 2026-09-19, assigned here)",
+          "run": "202610060102-governance",
+          "why": "Try it Out is disabled in every neural-config capture (state try-it-out: noChange); the dialog title exists only in hidden page markup, never rendered — a markup-only label is not a label"
+        }
       ]
     },
     "governance/guardrails/semantic-scoring": {
       "title": "Semantic scoring",
-      "description": "Score how well an answer is supported by its sources, and act on the result.",
+      "description": "The Semantic Scoring tab of the Guardrails dialog turns on NeuralSeek's semantic score, which rates each generated answer against its KnowledgeBase sources, and decides whether that score drives the confidence thresholds, reorders sources and removes unsupported sentences.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "LLM Decline Penalty — penalty when the answer looks like a refusal (Semantic Model Tuning)",
@@ -1318,9 +1329,9 @@
     },
     "governance/guardrails/attribution-protection": {
       "title": "Attribution protection",
-      "description": "Require answers to stay attributable to their source documents.",
+      "description": "The Attribution Protection guardrail sets how much generated text about your company, or about people and things, NeuralSeek tolerates when the KnowledgeBase has no specific reference for it — on a slider from Rigid to Standard.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "Attribution tolerance is 3 discrete levels (Rigid, medium, Standard), not a continuous slider"
@@ -1328,9 +1339,9 @@
     },
     "governance/guardrails/min-confidence": {
       "title": "Minimum confidence",
-      "description": "What happens when NeuralSeek is not confident enough to answer — the fallback agent, fallback URL, and the cost of pre-running them.",
+      "description": "The Min Confidence and Warning Confidence guardrails decide what happens to a low-confidence answer: below one threshold NeuralSeek replaces it with your own reply or a mAIstro agent's, below the other it shows the answer with a warning in front.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "Pre-run min confidence agent — runs the fallback agent speculatively for speed, and costs a run every time",
@@ -1342,9 +1353,9 @@
     },
     "governance/guardrails/custom-governance-agents": {
       "title": "Custom governance agents",
-      "description": "The only extension point inside the live request path: agents that can rewrite or block user input before retrieval, and the generated answer after it.",
+      "description": "The Custom Governance tab of the Guardrails dialog connects one mAIstro agent that runs before the KnowledgeBase lookup and the LLM call to modify or govern the user's input, and one that runs after the LLM call to modify or govern the answer.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "The Custom Governance tab as a whole",
@@ -1356,8 +1367,8 @@
     },
     "governance/pii-detection": {
       "title": "PII detection",
-      "description": "Discover NeuralSeek's advanced PII detection, ensuring data privacy by identifying, masking, and managing sensitive information. Customize settings for specific needs and maintain compliance effortlessly.",
-      "status": "draft",
+      "description": "NeuralSeek finds personal data in a user's question with built-in detectors, your own regular expressions and LLM-trained example sentences, then flags, masks, hides or deletes it according to the PII tab of the Guardrails dialog.",
+      "status": "written",
       "type": "concept",
       "console": ["governance", "neural-config:advanced"],
       "gaps": [
@@ -1368,9 +1379,9 @@
     },
     "governance/red-team-testing": {
       "title": "Red team testing",
-      "description": "Automated adversarial testing of a single agent — planned, executed and graded by agents, across five attack categories.",
+      "description": "Run an automated red team test against one mAIstro agent and read its security assessment: an overall score, five attack categories, the risks found, recommended mitigations and the test logs.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
       "type": "task",
       "gaps": [
         "Governance > mAIstro Governance > Red Team Testing",
@@ -1381,8 +1392,8 @@
     },
     "governance/logging": {
       "title": "Logging",
-      "description": "Discover how NeuralSeek's Round Trip Logging enhances Virtual Agent performance by tracking interactions and alerting you to outdated content. Ensure your responses stay accurate and up-to-date!",
-      "status": "draft",
+      "description": "Corporate Logging connects NeuralSeek to your own audit log store — ElasticSearch, OpenSearch or a mAIstro agent — so every request and response to the Seek API endpoint and the Curate tab is recorded where your organization keeps its audit trail.",
+      "status": "written",
       "type": "concept",
       "console": ["governance", "neural-config:advanced"],
       "gaps": [
@@ -1412,7 +1423,10 @@
       "description": "Explore NeuralSeek's Replay feature to revisit past Q&As, track documentation changes, and see how answers evolve. Perfect for understanding updates and refining your knowledge.",
       "status": "draft",
       "type": "task",
-      "console": ["governance"]
+      "console": ["governance"],
+      "gaps": [
+        "The replay entry point is not captured (IA 2026-10-06, run 202610060102): Seek Logs ends every answer with an unnamed, empty link and mAIstro Logs has an empty Link column while Enable Corporate Logging is Disabled — needs a capture with Corporate Logging connected and traffic logged"
+      ]
     },
     "governance/data-security": {
       "title": "Data security & privacy",
@@ -1423,9 +1437,9 @@
     },
     "governance/analytics/reading-the-dashboards": {
       "title": "Reading the dashboards",
-      "description": "How to read any Governance dashboard: the Filter modal, which pages your plan hides, and which setting each metric reflects.",
+      "description": "How to read any NeuralSeek Governance dashboard: narrow it by category, intent and date range with the filter bar, read its panels, and trace each metric back to the setting behind it.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
       "gaps": [
         "The Filter modal — slice any dashboard by intent category or by runtime filter",
@@ -1438,7 +1452,7 @@
       "title": "Seek overview dashboard",
       "description": "The default Governance landing page and its eleven panels.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "draft",
       "type": "reference",
       "gaps": [
         "Governance Rings — composite view of guardrail activity",
@@ -1451,9 +1465,9 @@
     },
     "governance/analytics/seek-tokens-cost": {
       "title": "Seek tokens & cost",
-      "description": "Token consumption and spend for Seek traffic, broken down by model and by runtime filter. BYOLLM instances only.",
+      "description": "The Token Insights and Cost Insights dashboards show how many tokens Seek traffic consumes, its estimated cost per seek and per 1,000 seeks, and how model prices compare.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "LLM Token Intensity — token consumption per model",
@@ -1464,9 +1478,9 @@
     },
     "governance/analytics/seek-logs-and-config-insights": {
       "title": "Seek logs & configuration insights",
-      "description": "The per-request Seek log, re-categorising an intent from a log row, and the configuration change history.",
+      "description": "Seek Logs lists every Seek exchange with its intent, category, score, response time and cache status, and Configuration Insights shows each saved configuration version with the settings it changed.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "Edit Category from a log row — re-categorise an intent; this trains future categorisation",
@@ -1475,26 +1489,33 @@
     },
     "governance/analytics/agent-insights-and-details": {
       "title": "Agent insights & details",
-      "description": "Fleet-wide agent behaviour and the per-agent drill-down: timing, ranking, latency distribution, guardrail hits and the invocation tree.",
+      "description": "The mAIstro Governance dashboards for agents: Agent Insights reports run time, usage, guardrail activations and timing across all agents, Agent Details drills into one agent's latency and invocation tree, and Agent Timeline steps through one agent's events.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "Agent Execution Timeline — when agents ran and for how long",
-        "Agent Run Ranking — agents ranked by runs, cost or duration",
+        "Agent Run Ranking — all agents ordered by run count",
         "Component Timing Guitar Chart — which node type is the bottleneck across all your agents",
         "Agent Details page — per-agent drill-down, 13 panels",
         "P50 / P95 / Peak latency — averages hide the timeouts users actually notice",
         "Guardrails hit — how often this agent tripped a guardrail",
         "Agent invocation tree — which agents called which, and how deep",
         "Time in phase / Phase mix — where run time goes, by phase"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Agent Run Ranking — agents ranked by runs, cost or duration",
+          "run": "202610060102-governance",
+          "why": "state agent-insights: the panel subtitle reads 'All agents ordered by run count.' and there is no selector for cost or duration; the panel stays as a gap with the captured ordering"
+        }
       ]
     },
     "governance/analytics/agent-logs-tokens-cost": {
       "title": "mAIstro logs, tokens & cost",
-      "description": "The per-run agent logs behind the Agent Details aggregates, and agent token and cost reporting.",
+      "description": "mAIstro Logs lists every agent run with its date, run ID, user, agent and runtime, and the mAIstro Governance group's Token Insights and Cost Insights pages report agent token use and spend.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "mAIstro Logs page — per-run agent logs behind the Agent Details aggregates",
@@ -1503,9 +1524,9 @@
     },
     "governance/analytics/model-comparison": {
       "title": "Model comparison",
-      "description": "Run the same Seek or the same agent across your configured models and compare the results side by side.",
+      "description": "Model Comparison in Governance runs one question through Seek on each LLM you select from your configured models and shows response time, Semantic Score and LLM Rank side by side.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "Seek Model Comparison — run one Seek across your configured models and compare",
@@ -1514,9 +1535,9 @@
     },
     "governance/analytics/custom-dashboards": {
       "title": "Custom dashboards",
-      "description": "Dashboards whose panels are mAIstro agents — the same mechanism behind Custom Governance and Run Agents.",
+      "description": "Custom dashboards live in the Custom Governance group of Governance: open the Agent Growth and Users dashboards, start a new one with Add Dashboard, and use the Edit switch that Add Panel and Delete Dashboard depend on.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
       "type": "reference",
       "gaps": [
         "Custom Governance dashboards — panels that are mAIstro agents",
@@ -1531,8 +1552,8 @@
     },
     "governance/semantic-analytics": {
       "title": "Semantic analytics",
-      "description": "Discover how NeuralSeek's Semantic Analytics enhances response accuracy by linking answers to their sources. Explore semantic match scores, color-coded insights, and customizable configurations.",
-      "status": "draft",
+      "description": "While the semantic score model is enabled, NeuralSeek compares each Seek answer with the source passages it was generated from, and the Semantic Insights dashboard aggregates those scores and source-coverage measurements over a date range so you can see how well answers stay grounded in your documents.",
+      "status": "written",
       "type": "concept",
       "console": ["governance", "seek"],
       "gaps": [
@@ -1559,23 +1580,40 @@
       "description": "Discover NeuralSeek's Sentiment Analysis: Uncover emotional tones in text using advanced NLP. Enhance customer interactions by tailoring responses based on sentiment scores.",
       "status": "draft",
       "type": "concept",
-      "console": ["governance"]
+      "console": ["governance"],
+      "gaps": [
+        "The `sentiment` value of the REST /seek response (0 most negative … 9 most positive in the old page) — unconfirmed (IA 2026-10-06, run 202610060102): no Governance screen, no Seek Logs column and no NTL node (probe p62: zero matches in ntl://reference) shows sentiment"
+      ]
     },
     "governance/intent-categorization": {
       "title": "Intent categorization",
-      "description": "Discover how NeuralSeek's Intent Categorization effortlessly organizes user input into customizable categories, enhancing efficiency and routing accuracy. Perfect for scaling within organizations.",
-      "status": "draft",
+      "description": "Intent categorization sorts the questions that reach NeuralSeek into categories you define on the Neural Config screen; each category decides whether Seek answers a matching question or a mAIstro agent takes it, and Intent Insights reports coverage and confidence per category.",
+      "status": "written",
       "type": "concept",
       "console": ["governance"],
       "gaps": [
-        "Absorbs the Neural Config > Intent Categorization panel",
-        "Category table — add, edit and delete intent categories",
         "Action to take on match — Answer Generation, or hand the request to a mAIstro agent",
         "Category description and auto-generate — the description is what input is matched against; the LLM can draft it",
         "Category ID — the ID used to reference a category from the API",
         "Delete cascade — deleting a category deletes all child categories and settings",
-        "These categories ARE the multi-agent routing categories; one set, two screens",
-        "Its test surface: Chat > Edit Configuration"
+        "These categories ARE the multi-agent routing categories; one set, two screens"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Absorbs the Neural Config > Intent Categorization panel",
+          "run": "202610060102-governance",
+          "why": "no panel or label 'Intent Categorization' in any of the 59 states of neural-config capture 202610010144; categories are nodes of the routing tree (Add a Category / Edit Category: <name>), owned by configuration/overview. The brief explains them as shared controls."
+        },
+        {
+          "gap": "Category table — add, edit and delete intent categories",
+          "run": "202610060102-governance",
+          "why": "no category table on any captured screen; add/edit/delete happen on routing-tree nodes (Add a Category dialog, Edit Category dialog with Delete Category) in neural-config 202610010144, owned by configuration/overview and linked from this page"
+        },
+        {
+          "gap": "Its test surface: Chat > Edit Configuration",
+          "run": "202610060102-governance",
+          "why": "chat capture 202609300237, state edit-chatconfig: Edit Configuration is a JSON chat-widget configuration (userId, chatTheme, maistroLed, maistroFlow, …) with no category key or selector"
+        }
       ]
     },
     "governance/entity-extraction": {

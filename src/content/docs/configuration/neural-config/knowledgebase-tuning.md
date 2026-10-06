@@ -46,9 +46,7 @@ These sliders decide how much text around a match reaches the LLM: they are what
 - **Expansion Window. How many chunks to grab before and after the target chunk.** is shown when KnowledgeBase Type is `NeuralSeek KB`. Its track runs from `1` to `10`: when a chunk of a document matches, this many neighbouring chunks of the same document before and after it come with it.
 - **Snippet size** is shown in the same place for the other KnowledgeBase Types. Its help text reads: "Use this setting to window relevant details in a document that do not specifically mention the user question, but apply to it." The track runs from `100` to `1000`, or from `100` to `2000` when the type is `Watson Discovery`, `Watson Discovery (CP4D)`, `Virtual KB` or `No KnowledgeBase`.
 
-![Screenshot pending: KnowledgeBase Tuning with a KnowledgeBase Type other than NeuralSeek KB, showing the Snippet size slider](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: /img/neural-config/knowledgebase-tuning@kb-pinecone--snippet-size.png — Neural Config > Default Config / Answer Generation > Edit Configuration, KnowledgeBase Type set to Pinecone (unsaved), KnowledgeBase Tuning expanded: crop the Snippet size slider with its 100–1000 track and number box. Why: the capture only expanded KnowledgeBase Tuning with NeuralSeek KB selected. -->
+![KnowledgeBase Tuning with KnowledgeBase Type set to Pinecone: the Snippet size slider runs from 100 to 1000 beside the other tuning sliders](/img/neural-config/knowledgebase-connection@kb-pinecone-tuning--tuning-item.png)
 
 <!-- UNCONFIRMED: Snippet size is the character count passed to the KnowledgeBase as the passage size, generally best around 500 — old KnowledgeBase Tuning documentation (configuration/overview) -->
 
