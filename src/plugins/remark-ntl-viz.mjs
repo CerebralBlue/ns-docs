@@ -63,13 +63,10 @@ export default function remarkNtlViz() {
 			}
 			const ntl = node.value;
 			node.lang = 'text';
-			parent.children.splice(
-				index,
-				1,
-				{ type: 'html', value: OPEN(ntl) },
-				node,
-				{ type: 'html', value: CLOSE },
-			);
+			parent.children.splice(index, 1, { type: 'html', value: OPEN(ntl) }, node, {
+				type: 'html',
+				value: CLOSE,
+			});
 			return [SKIP, index + 3];
 		});
 	};
