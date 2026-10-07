@@ -55,6 +55,12 @@ An example of a reply:
 That seems like a sensitive question. Maybe I'm not understanding you, so try rephrasing.
 ```
 
+When the filter blocks a question, Seek returns this text exactly as you wrote it, in place of a
+generated answer: the response carries no sources and a confidence of 0. A hostile tone on its own is not
+enough: a hostile question that contains no profane words can go through unblocked and get a
+normal generated reply. If your users' abuse runs to words the built-in list does not catch, add
+them to the block-list below.
+
 <!-- UNCONFIRMED: the NTL Profanity Filter node returns this tab's reply text — old NTL Profanity Filter node page -->
 
 mAIstro agents can apply the same filter with the [Profanity Filter](/maistro/ntl/guardrails/)
@@ -99,6 +105,12 @@ To read the individual questions that were flagged, open **Filter** in
 [Seek logs](/governance/analytics/seek-logs-and-config-insights/) and choose **Sensitive**.
 
 ## FAQ
+
+**What does a user see when their question is blocked?**
+The text in **Text to reply with for sensitive questions that are blocked**, word for word,
+instead of an answer. Seek generates nothing for that question: the reply has no sources and a
+confidence of 0. A rude question without profane words can go through unblocked and be answered
+normally; add the words you need caught to the block-list.
 
 **A harmless industry term keeps getting blocked. What do I do?**
 Add it to **Words to specifically allow-list past the HAP filter. Separate words by a comma.** and

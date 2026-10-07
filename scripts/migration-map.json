@@ -55,18 +55,32 @@
     },
     "seek/overview": {
       "title": "Seek overview",
-      "description": "Discover NeuralSeek's Seek feature, offering precise, context-rich answers from your KnowledgeBase. Ensure transparency with source highlights and semantic match scores for reliable, trustworthy insights.",
-      "status": "draft",
+      "description": "The Seek tab answers a test question from your KnowledgeBase and configuration and shows, beside the answer, its session, sentiment, timings, Semantic Match and KnowledgeBase scores, intent, and the source documents it drew on.",
+      "status": "written",
       "type": "concept",
       "console": ["seek"],
       "gaps": [
         "KnowledgeBase Context accordions — the passage used from each source document",
-        "Trained Answers panel — signals a curated answer was served instead of a fresh generation",
-        "Stump Speech panel — whether the always-pinned document contributed",
         "Statistical Details view and the Semantic Score Details modal behind the percentage",
-        "Relevancy % control beside the KnowledgeBase context",
         "Filter Text syntax — what to actually type into the filter box",
         "Personalize modal — the same three fields the Seek API accepts"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Trained Answers panel — signals a curated answer was served instead of a fresh generation",
+          "run": "202610070412-seek",
+          "why": "no panel or label 'Trained Answers' in any of the 7 Seek states of capture 202610070412-seek (default, filter, personalize, statistical-details, seek, cached-label, other-neuralseek); a served-from-cache answer is marked by the Cached badge beside Total Response Time (cached-label). A panel shown only for a curated answer is not excluded — the overview brief keeps it as an open question"
+        },
+        {
+          "gap": "Stump Speech panel — whether the always-pinned document contributed",
+          "run": "202610070412-seek",
+          "why": "no panel or label 'Stump Speech' in any of the 7 Seek states of capture 202610070412-seek; below the statistics table there is only KnowledgeBase Context. Stump Speech exists as a Company / Organization Preferences setting in Neural Config (owned by seek/tuning). Whether a panel appears when Stump Speech is filled in is an open question in the overview brief"
+        },
+        {
+          "gap": "Relevancy % control beside the KnowledgeBase context",
+          "run": "202610070412-seek",
+          "why": "no control and no 'Relevancy' label in any state; each KnowledgeBase Context entry is one expand button holding the source URL and an unlabelled percentage (states/default.yml, /img/seek/default--knowledgebase-context.png), documented as a value of the entry"
+        }
       ]
     },
     "seek/tuning": {
@@ -89,8 +103,8 @@
     },
     "seek/dynamic-filters": {
       "title": "Dynamic filters",
-      "description": "Explore NeuralSeek's Dynamic Filters to refine document searches with precision using DQL. Learn setup, application, and examples for real-time query adjustments without altering core datasets.",
-      "status": "draft",
+      "description": "A dynamic filter is query-time narrowing in NeuralSeek: each question carries a filter value, and only KnowledgeBase documents whose filter field (metadata) matches it are searched.",
+      "status": "written",
       "type": "concept",
       "console": ["seek", "neural-config:advanced"]
     },
@@ -110,8 +124,8 @@
     },
     "seek/personalization": {
       "title": "Personalization",
-      "description": "Discover how NeuralSeek's Dynamic Personalization leverages CRM data to tailor results, boosting user engagement and satisfaction.",
-      "status": "draft",
+      "description": "Personalization tailors a Seek answer to the customer asking — their preferred name, the products they hold and other details — supplied with the question or looked up by a mAIstro Dynamic Personalization agent.",
+      "status": "written",
       "type": "concept",
       "console": ["seek", "neural-config:advanced"],
       "gaps": [
@@ -131,8 +145,8 @@
     },
     "seek/curation": {
       "title": "Answer curation",
-      "description": "Explore NeuralSeek's Curate feature to manage and optimize intents from your KnowledgeBase. Import, export, and customize Q&A, track changes, and enhance user interactions with ease.",
-      "status": "draft",
+      "description": "Use Curate to review the intents NeuralSeek builds from your users' questions, correct their answers, add example questions and intents, upload curated Q&A in bulk, and export intents to your virtual agent.",
+      "status": "written",
       "type": "task",
       "console": ["curate"],
       "gaps": [
@@ -159,36 +173,37 @@
     },
     "maistro/overview": {
       "title": "mAIstro overview",
-      "description": "Explore mAIstro, a dynamic platform for retrieval-augmented generation. Seamlessly integrate your preferred LLM, enhance data quality, and enjoy user-friendly content creation with expert guidance.",
-      "status": "draft",
+      "description": "mAIstro is the NeuralSeek screen where you build, save, browse, schedule and inspect agents — flows of nodes that are also written as NTL — and the starting point for every mAIstro page.",
+      "status": "written",
       "type": "concept",
       "console": ["maistro"]
     },
     "maistro/visual-editor": {
       "title": "Visual editor",
-      "description": "Build agent flows visually in the mAIstro editor.",
+      "description": "The mAIstro Agent Editor is a canvas where you build an agent from nodes in a function library, run it from the run bar, and save it as an agent; the same flow is available as NTL text on the NTL tab.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "concept"
     },
     "maistro/inspector": {
       "title": "Running and inspecting an agent",
-      "description": "Run an agent from the editor and read what happened: the timeline, the output previews, override input and user agents.",
+      "description": "Run a mAIstro agent from the editor, read its result in the Agent Output views, preview the documents it writes, and open the Inspector to look inside the run.",
       "console": ["runagent", "maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "task",
       "gaps": [
         "Inspector > Timeline — where run time went, per node, for this run",
         "Output format previews — Word, PDF, CSV and PPT, which verify document-creating nodes",
+        "Agent Output: tabs under the Agent Editor canvas — Inline, Raw, Text, HTML, Microsoft Word, PDF, CSV, PPT — and the Inspector button (bug icon, top right); captured in 202610070538-maistro (state agent-editor and every node state); the Inspector panel itself was not opened",
         "Set agent Override Input — supply an override input for a test run",
         "Attach User Agents (attaching, not just saving)"
       ]
     },
     "maistro/agent-visualizer": {
       "title": "Agent Visualizer",
-      "description": "A call graph of your whole agent fleet, built from every agent's NTL — read it to answer 'what calls this agent?'.",
+      "description": "The mAIstro Visualizer draws the calls between your saved agents as a graph of boxes and arrows, so you can see what calls an agent and what it calls before you change it.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
       "gaps": [
         "What the graph is built from and how to read it",
@@ -198,21 +213,22 @@
     },
     "maistro/agent-registry": {
       "title": "Agent Registry",
-      "description": "Named pools of agents that Select an Agent and Agent Plan choose from at run time. For the NTL node, see the Agent Registry node reference.",
+      "description": "An agent registry is a named pool of saved mAIstro agents that the Select Agent and Select Agent Plan nodes choose from at run time; you list and create registries on the mAIstro Registry tab.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
       "gaps": [
         "Create Registry and Edit Registry",
+        "Delete Registry — in the selection bar ('N item selected') shown once a registry row is selected; not visible in 202610070538-maistro because the list was empty",
         "Why registries exist — they are the pool run-time agent selection draws from",
         "Disambiguation: this is the product screen; maistro/ntl/agent-registry is the NTL node"
       ]
     },
     "maistro/agent-marketplace": {
       "title": "Agent Marketplace",
-      "description": "Browse, search and load pre-built agents and starter templates, including agents from external marketplaces.",
+      "description": "The Agent Marketplace is the Marketplace tab in mAIstro, where you search and filter a catalogue of ready-to-use agents and starter templates by type and category, then open one to load it instead of building an agent from scratch.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
       "gaps": [
         "Browse experience — search by name, description, audience or capability; filter by type and category",
@@ -222,37 +238,51 @@
     },
     "maistro/agent-scheduler": {
       "title": "Agent Scheduler",
-      "description": "Run an agent on a schedule: recurrence, parameters, where the output goes, and what happens on failure.",
+      "description": "Run a saved mAIstro agent on a cron schedule, see when each schedule last ran and runs next, and find out when a scheduled run fails.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "task",
-      "gaps": [
-        "Recurrence options",
-        "Parameters passed on each scheduled run",
-        "Output destination",
-        "Failure behaviour"
+      "gaps": ["Recurrence options", "Failure behaviour"],
+      "gapsResolved": [
+        {
+          "gap": "Parameters passed on each scheduled run",
+          "run": "202610070538-maistro",
+          "why": "the Create a Schedule form (state create-schedule) has exactly three inputs: Select a mAIstro agent, Schedule: Cron expression (+ Edit schedule) and Schedule Description; no parameter field. Kept as an open question in the brief, not documented as an absence"
+        },
+        {
+          "gap": "Output destination",
+          "run": "202610070538-maistro",
+          "why": "neither the Create a Schedule form (state create-schedule) nor the schedule list (state scheduler: Agent, Last Run (UTC), Next Run (UTC), Description, Enabled) has an output or destination setting. Kept as an open question in the brief"
+        }
       ]
     },
     "maistro/run-agents": {
       "title": "Run Agents",
-      "description": "Dashboards of agent tiles for people who never open mAIstro — the same mechanism as Custom Governance dashboards, pointed at doing work rather than watching metrics.",
+      "description": "Run Agents is the console screen where you open a dashboard and its panels run their mAIstro agents and show the results, so people can use agents without building them.",
       "console": ["runagent", "maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "task",
       "gaps": [
         "Run Agents vs Custom Governance — same mechanism, 'do work' vs 'watch metrics'",
-        "Add Dashboard / Add Panel — bind an agent to a tile with a title, columns and rows",
+        "Add Panel — bind an agent to a tile with a title, columns and rows",
         "Set agent Parameters per panel",
         "Sequential run on load — outside edit mode every panel executes when the dashboard opens",
         "Panel cost — every panel run is a billable agent run",
         "The Run Agents permission also grants NeuralEdit; they cannot be separated"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Add Dashboard / Add Panel — bind an agent to a tile with a title, columns and rows — the Add Dashboard half",
+          "run": "202610070721-runagent",
+          "why": "no Add Dashboard control on /runagent in any of the 3 states of capture 202610070721-runagent (default, agent-dashboards, example-dashboard): the Agent Dashboards group lists only Example Dashboard, even in its collapsed markup (state agent-dashboards), whereas the same group markup on Custom Governance carries Add Dashboard (capture 202610060102-governance, state custom-governance). Captured with Edit off; whether it appears with Edit on stays an open question in the brief. Add Panel is on screen (disabled) and stays a gap"
+        }
       ]
     },
     "maistro/neuraledit/overview": {
       "title": "NeuralEdit overview",
-      "description": "An AI document editor grounded in your own files, driven by a mAIstro agent.",
+      "description": "NeuralEdit is a document editor with an AI assistant beside it that drafts and rewrites text from your own reference files, with its behaviour set by a mAIstro agent.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
       "gaps": [
         "What NeuralEdit is and where it lives (NeuralEdit in the navbar)",
@@ -271,9 +301,9 @@
     },
     "maistro/neuraledit/editing-and-reviewing": {
       "title": "Editing and reviewing",
-      "description": "Browse or create a file, review the AI's diff before accepting it, and commit the result.",
+      "description": "Open or create a file in NeuralEdit, ask the assistant to write or change text, check your changes, format the document, then save it or download it as text, Word, PowerPoint or HTML.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "task",
       "gaps": [
         "File Browser and Create File",
@@ -287,9 +317,9 @@
     },
     "maistro/neuraledit/authoring-an-agent": {
       "title": "Authoring a NeuralEdit agent",
-      "description": "NeuralEdit's behaviour is defined by a mAIstro agent that starts with the NeuralEdit input node.",
+      "description": "NeuralEdit runs a mAIstro agent: load a NeuralEdit agent from the mAIstro Marketplace, or build one that begins with the NeuralEdit - In node, then save it and check which agent NeuralEdit uses.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "task",
       "gaps": [
         "The NeuralEdit Input node and the shape of a NeuralEdit agent",
@@ -298,9 +328,9 @@
     },
     "maistro/ntl-overview": {
       "title": "NTL overview",
-      "description": "The NeuralSeek Template Language: syntax, variables, and how nodes compose into agents.",
+      "description": "NTL (NeuralSeek Template Language) is the text form of a mAIstro agent — how nodes, chaining, variables and secrets are written, and when to edit an agent in the NTL tab instead of the visual Agent Editor.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
       "gaps": [
         "TOOLING (not a page): the NTL doc generator has stopped detecting nodes; fixing it closes 103 of 112 node gaps",
@@ -319,7 +349,10 @@
       "title": "Upload Data",
       "description": "Read a local document :::note[Parameters]",
       "status": "draft",
-      "type": "reference"
+      "type": "reference",
+      "gaps": [
+        "Use Document's Select Document dialog — browse the instance's files (Files, Up one folder), Manage files (Upload, Upload & OCR, Move, Delete) and Select one; captured in 202610070538-maistro, state use-document"
+      ]
     },
     "maistro/ntl/generate-data": {
       "title": "Generate Data",
@@ -576,9 +609,9 @@
     },
     "knowledge/ingestion-overview": {
       "title": "Getting documents in",
-      "description": "The six ways documents reach a NeuralSeek knowledge base, and how to choose between them.",
+      "description": "Content reaches the knowledge base NeuralSeek answers from in several ways — among them the Data Loader, SharePoint Online sync, a mAIstro agent of your own, or an index you already run and connect — and this page helps you choose.",
       "console": ["knowledge", "data-loader"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
       "gaps": [
         "Route readers between the six ingestion paths: Load, Crawler, SharePoint sync, KB API, ES KB Add Document node, and connecting an existing index"
@@ -610,9 +643,9 @@
     },
     "knowledge/document-manager": {
       "title": "Document Manager",
-      "description": "Search the indexed documents on your instance, see how many there are, and delete the ones you no longer want retrieved.",
+      "description": "The Knowledgebase Manager lists the records indexed in your NeuralSeek knowledge base, shows a document count, and lets you search, page through and select records to remove outdated content.",
       "console": ["knowledge"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
       "gaps": [
         "Where it is: KnowledgeBase in the navbar",
@@ -651,8 +684,8 @@
     },
     "knowledge/load": {
       "title": "Loading documents",
-      "description": "Effortlessly load documents into your Knowledgebase with NeuralSeek's Data Loader. Simplify data import to Elastic, databases, or REST services using mAIstro templates.",
-      "status": "draft",
+      "description": "The Data Loader hands each file you drop on it to a mAIstro loader template, which reads the file and writes it to the NeuralSeek knowledge base, an Elasticsearch index or any other store a mAIstro node can reach.",
+      "status": "written",
       "type": "task",
       "console": ["data-loader", "knowledge"],
       "gaps": [
@@ -676,8 +709,8 @@
     },
     "knowledge/table-understanding": {
       "title": "Table understanding",
-      "description": "Unlock seamless table data extraction with NeuralSeek's Table Understanding. Optimize document queries effortlessly, though note it requires 1 seek query per table.",
-      "status": "draft",
+      "description": "Table Understanding is the NeuralSeek LLM function for table data in your documents; you turn it on by ticking it on an LLM card in LLM Details, and only a model that supports it can take it.",
+      "status": "written",
       "type": "concept",
       "console": ["knowledge"],
       "gaps": [
@@ -686,20 +719,24 @@
     },
     "knowledge/auto-data-cleanse": {
       "title": "Auto data cleanse",
-      "description": "Discover NeuralSeek's Automatic Data Cleansing. Streamline web-scraped content by removing nuisances like banners and cookies, ensuring high-quality, focused information for your organization.",
-      "status": "draft",
+      "description": "HTML Cleansing cleans web pages scraped into a supported knowledge base so page clutter does not reach answers; you switch it on or off and add your own CSS selectors to remove in Platform Preferences.",
+      "status": "written",
       "type": "concept",
       "console": ["knowledge"]
     },
     "knowledge/managed-knowledgebase/overview": {
       "title": "Managed KnowledgeBase overview",
-      "description": "What a NeuralSeek-hosted knowledge base is, what it holds, and when you would use one instead of bringing your own index.",
+      "description": "The managed KnowledgeBase is the knowledge base NeuralSeek hosts for you: set KnowledgeBase Type to NeuralSeek KB, load documents with the Data Loader, and review them in the Knowledgebase Manager.",
       "console": ["knowledge"],
-      "status": "stub",
+      "status": "written",
       "type": "concept",
-      "gaps": [
-        "KnowledgeBase > General (managed plans only) — language and document count",
-        "When the managed KB is available at all, and what it replaces"
+      "gaps": ["When the managed KB is available at all, and what it replaces"],
+      "gapsResolved": [
+        {
+          "gap": "KnowledgeBase > General (managed plans only) — language and document count",
+          "run": "202610070302-knowledge",
+          "why": "the KnowledgeBase screen (capture 202610070302, state default, heading 'Knowledgebase Manager', instance on KnowledgeBase Type NeuralSeek KB) is one page with no tabs, so there is no General tab; Document Count is on that page and KnowledgeBase Language is in Neural Config > KnowledgeBase Connection (capture 202610010144), both briefed for this route"
+        }
       ]
     },
     "knowledge/managed-knowledgebase/web-crawler": {
@@ -731,8 +768,14 @@
       "status": "stub",
       "type": "reference",
       "gaps": [
-        "KnowledgeBase > API",
         "How it differs from the runtime API and the Console API (cross-link integrations/rest-and-console-api)"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "KnowledgeBase > API",
+          "run": "202610070302-knowledge",
+          "why": "the KnowledgeBase screen (capture 202610070302, state default, heading 'Knowledgebase Manager', instance on NeuralSeek KB) is one page with no tabs and no API section, link, key or endpoint; the Data Loader (state go-to-document-loader) has none either"
+        }
       ]
     },
     "integrations/overview": {
@@ -787,8 +830,8 @@
     },
     "integrations/training-virtual-agents": {
       "title": "Training virtual agents",
-      "description": "Effortlessly train IBM Watson Assistant with NeuralSeek! Auto-generate questions, streamline curation, and integrate seamlessly with Watson and AWS Lex. Boost your virtual agent's efficiency today!",
-      "status": "draft",
+      "description": "Train a virtual agent such as watsonx Assistant or AWS Lex from NeuralSeek's Curate tab: set the export format with Virtual Agent Type, give each intent enough example questions, load curated Q&A in bulk, export the selected intents and import the file in the virtual agent's console.",
+      "status": "written",
       "type": "task",
       "console": ["curate", "admin-tools"]
     },
@@ -899,8 +942,8 @@
     },
     "integrations/feedback": {
       "title": "Implementing feedback",
-      "description": "Enhance user interaction with NeuralSeek by integrating Thumbs Up/Down feedback icons into your virtual agent. Learn to seamlessly embed these icons in watsonx Assistant and track ratings for improved insights.",
-      "status": "draft",
+      "description": "Rate NeuralSeek answers with the thumbs-up and thumbs-down icons on the Seek tab, in watsonx Assistant or through the /rate API, and read the ratings back in Curate.",
+      "status": "written",
       "type": "task",
       "console": ["seek", "curate"]
     },

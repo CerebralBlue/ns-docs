@@ -42,8 +42,7 @@ dynamically modify or govern the input text and other fields."
 | `Disabled`          | No pre-LLM agent runs.                                                                           |
 | A mAIstro agent     | That agent receives the input and can modify or govern it before retrieval and generation.      |
 
-<!-- UNCONFIRMED: each picker lists only the agents built with that hook's nodes — the captured Pre-LLM and Post-LLM lists each offered a different agent, one built for its own hook -->
-The list holds your mAIstro agents for this hook; build one first (see
+The list offers the agents built with this hook's nodes; build one first (see
 [Building an agent for the hooks](#building-an-agent-for-the-hooks)).
 
 Change it when a rule about the input is specific to your business and the built-in input tabs —
@@ -101,7 +100,36 @@ listed under [Pipeline hooks](/maistro/ntl/pipeline-hooks/).
 The NTL reference describes the input nodes as "used only for passing variables from seek to
 mAIstro for use in custom governance" and says each "must be the first step in a mAIstro custom
 governance flow"; each output node must be the last step in the agent. Both output nodes take a
-`blockMessage`. `customGovernanceOut` hands the answer and its sources back to Seek with these
+`blockMessage`.
+
+`preCustomGovernanceOut` hands the question back to Seek. Its parameters are the input text and
+the "other fields" the Pre-LLM help text says an agent can change:
+
+| Parameter       | Description in the NTL reference                   |
+| --------------- | -------------------------------------------------- |
+| `blockMessage`  | The message to return if blocking                  |
+| `originalQuery` | The original query                                 |
+| `contextQuery`  | The context enhanced query                         |
+| `aiQuery`       | The reference gives no type or description for it |
+| `lastTurn`      | The last turn array                                |
+| `language`      | The language                                       |
+| `langCode`      | The language code                                  |
+| `intent`        | The intent                                         |
+| `categoryName`  | The category name                                  |
+| `stump`         | The stump context                                  |
+
+The reference lists no output variables for `preCustomGovernanceIn`. A pre-LLM agent reads the
+current values from `seekIn` instead, as the example pre-LLM agent does in its last step, which
+asks an LLM whether the question is about New Jersey and blocks it if so:
+
+```text
+{{ preCustomGovernanceOut | block: "<< name: block, prompt: false >>" | blockMessage: "We are unable to answer questions about New Jersey" | originalQuery: "<< name: seekIn.originalQuery, prompt: true >>" | aiQuery: "<< name: seekIn.aiQuery, prompt: false >>" | contextQuery: "<< name: seekIn.contextQuery, prompt: false >>" | lastTurn: "<< name: seekIn.lastTurn, prompt: false >>" | language: "<< name: seekIn.language, prompt: false >>" | langCode: "<< name: seekIn.langCode, prompt: false >>" | intent: "<< name: seekIn.intent, prompt: false >>" | categoryName: "<< name: seekIn.categoryName, prompt: false >>" | stump: "<< name: seekIn.stump, prompt: false >>" }}
+```
+
+Like the post-LLM example below, it passes `block`, set to the variable holding the LLM's verdict,
+although `block` is not in the reference's table.
+
+`customGovernanceOut` hands the answer and its sources back to Seek with these
 parameters:
 
 | Parameter      | Description in the NTL reference                  |
