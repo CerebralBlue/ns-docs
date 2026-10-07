@@ -95,8 +95,6 @@ Replaces the current MkDocs site at documentation.neuralseek.com (Starlight was 
     **It reparents itself to `<body>` on mount** — see the stacking-context note below.
 - `src/assets/` — logos (`neuraldocs-logo-light/dark.svg` = wordmark, `neuraldocs-icon.png` = N mark).
 - `public/` — `favicon.png`, hero art.
-- `planning/templates/` — one starting file per page type (`concept`, `task`, `reference`,
-  `quickstart`); the contract itself is `scripts/agentic/contract.ts`.
 - `scripts/` — `migration-map.json` (old→new route map, drives stub/content generation) +
   `gen-stubs.ts` + `gen-graph.ts` (writes the gitignored `public/graph.json`; runs from
   `bun run dev` and `bun run build`, or `bun run graph` on its own).
@@ -332,18 +330,16 @@ here:
   pages at different paths. A repo-markdown → KB ingestion path has to exist before launch.
 
 None of this is fixable from inside this repo — it is a NeuralSeek instance/KB task. Instance
-identities, the ingestion state, and the unverified doc-automation side are in
-`_private/notes/chatbot-and-kb.md`.
+identities, the ingestion state, and the unverified doc-automation side are in the private
+`ns-docs-agentic` repo (`notes/chatbot-and-kb.md`).
 
 ## Old docs (the finished migration)
 
 The content came from the previous MkDocs site — `CerebralBlue/knowledge`, path
 `neuralseek/documentation/docs`, at the `sourceCommit` recorded in the map's `redirects` block.
 **Every sourced page was ported verbatim on 2026-09-17**; the port toolchain is retired (git
-`80ee3b9`, `scripts/migration/`; reports and pre-port copies in
-`_private/archive/verbatim-migration/`), and its procedure is archived in the writer skill's
-`references/archive-migration.md`. The stale-screenshot check reads
-`scripts/old-docs-image-hashes.json`; no clone is needed. Old URLs → new routes live in the map's
+`80ee3b9`, `scripts/migration/`; its reports, pre-port copies and the stale-screenshot hash list
+are in `ns-docs-agentic`). Old URLs → new routes live in the map's
 `redirects` block for the domain cutover (`scripts/url-inventory.ts`).
 
 One port hazard is still live for anyone writing pages: **`:word` in prose is a remark-directive
@@ -353,8 +349,8 @@ as `user\:pass`.
 ## Content status
 
 **Structure is complete; content is the remaining work.** 151 routes exist, are in the sidebar
-and build. Pages are written from the running product by the `/docs-explore` pipeline (below)
-or by hand with the `neuraldocs-writer` skill; the ported MkDocs prose is background, never a
+and build. Pages are written from the running product by the `/docs-explore` pipeline
+or by hand with the `neuraldocs-writer` skill (both in `ns-docs-agentic`, see "Writing content"); the ported MkDocs prose is background, never a
 fact. Each route has a `type` (concept · task · reference · quickstart — the page contract) and
 a `status`.
 
@@ -366,7 +362,7 @@ capture disproves moves to `gapsResolved` and is never documented as an absence.
 **`status` is load-bearing** (2026-09-30): `stub` → `draft` → `written` → `adopted`. `stub` is
 overwritten by `bun run stubs`; nothing else is regenerated. `draft` = prose not yet checked
 against the product (the verbatim port, or a page mid-write); `written` = the `/docs-explore`
-pipeline wrote it and its gates passed (`sync-map.ts` sets it); `adopted` = a human checked it —
+pipeline wrote it and its gates passed (its `sync-map.ts` sets it); `adopted` = a human checked it —
 set **by hand** together with `reviewedAt` (date) and `reviewedRun` (the run whose page you
 read). `prepare-write.ts` refuses to rewrite an `adopted` page unless `--allow-adopted`, and
 `doc-lint` flags `changed-since-review` when a newer run rewrote it. Old MkDocs URLs live in the
@@ -378,237 +374,19 @@ Open items that affect anyone touching content:
   the 112 NTL node gaps, so NTL node pages should not be hand-written until it is resolved.
 - **NTL has no Shiki grammar** — write NTL fences as ` ```text `, not ` ```ntl `, or the build
   warns. A grammar reportedly exists and could be ported.
-- **Every old-docs screenshot is stale** — see the `doc-lint.ts` visual backlog below.
+- **Every old-docs screenshot is stale** — `doc-lint` in `ns-docs-agentic` lists the visual backlog.
 - **~70 draft pages are publicly visible** on the deployed site, each listing what it is
   missing. Fine while the site is unannounced; decide before launch.
 
-## The `/docs-explore` pipeline (agentic workflow v3.5, screen-first, capture once — write many, a bounded orchestrator, variants + experiments, capture library + image review)
+## Writing content — the pipeline lives elsewhere
 
-The workflow that writes pages from the **running product's screens**. One run = one **console
-area** (a screen in `_private/agentic-v2/areas.json`). Fabio runs it (`/docs-explore <area>`,
-or `/docs-explore <area> --write-only [--all-briefed] [--only <route>]…`) or chains it overnight
-(`/docs-night start | continue | report`); neither is model-invoked. Design + diagram:
-`_private/agentic-v2/diagrams/architecture.html`. v2 — the claim-verification design that ran
-night 1 (24 routes, ~11M tokens, nothing ready) — and v1 were deleted on 2026-09-19; v2's last
-state is in git at `6fbb837^`, nothing else of them survives.
-
-- **Captures are first-class.** An explore run's `states/` (a11y snapshot per UI state),
-  `public/img/<area>/` (per state: viewport, panel crop, **one crop per section** —
-  `<state>--<section>.png`, a field group with its heading/label — and **every dropdown's open
-  option list** `<state>--options-<label>.yml/.png`; `explore-plan.ts crops` decides the
-  targets from the a11y anatomy, `record` prints them, `attach` files them into
-  `states.json[].sections/options`), the rebuilt **component map**
-  `_private/component-map/<area>.json` (with option lists), and the **briefs**
-  (`runs/<capture>/briefs/<route>/brief.md` + `coverage-plan.json`) are the capture;
-  `_private/agentic-v2/captures.json` indexes the latest per area. A **write-only run**
-  (`area.json.captureRun`) reuses it: no browser, briefs only for routes without one (in
-  parallel batches of ≤ 4, merged by `briefs.ts merge` — first assignment wins, conflicts
-  reported), then writers in parallel. **The capture decides, not ownership**: any route whose
-  controls are on that screen may be written from it (`crossArea` in the report); the map's
-  `console[0]` only sets the night's default. `lib.ts captureDir()`/`briefDir()` resolve paths.
-- **The capture library and image review (v3.5, 2026-09-30).** Every capture is filed by
-  `scripts/agentic/library.ts build` into the gitignored `_private/capture-library/<area>/<state>/`
-  (`README.md` — what it shows, how to reach it, the named elements, the run — plus
-  `viewport/panel/dialog.png`, `sections/<id>/`, `options/<id>/`). `public/img/` keeps only images
-  a page uses (`publish` before the gates, `prune-public --apply` at the end of a run). The
-  explorer now crops the **expanded accordion item** (`explore-plan.ts diff --expect`), not the
-  whole dialog, and `compose-panel.ts` adds the dialog footer under it.
-  `image-check.ts` (pixel flags) + the `image-reviewer` agent judge every placed image; the
-  section-image gate asks for images only for labels that are named elements on some screen.
-  `/docs-verify` re-checks one section from the library. **The design and diagrams:
-  `_private/agentic-v2/diagrams/architecture.html` — the source of truth; update it with every
-  pipeline change.**
-- **Writing rules (2026-09-30).** The writer persona lives in the `neuraldocs-writer` skill's
-  Voice section. Gaps a capture disproves are dropped (`staleGaps` → `gapsResolved`), never
-  documented as absences; standard buttons are not controls; briefs list "Concepts → owner
-  pages" and the writer links them. Models: planner opus/xhigh (checkpoints opus/high),
-  understand · writer · ia-agent · doc-reviewer opus/high, image-reviewer · consistency ·
-  experimenter sonnet/high. **Turn limits (2026-10-01):** understand and the planner have no
-  `maxTurns` (their work grows with the capture and the backlog — at 60/40 every Neural Config
-  batch was cut off); writer 120, reviewers 80; the browser agents keep theirs (explorer 300,
-  experimenter 120).
-- **Settings-dependent screens and experiments (v3.4, 2026-09-26).** Design:
-  `_private/agentic-v2/design/variants-v4.md`; evidence: `_private/tools/playwright/output/spike-variants/SPIKE.md`.
-  - **Variants** (`areas.json` `variants[]` / `sweeps[]`): the same state with dropdown options
-    picked — capture `<base>@<variant>` (images never overwrite the defaults), then **reload**
-    (an unsaved pick is discarded). Only while `explore-plan.ts variant-on` has armed it does the
-    hook accept those options. A sweep = one variant per option (every LLM platform). Own budget
-    no cap (every variant is declared in areas.json; a sweep is bounded by its dropdown), outside the 40 states; dropdown value buttons are option targets,
-    never states.
-  - **Experiments** (what a setting DOES): understand proposes ≤ 5 (`experiments.json`),
-    `experiments.ts validate` keeps only dropdowns in `EXPERIMENT_SECTIONS` (lib.ts); the
-    `experimenter` agent asks a Seek, changes ONE setting, **saves it as a named version**
-    (`docs-exp-<run>-<id>`), asks again, **rolls back** to `current`, verifies → `experiments.md`.
-    The hook allows its Save only in "Save a new version" with exactly one field beyond
-    `normalisedOnLoad`, and Rollback only on the baseline's row.
-  - **Named versions** are the safety net: `_private/agentic-v2/playground-versions.{json,md}`
-    (`current` = docs-baseline). A `pending` experiment blocks every run and the night until it is
-    rolled back and verified.
-  - **Restore gate** (`verify-restore.ts`): the Change Log row by row + every setting against
-    `_private/agentic-v2/reference/<area>.json` (written by the main session). Runs after gather,
-    after experiments (before the runner) and in `finish()`; a FAIL halts the run, and the main
-    session rolls back. `report.md` prints the result on its first lines.
-- **Stages** — `queue.ts` (area.json: url, navPath, routes, captureRun, mode) → gather in
-  parallel: `explorer` (browser: walks every state `explore-plan.ts` names — tabs, menus,
-  accordions, dialogs, the SVG tree nodes of Neural Config; openers like _Edit/Add/Create…_ win
-  over the commit-verb filter; what it skipped by policy is recorded as `excluded`) and
-  `config-export` (packed restore point) → `understand` (opus, the thinking step: brief per
-  route with the controls it must document by exact label, `coverage-plan.<batch>.json`, ≤ 10
-  `probes.json`, ≤ 5 `experiments.json`) → `experimenter` (browser: change → save a version → Seek →
-  roll back → verify; restore gate) → `runner` (the probes, on the playground through the MCP → `answers.md`,
-  verbatim quotes) → `ia-agent` (on every explore run — the sidebar mirrors the platform — and
-  whenever a control is unowned, a route is empty, batches conflict, a gap is stale or a new page
-  is briefed; **assigns, relabels, reorders, merges, and adds a route only
-  when understand briefed it (`newPages`) — every addition is listed in the report**; then `bun run
-stubs`) → per route in parallel: `prepare-write.ts` → `writer` (outline first, then the
-  page, **Write/Edit only**) → `library.ts publish` (the page's images from the capture library)
-  → `gates.ts` → `sync-map.ts` (page description → map, `status: written`) → `image-reviewer`
-  → `doc-reviewer` (findings only, incl. image verdicts and outline drift) ⟲ writer fix mode once → `bun run verify` once
-  → `cleanup` (delete `docs-*` agents, on every exit) → `report.ts` (also updates
-  `index.json`: route → {runId, captureRun}) → `learn.ts`. Everything lands as an
-  **uncommitted diff**; the pipeline sets `draft`/`written`, never `adopted`.
-- **The old prose is background, never a fact.** The writer may read the verbatim-ported page
-  for the _why_ and the vocabulary; a fact from it that no snapshot, probe or config shows
-  carries `<!-- UNCONFIRMED: … -->` on the line above (the `facts` gate parks a page with more
-  than four). Every page follows the contract of its `type` (map field: concept · task · reference · quickstart; `scripts/agentic/contract.ts`, templates in `planning/templates/`): an intro with no heading, the type's `##`s, an optional FAQ (≥ 2 real questions), `## Related` last.
-- **Coverage is the metric.** `gates.ts` = lint · contract · links (a link whose sentence
-  promises a topic the still-unwritten target page lacks is a **warning**, never a fail) ·
-  images (no old-docs screenshot survives; hashes) · **coverage** (the page names ≥ 90 % of the
-  labels `coverage-plan.json` assigns to it — **owned ∪ shared-for-route**; zero FAILs only on
-  a `reference`-type console route; `coverage.ts`, also the writer's own check, and `--outline` on the plan before
-  prose) · **section-image** (a `###` that names an assigned control must carry a real image)
-  · facts · **values** (WARN: `values.ts` lists every bold label / code value the capture's
-  snapshots do not contain and no UNCONFIRMED marker covers — the reviewer rules on each:
-  invented / from-image / old-prose).
-- **Ownership.** A route is written by the first entry of its `console` field in
-  `scripts/migration-map.json`; further entries are screens its writer also reads.
-  `bun scripts/agentic/areas.ts list` prints the split; `propose`/`apply` seed the field for
-  routes without one. Routes with `console: []` are the `reference` pseudo-area: no screen,
-  written from config/MCP resources/old prose with an `Unverified` caution.
-- **One instance — the playground — and nothing else.** `_private/agentic-v2/instances.json`
-  names the playground id and the locked ids (production). Hooks enforce it for every caller
-  including the main session, and fail closed (an internal error exits 2, no jq needed):
-  `.claude/hooks/pw-policy.sh` (browser: URL must carry the playground id; `browser_tabs` only
-  list/close; a click's `target` ref must resolve in the latest **full** saved snapshot and is
-  judged by `scripts/agentic/ref-context.ts` — **pipeline agents only look** (the experimenter excepted, see v3.4 above): no commit verb
-  (Save, Propose Changes, Rollback, bare Add, Generate Key, OK — `lib.ts COMMIT_VERBS`, openers
-  excepted by `isOpener`), no dropdown option, checkbox or chip, no unnamed button, keys = Escape,
-  typing = the area's `entry` text only; the **main session** may Save and Roll back named
-  versions — `_private/agentic-v2/playground-versions.md` — destructive refused for all;
-  `evaluate` never; snapshots under `runs/`, screenshots under `public/img/`; tests:
-  `bun scripts/agentic/test-hooks.ts`), `mcp-policy.sh` (the `neuralseek-node` MCP:
-  every tool denied unless `.neuralseekrc.json` points at the playground; `delete_agent` only
-  for `docs-*`; run tools logged to `spend.log`), `agent-paths.sh` (per-agent Edit/Write
-  fences), **`bash-policy.sh`** (the pipeline's named agents may run only the Bash prefixes in
-  their frontmatter — no redirection, heredoc, `sed -i`, `python3`; files go through
-  Write/Edit, so the path fence holds), `nav-log.sh` (audit trail). The explorer never clicks
-  Save / Delete / Run and never types except an area's `entry` input; the experimenter is the only agent that changes (and restores) a setting; the runner never changes
-  configuration. Denials go to `runs/<id>/denials.log`.
-- **The only memory is `_private/agentic-v2/conventions.md`.** Agents start blank every run;
-  `learn.ts` harvests each run's _structured_ notes (explorer/understand/runner `notes`,
-  skipped/excluded states, failed probes, coverage conflicts, hook denials, map diffs) into
-  that file, verbatim with their source, and five agents read it first. No agent free-writes
-  into it. Prune it by hand.
-- **The orchestrator (v3.3) is a bounded planner** — `.claude/agents/planner.md`, one agent in
-  three modes. _Plan_ (opus, once): reads the generated tool catalog (`catalog.ts` →
-  `_private/agentic-v2/catalog.json`: agents, scripts, stages, LIMITS), the backlog, `index.json`,
-  `captures.json`, the area's last reports and `conventions.md`, writes `plan.json` (routes in
-  order with `mustCover`/`expectedImages`, skips with reasons, routes **added** only if briefed
-  in this capture, capture priorities/requests, probe priorities/additions, stage flags,
-  per-stage expectations); `plan.ts validate` normalises it and lists `fallbacks`. _Review_
-  (sonnet, after Gather/Understand/Probe/IA and a dead writer): reads `digest.ts <run> <stage>`
-  and returns one decision — `continue | retry <agent> + hint | skip <routes> | halt`;
-  `orchestrate.ts decide` applies the budget (`LIMITS` in `lib.ts`: 1 retry per agent per
-  stage, 3 per run, the explorer once and only in explore mode) and appends every decision to
-  `decisions.jsonl`, overridden or not. _Delegate_ (opus, after Write): the open backlog → ≤ 5
-  subtasks (`fix-page` → writer fix mode → gates → verdict → `backlog.ts resolve`; `rebrief` →
-  understand for one route; `probe` → runner); `orchestrate.ts subtasks --validate` drops a
-  second fix on a page, unbriefed routes, captures. **The script executes; the planner decides
-  what and in which order; hooks, gates and limits decide whether.** `--no-plan` = pure v3.2.
-- **Data flow (2026-10-01): code moves data, LLMs move pointers.** The Workflow script is
-  `.claude/skills/docs-explore/workflow.js` (the night's consistency pass:
-  `.claude/skills/docs-night/consistency.js`). It has no shell, so a Haiku wrapper runs each
-  command — always as `scripts/agentic/call.ts <run> <label> --as <kind> -- <cmd>`, which keeps the
-  full output in `runs/<id>/io/<label>.json` and prints a small checksummed **receipt**; the script
-  recomputes the checksum, retries once, then halts (`haltedBy: integrity`). Agents get file
-  paths, never pasted data, and write their own files; workflow-born data comes back in the
-  Workflow result and `ingest-result.ts` writes it after the run. Why: a wrapper retyping a 37 KB
-  plan returned 4 of 29 routes. Tests: `bun run test:agentic` (not part of `verify`).
-- **Resilience.** Every `agent()` in the Workflow script goes through `A()` (a throw costs one
-  route, never the run — and is recorded for the checkpoint's digest). **An agent that stops
-  before returning is PARTIAL, not failed** (2026-10-01): `A()` logs its error text, then resumes
-  the same task once with a RESUME note (keep the files already written, finish the rest) — not
-  for the explorer (own batch loop), the experimenter (never repeat a Save) or the haiku
-  wrappers; everything lands in `runs/<id>/agent-failures.json` and the report's "Partial
-  agents" section. The transcripts that explain a stop are
-  `~/.claude/projects/<project>/<session>/subagents/workflows/<wf-id>/agent-<id>.jsonl` (ends at
-  the turn limit = cut off); a missing agent file is
-  recorded, never fabricated by a wrapper; `--attempt <n>` on a resume
-  busts the script-wrapper cache. **Never delete a run folder from `current-run`** —
-  `queue.ts --dry-run` previews without opening a run (the first v3 ledger was lost that way
-  and rebuilt from the transcripts; see its `RECOVERED.md`).
-- **The cross-run feedback loop is `_private/agentic-v2/backlog.json`** (`backlog.ts`):
-  non-fixable review findings, reviewer questions and writer `left_unresolved` that carry a
-  `needs {kind, target}` are routed to `capture:<area>` (next explorer), `route:<route>` (next
-  writer of that page), `probe:<area>` (next runner) or `fabio`; the reviewer gets the route's
-  previous review and closes entries via `resolvedBacklog[]`; the report lists what is open.
-- Ledger: `_private/agentic-v2/runs/<run-id>/` (gitignored). Scripts: `scripts/agentic/`.
-  Night: `night.ts plan | next | record | report` — explore each area in order, then one
-  `leftovers:<area>` write-only section per capture for briefed-but-unwritten routes, then the
-  consistency pass, then `REPORT.md` (with proposed routes and "not in any capture").
-
-## The `neuraldocs-writer` skill
-
-`.claude/skills/neuraldocs-writer/` — the authoring workflow for this repo (the pipeline's writer,
-understand and reviewer load it as their craft): the **Voice** (the writer persona — senior
-technical writer for admins and developers, task-first, explain why, document what exists, only
-customer-visible names, no UI narration, link don't repeat, real FAQ questions only), Step 0
-(map entry, latest capture, backlog), picking the page type, the evidence ladder (capture +
-capture library → config/NTL resources → old prose as background → ask), visuals from the
-library, the checks, and the definition of done. It triggers on any request to write, finish,
-rewrite or fix a page under `src/content/docs/`, or to edit `scripts/migration-map.json`.
-
-`references/`: `page-contract.md` (the four page types, house style, directive mechanics),
-`migration-map.md` (the route registry: status, type, console, gaps, redirects),
-`neuralseek-orientation.md`, and `archive-migration.md` (the finished MkDocs migration — history).
-
-It restates rather than replaces what is above — the `ns-*` directive rules, the base-path link
-rule. If one of those changes here, change it in the skill too.
-
-The pieces that work with it:
-
-- **`scripts/doc-lint.ts`** — the deterministic half of a page review: leftover `MERGE:`/gap
-  markers, in-body H1s, heading depth, hand-written `/ns-docs` prefixes, old-domain links,
-  missing images, ` ```ntl ` fences, directive colon nesting, the page contract of the route's
-  `type`, and `changed-since-review` on adopted pages a newer run rewrote.
-  Severity follows the route's `status`: errors on `adopted`, warnings on drafts, `--strict`
-  removes the downgrade. **Deliberately not part of `bun run verify`** — ~70 draft pages are
-  unfinished on purpose and would fail CI. Run it per module; revisit before launch.
-
-  It also owns the **visual backlog**. Every old-docs screenshot is stale — the product moved
-  past that UI — so a copied image is a placeholder with a misleading picture on it. The script
-  proves which are carry-overs **by content hash**: the old converter copied with `copyFileSync`, so
-  a byte-identical file was carried over untouched, and a recaptured one drops out of the report
-  by itself. The hashes come from `scripts/old-docs-image-hashes.json` (generated once from
-  the clone by the retired `close-dependency.ts`), so no clone is needed; nothing else to keep in sync.
-  Currently all 358 copied images are flagged. A pending visual is marked with `/img/_placeholder.svg` (a visible "SCREENSHOT
-  PENDING" panel, theme-aware) plus a `<!-- SCREENSHOT: path — why -->` comment carrying the
-  capture instruction; `bun scripts/doc-lint.ts --all --screenshots` prints the whole backlog.
-  **Image rules are warnings at every status and never block**, including under `--strict` —
-  capturing a screenshot needs somebody with the product open, so prose is not held hostage.
-
-- **`.claude/agents/doc-reviewer.md`** (opus/high) — a read-only subagent that re-verifies a
-  finished page's factual claims with no memory of writing it, plus Voice breaches and missing
-  owner links, then returns findings. It never edits and never flips a status.
-- **`.claude/agents/image-reviewer.md`** + `scripts/agentic/image-check.ts` — the same for the
-  images: right section, no neighbour section, not cut off, no tiny crops, no artefacts or
-  sensitive values; proposes recrop / swap / drop / recapture from the capture library.
-- **`/docs-verify <route> [<section>]`** (`.claude/skills/docs-verify/`) — when one section looks
-  wrong after the fact: locate what it was written from in the capture library, run both
-  reviewers, propose the fix, apply only what Fabio approves, re-gate. No browser.
-
-All of these are committed, so the same bar applies to every module.
+Pages are written by the **private `ns-docs-agentic` repo** (cloned next to this one): the
+`/docs-explore` / `/docs-night` pipeline, the `neuraldocs-writer` skill, `doc-lint`, the page
+templates, the page contract, the capture library and the pipeline's state. Launch Claude Code
+**there** to write or review pages; its runs edit `src/content/docs/`, `public/img/`,
+`astro.config.mjs` and `scripts/migration-map.json` in this repo, and you commit those here.
+Nothing in this repo imports or runs the pipeline.
 
 > Anything that cannot go in a public repo — team assignments, personal task notes, internal
-> plans and status — lives in `_private/` (gitignored). Nothing in this file should name a
+> plans and status — lives in the private `ns-docs-agentic` repo, never here. Nothing in this file should name a
 > person or restate what is in there.

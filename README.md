@@ -44,7 +44,6 @@ src/
 ├─ lib/ns-chat/      Chat widget logic (constants, session, seek client)
 └─ assets/           Logos
 public/              favicon, hero art
-planning/            IA proposal + page template
 scripts/             migration map + generators
 ```
 

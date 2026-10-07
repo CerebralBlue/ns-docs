@@ -79,7 +79,7 @@ const map: { routes: Record<string, { status?: string; title?: string }> } = JSO
 	readFileSync(MAP_PATH, 'utf8')
 );
 
-/** Recursive walk — mirrors doc-lint.ts rather than pulling in a glob dependency. */
+/** Recursive walk, rather than pulling in a glob dependency. */
 function walk(dir: string, acc: string[] = []): string[] {
 	for (const entry of readdirSync(dir)) {
 		const full = join(dir, entry);
