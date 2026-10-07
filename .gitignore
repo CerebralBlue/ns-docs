@@ -25,6 +25,8 @@ pnpm-debug.log*
 # private working notes (roadmap / status)
 CLAUDE.local.md
 _private/
+# the _private/ hand-off bundle between operators
+ns-docs-private-*.zip
 
 
 # NeuralSeek instance config — contains the API key

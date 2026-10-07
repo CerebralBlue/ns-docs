@@ -177,9 +177,8 @@ gives.
 - **Require Cache to Follow Context?** — `Yes` on the instance captured for this page. Options:
   `Yes` and `No`. Read from the label alone, `Yes` means a stored answer is served only when it
   fits the conversation so far rather than the question text in isolation; how NeuralSeek tracks
-  that conversation is on [Conversational context](/seek/conversational-context/). Whether this
-  selector also governs the **Edited answer cache**, or only the **Normal answer cache** it sits
-  under, is not shown on screen and is an open question.
+  that conversation is on [Conversational context](/seek/conversational-context/). Although it sits
+  under the **Normal answer cache**, it also governs the **Edited answer cache**.
 
   ![The Require Cache to Follow Context? menu open, listing Yes and No](/img/neural-config/intent-matching-cache-configuration--options-require-cache-to-follow-context.png)
 

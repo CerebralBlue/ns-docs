@@ -1,236 +1,139 @@
 ---
 title: "Training virtual agents"
-description: "Effortlessly train IBM Watson Assistant with NeuralSeek! Auto-generate questions, streamline curation, and integrate seamlessly with Watson and AWS Lex. Boost your virtual agent's efficiency today!"
+description: "Turn the intents, example questions and answers curated in NeuralSeek's Curate screen into training data for a virtual agent such as watsonx Assistant or AWS Lex, in the format set by Virtual Agent Type."
 ---
 
-## Overview
+## What is it
 
-**What is it?**
+Every question NeuralSeek answers is grouped into an intent on the **Curate** screen, with the questions users asked (the examples) and the answers NeuralSeek gave. That is the same shape a virtual agent trains on: an intent, a set of example utterances, and a response. Training a virtual agent from NeuralSeek means using Curate to build that material and then exporting it as a file your virtual agent can import.
 
-- NeuralSeek will automatically generate IBM Watson Assistant “Actions” or “Dialogs,” based on user questions that are asked. Generally, IBM Watson Assistant needs five (5) or more user question examples to train on for a high confidence match to a user query. When user questions are cataloged by the system, NeuralSeek automatically tries to generate similar worded questions to meet the minimum of five (5) user examples. Similar Question generation may take up to one (1) minute to show inside the Curate tab after a new user question is logged.
+The format of the export is not chosen on Curate. It follows the **Virtual Agent Type** setting in Neural Config, which lists Watson Assistant (Actions or Dialog), AWS Lex V2 and several other platforms.
 
-**Why is it important?**
+## Why it matters
 
-- Users who develop and maintain Watson Assistant have to work with its Actions and Dialogs, and can quickly get overwhelmed by its vast numbers. Coming up with multiple number of questions for each intent is also very time consuming, but it also quickly becomes burdensome when you have to continuously monitor and update them by yourself.
+A virtual agent's classifier is only as good as its example utterances, and writing several phrasings for every intent by hand is slow work that never ends — new questions keep arriving. NeuralSeek already sees those questions in production. Exporting them from Curate moves real user phrasings, and answers you have reviewed, into the virtual agent instead of rebuilding them in a second tool.
 
-**How does it work?**
+It also lets you split the work: the virtual agent handles the intents it has been trained on, and NeuralSeek keeps answering the long tail from the KnowledgeBase.
 
-- NeuralSeek provides ways to generate the candiate questions and answers based on the contents inside the KnowledgeBase, and let users download the whole thing or portions of it, so that it could be created either as Watson Assistant Actions, or Watson Assistant Dialogs.
+## When to use it
 
-## Generating Questions and Answers
-After you have configured NeuralSeek, in its `Home`, you will see an option to auto-generate questions.
+- Your virtual agent (watsonx Assistant, AWS Lex or another supported type) should answer common questions itself, and NeuralSeek has already collected and answered them.
+- You have a set of question/answer pairs written outside NeuralSeek and want them as edited answers, and later as intents in the virtual agent.
+- An intent has too few phrasings for the virtual agent to match it reliably.
 
-![generate questions](/img/integrations/training-virtual-agents/image-001.png)
+This page walks through watsonx Assistant and AWS Lex. **Virtual Agent Type** also lists Kore.ai, Cognigy, Azure Knowledge Base and None / Webpage HTML, but the steps for those targets are not described here; if you train one of them, check its own import documentation for what it accepts.
 
-Clicking will let NeuralSeek scan through your KnowledgeBase, and start generating potential questions that would be most commonly used.
+It is the wrong page when you need to **connect** NeuralSeek to the virtual agent so the agent can call it at runtime — that is covered in [watsonx Assistant](/integrations/virtual-agents/watsonx-assistant/) and [AWS Lex](/integrations/virtual-agents/aws-lex/). For the day-to-day review of questions and answers (editing, flagging, categories), see [Answer curation](/seek/curation/).
 
-![generating questions](/img/integrations/training-virtual-agents/image-002.png)
+Before exporting, you may want to check answer quality on a batch of questions. The REST API covers it, under the "Test Questions" group: `POST /test` ("Test questions via batch upload") and `GET /getTestResults` ("Get Test Results"). See [REST & Console APIs](/integrations/rest-and-console-api/).
 
-The resulting list of questions appear at the bottom. If you do not like the list of questions, you can re-generate them again, or edit them on the spot.
+In the console, Home shows an upload button for test questions only on a newly created instance. On any instance you can instead go to [Curate](/seek/curation/) and auto-generate questions or load them with **Load Q&A**.
 
-![generation complete](/img/integrations/training-virtual-agents/image-003.png)
+## How it works
 
-When you feel like you can generate the Answers for those questions, you can click Submit button and those questions will be available on the `curate` tab of the top menu. Usually the most recently entered questions and answers appear at the top:
+The work happens in four places: Neural Config sets the export format, Curate holds the intents, examples and answers, Curate exports the selected intents, and the virtual agent imports the file.
 
-![loaded answers](/img/integrations/training-virtual-agents/image-004.png)
+![The Curate screen: intents with their category, Q&A counts, Coverage % and Confidence %, and the Add Intent, Filter and Load Q&A buttons](/img/curate/default.png)
 
-## Testing Questions
-During the curation process, usually the user would need to use `Seek` tab to submit questions to see how well the answer is generated. However, this process can be tedious if you have a certain set of questions that you want to ask in bulk and derive the results. In that case, you can use `Upload Test Questions` to upload multiple questions and generate their answers easily.
+### Pick the export format — Virtual Agent Type
 
-1. Go to `Home` of NeuralSeek, and click `Upload Test Questions`.
-2. In the instructions, you will see a link of `template` file that you can download from. It's a template file in CSV format. click it to download.
-3. Use the file to enter the list of questions. For example,
+**Virtual Agent Type** lives in **Neural Config** > **Edit Configuration** > **Platform Preferences**. Its help text reads: "When using the Curate tab to auto-buld a virtual agent, what format should be written to." The options are:
 
-```csv
-    ID,Question
-    1,"What are the main features of NeuralSeek?"
-    2,"What are the knowledgebases supported by NeuralSeek?"
-    3,"I want to integration NeuralSeek with Watson Assistant. What do I need to do?"
-    4,"Where can I see the demo?"
-```
+- Watson Assistant Actions
+- AWS Lex V2
+- Kore.ai
+- Cognigy
+- Watson Assistant Dialog
+- Azure Knowledge Base
+- None / Webpage HTML
 
-4. Click the upload button to upload the file.
-5. Click `Submit` button.
-6. NeuralSeek will run through the questions and let you know how many are being processed. When it is finsihed it 
+For watsonx Assistant, choose `Watson Assistant Actions` or `Watson Assistant Dialog` to match how your assistant is built; for Lex, choose `AWS Lex V2`. The examples on this page use `Watson Assistant Actions`. Every other setting in that section is documented in [Platform Preferences](/configuration/neural-config/platform-preferences/).
 
-![processing](/img/integrations/training-virtual-agents/image-031.png)
+![Virtual Agent Type in Platform Preferences, set to Watson Assistant Actions](/img/neural-config/platform-preferences--virtual-agent-type.png)
 
-7. When finished, you can either Download the report, Export All Q&A, or Delete the generated report.
+![The Virtual Agent Type option list](/img/neural-config/platform-preferences--options-virtual-agent-type.png)
 
-![generated report](/img/integrations/training-virtual-agents/image-032.png)
+### Build training utterances — Examples
 
-8. Download the report: it will give you a CSV file that has the following columns:
-    - `ID,question,score,semanticScore,kbCoverage,totalCount,url,document,answer,categoryId,category,intent,pii,sentiment` which will give you the answer and score of how well it got generated.
-9. Export All Q&A: it will export all the Q&A currently stored in NeuralSeek, in JSON format suitable to be imported as Watson Assistant Actions.
-10. Delete Report: it will delete the generated report, and will not be available anymore.
+Expand an intent on Curate (the arrow at the start of its row) to see its **Examples** — the questions that belong to the intent — next to its **Answers**. In the **Q&A** column, the white bubble counts the examples — for instance, an intent named `Other-neuralseek` showing 11. These examples are what the export turns into training utterances, so the more realistic phrasings an intent has, the better the virtual agent can match it.
 
-## Uploading Curated Q/A
-This feature is very similar to `Upload Test Questions`, but uses the CSV format that has `ID,Question,Answer`. User can create question and answer pairs to submit it, which will then be populated as `edited answers` in NeuralSeek. This feature is useful when you need to edit and upload answers in bulk fashion. An example format of the CSV is as follows:
+The **Examples** header carries three actions:
 
-```csv
-ID,Question,Answer
-1,Tell me about NeralSeek,"NeuralSeek is an AI-powered platform that generates natural-language answers to complex, open-ended, and contextual questions from real customers."
-```
+- **Add Examples** opens a dialog: "Add additional examples, one question per line." Type the phrasings your users actually use, one per line, then **Save** (or **Cancel**).
+- **Generate Examples** sits next to it and generates a batch of example questions for the intent. **Remove Auto-Generated Examples** removes those generated examples again and keeps only the questions users actually asked.
 
-## Importing Q/A into Watson Assistant
-Depending on how your NeuralSeek is setup, it can either product questions and answers into `Action` type or `Dialog` type. That depends on whether your Watson Assistant is enabled with dialog or not.
+Curate does not show a required number of examples; check your virtual agent's own guidance for how many utterances an intent needs.
 
-### Importing into Watson Assistant as Actions
-:::tip
-As for importing Q&A into Watson Assistant, you can do it on both Watson Assistant `Classic` mode or new `Dialog` mode.
-:::
+![An expanded intent: Notes, the Examples header with Add Examples, Remove Auto-Generated Examples and Generate Examples, and the Answers list](/img/curate/intent-row-expanded.png)
 
-1. Go to your Watson Assistant, and to go to `Actions`. Click the gear icon on top right to go into the settings.
+![The Add Examples dialog: one question per line, with Cancel and Save](/img/curate/add-examples-panel.png)
 
-![gear icon](/img/integrations/training-virtual-agents/image-021.png)
+The full intent row, including notes, answer editing and the mAIstro toggle, is covered in [Answer curation](/seek/curation/).
 
-2. In the global settings, move to the right most tab which is `Upload/Download`, and click `Download` button to download the action's JSON file.
+### Load curated Q&A in bulk — Load Q&A
 
-![download json](/img/integrations/training-virtual-agents/image-022.png)
+When the questions and answers are written outside NeuralSeek, **Load Q&A** on the Curate toolbar opens the **Q&A Upload** screen. Its instructions say:
 
-3. A JSON file should be saved.
-4. Go to NeuralSeek, click `Curate` tab.
-5. Click `Import Base Watson Assistant Actions`.
+- "You can either upload new Q&A pairs, or edit existing ones you have downloaded from the Curate tab."
+- "Do not mix downloaded and new Q&A pairs in the same file."
+- "If you upload new Q&A pairs, the answers for the questions will become edited answers in NeuralSeek and will train future language generations for similar questions."
+- "Input files must retain these column titles at a minimum, but you may add additional payload columns."
 
-![import base wa actions](/img/integrations/training-virtual-agents/image-019.png)
+The **template** link downloads `qa.csv`, the file whose column titles you must keep. Drop your file on "Drag and drop files here or click to upload", decide on **Improve my answers (send each answer out to Seek)** (a toggle that reads "No" when off), and press **Submit** — it stays disabled until a file is chosen.
 
-6. Upload the downloaded JSON file.
+CSV and Excel (XLSX) files are accepted. The file uses the same columns as a Curate **Download to CSV** export (`ID`, `Question`, `QuestionExamplesUser`, `QuestionExamples`, `score`, `kbCoverage`, `Answer`, `AnswerID`, `Edited`, `OOS`, `Rating`, `TotalRatings`, `timestamp`, `category`, `intent`, `pii`, `maistro`, `flag`); at a minimum it needs `Question` and `Answer`. See [Loading Q&A in bulk](/seek/curation/#loading-qa-in-bulk).
 
-![upload json](/img/integrations/training-virtual-agents/image-023.png)
+Uploaded pairs become intents with edited answers on Curate, and from there they export like any other intent.
 
-7. Now, select one or more intents which you want to import into Watson Assistant. You will notice a new button is display which is `Export to Watson Assistant Actions`.
+![Q&A Upload: Submit, Cancel, the template link, the Improve my answers (send each answer out to Seek) toggle, and the Load Q&A drop zone](/img/curate/load-q-a--q-a-upload.png)
 
-![export to wa actions](/img/integrations/training-virtual-agents/image-024.png)
+### Export from Curate — Export to Watson Assistant Actions
 
-8. It will download a JSON file called `actions.json` which will contain the selected intents that you want to convert it into Watson Assistant Actions.
-9. Go to Watson Assistant. At the same page where you just downloaded the JSON, click to select a file, and select the `actions.json` and click `Upload` button.
+Tick the checkbox of one or more intents (the box in the header row selects the whole page). A selection toolbar replaces the normal one: a counter ("0 item selected" when nothing is ticked), **Edit Category**, two icon buttons, **Export to Watson Assistant Actions** and **Cancel**.
 
-![upload actions.json](/img/integrations/training-virtual-agents/image-025.png)
+<!-- UNCONFIRMED: that Export to Watson Assistant Actions downloads the selected intents in the Virtual Agent Type format — inferred from the Virtual Agent Type help text; the button was never clicked. Also: the button label follows the type (e.g. "Export to AWS Lex V2"), and the export file is actions.json for Actions and a .zip for Lex — old docs page -->
 
-10. You will see a warning message. Click `Upload and replace`.
+The help text of **Virtual Agent Type** says it sets the format Curate writes when building a virtual agent, so **Export to Watson Assistant Actions** is expected to write the selected intents in that format. With the type set to `Watson Assistant Actions`, the button carries that name.
 
-![upload and replace](/img/integrations/training-virtual-agents/image-026.png)
+According to earlier documentation, the button label changes with the type (for example "Export to AWS Lex V2"), the Watson Assistant Actions export is a file named `actions.json`, and the AWS Lex export is a `.zip`.
 
-11. Now, close this page, and you will see the exported actions appear on your actions list.
+![Screenshot needed — Curate selection toolbar with Export to Watson Assistant Actions](/img/_placeholder.svg)
 
-![exported actions on list](/img/integrations/training-virtual-agents/image-027.png)
+<!-- SCREENSHOT: /img/curate/bulk-toolbar.png — Curate with one or more intents ticked; crop the selection toolbar showing the item counter, Edit Category, the icon buttons, Export to Watson Assistant Actions and Cancel. Why: the toolbar only exists while rows are selected and was never captured. -->
 
-12. Click one of the actions. You should be able to see the list of the quesitons generated by NeuralSeek nicely populated. 
+### Import into watsonx Assistant or AWS Lex
 
-![generated questions_1](/img/integrations/training-virtual-agents/image-028.png)
-![generated questions_2](/img/integrations/training-virtual-agents/image-029.png)
+The last step happens in the virtual agent, not in NeuralSeek, so this page does not show its screens. Today's Curate toolbar has search, a settings gear, Add Intent, Filter and the upload button — there is no "Import Base …" button on it, so the base-import steps that earlier documentation describes are either gone or have moved.
 
-With these, you can easy save time to jump start Watson Assistant to provide better answers to the questions and answers generated by NeuralSeek. One other nice thing about this is that if you find any particular questions and answers that does not yet exist in Watson Assistant, you can easily move them from NeuralSeek.
+<!-- UNCONFIRMED: the Watson Actions / Watson Dialog / AWS Lex (Bot Merge Import, Bot Import Only) import procedures and the "Import Base Watson Assistant Dialog" / "Import Base AWS Lex V2" buttons — old docs page; third-party screens and no such button in the capture -->
 
-### Importing into Watson Assistant as Dialogs
-:::note
-Unlike importing them as Actions, you first need to export your Watson Assistant's dialogs and set them as `Base Watson Assistant Dialog` into NeuralSeek. That is because Watson Assistant, when uploading a Dialog, would simply override the existing dialog and upload a new one. In order to make sure any existing actions or dialogs are not deleted, NeuralSeek needs to have it first, and then merge the dialogs into it.
-:::
+What earlier documentation describes:
 
-1. Go to your Watson Assistant, and to go `Dialog > Options > Upload / Download`:
+- _watsonx Assistant, as Actions._ In the assistant, open Actions, the settings gear, then the "Upload/Download" tab; upload the exported file and confirm "Upload and replace". The exported actions then appear in the assistant's action list with their example questions.
+- _watsonx Assistant, as Dialogs._ Uploading a dialog to Watson Assistant replaces the existing dialog, so the old flow first downloaded the assistant's dialog JSON and loaded it into NeuralSeek as a base ("Import Base Watson Assistant Dialog"). The export then merged the curated intents into that base. Whenever the dialog changed in Watson Assistant, the base had to be loaded again, or newer dialog content would be lost.
+- _AWS Lex, Bot Merge Import._ Export the existing bot from the AWS Lex console, load it into NeuralSeek as a base ("Import Base AWS Lex V2"), export the merged .zip from Curate, import it in Lex as a new bot, then Build. The new bot holds both the original intents and the NeuralSeek ones.
+- _AWS Lex, Bot Import Only._ Export the selected intents from Curate and import the .zip in Lex as a new bot, then Build. The bot holds only the NeuralSeek intents.
 
-![downloading](/img/integrations/training-virtual-agents/image-005.png)
+Check the import screen of your virtual agent before you upload, since a replace-style import overwrites what is there. The connection itself — how the virtual agent calls NeuralSeek at runtime — is set up in [watsonx Assistant](/integrations/virtual-agents/watsonx-assistant/) and [AWS Lex](/integrations/virtual-agents/aws-lex/).
 
-2. Click `Download` tab and click `Doanload` button:
+## FAQ
 
-![loaded answers](/img/integrations/training-virtual-agents/image-006.png)
+### How do I choose between Watson Assistant Actions, Watson Assistant Dialog and AWS Lex?
 
-3. A JSON file should be downloaded.
-4. Now go to NeuralSeek, and go to `Curate` tab.
-5. Click `Import Base Watson Assistant Dialog` button.
+Set **Virtual Agent Type** in Neural Config > Edit Configuration > Platform Preferences. Curate writes its export in the format selected there; see [Platform Preferences](/configuration/neural-config/platform-preferences/).
 
-![importing dialog](/img/integrations/training-virtual-agents/image-007.png)
+### How many example questions does an intent need?
 
-6. Select the downloaded JSON file. The button will now be turned to `Base Watson Assistant Dialog Uploaded`.
+Curate shows no required number. Follow your virtual agent's guidance, and use **Add Examples** for the phrasings your users actually use. **Generate Examples** adds a batch of generated phrasings; **Remove Auto-Generated Examples** takes them out again and leaves only real user questions.
 
-![imported dialog](/img/integrations/training-virtual-agents/image-008.png)
+### Can I train with Q&A I wrote outside NeuralSeek?
 
-:::caution[Warning]
-Whenever there is a change of your Watson Assistant Dialog, make sure to delete the older one and upload the recent one in order to not risk losing your most up-to-date dialogs.
-:::
+Yes. Use **Load Q&A** on Curate with the **template** file. New pairs become edited answers in NeuralSeek, and you can then select those intents and export them.
 
-7. Now, select the list of questions that you want to load it into. As soon as you select them, a new button `Export to Watson Assistant Dialog` will appear. You can obviously select all the questions by checking the `all` box at top left.
+### Where do I test a batch of questions before training?
 
-![selecting questions](/img/integrations/training-virtual-agents/image-009.png)
+The REST API reference lists `POST /test` ("Test questions via batch upload") and `GET /getTestResults` ("Get Test Results") under "Test Questions" — see [REST & Console APIs](/integrations/rest-and-console-api/). In the console, Home offers a test-question upload only on a newly created instance; otherwise use [Curate](/seek/curation/) to auto-generate questions or load them.
 
-8. Click the button to export these dialogs.
-9. Now, a JSON file should be downloaded. Load the file back into Watson Assistant using its upload tab.
+### Will the export overwrite my existing bot?
 
-![uploading](/img/integrations/training-virtual-agents/image-010.png)
-
-10. Note that uploading this JSON will overwrite any existing dialog contents. Click `Upload and replace`.
-
-![uploading warning](/img/integrations/training-virtual-agents/image-011.png)
-
-11. If everything goes well, it will say the skills were uploaded successfully.
-12. You now have the curated answer from NeuralSeek populated as a Dialog node in Watson Assistant. Next time when the user asks the same question, Watson Assistant should be able to answer it the same way as NeuralSeek did.
-
-![modified dialog](/img/integrations/training-virtual-agents/image-012.png)
-![Alt text](/img/integrations/training-virtual-agents/image-030.png)
-![search result](/img/integrations/training-virtual-agents/image-013.png)
-
-This is a great way to effectively manage some of the most frequent questions and answers that you uncover from NeuralSeek to be able to be transferred into the Virtual Agent's dialog, such that it will be able to be trained with better set of answers.
-
-## Importing into AWS Lex
-
-You can either export NeuralSeek curated questions and answers into a new Lex Bot or merge existing Lex Box intents with curated questions and answers from NeuralSeek into a cloned Lex Bot
-
-### AWS Lex Bot Merge Import
-
-These directions allow you to merge existing AWS Lex bot intents with curated NeuralSeek questions and answers into a new bot. The NeuralSeek curated questions and answers get converted to Lex intents automatically. 
-
-1. Log into AWS Management Console and navigate to AWS Lex > Bots.  You should see a list of available bots to merge with NeuraSeek.
-
-![Available Bots](/img/integrations/training-virtual-agents/available_bots.png)
-
-2. In the Bots list in the main view select the desired bot so it is selected, and click Action > Export.  An Export Bot: <Name of Bot> dialog is shown.
-
-![Export Bot](/img/integrations/training-virtual-agents/bot_export_dialog.png)
-
-3. From the export dialog leave all the default values and click Export.  A blue banner is shown of exporting followed by a green banner of successfully exported/downloaded.
-4. Next log into your NeuralSeek instance with a user with permissions to the Curate tab.
-5. Click on the Curate tab.
-6. Click on the Import Base AWS Lex V2 button in the upper right corner. A File Explorer dialog is shown.
-
-![import base AWS Lex V2](/img/integrations/training-virtual-agents/import_base_aws_lex.png)
-
-:::note
-If the import button says something different than AWS Lex, switch to the NeuralSeek instance that is using the AWS Lex Virtual Agent. Optionally, you can also change the virtual agent type under Configure > Platform Preferences. 
-:::
-
-7. Navigate to the zipped AWS Lex file you exported from step 3 and click Open. The button will switch to Base AWS Lex V2 Uploaded.  After import, intents will not get added to the content list, but duplicates will show an indicator that this intent is already present in the definition file.
-8. Now, select the list of questions that you want to export into AWS Lex. As soon as you select them, a new button `Export to AWS Lex V2 Dialog` will appear. You can select all the questions by checking the `all` box at top left.
-
-![selecting questions](/img/integrations/training-virtual-agents/image-009.png)
-
-9. Click the `Export to AWS Lex V2` button to export these questions and answers.  A zipped file should be downloaded. 
-10. From the AWS Management Console Amazon Lex > Bots screen click Actions > Import. A Lex > Bots > Import bot screen is shown.
-
-![Import AWS Lex Bot](/img/integrations/training-virtual-agents/import_lex_bot.png)
-
-11. Fill in the new Bot name, browse for the zip file, set the COPPA yes/no, set the IAM permissions, and then scroll down and click Import. You'll see a blue banner that the bot is being imported followed by a successfully imported banner.
-
-12. Find the imported bot in the bots list and open it by clicking on its name. The details for the merged bot is shown. Notice the Intents section in the left pane has both the original intents and the NeuralSeek intents merged into a single bot.
-13. Click the build button. You can now test the new imported intentions.
-
-![Import AWS Lex Bot](/img/integrations/training-virtual-agents/build_bot.png)
-
-### AWS Lex Bot Import Only
-
-These directions are for creating a new Amazon Lex bot from curated NeuralSeek questions and answers only. It will not contain existing intents from AWS.
-
-1. Start by logging into your NeuralSeek instance with a user with permissions to the Curate tab.
-2. Click on the Curate tab.
-3. Select the list of questions that you want to export into AWS Lex. As soon as you select them, a new button `Export to AWS Lex V2 Dialog` will appear. You can select all the questions by checking the `all` box at top left.
-
-![selecting questions](/img/integrations/training-virtual-agents/image-009.png)
-
-4. Click the `Export to AWS Lex V2` button to export these questions and answers.  A zipped file should be downloaded. 
-5. From the AWS Management Console Amazon Lex > Bots screen click Actions > Import. A Lex > Bots > Import bot screen is shown.
-
-![Import AWS Lex Bot](/img/integrations/training-virtual-agents/import_lex_bot.png)
-
-6. Fill in the new Bot name, browse for the zip file, set the COPPA yes/no, set the IAM permissions, and then scroll down and click Import. You'll see a blue banner that the bot is being imported followed by a successfully imported banner.
-
-7. Find the imported bot in the bots list and open it by clicking on its name. The details for the merged bot is shown. Notice the Intents section in the left pane has converted the NeuralSeek questions and and answers to intents.
-8. Click the build button.  You can now test the new imported intentions.
+That depends on how the virtual agent imports it, not on NeuralSeek. Earlier documentation describes Watson Assistant's "Upload and replace" and a separate merge flow for AWS Lex; check the import screen of your agent before uploading.

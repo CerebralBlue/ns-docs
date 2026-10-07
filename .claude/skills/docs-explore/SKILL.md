@@ -67,7 +67,7 @@ still run. A write-only run with routes not yet `briefed` will brief them first 
 
 Extract the script below to a file (`sed -n '/^```js$/,/^```$/p' .claude/skills/docs-explore/SKILL.md | sed '1d;$d' > <scratchpad>/docs-explore.js`)
 and call the **Workflow** tool with `scriptPath` and
-`args: { "runId": "<runId>", "captureRun": "<captureRun>", "mode": "<explore|write-only|capture-only>", "area": "<area>", "kind": "<kind>", "routes": <routes[]>, "repo": "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs", "attempt": <n or omit>, "noPlan": <true only with --no-plan> }`.
+`args: { "runId": "<runId>", "captureRun": "<captureRun>", "mode": "<explore|write-only|capture-only>", "area": "<area>", "kind": "<kind>", "routes": <routes[]>, "repo": "<the repo root, absolute: git rev-parse --show-toplevel>", "attempt": <n or omit>, "noPlan": <true only with --no-plan> }`.
 (This instruction is the opt-in for multi-agent orchestration.) Note the Workflow's own run id
 from the tool result next to the ledger id.
 

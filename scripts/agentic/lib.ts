@@ -89,8 +89,9 @@ export const currentRun = () =>
 export const runDir = (runId: string) => join(RUNS_DIR, runId);
 export const routeDir = (runId: string, route: string) => join(RUNS_DIR, runId, routeFolder(route));
 
+/** Strips a leading BOM: a file an agent wrote through a Windows shell can carry one. */
 export function readJson<T = any>(path: string): T | null {
-	return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : null;
+	return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8').replace(/^﻿/, '')) : null;
 }
 export function writeJson(path: string, data: unknown) {
 	mkdirSync(dirname(path), { recursive: true });

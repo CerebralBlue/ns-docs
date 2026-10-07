@@ -20,7 +20,8 @@ TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""')
 [ "$TOOL" = "Bash" ] || exit 0
 AGENT=$(printf '%s' "$INPUT" | jq -r '.agent_type // ""')
 CMD=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // ""')
-ROOT=${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$(dirname "$0")/_paths.sh"
+ROOT=$(norm_path "${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}")
 V2="$ROOT/_private/agentic-v2"
 RUN_ID=$(cat "$V2/current-run" 2>/dev/null || true)
 LOG="$V2/${RUN_ID:+runs/$RUN_ID/}denials.log"
@@ -64,7 +65,7 @@ allowed_segment() {
 	if printf '%s' "$SEG" | grep -Eq "^($READONLY)( |$)"; then return 0; fi
 	if [ -n "$PREFIXES" ]; then
 		local P REL
-		REL=$(printf '%s' "$SEG" | sed -E "s#$ROOT/##g")
+		REL=$(norm_cmd "$SEG" | sed -E "s#$ROOT/##g")
 		IFS='|' read -r -a LIST <<<"$PREFIXES"
 		for P in "${LIST[@]}"; do case "$SEG" in "$P"*) return 0 ;; esac; case "$REL" in "$P"*) return 0 ;; esac; done
 	fi

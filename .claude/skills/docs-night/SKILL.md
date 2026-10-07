@@ -47,7 +47,7 @@ area's own Cleanup stage.**
    `bun scripts/agentic/night.ts record <section> --ledger <runId>`. Extract the docs-explore
    script to a file (`sed -n '/^```js$/,/^```$/p' .claude/skills/docs-explore/SKILL.md | sed '1d;$d' > <scratchpad>/docs-explore.js`,
    once per night) and call the **Workflow** tool with `scriptPath` and
-   `args: { runId, captureRun, mode, area, kind, routes, repo: "/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs" }`
+   `args: { runId, captureRun, mode, area, kind, routes, repo: "<the repo root, absolute: git rev-parse --show-toplevel>" }`
    (the planner, checkpoints and delegation run inside; add `noPlan: true` only if Fabio asked
    for a pure v3.2 night).
    Then `bun scripts/agentic/night.ts record <section> --workflow <the Workflow run id>`. **Stop

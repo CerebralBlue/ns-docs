@@ -12,12 +12,10 @@ trap 'jq -n --arg r "'"$(basename "$0")"' hit an internal error — denied by de
 INPUT=$(cat)
 AGENT=$(printf '%s' "$INPUT" | jq -r '.agent_type // ""')
 TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""')
-ROOT=${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}
-FILE=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // ""')
-case "$FILE" in
-	/*) ;;
-	*) FILE="$ROOT/$FILE" ;;
-esac
+. "$(dirname "$0")/_paths.sh"
+ROOT=$(norm_path "${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}")
+FILE=$(norm_path "$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // ""')")
+is_abs "$FILE" || FILE="$ROOT/$FILE"
 RUN_ID=$(cat "$ROOT/_private/agentic-v2/current-run" 2>/dev/null || true)
 RUNS="$ROOT/_private/agentic-v2/runs"
 LOG="$ROOT/_private/agentic-v2/${RUN_ID:+runs/$RUN_ID/}denials.log"

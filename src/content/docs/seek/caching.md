@@ -160,8 +160,8 @@ its slider; neither has help text, so the label is the only description:
 - **Require Cache to Follow Context?** — `Yes` on the instance captured here. Inferred from the
   label: with `Yes` a cached answer is served only when the conversation so far matches too, not
   on the question text alone; with `No` the question alone can hit the cache. See
-  [Conversational context](/seek/conversational-context/). Its placement under the Normal answer
-  cache is visible on screen; whether it also governs the Edited answer cache is not.
+  [Conversational context](/seek/conversational-context/). It sits under the Normal answer cache
+  but governs the Edited answer cache too.
 - **Require Cache to match the exact KB for the question and not the intent?** — `No` on the
   instance captured here. The label says the cache is normally matched on the intent; `Yes`
   would instead require the cached answer to have come from the same KnowledgeBase result as the

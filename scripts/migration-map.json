@@ -101,10 +101,10 @@
     },
     "seek/dynamic-filters": {
       "title": "Dynamic filters",
-      "description": "Explore NeuralSeek's Dynamic Filters to refine document searches with precision using DQL. Learn setup, application, and examples for real-time query adjustments without altering core datasets.",
+      "description": "Narrow a single seek to a subset of KnowledgeBase documents at query time by typing a DQL filter string into the Seek tab's Filter dialog.",
       "sources": ["guides/data/dynamic_filters/index.md"],
       "action": "keep",
-      "status": "auto",
+      "status": "adopted",
       "console": ["seek", "neural-config:advanced"]
     },
     "seek/conversational-context": {
@@ -115,7 +115,7 @@
         "guides/integration/providing_context/index.md"
       ],
       "action": "merge",
-      "status": "auto",
+      "status": "adopted",
       "console": ["neural-config:advanced", "seek"]
     },
     "seek/caching": {
@@ -128,10 +128,10 @@
     },
     "seek/personalization": {
       "title": "Personalization",
-      "description": "Discover how NeuralSeek's Dynamic Personalization leverages CRM data to tailor results, boosting user engagement and satisfaction.",
+      "description": "Personalization tailors a Seek answer to one customer using preferred name, products and other CRM details — tested in the Personalize modal and enabled in Neural Config.",
       "sources": ["features/dynamic_pers/index.md"],
       "action": "keep",
-      "status": "auto",
+      "status": "adopted",
       "console": ["seek", "neural-config:advanced"],
       "gaps": [
         "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced)",
@@ -143,10 +143,10 @@
     },
     "seek/curation": {
       "title": "Answer curation",
-      "description": "Explore NeuralSeek's Curate feature to manage and optimize intents from your KnowledgeBase. Import, export, and customize Q&A, track changes, and enhance user interactions with ease.",
+      "description": "The Curate screen lists the intents NeuralSeek groups user questions into, with their example questions and answers; there you filter and recategorise intents, add examples, upload Q&A pairs in bulk and export intents to a virtual agent.",
       "sources": ["ui/curate/index.md", "features/answer_curation/index.md"],
       "action": "merge",
-      "status": "auto",
+      "status": "adopted",
       "console": ["curate"],
       "gaps": [
         "Delete user data — the bulk GDPR/CCPA erasure path",
@@ -862,10 +862,10 @@
     },
     "integrations/training-virtual-agents": {
       "title": "Training virtual agents",
-      "description": "Effortlessly train IBM Watson Assistant with NeuralSeek! Auto-generate questions, streamline curation, and integrate seamlessly with Watson and AWS Lex. Boost your virtual agent's efficiency today!",
+      "description": "Turn the intents, example questions and answers curated in NeuralSeek's Curate screen into training data for a virtual agent such as watsonx Assistant or AWS Lex, in the format set by Virtual Agent Type.",
       "sources": ["guides/integration/training_virtual_agents/index.md"],
       "action": "keep",
-      "status": "auto",
+      "status": "adopted",
       "console": ["curate", "admin-tools"]
     },
     "integrations/watsonx-assistant-streaming": {
@@ -981,10 +981,10 @@
     },
     "integrations/feedback": {
       "title": "Implementing feedback",
-      "description": "Enhance user interaction with NeuralSeek by integrating Thumbs Up/Down feedback icons into your virtual agent. Learn to seamlessly embed these icons in watsonx Assistant and track ratings for improved insights.",
+      "description": "Rate a NeuralSeek answer with the Thumbs Up / Thumbs Down icons on the Seek answer panel, read those ratings back in Curate, embed the icons in a virtual agent, and rate answers programmatically with the /rate API.",
       "sources": ["guides/integration/implementing_feedback/index.md"],
       "action": "keep",
-      "status": "auto",
+      "status": "adopted",
       "console": ["seek", "curate"]
     },
 

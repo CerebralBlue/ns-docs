@@ -11,7 +11,7 @@ color: cyan
 # config-export
 
 Two steps, nothing else, from the repo root
-(`/home/fabio/Documents/NeuralSeek/ns-documentation/ns-docs`):
+(`git rev-parse --show-toplevel`):
 
 1. `bun scripts/agentic/config-slice.ts <runId> --fetch --json` — POSTs `packConfig` on the
    playground's console API (the URL in `.neuralseekrc.json`), saves the reply under

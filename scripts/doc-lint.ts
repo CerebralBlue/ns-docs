@@ -108,7 +108,8 @@ function splitFrontmatter(raw: string): { fm: string; body: string; offset: numb
 }
 
 function lintPage(status: string, raw: string, findings: Finding[]) {
-	const { fm, body, offset } = splitFrontmatter(raw);
+	// A CRLF file (a Windows checkout or editor) must lint the same as its LF twin.
+	const { fm, body, offset } = splitFrontmatter(raw.replace(/\r\n/g, '\n'));
 
 	if (!/^title:\s*\S/m.test(fm))
 		findings.push({ level: 'error', line: 1, rule: 'frontmatter', message: 'no `title:`' });

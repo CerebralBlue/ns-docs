@@ -21,7 +21,8 @@ trap 'jq -n --arg r "pw-policy.sh hit an internal error on ${TOOL:-?} — denied
 
 INPUT=$(cat)
 TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""')
-ROOT=${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}
+. "$(dirname "$0")/_paths.sh"
+ROOT=$(norm_path "${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}")
 AGENT=$(printf '%s' "$INPUT" | jq -r '.agent_type // "main"')
 V2="$ROOT/_private/agentic-v2"
 RUN_ID=$(cat "$V2/current-run" 2>/dev/null || true)
@@ -95,7 +96,7 @@ case "$TOOL" in
 		;;
 
 	mcp__neuralseek-ui__browser_take_screenshot | mcp__neuralseek-ui__browser_snapshot)
-		F=$(printf '%s' "$INPUT" | jq -r '.tool_input.filename // ""')
+		F=$(norm_path "$(printf '%s' "$INPUT" | jq -r '.tool_input.filename // ""')")
 		if [ -n "$F" ]; then
 			case "$F" in
 				"$ROOT"/public/img/* | "$ROOT"/_private/tools/playwright/output/* | "$V2"/runs/*) ;;

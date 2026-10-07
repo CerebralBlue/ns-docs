@@ -1,0 +1,4 @@
+# Every text file is LF in the working tree too, on every OS. A Windows checkout with
+# core.autocrlf=true otherwise gets CRLF, which breaks frontmatter parsing in doc-lint.ts and
+# the pipeline's gates, and fails `bun run verify` at Prettier (endOfLine: lf).
+* text=auto eol=lf

@@ -93,22 +93,19 @@ and check answer quality rather than jumping to the maximum.
 
 **Context Timeout - Session** is how long a conversation identified by a `session_id` keeps its
 context. The help text is one line: "Timeout of a session_id based user session." The slider runs
-from `0` to `999999`; the playground has it at `360000`.
+from `0` to `999999`; the playground has it at `360000` milliseconds (6 minutes).
 
 ![The Context Timeout - Session slider, 0 to 999999, set to 360000](/img/neural-config/platform-preferences--context-timeout-session.png)
 
-:::note
-Neither context timeout shows a unit on screen, so do not read the numbers as seconds or
-milliseconds. The neighbouring **Timeout** slider does say "milliseconds", but that is the
-language-generation timeout, a different setting.
-:::
+Both context timeouts are in **milliseconds**, like the neighbouring **Timeout** slider (the
+language-generation timeout, a different setting).
 
 ### Context Timeout - User Only
 
 **Context Timeout - User Only** is the window for a request that carries a user id but no
 `session_id`. The help text reads: "Timeout of a user based session with no session_id." The
-slider has the same `0` to `999999` range; the playground has it at `1800` — a much smaller number
-on the same scale as the session timeout's `360000`, so a user-only session expires far sooner
+slider has the same `0` to `999999` range; the playground has it at `1800` milliseconds — far less
+than the session timeout's `360000`, so a user-only session expires far sooner
 than a session identified by a `session_id`.
 
 ![The Context Timeout - User Only slider, 0 to 999999, set to 1800](/img/neural-config/platform-preferences--context-timeout-user-only.png)
@@ -136,18 +133,15 @@ tagging." It is one heading over two dropdowns.
 mAIstro flow for custom PoS tagging" of the help text, that is, an agent that does the
 part-of-speech work in place of the built-in model. Its list is `Disabled` plus the agents on the
 instance that qualify, so the second entry is instance-specific: on the playground it is
-`ex_Context_Grammar`.
+`ex_Context_Grammar`. The dropdown is disabled while **Detection Method** is `Model Only`, since no
+mAIstro agent is involved.
 
-<!-- UNCONFIRMED: mAIstro flow appears disabled while Detection Method is `Model Only` — inferred from the greyed rendering in the capture and the missing pointer cursor on its listbox; switching the method to confirm would change the configuration. -->
-
-In the capture the **mAIstro flow** dropdown is rendered greyed out while **Detection Method** is
-`Model Only`, which suggests it only becomes editable once a mAIstro option is selected.
 
 ### Force carry context
 
 **Force carry context** is the switch for subject-less follow-ups. The help text reads: "If no
 subject / nouns are found in a question assume the question is a follow on to the previous
-question". It is a True or False dropdown; the playground has it at `False`, so a question with no
+question". It is a `True` / `False` dropdown; the playground has it at `False`, so a question with no
 subject is not treated as a follow-up unless you turn this on.
 
 ![The Force carry context dropdown, set to False](/img/neural-config/platform-preferences--force-carry-context.png)
@@ -158,23 +152,17 @@ NeuralSeek relies on what **Context detection** can find in the question itself.
 ### Require Cache to Follow Context?
 
 **Require Cache to Follow Context?** is a `Yes` / `No` dropdown under **Normal answer cache** in
-the **Intent Matching & Cache Configuration** accordion; the playground has it at `Yes`.
+the **Intent Matching & Cache Configuration** accordion; the playground has it at `Yes`. With `Yes`, a
+cached answer is only reused when it fits the conversation's context; the setting covers both the
+normal answer cache and the edited answer cache.
 
 ![The Normal answer cache section, with Require Cache to Follow Context? set to Yes](/img/neural-config/intent-matching-cache-configuration--normal-answer-cache.png)
 
-<!-- UNCONFIRMED: that `Yes` means a cached answer is only served when the conversation context matches as well — inferred from the label; the control has no help text and no probe exercised it. -->
-
-Set to `Yes`, a cached answer is only reused when the conversation context matches as well, not on
-the question text alone. How the caches themselves work is on [Caching](/seek/caching/), and the
-setting is documented on
-[Intent Matching & Cache](/configuration/neural-config/intent-matching-caching/).
 
 ### Carrying the previous turn yourself
 
 When the calling system already holds the conversation history, it can hand the previous exchange
 over on each request instead of relying on a session id.
-
-<!-- UNCONFIRMED: `options.lastTurn` and its `[{input, response}]` shape, and the two request examples below, are from the previous documentation page; nothing in this capture shows a seek request body, and they were not re-verified against the current /seek API. -->
 
 `options.lastTurn` carries the previous exchange with the request. On the first request there is
 nothing to reference, so the structure is empty:
@@ -235,8 +223,7 @@ left for your documentation and more exposure to prompt attacks.
 
 Two separate timeouts: **Context Timeout - Session** (`360000` on the playground) for a
 `session_id` session, and **Context Timeout - User Only** (`1800`) for a request with a user id and
-no session id. Both run from `0` to `999999` and neither shows its unit on screen, so read the
-values in your own console rather than assuming seconds or milliseconds.
+no session id. Both are in milliseconds and run from `0` to `999999`.
 
 ### The user asked "how does it work?" with no subject — is it a follow-up?
 
@@ -252,5 +239,6 @@ and the qualifying agents on your instance; on the playground that is `ex_Contex
 ### Does a cached answer ignore the conversation?
 
 Not while **Require Cache to Follow Context?** is `Yes`, which is the playground value. Set it to
-`No` and the cache is keyed on the question alone. The caches are explained on
+`No` and the cache is keyed on the question alone. The setting applies to both the normal and the
+edited answer cache. The caches are explained on
 [Caching](/seek/caching/).
