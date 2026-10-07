@@ -1,110 +1,110 @@
 ---
 title: "Multi-LLM"
-description: "A NeuralSeek instance can run several LLMs at once: each model is a card in LLM Details, each card claims the functions it is allowed to perform, two cards sharing a function are load-balanced, and a function no card claims is disabled with no fallback."
+description: "A NeuralSeek instance can run several LLMs at once: each model is a card in LLM Details, each card claims the LLM Functions it performs, a function ticked on two cards is load-balanced across them, and a function no card claims is disabled with no fallback."
 ---
 
-## What is it
+A NeuralSeek instance can run several language models side by side. Each model is a card in the [LLM Details](/configuration/neural-config/llm-details/) section of Neural Config, and each card carries a list of **LLM Functions** — the jobs NeuralSeek hands to a model, such as **Seek**, **Translate** or **Image Generation**. A job goes to every card that has it ticked, load-balanced when more than one card has it; a job no card has ticked is switched off, with no fallback to another model. Use this page when one model cannot do everything you need, when you want cheaper background work kept away from the model that writes answers, or when you want two models to share the load of one job. If you only need one model to handle images as well as text, that is a single card — see [Multimodal LLM configuration](/configuration/multimodal/).
 
-Multi-LLM is running more than one large language model on a single NeuralSeek instance. There is no separate screen for it: it is what the **LLM Details** section of the **Edit Configuration** dialog does when it holds more than one card.
+## Before you begin
 
-Each card is one model NeuralSeek may call, and each card carries its own set of **LLM Functions** — the twenty jobs a model can be given, from **Seek** and **Translate** to **Image Generation** and **maistro**. Which model does which job is decided by ticking those boxes, so an instance with four cards is really four models dividing the work between them.
+- You need access to **Neural Config**, and the instance already has at least one model card in **LLM Details**.
+- Decide what the new model is for. The providers and models you can add, and what each one cannot do, are on [Supported LLMs](/configuration/supported-llms/); the models NeuralSeek hosts for you are on [Managed LLM Details](/configuration/neural-config/managed-llm/).
 
-The section states the rules itself, in the paragraph beside **Add an LLM**:
+## Add a second model
 
-> You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them for the selected functions that have multiple LLM's. Features that an LLM are not capable of will be unselectable. If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled.
+1. Open **Neural Config**, select the **Default Config / Answer Generation** node, select **Edit Configuration**, and expand **LLM Details**.
+2. Read the rule set beside **Add an LLM**. It governs everything on this page:
 
-Two neighbouring topics are easy to confuse with this one. **Multimodal** is one model handling more than one kind of media — see [Multimodal LLM configuration](/configuration/multimodal/). **Supported LLMs** is the catalogue of models you can connect at all — see [Supported LLMs](/configuration/supported-llms/). Multi-LLM is neither: it is how several models, multimodal or not, coexist on one instance.
+   > You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them for the selected functions that have multiple LLM's. Features that an LLM are not capable of will be unselectable. If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled.
 
-## Why it matters
+   ![The LLM Details section: the Add an LLM button and the load-balancing and no-fallback rules beside it, above two model cards — Managed GPT, with System AI ticked and the media functions greyed out, and Managed gpt-image, with Image Generation and Image Edits ticked and the text functions greyed out — each ending in its LLM ID and Weight row](/img/neural-config/llm-details-panel--crop.png)
 
-Models are not interchangeable, and paying one model to do everything is usually the wrong trade. Running several lets you split the work along the lines that matter:
+   <!-- UNCONFIRMED: Add places the chosen model as a new card in LLM Details — Add was not pressed in the capture -->
 
-- **Cost.** Bulk internal work — categorization, example generation, intent creation — can go to a small cheap model while answers go to a stronger one.
-- **Capability.** Image generation, translation and table understanding are not offered by every model. A capability a model does not have is greyed out on its card, so the only way to get it is to add a model that has it.
-- **Throughput.** Two models ticked for the same function share that traffic instead of queueing behind one endpoint.
+3. Select **Add an LLM**, choose the platform and the model in the dialog, and select **Add**. The dialog and the models it offers are described on [Supported LLMs](/configuration/supported-llms/).
+4. Find the new card in **LLM Details**. Cards are peers: what sets them apart is which functions each one has ticked.
+5. Select **Save** in the dialog footer and give the version a name you will recognise. Nothing applies until you save; how saving and version names work is on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-The same mechanism carries a trap that costs more than any of those gains: a function no card claims is not routed anywhere. It is switched off.
+To run the same model a second time with a different set of functions, start from its existing card instead: the **Copy** icon at the top right of each card makes a second card from it.
 
-## When to use it
+<!-- UNCONFIRMED: Copy duplicates the card, model and settings included — inferred from the icon's name; Copy was not used in the capture -->
 
-Add a second (or fourth) model when:
+## Give each model its jobs
 
-- One function needs a capability your current model lacks — images, audio, or a language your model does not cover.
-- You want cheap bulk work separated from the model that writes customer-facing answers.
-- A single model endpoint is the bottleneck and you want the same function served by two models.
-- You are trialling a replacement model on one function before moving the rest of them over.
+Every card lists the same twenty **LLM Functions**. What each function covers is on [LLM Details](/configuration/neural-config/llm-details/); the media functions are on [Multimodal LLM configuration](/configuration/multimodal/), and **Translate** and **Fallback Language Id** on [Language handling](/configuration/language/).
 
-Do **not** reach for it when:
+1. On each card, tick the functions that model should perform and clear the ones it should not.
+2. To start a card from all or nothing, use the two icons beside its **LLM Functions** heading: **Enable All** ticks every function that card's model can perform, and **Disable All** clears them. Both act on that one card only.
+3. Go through the functions one by one, not card by card: make sure every function you rely on is ticked on at least one card. A function left unticked on every card is disabled.
+4. Select **Save** and name the version.
 
-- You want failover. The screen describes load-balancing, not failover, and says nothing about what happens when one of the load-balanced models is unreachable. Treat a second card as extra capacity, not as a standby.
-- You only need one model to read images as well as text. That is [Multimodal LLM configuration](/configuration/multimodal/) — one card, not two.
+A greyed-out checkbox is a function that model cannot perform, so you cannot tick it there. In the image above, for example, the **Managed GPT** card has **System AI** ticked and cannot take **Table Understanding** or any media function, while the **Managed gpt-image** card can take only **Image Generation** and **Image Edits**. Together they cover both text and image work; neither could on its own. That is an example arrangement, not a recommendation: split the work by what each model does well and what it costs to run.
 
-## How it works
+## Share a job between two models
 
-Open **Neural Config**, click the **Default Config** node, then **Edit Configuration**, and expand the **LLM Details** accordion. Every control described below lives on that one section and is documented in full on [LLM Details](/configuration/neural-config/llm-details/); this page explains what happens when there is more than one card.
+When the same function is ticked on two or more cards, NeuralSeek load-balances that function across them. Load balancing is per function: two cards can share **Seek** while each keeps other functions to itself.
 
-![The LLM Details section of the Edit Configuration dialog: the Add an LLM button, the paragraph describing load balancing and the no-fallback rule, and the first two model cards](/img/neural-config/llm-details.png)
+1. Tick the function on every card that should share it.
+   <!-- UNCONFIRMED: the pencil beside Weight opens the Load Balancing Weight dialog (a 1 to 100 scale), and a card with a higher weight takes a larger share of a shared function — the dialog is part of the section but was not opened in the capture; how weights divide traffic is not stated on the screen -->
+2. Set each card's share. The foot of every card shows its **LLM ID** and its **Weight**, each with a pencil icon; select the pencil beside **Weight**, set the value in **Load Balancing Weight**, and select **Update**.
 
-### What multi-LLM means here
+   ![The Load Balancing Weight dialog: the help text about weighting cards enabled for the same language and function, a slider from 1 to 100 with its number box, and Cancel / Update](/img/neural-config/llm-details--load-balancing-weight.png)
 
-Adding a model is one control — **Add an LLM** — and it appends another card to the row. There is no limit stated on the screen and no "primary" card: the cards are peers, and what distinguishes them is which **LLM Functions** each one has ticked.
+3. Select **Save** and name the version.
 
-The captured instance is a good illustration, because it uses four models as four specialists rather than as four copies of each other:
+If you need to compare how two models answer the same question before you split the work between them, use [Model comparison](/governance/analytics/model-comparison/).
 
-| Card                | Functions ticked                                                                                                                                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Managed GPT`       | **System AI**                                                                                                                                                                                    |
-| `Managed gpt-image` | **Image Generation**, **Image Edits**                                                                                                                                                            |
-| `Translate`         | **Translate**                                                                                                                                                                                    |
-| `gpt-oss-20b`       | **Seek**, **PII Detection**, **Entity Extraction**, **Categorization**, **Example Generation**, **Intent Creation**, **Translate**, **Fallback Language Id**, **Fallback Sentiment**, **maistro** |
+The **LLM ID** tells cards apart, and an NTL `LLM` step in a [mAIstro](/maistro/overview/) agent accepts a card's **LLM ID** in its `modelCard` parameter — see [LLM Details](/configuration/neural-config/llm-details/). If you rename a card's **LLM ID**, update every agent that names it.
 
-Read that table as a division of labour: the general-purpose model answers Seek questions and runs the classification work, a dedicated image model owns both image functions, a translation model owns translation, and one card is reserved for **System AI**.
+## Remove a model safely
 
-Capability limits show up as unselectable boxes rather than as errors. On all four captured cards **Table Understanding**, **Video**, **Speech**, **Music** and **Speech to Text** are disabled — no model connected here can do those jobs, so those functions cannot be assigned at all until a model that supports them is added.
+Deleting a card, or clearing a function on it, takes that work away from the model when you save the version. Any function that only that card had ticked is then disabled — there is no fallback.
 
-### Load balancing and weights
+1. On the card you want to remove, note every function ticked under **LLM Functions**.
+2. For each of them, check that another card has it ticked. If none does, tick it on a card whose model supports it.
+3. Select **Delete** on the card.
+4. Select **Save** and name the version.
 
-A function ticked on two cards is load-balanced across both. On the captured instance **Translate** is the one function in that position: both the `Translate` card and `gpt-oss-20b` claim it, so translation traffic is spread over the two, while every other function belongs to exactly one card.
+The same check applies when you move a single function from one model to another: before you save, make sure the function is ticked on the new card, then clear it on the old one. If you save with the function cleared on both, it is disabled.
 
-Each card carries a **Weight:** value that decides its share. All four captured cards sit at `100`, so no card is favoured; the `Load Balancing Weight` dialog that the control opens accepts a value from `1` to `100`. The screen does not say whether that number is a percentage or a relative share, so the safe reading is comparative: a card at a higher number than its partner takes more of the traffic. The control, its dialog and the rest of the card — **Test**, **Delete**, **Copy**, **LLM ID:** — are documented on [LLM Details](/configuration/neural-config/llm-details/).
+## Verify
 
-One consequence worth planning for: load-balancing is per function, not per card. Two cards can share **Seek** while each keeps a different set of other functions to itself, and a single card can be both a solo owner of one function and a load-balanced partner on another — which is exactly what `gpt-oss-20b` is on the captured instance.
+<!-- UNCONFIRMED: Test sends a test call to the card's model to check its connection — by the button's name; its result was not captured -->
 
-### No fallback
-
-This is the sentence to take away from the whole page: **a function with no card ticked is disabled**, and nothing takes over for it.
-
-The paragraph on the screen is explicit — "If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled." So the failure is silent. Delete the only card that had **PII Detection** ticked and PII detection stops happening; there is no second model waiting to pick it up, and the console does not stand in the way.
-
-Two habits keep you out of it:
-
-- **Before deleting or re-ticking a card, read its function list.** The functions it alone owns are the ones about to switch off. **Copy** duplicates a card, which is a safer way to experiment than editing the card that is currently carrying a function.
-- **When a feature is "missing", audit the cards first.** A capability that never appears — translation, image generation, entity extraction — is far more often an unticked box than a broken integration.
-
-Which model is actually serving a given request is not shown on this screen. To see behaviour across models after the fact, use [Model Comparison](/governance/seek-model-comparison/) and [Cost Insights](/governance/seek-cost-insights/).
+1. Select **Test** on each card you added or changed to check that its model responds.
+2. Ask a question on the [Seek](/seek/overview/) tab. If **Seek** is ticked on no card, Seek is disabled.
+3. Use the features that depend on any function you moved — translation, image generation, agents — and confirm they still run.
+4. Open **Change Logs** and check that your version name is on the newest row; reading and rolling back versions is covered on [Backup, restore & change logs](/configuration/backup-restore/).
 
 ## FAQ
 
 ### Can I run more than one LLM on one instance?
 
-Yes. **LLM Details** is a list of cards and **Add an LLM** appends another one; the captured instance runs four. The screen requires at least one and states no maximum.
+Yes. Add a card per model with **Add an LLM** in **LLM Details**. The section requires at least one card; NeuralSeek load-balances any function that is ticked on several cards.
 
-### What happens when the same function is ticked on two cards?
+### Is a second model a failover if the first one fails?
 
-NeuralSeek load-balances that function across both cards — "NeuralSeek will load-balance across them for the selected functions that have multiple LLM's". Each card's **Weight:** decides its share, on a scale from `1` to `100`.
+Do not count on it. **LLM Details** describes load-balancing across cards, not failover, and states: "If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled." Plan a second card as extra capacity or as a way to divide work, not as a standby.
 
-### What happens if no card is ticked for a function?
+### Why can't I tick a function on one card when another card allows it?
 
-That function is disabled. In the screen's own words, "there is no fallback and that function of NeuralSeek will be disabled" — nothing else picks up the work and no error is raised at configuration time.
+The models differ. "Features that an LLM are not capable of will be unselectable", so a function stays greyed out on a card whose model cannot perform it. Tick it on a card whose model supports it, or add such a model — [Supported LLMs](/configuration/supported-llms/) shows what each model cannot do before you add it.
 
-### Can I use a cheap model for Seek and a stronger one for agents?
+### What happens if I untick Seek on every card?
 
-Yes — that is what the per-card function checkboxes are for. Tick **Seek** on one card and **maistro** on another and the two jobs go to different models. The captured instance splits Seek, translation, image work and **System AI** across four cards.
+Seek is disabled. No card provides the function, and no other model picks it up.
 
-### Is a second LLM a failover for the first one?
+### Can an agent use one specific model?
 
-The screen only describes load-balancing, not failover, and nothing on it says what happens when a load-balanced model is unreachable. Plan a second card as extra capacity and as a way to divide work; do not rely on it as a standby.
+An NTL `LLM` step accepts a card's **LLM ID** in its `modelCard` parameter, so an agent can name the card it wants. The parameter is described on [LLM Details](/configuration/neural-config/llm-details/). If you later rename that card's **LLM ID**, update the agent too.
 
-### Why is a checkbox greyed out on one card but available on another?
+## Related
 
-Because the models differ: "Features that an LLM are not capable of will be unselectable". A function greyed out on every card — as **Video**, **Speech**, **Music**, **Speech to Text** and **Table Understanding** are on the captured instance — means no connected model supports it. See [Supported LLMs](/configuration/supported-llms/) for what each model can do.
+- [LLM Details](/configuration/neural-config/llm-details/) — every field and function on a model card
+- [Supported LLMs](/configuration/supported-llms/) — the platforms and models you can add
+- [Managed LLM Details](/configuration/neural-config/managed-llm/) — the models NeuralSeek hosts
+- [Multimodal LLM configuration](/configuration/multimodal/) — the image, video, speech and music functions
+- [Language handling](/configuration/language/) — Translate, Fallback Language Id and LLM Languages
+- [Embedding models](/configuration/neural-config/embedding-models/) — the separate section for embedding cards
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/) — Save and version names
+- [Model comparison](/governance/analytics/model-comparison/) — compare how two models answer the same question

@@ -1,21 +1,24 @@
 ---
 title: "Agent Registry node"
-description: "Given an example agent, neuralseekupdates:"
+description: "Agent Registry node — NeuralSeek documentation."
 ---
+
+The agent nodes let one agent call, select and loop over other agents. Every NTL example below has two tabs: **Visualize** shows the nodes as they appear in the mAIstro editor, and **Code** shows the NTL you can copy.
 
 ## Use Agent
 
-```text
+```ntl
 {{ maistro | template : "agentName" }}
 ```
+
 Imports the contents of `agentName` into the current environment.
 
 <details>
-<summary>Example Usage 1</summary>
+<summary>Example usage 1</summary>
 
 Given an example agent, `neuralseek_updates`:
 
-```text
+```ntl
 Based on the changelogs found here:
 {{ web|url:"https://documentation.neuralseek.com/changelog/" }}
 list the items for the latest month.
@@ -27,13 +30,13 @@ Simply using `{{ maistro | template: "neuralseek_updates" }}` will produce the s
 </details>
 
 <details>
-<summary>Example Usage 2</summary>
+<summary>Example usage 2</summary>
 
 To pass parameters to mAIstro agents, you simply define the variables in your current environment.
 
 Given an example agent, `neuralseek_updates`:
 
-```text
+```ntl
 Based on the changelogs found here:
 {{ web|url:"<< name:'url' >>" }}
 list the items for the latest month.
@@ -42,7 +45,7 @@ list the items for the latest month.
 
 To pass the `url` variable to the agent:
 
-```text
+```ntl
 {{ variable  | name: "url" | value: "https://documentation.neuralseek.com/changelog/" }}
 
 {{ maistro | template : "neuralseek_updates" }}
@@ -52,22 +55,20 @@ This allows agents to be brought into current context, effectively "splicing" th
 
 </details>
 
----
-
 ## Use Agent (Sandbox)
 
-```text
+```ntl
 {{ maistroSandbox  | template: "agentName" | params: "jsonParams" }}
 ```
 
 Executes the specified `agentName` in the current environment, returning only the agent's final output.
 
 <details>
-<summary>Example Usage 1</summary>
+<summary>Example usage 1</summary>
 
 Given an example agent, `video_loop`:
 
-```text
+```ntl
 Based on this description, extract a list of objects from the video:
 {{ maistroSandbox  | template: "video_loop" | params: "" }}
 {{ LLM  | prompt: "" | cache: "true" }}
@@ -75,7 +76,7 @@ Based on this description, extract a list of objects from the video:
 
 Simply using `{{ maistroSandbox | template: "video_loop" }}` will only use the result within the sandboxed agent with something like:
 
-```plain
+```text
 Based on the description provided, the list of objects present in the video is:
 Hands
 Knitting needles/Crochet hooks
@@ -90,73 +91,70 @@ Blanket/Sheet
 </details>
 
 <details>
-<summary>Example Usage 2</summary>
+<summary>Example usage 2</summary>
 
 Let's consider an example agent called `generate_user_card` that creates a simple user presentation card:
 
-```text
+```ntl
 {{ LLM | prompt: "Create a simple user info JSON to render in a presentation card" | cache: "true" }} => {{ extractCode }} => {{ variable | name: "userInfoJson" | mode: "" | value: "" }}
 {{ maistroSandbox | template: "generate_user_card" | params: "{\"userInfo\": \"<< name: userInfoJson, prompt: false >>\"}" }}
 ```
 
 In this example, the `generate_user_card` agent takes the `userInfoJson` parameter and processes it in a sandboxed environment. You can achieve the same result by using:
 
-```text
+```ntl
 {{ maistroSandbox | template: "generate_user_card" | params: "{\"userInfo\": \"<< name: userInfoJson, prompt: false >>\"}" }}
 ```
 
 This will pass the `userInfo` parameter to the sandboxed agent, resulting in the creation of a presentation card similar to the one shown below:
 
-![Card Example](/img/maistro/ntl/agent-registry/card_example.png)
+![Card example](/img/maistro/ntl/agent-registry/card_example.png)
 
 </details>
 
----
-
 ## Select Agent
 
-```text
+```ntl
 {{ selectAgent | registry: "registryName" | query: "specifyQuery"  }}
 ```
 
 Allows you to choose an agent from a specified registry based on a given query. This functionality is essential for automating task delegation by dynamically selecting the most appropriate agent for a task.
 
-:::note[Parameters]
+**Parameters**
+
 - **Registry**: The Agent Registry to select from
 - **Query**: The query used to identify the correct agent
-:::
 
-Before using the 'Select Agent' node, ensure you have completed the following setup steps:
+Before using the Select Agent node, complete the following setup steps:
 
-1. **Create a Registry**: Establish an Agent Registry that will house your agents.
+1. **Create a registry.** Establish an Agent Registry that will house your agents.
 
-    ![Agents Registry](/img/maistro/ntl/agent-registry/agent_registry.png)
+   ![Agent registry](/img/maistro/ntl/agent-registry/agent_registry.png)
 
-2. **Attach Agents to the Registry**: Ensure that all relevant agents are properly attached to the registry.
+2. **Attach agents to the registry.** Ensure that all relevant agents are properly attached to the registry.
 
-    ![Agents Attached](/img/maistro/ntl/agent-registry/attached_agents.png)
+   ![Agents attached to the registry](/img/maistro/ntl/agent-registry/attached_agents.png)
 
-After the registry and agents have been set up, you can use the 'Select Agent' node to specify a registry and query:
+After the registry and agents have been set up, you can use the Select Agent node to specify a registry and query.
 
 <details>
-<summary>Example Usage 1</summary>
+<summary>Example usage 1</summary>
 
+Suppose you have an agent registry named `digital_tasks` with agents assigned to various tasks. You need to find an agent to handle the query _"Send approved pull request email"_.
 
-Suppose you have an agents registry named `digital_tasks` with agents assigned to various tasks. You need to find an agent to handle the query *"Send approved pull request email"*.
-
-```text
+```ntl
 {{ selectAgent  | registry: "digital_tasks" | query: "Send approved pull request email" }}
 ```
 
 The node identifies `send_email` as the most suitable agent for the task:
 
-```plain
+```text
 send_email
 ```
 
-Once the agent is selected, you can store its name in a variable and use it in subsequent nodes like 'Use Agent':
+Once the agent is selected, you can store its name in a variable and use it in subsequent nodes like Use Agent:
 
-```text
+```ntl
 {{ selectAgent  | registry: "digital_tasks" | query: "Send approved pull request email" }}=>{{ variable  | name: "selectedAgent" }}
 {{ maistro  | template: "<< name: selectedAgent, prompt: false >>" }}
 ```
@@ -165,44 +163,41 @@ This process enables seamless task execution by dynamically selecting and utiliz
 
 </details>
 
----
-
 ## Select Agent Plan
 
-```text
+```ntl
 {{ selectAgentPlan | registry: "registryName" | query: "specifyQuery"  }}
-
 ```
-Allows to retrieve an ordered list of agents from a specified registry based on a provided query. This node functions similarly to the 'Select Agent' node and accepts the same parameters.
 
-:::note[Parameters]
+Retrieves an ordered list of agents from a specified registry based on a provided query. This node works like Select Agent and accepts the same parameters.
+
+**Parameters**
+
 - **Registry**: The Agent Registry to select from
-- **Query**: The query used to identify the correct agent
-:::
+- **Query**: The query used to identify the correct agents
 
 <details>
-<summary>Example Usage 1</summary>
-
+<summary>Example usage 1</summary>
 
 Suppose you have an agent registry named `digital_tasks`. You want to retrieve agents capable of performing the following tasks in sequence:
 
-* Send an approved pull request email
-* Fetch posts data
-* Extract objects from a video
+- Send an approved pull request email
+- Fetch posts data
+- Extract objects from a video
 
-```text
+```ntl
 {{ selectAgentPlan  | registry: "digital_tasks" | query: "Send approved pull request email, fetch posts data and extract objects present in video" }}
 ```
 
-The output will be an ordered string array of agent names:
+The output is an ordered string array of agent names:
 
-```plain
+```text
 ["send_email","fetch_posts_data","subrun_video_extraction"]
 ```
 
-Once the agents are selected, you can store them in a variable and use them in subsequent nodes, such as the 'Use Agent' node, to execute each task in a loop:
+Once the agents are selected, you can store them in a variable and use them in subsequent nodes, such as Use Agent, to execute each task in a loop:
 
-```text
+```ntl
 {{ selectAgentPlan  | registry: "digital_tasks" | query: "Send approved pull request email, fetch posts data and extract objects present in video" }}=>{{ variable  | name: "selectedAgents" }}
 {
 "agentsList": << name: selectedAgents, prompt: false >>
@@ -214,37 +209,34 @@ Once the agents are selected, you can store them in a variable and use them in s
 
 </details>
 
----
-
 ## Make NTL
 
-```text
+```ntl
 {{ makeNTL | query: "specificQuery" | modelCard: "specificLLM"}}
-
 ```
 
-This node allows users to query the Large Language Model (LLM), in natural language, to dynamically generate NTL. If an LLM is not specified, the default LLM will be used. 
+Lets you query the large language model (LLM), in natural language, to dynamically generate NTL. If an LLM is not specified, the default LLM is used.
 
-:::note[Parameters]
-- **Query**: A natural language query used to generate NTL. 
-- **Model Card**: The specified LLM of choice. If blank, the default LLM will be used. 
-:::
+**Parameters**
+
+- **Query**: A natural language query used to generate NTL.
+- **Model Card**: The LLM to use. If blank, the default LLM is used.
 
 <details>
-<summary>Example Usage 1</summary>
+<summary>Example usage 1</summary>
 
 Suppose your use case is to scrape a news website and output a summary, but you want to dynamically generate the NTL and execute a mAIstro agent for this task.
 
-- Step 1: Select the **Make NTL** node. Add a natural language prompt to scrape Yahoo News and summarize the news. Use the drop-down menu to select an LLM or utilize the default LLM.
-- Step 2: Chain a **Set Variable** node to the Make NTL node. Assign a unique name for the variable. This will allow us to call the NTL generated as a mAIstro agent for execution.
-- Step 3: Select the **Use Agent** node. Skip assigning a template name, and instead click the NTL box. A menu will appear for you to select the name of your newly created variable. 
+1. Select the **Make NTL** node. Add a natural language prompt to scrape Yahoo News and summarize the news. Use the drop-down menu to select an LLM or use the default.
+2. Chain a **Set Variable** node to the Make NTL node. Assign a unique name for the variable. This lets you call the generated NTL as a mAIstro agent for execution.
+3. Select the **Use Agent** node. Skip assigning a template name, and instead click the NTL box. A menu appears for you to select the name of your newly created variable.
 
-```text
+```ntl
 {{ makeNTL  | query: "Scrape Yahoo News and summarize the news." | modelCard: "" }}=>{{ variable  | name: "news" | mode: "" | value: "" }}
-{{ maistro  | template: "" | ntl: "<< name: news, prompt: false >>" }} 
+{{ maistro  | template: "" | ntl: "<< name: news, prompt: false >>" }}
 ```
 
-The output will result in a summary of the current news generated from the Yahoo News web source. 
+The output is a summary of the current news from the Yahoo News web source.
 
 ```text
 Five stunning portraits in the new issue of Positive News magazine.
@@ -262,42 +254,41 @@ Summary: A new online platform in the UK allows people to recycle and swap secon
 
 </details>
 
----
-
 ## Agent Loop
- ```text
- {{ agentLoop }}
- ```
 
- This node allows users to loop through an Agent Plan when used with the **selectAgentPlan** node.
+```ntl
+{{ agentLoop }}
+```
 
-:::note[Parameters]
-There are no configuration options for this node. It must be used with the **selectAgentPlan** node.
-:::
+Loops through an agent plan when used with the **Select Agent Plan** node.
+
+**Parameters**
+
+There are no configuration options for this node. It must be used with the Select Agent Plan node.
 
 <details>
-<summary>Example Usage 1</summary>
+<summary>Example usage 1</summary>
 
-Suppose you have an Agent Registry titled "Weather". This Agent Registry contains two mAIstro Agents.
+Suppose you have an Agent Registry titled "Weather" that contains two mAIstro agents.
 
-1. The first mAIstro Agent outputs a description and provides a recap of the weather based on a REST API connector. 
-2. The second mAIstro Agent outputs a description of what to wear based on the weather recap generated in the first mAIstro Agent. 
+1. The first agent outputs a description and recap of the weather, based on a REST API connector.
+2. The second agent outputs a description of what to wear, based on the weather recap from the first agent.
 
-Utilize the **Agent Loop** node to loop through the Weather Agent Registry to output both the recap of the weather and a recommendation of what to wear. 
+Use the **Agent Loop** node to loop through the Weather registry and output both the recap and a recommendation of what to wear.
 
-```text
+```ntl
 {{ selectAgentPlan  | registry: "Weather" | query: "Get the current weather recap and tell me what I should wear" | modelCard: "" }}
 {{ agentLoop  }}
 {{ maistro  | template: "agentLoop.agent" | ntl: "" }}
-{{ endLoop  | sleep: "0" }} 
+{{ endLoop  | sleep: "0" }}
 ```
 
-- Step 1: Select the "Weather" Agent Registry in the **Select Agent Plan** node. Provide a natural language query to select the correct agents. 
-- Step 2: Select the **Agent Loop** node to loop through the mAIstro Agents in the Weather registry. 
-- Step 3: Select the **Use Agent** node to import and run the mAIstro templates in the Weather registry. Select **AgentLoop Current Agent** as the mAIstro Agent name. 
-- Step 4: Select the **End Loop** node to end the looping. 
+1. Select the "Weather" Agent Registry in the **Select Agent Plan** node. Provide a natural language query to select the correct agents.
+2. Select the **Agent Loop** node to loop through the mAIstro agents in the Weather registry.
+3. Select the **Use Agent** node to import and run the mAIstro templates in the Weather registry. Select **AgentLoop Current Agent** as the agent name.
+4. Select the **End Loop** node to end the loop.
 
-The output will show the recap of the weather and a recommendation of what to wear accorindly. 
+The output shows the weather recap and a recommendation of what to wear accordingly.
 
 ```text
 Based on the forecast, here's what I would advise you to wear:
@@ -318,20 +309,14 @@ Overall, dress in layers to adjust to the changing temperatures throughout the d
 
 </details>
 
----
-
 ## End Loop
 
-```text
+```ntl
 {{ endLoop  | sleep: "0" }}
 ```
 
-This node allows users to loop for a set number of times. 
+Loops for a set number of times.
 
-:::note[Parameters]
-- **Sleep**: The amount of time in milliseconds to delay the loop iteration. 
-:::
+**Parameters**
 
-<!-- STILL TO DOCUMENT ON THIS PAGE:
-  - Retitled 'Agent Registry node' to disambiguate from the maistro/agent-registry product screen
--->
+- **Sleep**: The amount of time in milliseconds to delay each loop iteration.

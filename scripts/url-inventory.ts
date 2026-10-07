@@ -31,10 +31,15 @@ const args = process.argv.slice(2);
 const asJson = args.includes('--json');
 const prefixes = args.filter((a) => !a.startsWith('--'));
 
-type Route = { title?: string; sources?: string[]; action?: string; status?: string };
-const map: { routes: Record<string, Route>; kill?: Record<string, string> } = JSON.parse(
-	readFileSync(join(ROOT, 'scripts/migration-map.json'), 'utf8')
-);
+type Route = { title?: string; status?: string };
+const map: {
+	routes: Record<string, Route>;
+	redirects?: { from?: Record<string, string>; kill?: Record<string, string> };
+} = JSON.parse(readFileSync(join(ROOT, 'scripts/migration-map.json'), 'utf8'));
+// old source path → route (redirects.from, insertion order = each route's primary source first)
+const sourcesOf = new Map<string, string[]>();
+for (const [source, route] of Object.entries(map.redirects?.from ?? {}))
+	sourcesOf.set(route, [...(sourcesOf.get(route) ?? []), source]);
 
 /** `ui/curate/index.md` -> `https://documentation.neuralseek.com/ui/curate/` */
 function sourceToUrl(source: string): string {
@@ -60,8 +65,8 @@ const broken: { route: string; source: string; url: string }[] = [];
 /** route -> the live URLs it is allowed to harvest, in `sources` order (first is primary). */
 const allowed = new Map<string, string[]>();
 
-for (const [route, info] of Object.entries(map.routes)) {
-	for (const source of info.sources ?? []) {
+for (const route of Object.keys(map.routes)) {
+	for (const source of sourcesOf.get(route) ?? []) {
 		const url = sourceToUrl(source);
 		if (live.has(url)) {
 			claimed.add(url);
@@ -72,7 +77,7 @@ for (const [route, info] of Object.entries(map.routes)) {
 	}
 }
 
-const killed = new Set(Object.keys(map.kill ?? {}).map(sourceToUrl));
+const killed = new Set(Object.keys(map.redirects?.kill ?? {}).map(sourceToUrl));
 const unclaimed = [...live.keys()].filter((u) => !claimed.has(u) && !killed.has(u));
 
 // --- a module's allow-list -------------------------------------------------
@@ -84,7 +89,7 @@ if (prefixes.length) {
 		console.log(JSON.stringify(Object.fromEntries(picked), null, 2));
 	} else {
 		for (const [route, urls] of picked) {
-			console.log(`\n${route}  [${map.routes[route].action}]`);
+			console.log(`\n${route}  [${map.routes[route]?.status ?? '?'}]`);
 			urls.forEach((u, i) =>
 				console.log(`  ${i === 0 ? 'primary' : 'also   '}  ${u}   (updated ${live.get(u)})`)
 			);

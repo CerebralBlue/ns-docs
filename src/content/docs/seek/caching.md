@@ -1,232 +1,226 @@
 ---
 title: "Caching"
-description: "NeuralSeek has three caches — one on KnowledgeBase queries and two on answers (edited and normal) — each with its own setting in the Neural Config Edit Configuration dialog."
+description: "NeuralSeek caches at two levels — KnowledgeBase search results for a set number of minutes, and finished answers through the Edited answer cache and the Normal answer cache — to answer repeated questions faster and with the same wording."
 ---
 
-NeuralSeek can answer a question without searching the KnowledgeBase or calling an LLM again, by
-reusing work it has already done. This page explains the three caches that make that happen,
-where each one is configured, and what decides whether a stored answer may be used for the
-question in front of it. The settings themselves are documented on the Neural Config pages that
-own them; this page gives them the caching angle and links there.
+NeuralSeek can reuse work it has already done instead of repeating it for every question. It
+caches at two levels: the **KnowledgeBase Query Cache** keeps search results for a set number of
+minutes, and two answer caches — **Edited answer cache** and **Normal answer cache** — serve a
+stored answer instead of generating a new one. Caching makes frequently asked questions faster
+and their answers consistent; the price is freshness, because a cached answer can outlive the
+documentation it came from. Each setting is documented field by field on the configuration page
+that owns it; this page explains how they work together and when to use them.
 
-## What is it
+## How caching works
 
-NeuralSeek has three caches, and they are independent of each other:
+### Two levels of cache
 
-- **The KnowledgeBase query cache** keeps a KnowledgeBase query result for a set number of
-  minutes, so a later question needing the same material skips the search. It is the
-  **KnowledgeBase Query Cache (minutes)** slider in **KnowledgeBase Tuning**.
-- **The edited answer cache** serves an answer somebody curated by hand instead of generating a
-  new one. It is the **Edited answer cache** slider in **Intent Matching & Cache Configuration**.
-- **The normal answer cache** serves a recent generated answer — or an edited one, which takes
-  priority — instead of generating a new one. It is the **Normal answer cache** slider, next to
-  the edited one.
+A Seek normally runs two expensive steps: it searches your KnowledgeBase, then generates an
+answer from what it found. Each level of cache skips one of them. As the configuration screen puts
+it: "NeuralSeek can serve cached answers to user questions in order to speed up response times or
+produce more consistent results."
 
-A question can hit any of the three, all of them, or none. The product's own summary of the two
-answer caches is on the screen that holds them: "NeuralSeek can serve cached answers to user
-questions in order to speed up response times or produce more consistent results."
+| Cache                                   | What it keeps                       | Section of Edit Configuration         | How to turn it off    |
+| --------------------------------------- | ----------------------------------- | ------------------------------------- | --------------------- |
+| **KnowledgeBase Query Cache (minutes)** | KnowledgeBase search results        | KnowledgeBase Tuning                  | Move it to `Disabled` |
+| **Edited answer cache**                 | Answers someone edited by hand      | Intent Matching & Cache Configuration | Set it to `0`         |
+| **Normal answer cache**                 | Recent generated and edited answers | Intent Matching & Cache Configuration | Set it to `0`         |
 
-## Why it matters
+All three are in the **Edit Configuration** dialog of the **Default Config** node on Neural
+Config, and a change applies only once you save the dialog — see
+[Using the Neural Config page](/configuration/neural-config/using-this-page/). A category with its
+own custom configuration carries its own copy of these settings, so one category can cache
+differently from the rest (see [Configuration overview](/configuration/overview/)).
 
-An uncached question pays for a KnowledgeBase search and an LLM call every time it is asked.
-Frequently asked questions pay that repeatedly for an answer that does not change, so caching
-removes both the response time and the token spend — and it makes the same question come back
-with the same wording rather than a slightly different one each time.
+### Search results: KnowledgeBase Query Cache (minutes)
 
-The cost is staleness. A cached answer can outlive the document it came from. NeuralSeek guards
-the generated side of this itself — the normal answer cache serves a recent answer only "if the
-relevant documentation has not changed" — but it does not guard the edited side. The product is
-explicit about that: "Edited answers are retained until updated or deleted, even if the source
-documentation changes - so use caution to be sure your edited answers do not contain out-of-date
-information."
+**KnowledgeBase Query Cache (minutes)** is a slider in
+[KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/), with its track running
+from `Disabled` to `6000` minutes. It sets how long the results of a KnowledgeBase query are reused
+before NeuralSeek searches the KnowledgeBase again for the same query. At `Disabled`, every Seek
+searches.
 
-## When to use it
+Raise it when the same material is searched over and over and your KnowledgeBase content changes
+rarely. Keep it short, or at `Disabled`, when documents are re-ingested through the day: for as
+long as the window lasts, a Seek can run on results that predate the latest version of a document.
 
-- High-volume questions whose answers rarely change — policies, definitions, plan limits.
-  These are what the answer caches are for.
-- Answers you have curated and want served verbatim rather than regenerated. That is the
-  edited answer cache, and it is the one case where the cache is the point rather than an
-  optimisation.
-- Source material that is expensive to search — a long-running KnowledgeBase query behind
-  many similar questions is what the query cache shortens.
+![The KnowledgeBase Tuning sliders, with KnowledgeBase Query Cache (minutes) in the left column running from Disabled to 6000](/img/neural-config/knowledgebase-tuning--document-score-range.png)
 
-Caching is the wrong tool when the underlying documentation changes through the day and readers
-must see the change immediately, and when an edited answer would go unreviewed: nothing expires
-it for you. In both cases keep the query cache short or `Disabled`, and keep an eye on
-[Curate](/seek/curation/).
+### Grouping questions into intents: Intent Match Tolerance
 
-## How it works
+The answer caches do not look up the literal question; they count and serve answers per intent.
+The section that holds them starts by explaining intents: "NeuralSeek automatically generates and
+groups user input into intents. When a user input does not match an existing intent, a new intent
+is created." **Intent Match Tolerance** sets what counts as a match, and so which rephrasings of a
+question can receive the same cached answer. The intents themselves are what you analyse in
+[Intent Insights](/governance/seek-intent-insights/).
 
-### Where the caches are configured
+![The Intent Matching & Cache Configuration section: the intents paragraph and Intent Match Tolerance, then the caching paragraph with the Edited answer cache and Normal answer cache sliders and the two Require Cache selectors](/img/neural-config/intent-matching-cache-configuration--intent-match-tolerance.png)
 
-All three settings live in the **Edit Configuration** dialog on the
-[Neural Config](/configuration/neural-config/using-this-page/) screen. On the routing tree, open
-the **Default Config** node (its second line reads **Answer Generation**), then
-**Edit Configuration** — the dialog titled
-**Configuration: Default Config** opens with a list of accordion sections. Two of them hold the
-caches: **KnowledgeBase Tuning** (the query cache) and **Intent Matching & Cache Configuration**
-(the two answer caches and the three conditions that gate them). The dialog's opener and its
-**Propose Changes** / **Save** footer are described in
-[Using this page](/configuration/neural-config/using-this-page/).
+<!-- UNCONFIRMED: what each Intent Match Tolerance option does — read from the option names; no Seek has compared the options (brief open question; backlog 381fbbda33). -->
 
-![The Configuration: Default Config dialog with its accordion sections listed and Intent Matching & Cache Configuration expanded at the bottom, above the Propose Changes and Save footer](/img/neural-config/intent-matching-cache-configuration.png)
+| Option                | What choosing it does for caching                                               |
+| --------------------- | ------------------------------------------------------------------------------- |
+| `Exact Match`         | Only the same wording reaches an existing intent and its cached answers.        |
+| `Vector Similarity`   | Questions that mean the same thing, however worded, share an intent.            |
+| `Fuzzy Match`         | Small spelling or wording differences still reach the same intent.              |
+| `Keyword Match`       | Questions that share the key terms of an intent join it.                        |
+| `Fuzzy Keyword Match` | Keyword matching that also tolerates misspelt key terms.                        |
 
-### The KnowledgeBase query cache
-
-The **KnowledgeBase Query Cache (minutes)** slider sits in the **KnowledgeBase Tuning** section,
-bottom-left of the field group. It runs from `Disabled` at the left end to `6000` at the right,
-and the unit in its label is the point: this is how long a KnowledgeBase query result is kept,
-not how many answers must exist. On the instance captured for this page it reads `0`, with the
-handle on `Disabled`, so every Seek there runs a fresh KnowledgeBase query. The accordion's
-opening paragraph is about KB tuning generally and says nothing about the cache; the rest of that
-section is documented in
-[KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/).
-
-![The KnowledgeBase Tuning field group, with the KnowledgeBase Query Cache (minutes) slider at bottom-left set to Disabled](/img/neural-config/knowledgebase-tuning--document-score-range.png)
-
-<!-- UNCONFIRMED: the KnowledgeBase cache stores the processed content window of roughly 8,000–9,000 characters that goes to the LLM, and NeuralSeek derives a hash of it — from the previous MkDocs page for this route; nothing on the captured screen says what the query cache stores. -->
-
-What the query cache stores is not shown on screen. The previous version of this page said it is
-the processed content window of roughly 8,000–9,000 characters that goes to the LLM, hashed so
-that a later change to the source can be detected; treat that as an explanation candidate, not a
-documented mechanism.
-
-### The two answer caches
-
-The **Intent Matching & Cache Configuration** section holds every answer-cache control on one
-panel: the intent paragraph and **Intent Match Tolerance** at the top, then the cache paragraph,
-the two sliders with their help text and value boxes, and the two `Yes` / `No` selectors under
-the second slider.
-
-![The Intent Matching & Cache Configuration accordion body: Intent Match Tolerance, then the Edited answer cache and Normal answer cache sliders with their help text, and the two Yes/No selectors](/img/neural-config/intent-matching-cache-configuration--intent-match-tolerance.png)
-
-Both sliders share the same range, `Disabled` at the left end and `5` at the right, and each has
-a value box beside it. On the instance captured for this page they hold different values:
-
-| Cache                   | Range            | On the instance captured here |
-| ----------------------- | ---------------- | ----------------------------- |
-| **Edited answer cache** | `Disabled` … `5` | `3`                           |
-| **Normal answer cache** | `Disabled` … `5` | `5`                           |
-
-**Edited answer cache** serves an answer a person curated in [Curate](/seek/curation/),
-verbatim. Its help text: "Serve an edited answer when at least this many different edited
-answers exist for a user question. Edited answers are retained until updated or deleted, even if
-the source documentation changes - so use caution to be sure your edited answers do not contain
-out-of-date information. Set 0 to disable the edited answer cache."
-
-![The Edited answer cache heading, help text and slider, set to 3 on a Disabled to 5 range](/img/neural-config/intent-matching-cache-configuration--edited-answer-cache.png)
-
-**Normal answer cache** serves either a recent generated answer or an edited one. Its help text:
-"Serve a recent answer if the relevant documentation has not changed, or an edited answer when at
-least this many different answers exist for a user question. Edited answers have priority in the
-Normal Answer cache, followed by the most recent generated answer. Edited answers are retained
-until updated or deleted, even if the source documentation changes - so use caution to be sure
-your edited answers do not contain out-of-date information. Set 0 to disable the normal answer
-cache."
-
-So in both cases the number is a count of different answers that must already exist for a
-question before that cache starts serving — it is not a duration. A low value caches early; a
-high one waits until the question has been answered several different ways. `0` turns that cache
-off, in the product's own words. And inside the normal answer cache the order is fixed: edited
-answers first, then the most recent generated answer — so curating an answer changes what both
-caches serve.
-
-Both sliders, and the three conditions below, are owned by
-[Intent Matching & Cache](/configuration/neural-config/intent-matching-caching/).
-
-### When a cached answer is allowed
-
-Reaching the threshold is not enough on its own. Three more settings in the same section decide
-whether a stored answer may be used for the question in front of it.
-
-**Intent Match Tolerance** decides what counts as "the same question" in the first place. It sits
-directly under the paragraph "NeuralSeek automatically generates and groups user input into
-intents. When a user input does not match an existing intent, a new intent is created." The
-cache is keyed on the intent a question matches, so this selector decides how often a cached
-answer can be reused at all. Its options are `Exact Match`, `Vector Similarity`, `Fuzzy Match`,
-`Keyword Match` and `Fuzzy Keyword Match`; the instance captured for this page is set to
-`Exact Match`. The screen does not describe what each option does. Reading only the names:
-`Exact Match` matches an identical input, so on this instance a rephrase creates a new intent and
-cannot hit the cache; `Vector Similarity` would match by embedding similarity, letting a rephrased
-question land on the same intent; `Fuzzy Match`, `Keyword Match` and `Fuzzy Keyword Match` name
-tolerant string matching, shared-keyword matching, and the two combined. None of those readings
-has been verified against the product.
+A looser tolerance lets more rephrasings share one cached answer, at the risk of grouping
+questions that only look alike. After changing it, ask a few rephrasings of one real question on
+the [Seek](/seek/overview/) tab, then check in Intent Insights that they landed under the intent you
+expect. The options are described
+setting by setting in [Intent Matching & Cache](/configuration/neural-config/intent-matching-caching/).
 
 ![The Intent Match Tolerance menu open, listing Exact Match, Vector Similarity, Fuzzy Match, Keyword Match and Fuzzy Keyword Match](/img/neural-config/intent-matching-cache-configuration--options-intent-match-tolerance.png)
 
-The two `Yes` / `No` selectors are rendered inside the Normal answer cache group, directly under
-its slider; neither has help text, so the label is the only description:
+### Edited answers: Edited answer cache
 
-- **Require Cache to Follow Context?** — `Yes` on the instance captured here. Inferred from the
-  label: with `Yes` a cached answer is served only when the conversation so far matches too, not
-  on the question text alone; with `No` the question alone can hit the cache. See
-  [Conversational context](/seek/conversational-context/). It sits under the Normal answer cache
-  but governs the Edited answer cache too.
-- **Require Cache to match the exact KB for the question and not the intent?** — `No` on the
-  instance captured here. The label says the cache is normally matched on the intent; `Yes`
-  would instead require the cached answer to have come from the same KnowledgeBase result as the
-  current question. What "the exact KB for the question" is compared against is not shown.
+**Edited answer cache** serves answers that someone has edited by hand in
+[Answer curation](/seek/curation/). Its slider runs from `Disabled` to `5`, and its help text
+reads:
 
-![The Normal answer cache slider with the Require Cache to Follow Context? selector set to Yes and the Require Cache to match the exact KB for the question and not the intent? selector set to No beneath it](/img/neural-config/intent-matching-cache-configuration--normal-answer-cache.png)
+> Serve an edited answer when at least this many different edited answers exist for a user
+> question. Edited answers are retained until updated or deleted, even if the source documentation
+> changes - so use caution to be sure your edited answers do not contain out-of-date information.
+> Set 0 to disable the edited answer cache.
 
-### Staleness
+The number is a count, not a duration: how many different edited answers must exist for a
+question before one is served from this cache. Lower it when one reviewed answer is enough for you
+to trust it; raise it when you want several curated answers to exist first.
 
-For generated answers the guard is in the normal answer cache's own definition: a recent answer
-is served only while "the relevant documentation has not changed". Edited answers have no such
-guard at all. They stay exactly as written until a person updates or deletes them in
-[Curate](/seek/curation/), whatever happens to the source document.
+Edited answers never expire on their own. When the documentation behind one changes, the edited
+answer keeps being served as written until a person updates or deletes it — so the edited answer
+cache is only as current as your curation.
 
-<!-- UNCONFIRMED: every cached answer is hashed and compared to the current source at Seek time, a mismatch flags the answer as out of date in Curate ("delete and reload it, or edit it and mark it as current"), and answers are re-checked asynchronously during round-trip logging — from the previous MkDocs page for this route; none of it appears on any screen captured for this page. -->
+![The Edited answer cache heading, its help text and its slider from Disabled to 5](/img/neural-config/intent-matching-cache-configuration--edited-answer-cache.png)
 
-The previous version of this page described the mechanism behind that guard: each cached answer
-is hashed, the hash is compared with the current source when the answer is next used at Seek
-time, a mismatch flags the answer as out of date so you either delete and reload it or edit it
-and mark it current, and frequently returned answers are re-checked asynchronously during
-round-trip logging. None of that is visible on the screens captured for this page; treat it as
-background until it is re-checked.
+### Generated answers: Normal answer cache
+
+**Normal answer cache** reuses a recent generated answer, and serves edited answers ahead of it.
+Its slider also runs from `Disabled` to `5`, and its help text reads:
+
+> Serve a recent answer if the relevant documentation has not changed, or an edited answer when at
+> least this many different answers exist for a user question. Edited answers have priority in the
+> Normal Answer cache, followed by the most recent generated answer. Edited answers are retained
+> until updated or deleted, even if the source documentation changes - so use caution to be sure
+> your edited answers do not contain out-of-date information. Set 0 to disable the normal answer
+> cache.
+
+Two rules follow from it:
+
+- **The order is fixed.** An edited answer wins; otherwise the most recent generated answer is
+  served. Curating an answer therefore changes what this cache returns as well.
+- **Generated answers are guarded against change.** A generated answer is reused only if the
+  relevant documentation has not changed since it was produced. Edited answers carry no such
+  guard.
+
+Set it to `0` when every answer must reflect the latest documentation, or while you test prompt
+and LLM changes and need a freshly generated answer every time.
+
+![The Normal answer cache heading, its help text and its slider from Disabled to 5, with the Require Cache to Follow Context? and Require Cache to match the exact KB for the question and not the intent? selectors beneath it](/img/neural-config/intent-matching-cache-configuration--normal-answer-cache.png)
+
+### When a cached answer counts as a match
+
+Two selectors under **Normal answer cache** add conditions a cached answer must meet before it is
+served. **Require Cache to match the exact KB for the question and not the intent?** offers `Yes`
+and `No`.
+
+<!-- UNCONFIRMED: the option list of Require Cache to Follow Context? (only its value Yes was captured; backlog 310ee96994), and what Yes does on Require Cache to Follow Context? and on Require Cache to match the exact KB for the question and not the intent? — read from the labels; no Seek has compared Yes and No. -->
+
+- **Require Cache to Follow Context?** — with `Yes`, a cached answer is served only when the
+  conversation context matches, so a follow-up such as "and for the other plan?" is not answered
+  with a reply cached for a different conversation. Choose `Yes` when your users ask follow-up
+  questions whose meaning depends on earlier turns. How NeuralSeek carries context from one turn
+  to the next is explained in [Conversational context](/seek/conversational-context/). It sits
+  under the Normal answer cache but governs the Edited answer cache too.
+- **Require Cache to match the exact KB for the question and not the intent?** — with `Yes`, a
+  cached answer must come from the same KnowledgeBase results for that question, not merely from
+  the same intent. Choose `Yes` when your **Intent Match Tolerance** is loose and questions in one
+  intent can need different source documents. With `No`, a cached answer is matched on the intent,
+  so **Intent Match Tolerance** alone decides which questions share it.
+
+![The Require Cache to match the exact KB for the question and not the intent? menu open, offering Yes and No](/img/neural-config/intent-matching-cache-configuration--options-require-cache-to-match-the-exact-kb-for-.png)
+
+### Cached answers as a timeout fallback
+
+The answer caches also protect a chatbot from slow generation. **Timeout** in
+[Platform Preferences](/configuration/neural-config/platform-preferences/) is the language
+generation timeout, set in milliseconds on a slider from `4000` to `90000`. Its help text reads:
+
+> Language Generation Timeout (milliseconds). Set this to a few seconds less than the timeout of
+> your chatbot platform. When timeout is reached Neuralseek will attempt to catch the timeout by
+> serving the closest possible cached answer, if one is available.
+
+When generating an answer takes longer than **Timeout**, NeuralSeek tries to send the closest
+cached answer rather than nothing — but only if one exists.
+
+![The Timeout slider in Platform Preferences, from 4000 to 90000, under the end of its help text about serving the closest possible cached answer](/img/neural-config/platform-preferences--timeout.png)
 
 ### Telling whether an answer came from the cache
 
-<!-- UNCONFIRMED: the `Cached` label next to `Total Response Time` on the Seek tab — from the previous MkDocs page for this route; the Seek tab was not captured for this page and a UI label cannot be verified from an API response. -->
+<!-- UNCONFIRMED: the Cached label next to Total Response Time on the Seek tab — from the previous MkDocs page for this route (backlog f9b4f749d3); the Seek tab has not been captured for this page. -->
 
-The previous version of this page said the **Seek** tab marks a cached answer with a `Cached`
-label next to **Total Response Time**. That has not been re-checked against the current product —
-see [Seek overview](/seek/overview/) for the Seek tab itself.
+On the **Seek** tab, an answer served from the cache is marked **Cached** next to **Total Response
+Time**. Use it to check your settings: ask the same question twice and look for the label on the
+second answer.
+
+## When to use caching
+
+Caching fits when the same questions come back again and again and their answers rarely change:
+
+- **Frequently asked questions over stable content** — policies, definitions, plan limits. The
+  **Normal answer cache** serves them faster and with the same wording each time.
+- **Answers you have curated** and want served exactly as written. That is the **Edited answer
+  cache**; here the cache is the point rather than an optimisation.
+- **Many similar questions that run the same KnowledgeBase search.** The **KnowledgeBase Query
+  Cache (minutes)** shortens those.
+- **A chatbot platform with a hard response timeout**, where an earlier answer is better than
+  none.
+
+It is the wrong tool when your documentation changes through the day and users must see each
+change at once — keep the KnowledgeBase query cache at `Disabled` or short — and when nobody
+reviews edited answers, because nothing expires them for you. While you tune prompts, the LLM or
+KnowledgeBase settings, turn the answer caches off so every Seek shows the effect of your change.
 
 ## FAQ
 
-### How many caches does NeuralSeek have, and where are they?
-
-Three, all in the Edit Configuration dialog on Neural Config: **KnowledgeBase Query Cache
-(minutes)** under **KnowledgeBase Tuning**, and **Edited answer cache** plus
-**Normal answer cache** under **Intent Matching & Cache Configuration**.
-
 ### How do I turn caching off completely?
 
-Set both answer-cache sliders to `0` — the help text says "Set 0 to disable the edited answer
-cache" and "Set 0 to disable the normal answer cache" — and move
-**KnowledgeBase Query Cache (minutes)** to `Disabled`, which is `0`.
+Move **KnowledgeBase Query Cache (minutes)** to `Disabled`, set **Edited answer cache** and
+**Normal answer cache** to `0`, and save the configuration.
+
+### Will a cached answer go stale when my documents change?
+
+A generated answer will not: the **Normal answer cache** reuses one only "if the relevant
+documentation has not changed". An edited answer can: edited answers "are retained until updated or
+deleted, even if the source documentation changes", so review them in
+[Answer curation](/seek/curation/) whenever the content they cover is updated.
 
 ### If both an edited and a generated answer exist, which is served?
 
-The edited one. The **Normal answer cache** help text fixes the order: "Edited answers have
-priority in the Normal Answer cache, followed by the most recent generated answer."
+The edited one. In the **Normal answer cache**, edited answers have priority, followed by the most
+recent generated answer.
 
-### My documentation changed — do cached answers update?
+### Why did a rephrased question not get a cached answer?
 
-Generated answers are guarded: the normal answer cache serves "a recent answer if the relevant
-documentation has not changed". Edited answers are not: they "are retained until updated or
-deleted, even if the source documentation changes", so a curated answer has to be corrected by
-hand in [Curate](/seek/curation/).
+Either it was filed under a different intent — **Intent Match Tolerance** at `Exact Match` treats a
+rewording as a new question — or one of the two **Require Cache** conditions was not met. Check
+also that enough answers exist for the question yet: both answer-cache sliders are counts.
 
-### Why does a slightly reworded question not get the cached answer?
+### Can a cached answer be served when the LLM is too slow?
 
-The cache is keyed on the matched intent, and **Intent Match Tolerance** decides how loosely a
-question matches one. At `Exact Match` — the setting on the instance captured here — only the
-same input matches; the other four options (`Vector Similarity`, `Fuzzy Match`, `Keyword Match`,
-`Fuzzy Keyword Match`) are looser, though their exact behaviour is not described on screen.
+Yes, if one exists. When the **Timeout** in Platform Preferences is reached, NeuralSeek "will
+attempt to catch the timeout by serving the closest possible cached answer, if one is available."
 
-### Does a cached answer ignore the conversation so far?
+## Related
 
-Not while **Require Cache to Follow Context?** is `Yes`, which is how the instance captured for
-this page is set. Inferred from the label: `No` lets the question alone hit the cache.
+- [Intent Matching & Cache](/configuration/neural-config/intent-matching-caching/) — the answer-cache settings one by one
+- [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) — the KnowledgeBase query cache
+- [Platform Preferences](/configuration/neural-config/platform-preferences/) — Timeout
+- [Answer curation](/seek/curation/) — where edited answers come from
+- [Conversational context](/seek/conversational-context/)
+- [Intent Insights](/governance/seek-intent-insights/)
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/)
+- [Configuration overview](/configuration/overview/) — per-category configurations

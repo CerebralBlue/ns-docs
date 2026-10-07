@@ -3,7 +3,13 @@
  *
  *   bun scripts/agentic/map-build.ts --area seek --url https://…/seek --nav "Seek" \
  *       --state default=<abs>.yml [--state advanced=<abs>.yml --reach advanced="click Show Advanced Options"] \
- *       [--screenshot default=<abs>.png] [--options "<label>=<v1>|<v2>|…"]… [--json]
+ *       [--screenshot default=<abs>.png] [--options "<label>[@<state>]=<v1>|<v2>|…"]…
+ *       [--when "<state>=<Control = Value, …>"]… [--json]
+ *
+ * --when marks a variant state (agentic v3.4, a capture taken with dropdown options picked). A
+ * control seen ONLY in variant states carries `when` (e.g. "KnowledgeBase Type = Pinecone"), and
+ * an option list keyed `<label>@<state>` belongs to that state alone — the same dropdown label
+ * ("LLM Selection") lists different values under different picks.
  *
  * Writes _private/component-map/.candidates/<area>.json — a CANDIDATE. map-diff.ts compares it
  * with the cached map and promotes it (or reports `unchanged`). Deterministic: the same
@@ -52,6 +58,8 @@ type Control = {
 	columns?: string[];
 	states: string[];
 	count: number;
+	/** Only present in variant states: the picks that make it appear. */
+	when?: string;
 };
 type Region = { name: string; controls: Control[] };
 
@@ -61,6 +69,7 @@ const kv = (s: string) => {
 };
 const reach = Object.fromEntries((args.values.reach ?? []).map(kv));
 const screenshots = Object.fromEntries((args.values.screenshot ?? []).map(kv));
+const whenOf: Record<string, string> = Object.fromEntries((args.values.when ?? []).map(kv));
 // Captured option lists (agentic v3.2): label → values, attached to the matching listbox control.
 const optionLists = Object.fromEntries(
 	(args.values.options ?? []).map(kv).map(([k, v]) => [
@@ -71,6 +80,15 @@ const optionLists = Object.fromEntries(
 			.filter(Boolean),
 	])
 );
+
+/** A listbox's captured option list, keyed by the label beside it; a variant state's own list wins. */
+const optionsFor = (node: SnapNode, stateId: string) => {
+	const label = (
+		node.parent?.children.find((c) => c.role === 'generic' && c.text && !c.children.length)?.text ??
+		''
+	).toLowerCase();
+	return optionLists[`${label}@${stateId.toLowerCase()}`] ?? optionLists[label];
+};
 
 const regions = new Map<string, Map<string, Control>>();
 const states: { id: string; file: string; reach: string[]; controls: number }[] = [];
@@ -153,16 +171,7 @@ for (const spec of args.values.state) {
 				destructive: !isTable && DESTRUCTIVE.test(name),
 				opens: node.url,
 				// a listbox's captured option list, keyed by the label beside it (its parent's label text)
-				options:
-					node.role === 'listbox'
-						? optionLists[
-								(
-									node.parent?.children.find(
-										(c) => c.role === 'generic' && c.text && !c.children.length
-									)?.text ?? ''
-								).toLowerCase()
-							]
-						: undefined,
+				options: node.role === 'listbox' ? optionsFor(node, id) : undefined,
 				columns,
 				states: [id],
 				count: 1,
@@ -172,6 +181,12 @@ for (const spec of args.values.state) {
 	});
 	states.push({ id, file: relative(ROOT, file), reach: reach[id] ? [reach[id]] : [], controls: n });
 }
+
+// A control that only variant states show exists only under those picks.
+for (const bucket of regions.values())
+	for (const c of bucket.values())
+		if (c.states.length && c.states.every((st) => whenOf[st]))
+			c.when = [...new Set(c.states.map((st) => whenOf[st]))].join(' or ');
 
 const regionList: Region[] = [...regions].map(([name, m]) => ({
 	name,

@@ -7,8 +7,6 @@ description: "Crawl a domain into the managed knowledge base, on demand or on a 
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - Crawl a domain; weekly or monthly recrawl

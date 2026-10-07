@@ -44,7 +44,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "mcp__neuralseek-ui__browser_(navigate|click|hover|type|fill_form|select_option|press_key)",
+        "matcher": "mcp__neuralseek-ui__browser_(navigate|click|hover|type|fill_form|select_option|press_key|wait_for|snapshot)",
         "hooks": [
           {
             "type": "command",

@@ -40,6 +40,8 @@ const explore = readJson(join(C, 'explore-summary.json'));
 const understand = readJson(join(dir, 'understand.json'));
 const runner = readJson(join(dir, 'runner.json'));
 const cleanup = readJson(join(dir, 'cleanup.json'));
+// The playground restore check (verify-restore.ts, v3.4): every check this run made.
+const restore = readJson<{ status: string; checks: any[] }>(join(dir, 'restore-check.json'));
 const plan = readJson(join(C, 'coverage-plan.json'));
 const states = readJson<Record<string, any>>(join(C, 'states.json')) ?? {};
 const todos = readJson<any[]>(join(C, 'states-todo.json')) ?? [];
@@ -274,9 +276,40 @@ const summary = {
 		agentsCreated: created,
 		agentsDeleted: cleanup?.deleted ?? [],
 		leftovers: cleanup?.leftovers ?? created.filter((n) => !(cleanup?.deleted ?? []).includes(n)),
-		configRestored: cleanup?.configRestored ?? [],
-		configNotRestored: cleanup?.configNotRestored ?? [],
+		restore: restore
+			? {
+					status: restore.status,
+					checks: restore.checks.map(
+						(c: any) =>
+							`${c.when}: ${c.status} (${c.compared} controls, ${c.differs.length} differ, Change Log ${c.changelog.now.rows}/${c.changelog.reference.rows} rows${c.why ? ` — ${c.why}` : ''})`
+					),
+					version: restore.checks[0]?.version ?? null,
+				}
+			: null,
 	},
+	variants: Object.values(states)
+		.filter((st: any) => st.variant)
+		.map((st: any) => ({
+			state: st.id,
+			when: st.variant.when,
+			routes: st.variant.routes,
+			captured: !st.noChange,
+			images: [
+				st.viewport,
+				st.panel,
+				...Object.values(st.sections ?? {}).map((x: any) => x.image),
+			].filter(Boolean).length,
+		})),
+	variantsNotCaptured: todos
+		.filter((t: any) => t.kind === 'variant' && !t.done)
+		.map((t: any) => t.id),
+	experiments: (readJson<any>(join(dir, 'experiments.normalised.json')) ?? []).map((e: any) => ({
+		id: e.id,
+		setting: `${e.section} › ${e.control}: ${e.baseline} → ${e.value}`,
+		checked:
+			(restore?.checks ?? []).find((c: any) => c.when === `exp-${e.id}`)?.status ?? 'not run',
+	})),
+	pagesAdded: readJson<any>(join(dir, 'routes-final.json'))?.added ?? [],
 	findings,
 	plan: (() => {
 		const pl = readJson<any>(join(dir, 'plan.normalised.json'));
@@ -292,6 +325,17 @@ const summary = {
 			fallbacks: pl.fallbacks ?? [],
 		};
 	})(),
+	// Agents that stopped before returning (partial), the error text and whether the resume worked
+	// — written by the workflow's A() wrapper at finish().
+	partials: (() => {
+		const p = join(dir, 'agent-failures.json');
+		if (!existsSync(p)) return [];
+		try {
+			return JSON.parse(readFileSync(p, 'utf8'));
+		} catch {
+			return [{ label: 'agent-failures.json', error: 'unreadable' }];
+		}
+	})() as any[],
 	decisions: (() => {
 		const p = join(dir, 'decisions.jsonl');
 		if (!existsSync(p)) return [];
@@ -351,6 +395,11 @@ const md = [
 	`# Run ${runId} — area ${area.area}${area.kind === 'reference' ? ' (reference kind, no screen)' : ''}${captureRun !== runId ? ` · write-only from capture ${captureRun}` : ''}`,
 	'',
 	halted ? `**HALTED:** ${halted}\n` : '',
+	summary.playground.restore
+		? `**Playground restore: ${summary.playground.restore.status}** (reference ${summary.playground.restore.version ?? '?'}) — ${summary.playground.restore.checks.join('; ')}${summary.playground.restore.status === 'FAIL' ? ' → the main session rolls back per `_private/agentic-v2/playground-versions.md`, then re-runs `verify-restore.ts check`.' : ''}\n`
+		: area.mode !== 'write-only' && (area.variants ?? []).length
+			? '**Playground restore: NOT CHECKED** — variants were declared but no restore-check.json exists.\n'
+			: '',
 	'| route | controls | coverage | images (sect/opt/panel/view) | no-image sections | unbacked | unconfirmed | FAQ | gates | review | loop | outcome |',
 	'|---|---|---|---|---|---|---|---|---|---|---|---|',
 	...rows.map(
@@ -372,7 +421,17 @@ const md = [
 		Object.entries(spendByTool)
 			.map(([t, n]) => `${t} ×${n}`)
 			.join(', ') || 'none'
-	}). Agents created: ${created.length ? created.join(', ') : 'none'}; deleted: ${(cleanup?.deleted ?? []).length}; **leftovers: ${summary.playground.leftovers.length ? summary.playground.leftovers.join(', ') : 'none'}**.${summary.playground.configNotRestored.length ? ` **Config NOT restored: ${summary.playground.configNotRestored.join(', ')}**` : ''}`,
+	}). Agents created: ${created.length ? created.join(', ') : 'none'}; deleted: ${(cleanup?.deleted ?? []).length}; **leftovers: ${summary.playground.leftovers.length ? summary.playground.leftovers.join(', ') : 'none'}**.`,
+	'',
+	summary.variants.length || summary.variantsNotCaptured.length
+		? `Variants: ${summary.variants.map((v: any) => `${v.state} [${v.when}] → ${v.routes.join(', ')}${v.captured ? ` (${v.images} images)` : ' (NO CHANGE seen)'}`).join('; ') || 'none captured'}${summary.variantsNotCaptured.length ? `; not captured: ${summary.variantsNotCaptured.join(', ')}` : ''}.`
+		: '',
+	summary.experiments.length
+		? `Experiments (a setting changed, saved as a named version, Seek compared, rolled back): ${summary.experiments.map((x: any) => `${x.id} [${x.setting}] restore ${x.checked}`).join('; ')}.`
+		: '',
+	summary.pagesAdded.length
+		? `**Pages added by IA (review them):** ${summary.pagesAdded.join(', ')}.`
+		: '',
 	'',
 	ia
 		? `IA decisions: ${JSON.stringify(ia.decisions ?? ia).slice(0, 600)}`
@@ -411,6 +470,17 @@ const md = [
 							`Fallbacks (${summary.plan.fallbacks.length}): ${summary.plan.fallbacks.join(' · ')}`,
 						]
 					: []),
+				'',
+			]
+		: []),
+	...(summary.partials.length
+		? [
+				`## Partial agents — ${summary.partials.filter((f: any) => f.attempt === 1).length} stopped early, ${summary.partials.filter((f: any) => f.resumed).length} resumed`,
+				'',
+				...summary.partials.map(
+					(f: any) =>
+						`- ${f.label} (${f.agentType ?? '?'}, attempt ${f.attempt ?? '?'})${f.attempt === 1 ? (f.resumed ? ' → resumed' : f.resumed === false ? ' → resume failed' : ' → not resumed') : ''}: ${String(f.error ?? '').slice(0, 200)}`
+				),
 				'',
 			]
 		: []),
@@ -466,7 +536,7 @@ const md = [
 	'',
 	...summary.structuralChanges.map((p) => `- \`git diff -- ${p}\`  (structural)`),
 	'',
-	'Nothing was committed. `status` was set to `auto` on written routes; `adopted` is yours to set. The playground should be as it was found — check the leftovers line.',
+	'Nothing was committed. `status` is `written` on routes that passed their gates (`draft` otherwise); `adopted` is yours to set, with `reviewedAt` + `reviewedRun`. The playground should be as it was found — check the leftovers line.',
 	'',
 ].join('\n');
 writeFileSync(join(dir, 'report.md'), md);

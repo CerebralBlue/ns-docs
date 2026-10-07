@@ -1,73 +1,94 @@
 ---
 title: "Entity extraction"
-description: "Discover NeuralSeek's Entity Extraction feature, enabling seamless entity detection in text with custom definitions and multilingual support. Integrate effortlessly via REST API to enhance virtual agents."
+description: "NeuralSeek entity extraction reads a sentence and returns the entities it detects, each as an entity type with the matched text, for use in mAIstro agents, virtual agents and chatbots."
 ---
 
-**What is it?**
+## What is it
 
-- NeuralSeek has a feature called Extract which is a service to let users extract entities within a given user text. Users can also define their custom entities and provide descriptions for NeuralSeek to detect and extract entities that are defined by users. The service is provided with a REST endpoint which can be used by external applications such as virtual agents or chat bots to invoke it within their conversational flow to enhance their capabilities to detect entities within it.
+Entity extraction is NeuralSeek's service for pulling entities out of free text. You give it a sentence, and it returns the entities it detects: each one as an entity type (for example a product or a phone number) with the words from the sentence that matched it. You can also define your own entity types, called custom entities, for things the built-in set does not cover.
 
-**Why is it important?**
+You open the tool from **Admin Tools** > **Entity Extraction**. This page explains what extraction detects and where you can use it. The screen itself, with its tabs and fields, is covered on [Extracting data](/knowledge/extract/).
 
-- Virtual Agents can define various entities, which may have values that need to be categorized into concepts or types that can play various roles during their request handling. For example, when a user types a question like:
+## Why it matters
 
-> “I would like to buy a movie ticket.”
+A virtual agent needs to know what the user is talking about, not only what they want. In "I would like to buy a movie ticket", the intent is _buy_ and the entity is the thing being bought. Once the agent knows it is a movie ticket, it can list films, ask for a date and time, and move on to payment.
 
-The term “movie ticket” could be categorized as “product” that the virtual agent might need to understand so that the agent could start a dialog that would continue like:
+Most virtual-agent platforms detect entities from lists you maintain: an entity such as _product_ with its values (_movie ticket_, _movie reservation_, _ticket_) and their synonyms, sometimes with fuzzy matching for misspellings. That approach has three costs:
 
-> “Sure, what kind of movie ticket do you want to purchase?”
+- **Every value must be listed.** A word that is not on the list is not recognised, or is recognised as the wrong entity.
+- **The lists need maintenance.** A large set of entities and values takes time to keep current.
+- **Each language needs its own vocabulary.** Supporting several languages means listing every value again in each one.
 
-Knowing that the user is interested in buying (intent) a movie ticket (product), the agent should perform an action of providing a list of the movies, as well as letting the user choose the date and time, and ultimately proceeding with billing and payment.
+Entity extraction takes a different route: it detects the entity from the sentence itself, so you do not have to enumerate the values in advance.
 
-The inherent challenge in configuring virtual agents is to make sure these entities are accurately identified by providing various patterns, values, or an entity type, so that when those words appear in the conversation, such entities can be identified.
+## When to use it
 
-An example of that is how IBM Watson Assistant in dialog mode can define entity and its related values as such:
+Use entity extraction when you need structured values from what a user typed:
 
-![wa entities](/img/governance/entity-extraction/ee_image_001.png)
+- a virtual agent or chatbot that has to fill a slot (a product, a phone number, a date) from a free-text message;
+- a mAIstro agent that needs to act on a value found in its input, such as routing on a product name or storing a contact number;
+- a quick test of what NeuralSeek detects in a sample sentence before you build a flow around it.
 
-In the above example, the entity ‘product’ would be identified in the dialog if the user mentioned these words such as ‘movie reservation,’ ‘movie ticket,’ or simply ‘ticket.’ Watson Assistant also provides fuzzy matching to match any incorrect spellings or slight deviation from these words to help it better cope with the request.
+It is the wrong tool when you need a list of the important words in a text rather than typed entities, or a breakdown of its grammar. mAIstro has separate keyword and grammar nodes for that, listed on the same [Extract Data](/maistro/ntl/extract-data/) reference page as the extraction node. For a walk-through of the Extract screen's tabs, go to [Extracting data](/knowledge/extract/).
 
-However, there are obviously clear limitations and caveats in doing this approach.
+## How it works
 
-- You have to provide every possible value necessary for the bot to understand it as a certain type of entity. Anything out of the given value might not be categorized at all, or even categorized incorrectly.
-- Maintaining a large set of entities and its subsequent values can be costly and time consuming.
-- If you have to support multiple languages, you may need to provide all the possible values as legal vocabularies which can then be a pretty challenging feat.
+### Where entity extraction lives
 
-**How does it work?**
+**Entity Extraction** is an item in the **Admin Tools** menu at the top right of the console. The menu lists, in order: API's & Integration, Data Loader, Entity Extraction, Chat SDK, QA Tools and Curate. Choosing **Entity Extraction** opens the extraction page.
 
-- NeuralSeek’s Entity Extraction uses natural language processing to extract key entities that your virtual agent needs to understand, without requiring you to specify possible values or patterns and having the burden of constantly maintaining it.
+![The Admin Tools menu open at the top right of the console, with Entity Extraction as its third item](/img/admin-tools/default.png)
 
-## Entity Extraction From Conversation
-Let’s take a look at the above example of defining a movie ticket as a product. In the tab Extract, enter the same text of ‘I would like to buy a movie ticket’ and click the ‘Extract’ button.
+The extraction page has three tabs: Custom Entities, System Entities and Slot Builder. What each tab holds and how to fill it in is documented on [Extracting data](/knowledge/extract/).
 
-![buying a movie ticket](/img/governance/entity-extraction/ee_image_002.png)
+### What gets detected
 
-You will see NeuralSeek, without specifying anything, was able to identify the `movie ticket` as an entity of `product` and properly extracted it from the given string.
+Extraction takes a piece of text and returns the entities it found in it. Each result pairs an entity type with the text that matched it, and a sentence can yield several entities at once. The built-in entity types, called system entities, work with no setup: you do not list values or patterns for them.
 
-Moreover, you can ask the phrase in different languages, and NeuralSeek’s entity extraction will still work, without you doing anything!
+<!-- UNCONFIRMED: "I would like to buy a movie ticket" returns movie ticket as a product entity with no configuration, and the same sentence in Korean returns the same entity — old page, features/entity_extraction/index.md; not re-tested on the current release -->
 
-![buying a movie ticket in Korean](/img/governance/entity-extraction/ee_image_003.png)
+For example, extracting from "I would like to buy a movie ticket" returns `movie ticket` as a `product` entity, without any entity being defined first. The same sentence written in another language, such as Korean, returns the same entity, so you do not maintain a vocabulary per language.
 
-## Custom Entities
-In case there is a specific way that you need to categorize an entity, NeuralSeek provides a simpler and better way to define what your entity is, by using Custom Entity definition.
+### Custom entities refine detection
 
-![custom entities](/img/governance/entity-extraction/ee_image_004.png)
+When you need an entity type that the system entities do not cover, or want to categorise something in your own way, you define a custom entity. You add and edit custom entities on the Custom Entities tab; see [Extracting data](/knowledge/extract/) for the tab itself.
 
-Using this, Neural Seek can perform entity extraction in much more robust way:
+<!-- UNCONFIRMED: a custom entity is a name plus a description, NeuralSeek uses the description to detect it, and one definition works across languages — old page, features/entity_extraction/index.md -->
 
-![custom entities result](/img/governance/entity-extraction/ee_image_005.png)
-![custom entities result](/img/governance/entity-extraction/ee_image_006.png)
-![custom entities result](/img/governance/entity-extraction/ee_image_007.png)
+A custom entity is a name and a description of what it means. NeuralSeek uses the description to recognise the entity in text, rather than a list of values, and a single definition also applies to sentences in other languages.
 
-And obviously, this single customer entity definition would work in other languages too!
+### Use extraction in an agent or a virtual agent
 
-![custom entities result](/img/governance/entity-extraction/ee_image_008.png)
+Extraction is available outside its own page, so a flow can call it on each user message:
 
-## Entity Extraction REST API
-NeuralSeek’s entity extraction supports integration via REST API, so it makes calling the service easy with any external applications such as virtual agents or chatbots. It is easy to test its functionality by using API documentation located under the `Integrate` tab.
+<!-- UNCONFIRMED: the {{ extract }} node ("NeuralSeek Entity extraction. Define custom entities on the Extract Tab"), fed text with =>, returns a JSON object keyed by entity type — from the Extract Data NTL page, not re-checked against the current NTL reference -->
 
-![entity extraction in REST API](/img/governance/entity-extraction/ee_image_009.png)
+- **In a mAIstro agent**, use the extraction node, `{{ extract }}`. Pass it the text to analyse with the `=>` chaining operator and it returns the entities it found as JSON, keyed by entity type. Custom entities you defined are used by the node too. The node's syntax and an example are on [Extract Data](/maistro/ntl/extract-data/).
 
-This will return the following JSON type response:
+<!-- UNCONFIRMED: extraction is exposed as a REST endpoint documented in the console's API documentation (old page: "under the Integrate tab"); the endpoint path and surface were not checked -->
 
-![entity extraction in REST API](/img/governance/entity-extraction/ee_image_010.png)
+- **From an external application**, such as a virtual agent or chatbot, call extraction through the NeuralSeek REST API; see [REST and Console API](/integrations/rest-and-console-api/). This lets the bot detect an entity in the middle of its conversation flow instead of relying only on its own entity lists.
+
+For how NeuralSeek connects to virtual-agent platforms in general, see [Virtual agents](/integrations/virtual-agents/).
+
+## FAQ
+
+### Do I have to list every value of an entity, like in a virtual agent?
+
+No. Extraction detects entities from the sentence itself, so you do not enumerate values or synonyms. You add a custom entity only for a type that the built-in system entities do not cover.
+
+### Where do I try entity extraction?
+
+Open **Admin Tools** > **Entity Extraction** in the console. The page's tabs (Custom Entities, System Entities, Slot Builder) are explained on [Extracting data](/knowledge/extract/).
+
+### Does it work in languages other than English?
+
+The documented example extracts the same entity from an English sentence and its Korean translation, with no extra configuration, and a custom entity definition applies across languages as well. See [What gets detected](#what-gets-detected).
+
+### How do I use it inside a mAIstro agent?
+
+Use the extraction node: pass it the text, and it returns the entities it found as JSON. The syntax is on the [Extract Data](/maistro/ntl/extract-data/) NTL reference page.
+
+### What is the difference between this page and Extracting data?
+
+This page explains what entity extraction does and where you can use it. [Extracting data](/knowledge/extract/) walks through the extraction screen: its tabs, fields and buttons.

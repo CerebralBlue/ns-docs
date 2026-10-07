@@ -7,8 +7,6 @@ description: "The In/Out node pairs that make the pipeline-agent settings in Neu
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-This page is brand new for the restructured docs.
-
 ## To document on this page
 
 - 14 pipeline-hook nodes that make 9 Neural Config settings usable

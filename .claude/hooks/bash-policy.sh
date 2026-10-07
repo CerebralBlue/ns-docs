@@ -13,7 +13,7 @@
 # pipeline agent — looking is not writing. The main session and the `general-purpose` wrappers
 # are not fenced (they run the pipeline's own commands). Fails closed. Denials → denials.log.
 set -euo pipefail
-trap 'jq -n --arg r "bash-policy.sh hit an internal error — denied by default" '"'"'{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'"'"'; exit 0' ERR
+trap 'echo "bash-policy.sh hit an internal error — denied by default" >&2; exit 2' ERR
 
 INPUT=$(cat)
 TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""')
@@ -27,19 +27,21 @@ RUN_ID=$(cat "$V2/current-run" 2>/dev/null || true)
 LOG="$V2/${RUN_ID:+runs/$RUN_ID/}denials.log"
 
 deny() {
-	mkdir -p "$(dirname "$LOG")" 2>/dev/null && printf '%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$AGENT" "$TOOL" "$1" >>"$LOG"
-	jq -n --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
+	mkdir -p "$(dirname "$LOG")" 2>/dev/null && printf '%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$AGENT" "$TOOL" "$1" >>"$LOG" || true
+	jq -n --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}' || { echo "$1" >&2; exit 2; }
 	exit 0
 }
 
 # Allowed prefixes per agent — mirrors each agent's `tools:` frontmatter. Keep in sync.
 case "$AGENT" in
-	explorer) PREFIXES="bun scripts/agentic/explore-plan.ts|mkdir -p" ;;
+	explorer) PREFIXES="bun scripts/agentic/explore-plan.ts |bun scripts/agentic/compose-panel.ts |bun scripts/agentic/verify-restore.ts check |bun scripts/agentic/backlog.ts list|mkdir -p" ;;
 	understand | ia-agent | consistency) PREFIXES="" ;;
-	runner) PREFIXES="sha1sum" ;;
-	writer) PREFIXES="bun scripts/doc-lint.ts|bun scripts/agentic/coverage.ts|bunx prettier --write src/content/docs/" ;;
-	doc-reviewer) PREFIXES="bun scripts/doc-lint.ts|bun scripts/agentic/coverage.ts" ;;
-	cleanup) PREFIXES="" ;;
+	runner) PREFIXES="sha1sum|bun scripts/agentic/backlog.ts list" ;;
+	writer) PREFIXES="bun scripts/doc-lint.ts|bun scripts/agentic/coverage.ts|bun scripts/agentic/backlog.ts list|bun scripts/agentic/neighbours.ts|bunx prettier --write src/content/docs/" ;;
+	image-reviewer) PREFIXES="bun scripts/agentic/image-check.ts|bun scripts/agentic/library.ts find" ;;
+	doc-reviewer) PREFIXES="bun scripts/doc-lint.ts|bun scripts/agentic/coverage.ts|bun scripts/agentic/neighbours.ts" ;;
+	cleanup) PREFIXES="bun scripts/agentic/verify-restore.ts check " ;;
+	experimenter) PREFIXES="bun scripts/agentic/experiments.ts on |bun scripts/agentic/experiments.ts saved |bun scripts/agentic/experiments.ts off |bun scripts/agentic/verify-restore.ts check |mkdir -p" ;;
 	config-export) PREFIXES="bun scripts/agentic/config-slice.ts" ;;
 	*) exit 0 ;; # main session, general-purpose wrappers, anything not in the pipeline
 esac
@@ -56,8 +58,21 @@ CLEAN=$(printf '%s' "$BODY" | sed -E "s#'[^']*'#''#g; s#\"[^\"]*\"#\"\"#g" | sed
 if printf '%s' "$CLEAN" | grep -Eq '(^|[^<>|])>{1,2}[^>]|<<|\btee\b|\bsed +-i|\bpython3?\b|\bnode +-e\b|\bperl\b|\bmv\b|\bcp\b|\brm\b|\btruncate\b|\bdd\b|\bchmod\b|\bgit +(add|commit|checkout|reset|push|stash|rm|mv)\b'; then
 	deny "$AGENT writes files with the Write tool and patches them with Edit — not through the shell (refused: $(printf '%s' "$BODY" | head -1 | head -c 80))"
 fi
+# Writes that hide from the check above: `sed -E -i` (the -i after another flag), awk writing or
+# shelling out from INSIDE its quoted program, and find's own writers. Checked on the raw command.
+# sed: only `sed -n 'N,Mp'` (a line range) — its w/W/e/r commands write files or run shells.
+if printf '%s' "$BODY" | grep -Eq '\bsed\b' &&
+	printf '%s' "$BODY" | grep -Eo '\bsed\b[^|;&]*' | grep -Evq "^sed -n '?[0-9]+(,[0-9$]+)?p'?( |$)"; then
+	deny "$AGENT may read lines with sed -n 'N,Mp' only (refused: $(printf '%s' "$BODY" | head -1 | head -c 80))"
+fi
+if printf '%s' "$BODY" | grep -Eq '\bxargs\b'; then
+	deny "$AGENT may not use xargs (it runs arbitrary commands)"
+fi
+if printf '%s' "$BODY" | grep -Eq '\bsed\b[^|;&]*[[:space:]]-[a-zA-Z]*i|\bawk\b.*(>|\bsystem[[:space:]]*\(|\|[[:space:]]*"|\bgetline\b)|\bfind\b.*[[:space:]]-(delete|exec|execdir|ok|okdir|fprint|fprintf|fls)\b'; then
+	deny "$AGENT writes files with the Write tool and patches them with Edit — not through sed -i, awk or find (refused: $(printf '%s' "$BODY" | head -1 | head -c 80))"
+fi
 # Read-only shell is allowed for every pipeline agent (looking is not writing), plus mkdir -p.
-READONLY='cat|ls|find|grep|rg|head|tail|wc|jq|sha1sum|sort|uniq|cut|tr|diff|stat|test|echo|printf|file|realpath|basename|dirname|date|true|mkdir -p|sed -n|sed -E|awk|xargs|git diff|git status|git log|git show|bun scripts/agentic/values.ts|bun scripts/agentic/coverage.ts|bun scripts/doc-lint.ts'
+READONLY='cat|ls|find|grep|rg|head|tail|wc|jq|sha1sum|sort|uniq|cut|tr|diff|stat|test|echo|printf|file|realpath|basename|dirname|date|true|mkdir -p|sed -n|awk|git diff|git status|git log|git show|bun scripts/agentic/values.ts|bun scripts/agentic/coverage.ts|bun scripts/doc-lint.ts'
 allowed_segment() {
 	local SEG
 	SEG=$(printf '%s' "$1" | sed -E 's/^[[:space:]]+//')

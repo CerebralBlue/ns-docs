@@ -27,7 +27,7 @@ export interface GraphNode {
 	/** First path segment — the top-level section this belongs to. */
 	group: string;
 	depth: number;
-	/** migration-map status: stub | auto | adopted | unmapped | group. */
+	/** migration-map status: stub | draft | written | adopted | unmapped | group. */
 	status: string;
 }
 

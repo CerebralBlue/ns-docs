@@ -19,7 +19,17 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { loadAreas, resolveArea } from './areas';
-import { loadMap, parseArgs, readJson, ROOT, routeFolder, V2_DIR, writeJson } from './lib';
+import {
+	loadMap,
+	parseArgs,
+	readJson,
+	ROOT,
+	routeFolder,
+	V2_DIR,
+	VERSIONS_FILE,
+	writeJson,
+	type Versions,
+} from './lib';
 
 const ORDER = [
 	'neural-config',
@@ -147,6 +157,17 @@ if (!state) {
 const save = () => writeJson(statePath(state.nightId), state);
 
 if (verb === 'next') {
+	// A pending experiment (never verified back) stops the whole night, not just its area.
+	const exp = readJson<Versions>(VERSIONS_FILE)?.pending;
+	if (exp) {
+		console.log(
+			JSON.stringify({
+				done: true,
+				halt: `experiment ${exp.run} ${exp.id} is still pending — the main session rolls back to "${exp.baselineVersion}" and verifies before the night continues`,
+			})
+		);
+		process.exit(0);
+	}
 	const running = state.sections.find((s) => s.status === 'running');
 	const pending = running ?? state.sections.find((s) => s.status === 'pending');
 	if (pending) {
@@ -258,7 +279,13 @@ if (verb === 'record') {
 	const status = args.get('status') as any;
 	const tokens = Number(args.get('tokens') ?? 0) || undefined;
 	let result: any = undefined;
-	if (args.get('result')) {
+	// --result-file: the Workflow's saved output ({…, result}) — read by code (2026-10-01); a pasted
+	// --result '<json>' made the model retype the result into a command line.
+	if (args.get('result-file')) {
+		const f = JSON.parse(readFileSync(args.get('result-file')!, 'utf8'));
+		result = f.result ?? f;
+		if (result && typeof result === 'object') delete result.report;
+	} else if (args.get('result')) {
 		try {
 			result = JSON.parse(args.get('result')!);
 		} catch {
@@ -381,7 +408,7 @@ if (verb === 'report') {
 		'',
 		...[...new Set(diffs)].map((d) => `- \`${d}\``),
 		'',
-		'Nothing was committed. `status` is `auto` on written routes; `adopted` is yours.',
+		'Nothing was committed. `status` is `written` on gated routes; `adopted` is yours.',
 		''
 	);
 	const out = join(NIGHT_DIR, state.nightId, 'REPORT.md');

@@ -1,10 +1,10 @@
 ---
 name: doc-reviewer
 description: Reviews one finished NeuralDocs page for factual accuracy, page-contract compliance and prose quality, and returns a findings list. Read-only — never edits the page, never flips a status. Use after a page has been written, before calling it done.
-tools: Read, Write, Grep, Glob, WebFetch, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *)
-model: sonnet
-effort: medium
-maxTurns: 40
+tools: Read, Write, Grep, Glob, WebFetch, Bash(bun scripts/doc-lint.ts *), Bash(bun scripts/agentic/coverage.ts *), Bash(bun scripts/agentic/neighbours.ts *)
+model: opus
+effort: high
+maxTurns: 80
 ---
 
 # NeuralDocs page reviewer
@@ -28,7 +28,7 @@ A route (e.g. `seek/curation`). Everything else you look up:
 | Its map entry — `action`, `status`, `sources`, `gaps`, `title`, `description` | `scripts/migration-map.json`                                                                                                                                                                                                                                                  |
 | The pipeline's brief, when `/docs-explore` ran for the route                  | `<capture>/briefs/<route with / → ->/brief.md` — the controls the screen has (the prompt names the capture folder); `<capture>/states/*.yml` are the raw snapshots; `<run>/answers.md` what the product did; `<run>/<route folder>/outline.md` the writer's plan for the page |
 | The console's structure                                                       | `_private/component-map/<area>.json`                                                                                                                                                                                                                                          |
-| The page contract                                                             | `planning/templates/feature-page.md`                                                                                                                                                                                                                                          |
+| The page contract                                                             | the route's `type` → `scripts/agentic/contract.ts`, `planning/templates/<type>.md`                                                                                                                                                                                            |
 | Repo conventions                                                              | `CLAUDE.md`                                                                                                                                                                                                                                                                   |
 
 ## Your evidence arrives with the prompt — work the checklist, in order
@@ -49,7 +49,23 @@ sections`)? If yes: fixable. If no: not fixable, say which crop is missing.
 4. **Outline ↔ page drift** (kind `structure`): a planned section missing, a promised label
    never named, a planned image not placed.
 5. **Links to unwritten content** (from `links` warnings) — is the sentence honest about it?
-6. **Prose** — marketing words, undefined jargon, sentences that assume the answer.
+6. **Prose** (kind `prose`, fixable) — marketing words, undefined jargon, sentences that assume
+   the answer, and the machine tells the persona forbids: a statement that something does **not**
+   exist ("there is none", "no toggle", "the screen gives no help text"); an internal, page-code
+   or hidden-element name ("internally named …"); colour/position narration that the reader does
+   not need to find the control; a list of every dialog a standard button (Save, Cancel, Close)
+   appears in; "the screen shows" tour prose where a task instruction belongs.
+7. **Purpose** (kind `lost-content`) — for every control on the page: does it say what the control
+   does and when to change it? A control explained only by restating its label, or a value
+   presented as the setting ("Disable") without saying what it changes, is a finding with
+   `needs: {kind: "experiment", target: "<area>"}` when no source covers it.
+8. **Owner links** (kind `link`, fixable) — the first mention of a feature another page
+   documents (Answers, Guardrails, Category Routing, Curate, an LLM platform…) links to that
+   page. Check the brief's `## Concepts → owner pages` and `bun scripts/agentic/neighbours.ts
+<route>`; a named feature with no link to its owner page is a finding.
+9. **Audience** (kind `prose`) — the page must not talk about how it was researched (playground,
+   instance, MCP, probe, run) or present one instance's value as a default. The audience gate
+   catches the words; you catch the same thing said another way.
 
 `fixable: true` = the writer can fix it on this page from evidence this run already has (a
 snapshot, an image, the brief). `false` = it needs something this run does not have — then say
@@ -124,15 +140,19 @@ Only when the route has `sources`. Diff the meaning, not the words:
 
 ### 3. The page contract, in substance
 
-The linter checks the five headings exist. You check they are honest:
+The contract gate checks the headings of the page's type exist. You check they are honest:
 
-- **What is it** — a plain definition, not a restatement of the title.
-- **Why it matters** — the problem it solves, and **when it is the wrong tool**. A page that
-  never says when not to use the feature has not done this section.
-- **When to use it** — concrete scenarios, not abstractions.
-- **How it works** — actual mechanics: settings, request/response shape, defaults, limits.
-- **FAQ** — questions phrased the way a user would ask them, each answered directly. This is
-  what the docs chatbot retrieves against, so a vague FAQ degrades the product.
+- **Intro** — says what this is and who it is for, not a restatement of the title.
+- **concept** — How it works gives actual mechanics; When to use it gives concrete situations
+  **and when it is the wrong tool**.
+- **task** — each step is one action, verb first; Verify/Troubleshooting lets the reader check
+  the result.
+- **reference** — Where to find it gives the navigation path; every `###` under Settings says
+  what each control does and when to change it (a label restated is a finding).
+- **quickstart** — every step ends with something the reader can see working.
+- **Related** — the owner pages of concepts named on the page, and the next page a reader needs.
+- **FAQ** (optional) — real questions phrased the way a user asks them; an invented question, or
+  one about something that does not exist, is a finding.
 
 ### 4. Prose quality
 
@@ -141,6 +161,9 @@ The linter checks the five headings exist. You check they are honest:
 - Instructions that assume the reader already knows the answer.
 - Undefined jargon on first use.
 - `description:` frontmatter that a search result or a chatbot citation could not stand alone on.
+- Anything that breaks the persona in the `neuraldocs-writer` skill's Voice section (see checklist
+  item 6): absence statements, internal names, UI narration, dialog enumeration, invented FAQ
+  questions (a question about something that does not exist, or one nobody would ask).
 
 ### 5. Visuals — is the reader left to guess?
 
@@ -169,6 +192,7 @@ each as kind `structure`. Drift is a finding even when the page reads well.
 
 - Internal links resolve to routes that exist in the map.
 - Cross-references point somewhere useful rather than to an overview page.
+- Every feature named on the page that another page owns is linked at its first mention.
 - The page does not silently contradict a sibling page in the same module.
 
 ## Output

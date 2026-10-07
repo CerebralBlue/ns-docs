@@ -1,155 +1,237 @@
 ---
 title: "Supported LLMs"
-description: "Which language models NeuralSeek can use is decided by the Add an LLM dialog in LLM Details on your own instance, not by a fixed list; this page explains how to read that list, what a Managed model card is, and where each model's settings live."
+description: "The language models NeuralSeek supports are the ones offered by the Add an LLM dialog in Neural Config's LLM Details section — 14 platforms including xAI, DeepSeek, Perplexity, Xiaomi and NeuralSeek's own managed models — and each model's LLM Notes state what it cannot do before you add it."
 ---
 
-## What is it
+A model is supported by NeuralSeek when you can pick it in the **Add an LLM** dialog. The dialog
+is the catalogue: you choose a **Platform** (where the model is served from), then a model in
+**LLM Selection**, and the **LLM Notes** panel tells you what that model can and cannot do before
+you add it. This page covers the dialog itself; everything about a model once it is added — its
+languages, functions, weight, test and delete — is on
+[LLM Details](/configuration/neural-config/llm-details/).
 
-In NeuralSeek, a model is "supported" when it can be added as a card in the **LLM Details**
-section of a configuration and ticked for the functions it is allowed to perform. The list of
-platforms and models you can add is not published as a table here: it is the **Add an LLM**
-dialog on your own instance, which is instance-specific and changes as NeuralSeek adds
-providers. This page tells you where that list is, how to read the cards it produces, and which
-page holds the per-model settings — see [LLM Details](/configuration/neural-config/llm-details/)
-for those.
+## Where to find it
 
-The page is an orientation page, not a settings screen. Nothing on it is a control you change.
+In **Neural Config**, click the **Default Config / Answer Generation** node to open **Edit
+Configuration**, expand **LLM Details**, and select **Add an LLM**. The button sits beside the
+section's help text, with one card per model already added below it. How the dialog works and
+how its changes are saved is covered on
+[Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-## Why it matters
+![The Configuration: Default Config dialog with LLM Details expanded under KnowledgeBase Connection and KnowledgeBase Tuning: the Add an LLM button, the help paragraph, and the Managed GPT and Managed gpt-image cards with their LLM Languages and LLM Functions checkboxes](/img/neural-config/llm-details.png)
 
-An LLM in NeuralSeek is not one global choice. Each model card carries an **LLM Functions**
-grid, and the models you connect decide which parts of the product work at all. The **LLM
-Details** section states the rule in its own help text:
+The help text explains why the models you add matter:
 
 > You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them
 > for the selected functions that have multiple LLM's. Features that an LLM are not capable of
 > will be unselectable. If you do not provide an LLM for a function, there is no fallback and
 > that function of NeuralSeek will be disabled.
 
-So "is my model supported?" is really two questions: can it be added at all (the dialog answers
-that), and which functions can it be ticked for once added (the card answers that).
+So "is my model supported?" is two questions: can it be added (the **Platform** and **LLM
+Selection** lists answer that), and what can it do once added (its **LLM Notes** answer that).
 
-## When to use it
+## Settings
 
-Read this page when you are:
+The **Add an LLM** dialog has two dropdowns on the left — **Platform** and **LLM Selection** — the
+read-only **LLM Notes** panel on the right, and **Cancel** and **Add** in the footer. It opens on
+the first entry of each list, **Amazon Bedrock** and `Nova Pro`; that is the top of the lists, not
+a recommendation.
 
-- choosing a provider before connecting anything, and want to know where the real list is;
-- looking at a greyed-out function checkbox and wondering whether another model would enable it;
-- deciding between a NeuralSeek-hosted `Managed` card and a model on your own account — see
-  [Managed LLM Details](/configuration/neural-config/managed-llm/);
-- spreading functions across several models, which is covered by
-  [Multi-LLM](/configuration/multi-llm/);
-- planning image work, which is covered by
-  [Multimodal LLM configuration](/configuration/multimodal/);
-- running a model on your own infrastructure — see
-  [Self-hosting an LLM](/configuration/administration/self-hosting-an-llm/).
+### Platform
 
-Do not use this page as an inventory of what your instance can select right now. Open
-**Add an LLM** for that.
+**Platform** is the provider the model is served from. Picking a platform refills **LLM
+Selection** with that provider's models, selects the first one, and switches **LLM Notes** to it.
+Pick the provider that serves the model you want, or **NeuralSeek** for the models NeuralSeek
+provides.
 
-## How it works
+The list offers 14 platforms, in this order. The second column is the model **LLM Selection**
+shows first after you pick the platform — the top of its list, not a default or a recommendation.
+The other columns come from that model's **LLM Notes**.
 
-Everything described here sits in one place: **Neural Config**, click the **Default Config /
-Answer Generation** node, then **Edit Configuration**; in the dialog's accordion, expand
-**LLM Details**.
+| Platform                    | LLM Selection shows       | LLM Notes heading                 | Model Code             | Inputs → Outputs                 | Context Window |
+| --------------------------- | ------------------------- | --------------------------------- | ---------------------- | -------------------------------- | -------------- |
+| Amazon Bedrock              | `Nova Pro`                | AWS / Nova Pro                    | `nova-pro`             | Text, Image → Text               | 300000         |
+| Azure Cognitive Services    | `gpt-5.6-sol`             | OpenAI / gpt-5.6-sol              | `azuregpt-5.6-sol`     | Text, Image → Text               | 1000000        |
+| Cloudflare                  | `kimi-k2.7-code`          | Moonshot AI / kimi-k2.7-code      | `kimi-k2.7-code-cf`    | Text → Text                      | 262100         |
+| Generic (OpenAI-compatible) | `OpenAI Chat Completions` | generic / OpenAI Chat Completions | `GPT-Chat-Completions` | Text, Image → Text               | 32768          |
+| Google Vertex AI            | `gemini-3.1-pro-preview`  | Google / gemini-3.1-pro-preview   | `gemini-3.1-pro-preview` | Text, Image, Audio, video → Text | 1000000        |
+| DeepSeek                    | `deepseek-v4-pro`         | DeepSeek / deepseek-v4-pro        | `ds-deepseek-v4-pro`   | Text, Image → Text               | 1000000        |
+| Perplexity                  | `perplexity-router`       | Perplexity / perplexity-router    | `perplexity-router`    | Text, Image → Text               | 1000000        |
+| HuggingFace                 | `gpt-oss-120b`            | OpenAI / gpt-oss-120b             | `gpt-oss-120b`         | Text → Text                      | 131072         |
+| NeuralSeek                  | `Managed GPT`             | OpenAI / Managed GPT              | `ns-gpt-5`             | Text, Image → Text               | 1000000        |
+| OpenAI                      | `ggpt-6-astra`            | OpenAI / ggpt-6-astra             | `azuregpt-6-astra`     | Text, Image → Text               | 1000000        |
+| together.ai                 | `Minimax M3`              | Minimax / Minimax M3              | `Minimax-M3-together`  | Text → Text                      | 524288         |
+| watsonx.ai                  | `gpt-oss-120b`            | OpenAI / gpt-oss-120b             | `gpt-oss-120b-watsonxga` | Text → Text                    | 131072         |
+| xAI                         | `grok-code-fast-1`        | xAI / grok-code-fast-1            | `grok-code-fast-1`     | Text → Text                      | 256000         |
+| Xiaomi                      | `mimo-v2.6-pro`           | Xiaomi / mimo-v2.6-pro            | `mimo-v2.6-pro`        | Text, Image, video → Text        | 1000000        |
 
-![The collapsed LLM Details accordion header in the Edit Configuration dialog — the row to click](/img/neural-config/edit-configuration-edit--add-an-llm.png)
+The **LLM Notes** heading names the model's maker, which is not always the platform: Cloudflare
+opens on a Moonshot AI model, together.ai on a Minimax model, and Azure Cognitive Services,
+HuggingFace and watsonx.ai on OpenAI models. The platform is where the model is served from; the
+heading is who built it. Model names and codes are copied as the dialog spells them.
 
-### Where the model list lives
+#### xAI, DeepSeek, Perplexity and Xiaomi
 
-Expanding **LLM Details** shows the **Add an LLM** button on the left, the help paragraph quoted
-above beside it, and one card per model already on the instance.
+![The Add an LLM dialog with xAI as the Platform and grok-code-fast-1 as the LLM Selection; LLM Notes shows the xAI / grok-code-fast-1 heading, the functions it does not support, and Context Window 256000](/img/neural-config/add-an-llm@llm-platform-xai-panel.png)
 
-![The LLM Details section expanded: the Add an LLM button, the load-balancing and no-fallback paragraph, and the Managed GPT and Managed gpt-image cards with their LLM Functions, LLM ID and Weight rows](/img/neural-config/llm-details-panel.png)
+Picking **xAI** opens **LLM Selection** on `grok-code-fast-1`, which its notes describe as "A
+speedy and economical reasoning model that excels at agentic coding." It does not support Table
+Understanding, System AI, Image Generation, Image Edits, Video, Speech, Music or Speech to Text.
+**Perplexity** opens on `perplexity-router`, which "lets you target major LLM providers thru
+perplexity". **DeepSeek** opens on `deepseek-v4-pro` and **Xiaomi** on `mimo-v2.6-pro`; their
+inputs and context windows are in the table above.
 
-- **Add an LLM** opens the `Add an LLM` dialog, whose footer is **Cancel** and **Add**. This
-  dialog is the catalogue: the platforms and models it offers are the ones your instance
-  supports. It was not opened when this page was captured, so its contents are not reproduced
-  here — open it on your instance to see them. How to fill it in and what happens next is on
-  [LLM Details](/configuration/neural-config/llm-details/).
-- **LLM Functions** is the checkbox grid on every card. "Features that an LLM are not capable
-  of will be unselectable" is visible in the capture: on the `Managed gpt-image` card every box
-  except **Image Generation** and **Image Edits** is greyed, while on `Managed GPT` most boxes
-  are selectable. A greyed box is the product telling you that model cannot do that job, not a
-  permission you are missing. The twenty functions themselves are listed on
-  [LLM Details](/configuration/neural-config/llm-details/).
-- **LLM ID:** is the identifier at the foot of each card. The instance captured for this page
-  carried four cards — `Managed GPT` (`ns-gpt-5`), `Managed gpt-image` (`ns-gpt-image`),
-  `Translate` (`translate-ns`) and `gpt-oss-20b` (`gpt-oss-20b-ns`). These are the models on
-  that one instance, not a list of what NeuralSeek supports; a card whose name starts with
-  `Managed` is one NeuralSeek hosts, described on
-  [Managed LLM Details](/configuration/neural-config/managed-llm/).
+#### Generic (OpenAI-compatible): a model you serve yourself
 
-### What this page does not know
+Pick **Generic (OpenAI-compatible)** when you run the model yourself. Its **LLM Selection** opens
+on `OpenAI Chat Completions`, and the notes state what the endpoint must provide:
 
-The platform list inside **Add an LLM** was not captured, so the page cannot say which platforms
-the dialog names today, nor whether any particular provider is present or absent from it.
+> This model card is for use with the OpenAI-style /v1/chat/completions endpoint of HuggingFace
+> TGI or VLLM. THis endpoint abstracts away all the LLM control chars and requires the model have
+> a chat template as part of its tokenizer. This card is only compatible with a
+> /v1/chat/completions endpoint.
 
-![Screenshot needed — the Add an LLM dialog with its platform list open](/img/_placeholder.svg)
+![The Add an LLM dialog with Generic (OpenAI-compatible) as the Platform and OpenAI Chat Completions as the LLM Selection; LLM Notes describes the /v1/chat/completions requirement and shows Context Window 32768](/img/neural-config/add-an-llm@llm-platform-generic-openai-compatible-panel.png)
 
-<!-- SCREENSHOT: Neural Config > Default Config / Answer Generation > Edit Configuration > LLM Details > click "Add an LLM" — the open dialog with its platform dropdown expanded so every platform name is legible; then Cancel.
-     Why: the platform list is the only fact this page exists to give and it lives nowhere else on the screen. -->
+It fits a model behind a `/v1/chat/completions` endpoint whose tokenizer has a chat template; an
+endpoint without either does not work with this card. Running the model itself is covered on
+[Self-hosting an LLM](/configuration/administration/self-hosting-an-llm/).
 
-<!-- UNCONFIRMED: the provider list below (Amazon Bedrock, Azure Cognitive Services, Cloudflare, Google Vertex AI, HuggingFace, OpenAI, together.ai, watsonx.ai, plus any generic OpenAI-compatible endpoint) — the last published old-docs list; the Add an LLM dialog was not opened in this capture, and the route's gap audit says the list is stale -->
+#### NeuralSeek: the managed models
 
-For orientation only, the last published list named Amazon Bedrock, Azure Cognitive Services,
-Cloudflare, Google Vertex AI, HuggingFace, OpenAI, together.ai and watsonx.ai, plus any generic
-OpenAI-compatible endpoint. Treat every name as "was offered at some point": providers have been
-added since and the dialog on your instance is the only current answer. The previous site also
-carried a per-model table for each provider with notes on how each model behaved in NeuralSeek;
-those tables are not reproduced here because the models they describe are several generations
-behind what the dialog offers.
+The **NeuralSeek** platform lists the models NeuralSeek provides. It opens **LLM Selection** on `Managed GPT`, which its notes describe as
+"pinned to the latest GPT flagship model for coding, reasoning, and agentic tasks across domains".
+Its notes give 187 languages, Model Code `ns-gpt-5`, Context Window 1000000 and a **Seek
+Multiplier** of 4.5.
 
-Two more statements come from the previous site and were not checked against the product:
+![The Add an LLM dialog with NeuralSeek as the Platform and Managed GPT as the LLM Selection; LLM Notes shows OpenAI / Managed GPT, 187 languages, Model Code ns-gpt-5, Context Window 1000000 and Seek Multiplier 4.5](/img/neural-config/add-an-llm@llm-ns-managed-panel.png)
 
-<!-- UNCONFIRMED: "LLM choice is available with NeuralSeek's BYOLLM (bring your own Large Language Model) plan; all other plans default to NeuralSeek's curated LLM" — old-docs prose; no plan control is on the captured screen -->
-
-- Adding your own model was described as part of the BYOLLM (bring your own Large Language
-  Model) plan, with other plans defaulting to NeuralSeek's curated model. If **Add an LLM** is
-  not on your screen, your plan is the first thing to check.
-
-<!-- UNCONFIRMED: "Some LLMs can take up to 30 seconds and longer to generate a full response; use caution with a virtual agent platform that imposes a strict timeout" — old-docs prose; no timing was probed -->
-
-- Some models were noted to take 30 seconds or longer for a full response, which matters when a
-  virtual agent platform in front of NeuralSeek enforces a strict timeout.
-
-### Per-model settings are elsewhere
-
-This page has no controls of its own. Once a model is a card, everything about it is configured
-on the card, and the card is documented on
-[LLM Details](/configuration/neural-config/llm-details/): **Connection Info** and its
-**LLM Languages**, the **LLM Functions** grid with **Enable All** / **Disable All**, the
-**Weight:** row that sets the card's share of load-balanced traffic, and the **Test** and
-**Delete** buttons. Splitting one function across two cards is on
-[Multi-LLM](/configuration/multi-llm/); the image functions are on
-[Multimodal LLM configuration](/configuration/multimodal/); the `Managed` cards are on
+The managed models are documented on
 [Managed LLM Details](/configuration/neural-config/managed-llm/).
+
+### LLM Selection
+
+**LLM Selection** is the model on the chosen platform. Its list depends entirely on **Platform**,
+and each pick updates **LLM Notes**.
+
+These are the lists the dialog offered for four platforms, in the order shown and spelled as on
+screen. For the other platforms, open the dropdown in your own console — providers add and retire
+models, so the dialog is always the current answer.
+
+| Platform                 | LLM Selection options |
+| ------------------------ | --------------------- |
+| Amazon Bedrock           | `Nova Pro`, `Nova Lite`, `Nova Micro`, `Claude Fable 5.1`, `Claude 5 Opus`, `Claude 4.8 Opus`, `Claude 5 Sonnet`, `Claude 4.6 Sonnet`, `Claude 4.5 Sonnet`, `Claude 4.5 Haiku`, `Jurassic-2 Mid`, `Jurassic-2 Ultra`, `Mistral-7B-Instruct`, `Mixtral-8x7B-Instruct`, `Mistral-large`, `Mistral-small`, `Titan Text G1 - Express`, `llama-3-2-90b-vision-instruct`, `llama-3-2-11b-vision-instruct` |
+| Azure Cognitive Services | `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5-chat-latest`, `gpt-4o-mini-tts`, `chatgpt-image`, `sora-2`, `sora-2-pro`, `gpt-4.1` |
+| OpenAI                   | `ggpt-6-astra`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `ggpt-6-astra`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5-chat-latest`, `gpt-5-mini`, `gpt-5-nano`, `gpt-4o-mini-tts`, `sora-2`, `sora-2-pro`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-4.1`, `gpt-4.1-mini`, `gpt-4.1-nano` |
+| watsonx.ai               | `gpt-oss-120b`, `gpt-oss-20b`, `Mistral-large`, `mistral-medium-2505`, `mistral-small-3-1-24b-instruct-2503`, `mistral-small-24b-instruct-2501`, `llama-3-2-90b-vision-instruct`, `llama-3-2-11b-vision-instruct`, `llama-4-scout`, `llama-4-maverick`, `llama-3-405b-instruct`, `elyza-japanese-llama-2-7b-instruct`, `jais-13b-chat`, `granite-4-h-small`, `granite-3-3-8b-instruct`, `granite-3-2-8b-instruct`, `granite-guardian-3-2b`, `granite-guardian-3-8b`, `granite-vision-3-2-2b` |
+
+The OpenAI dropdown shows `ggpt-6-astra`, `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`
+twice each; the list above reproduces it as displayed.
+
+![The Add an LLM dialog with OpenAI as the Platform and ggpt-6-astra as the LLM Selection; LLM Notes shows OpenAI / ggpt-6-astra, Model Code azuregpt-6-astra and Context Window 1000000](/img/neural-config/add-an-llm@llm-platform-openai-panel.png)
+
+A list mixes text models with media models — `chatgpt-image`, `gpt-image-2.5-sunburst`, `sora-2`,
+`gpt-4o-mini-tts` — so choose by what **LLM Notes** says the model supports, not by its name.
+Image, video, speech and music functions are covered on
+[Multimodal LLM configuration](/configuration/multimodal/).
+
+### LLM Notes
+
+**LLM Notes** is the read-only panel on the right of the dialog. It describes the model selected
+in **LLM Selection** and changes with every pick. Read it before you select **Add**: it is where
+you see what a model cannot do.
+
+![The Add an LLM dialog with Amazon Bedrock and Nova Pro selected: LLM Notes shows the AWS / Nova Pro heading, a description, the functions the model does not support, its language support, Model Code nova-pro, the Inputs and Outputs icons, Context Window 300000 and the capability and creativity chart](/img/neural-config/add-an-llm-panel.png)
+
+Top to bottom, the panel shows:
+
+| Line                             | What it tells you |
+| -------------------------------- | ----------------- |
+| Heading                          | Maker / model, for example `AWS / Nova Pro` or `xAI / grok-code-fast-1`. |
+| **LLM Notes:**                   | One or two sentences describing the model. |
+| **This LLM does not support:**   | The NeuralSeek functions this model cannot perform — for `Nova Pro`: Table Understanding, System AI, Image Generation, Image Edits, Video, Speech, Music, Speech to Text. These are the **LLM Functions** checkboxes that will be unselectable on the model's card. Lists differ: `kimi-k2.7-code` (Cloudflare) and `Minimax M3` (together.ai) also cannot do Conversation Generation or Slot Filling. |
+| Language support                 | Either "This LLM supports all languages." or a count, such as "This LLM supports 187 languages." for `Managed GPT`. Which languages a model uses is set on its card — see [Language handling](/configuration/language/). |
+| **Model Code:**                  | The model's identifier, for example `nova-pro`. For `Managed GPT` it is `ns-gpt-5`, the same value its card shows as **LLM ID:**. |
+| **Inputs:** / **Outputs:**       | Icons for what the model accepts and returns: Text, Image, Audio, and the word "video" where the model accepts it. `Nova Pro` takes Text and Image and returns Text. |
+| **Context Window:**              | The model's context window as a number, for example `300000` or `32768`. |
+| **Seek Multiplier:**             | Shown on some models, for example `Managed GPT` (`4.5`). See [Managed LLM Details](/configuration/neural-config/managed-llm/). |
+| Capability / creativity chart    | A small chart plotting the model's capability and creativity against a midpoint. |
+
+### Cancel and Add
+
+To add the model, select **Add**; it adds the model selected in **LLM Selection** to **LLM
+Details**. To leave without adding anything, select **Cancel**.
+
+<!-- UNCONFIRMED: Add creates a new model card in LLM Details — inferred from the LLM Details layout and the previous site; Add was not pressed when the dialog was documented -->
+
+The model then appears as a card alongside the ones already configured, and its notes carry over
+to the card. The `Managed GPT` card in the LLM Details image under
+[Where to find it](#where-to-find-it) shows how:
+
+- its **LLM Functions** checkboxes for Table Understanding, Image Generation, Image Edits, Video,
+  Speech, Music and Speech to Text are unselectable — exactly the "does not support" list in its
+  **LLM Notes**;
+- its **LLM Languages** field under **Connection Info** shows `187`, the count its notes gave;
+- its **LLM ID:** is `ns-gpt-5`, the **Model Code** from its notes.
+
+What you set on the card — languages, functions, weight, and the **Test** and **Delete** buttons —
+is documented on [LLM Details](/configuration/neural-config/llm-details/).
+
+## Limits and interactions
+
+- **No fallback.** A function with no model behind it is disabled. To get a function your first
+  model cannot perform, add a second model that supports it — see
+  [Multi-LLM](/configuration/multi-llm/).
+- **Load balancing.** When several models are selected for the same function, NeuralSeek
+  load-balances across them.
+- **The lists change.** Providers release and retire models, so the dialog in your console is the
+  current list; the tables on this page show what it offered when it was documented.
+
+<!-- UNCONFIRMED: "Some LLMs can take up to 30 seconds and longer to generate a full response; use caution with a virtual agent platform that imposes a strict timeout" — previous site; response times were not measured -->
+
+- **Response time.** Some models can take 30 seconds or longer to generate a full response. If a
+  virtual agent platform in front of NeuralSeek enforces a strict timeout, test the model you
+  pick against it before going live.
 
 ## FAQ
 
-### Is my model supported?
+### Does NeuralSeek support xAI (Grok)?
 
-Open **Edit Configuration** → **LLM Details** → **Add an LLM** on your own instance. The dialog
-lists the platforms and models available to you, and that list is the only current one. This
-page cannot list them for you: the dialog was not captured, and the previously published list
-is out of date.
+Yes. **xAI** is on the **Platform** list of the **Add an LLM** dialog, and picking it opens **LLM
+Selection** on `grok-code-fast-1`. DeepSeek, Perplexity and Xiaomi are on the list too.
 
-### What is a "Managed" model?
+### Where is the complete list of supported models?
 
-A card NeuralSeek hosts for you. On the captured instance its **Connection Info** holds only
-**LLM Languages** — there is no key or endpoint to enter. The instance shows two of them,
-`Managed GPT` and `Managed gpt-image`, alongside `Translate` and `gpt-oss-20b`. What the managed cards offer and how they are versioned is on
-[Managed LLM Details](/configuration/neural-config/managed-llm/).
+In the **Add an LLM** dialog in your console: pick each **Platform** and open **LLM Selection**.
+This page reproduces the full lists for Amazon Bedrock, Azure Cognitive Services, OpenAI and
+watsonx.ai and the first model of every other platform.
 
-### Why is a function greyed out on my model?
+### Why is a function greyed out on my model's card?
 
-Because that model cannot do that job. In the product's words, "Features that an LLM are not
-capable of will be unselectable." The `Managed gpt-image` card shows it: only **Image Generation**
-and **Image Edits** can be ticked. To enable the function, add a model that has it.
+The model cannot perform it. The functions after "This LLM does not support:" in its **LLM
+Notes** are the ones that are unselectable on its card. Add a second model that supports the
+function; a function no model covers is disabled, with no fallback.
 
-### Do I need one model that does everything?
+### Can I use a model I host myself?
 
-No. Several cards can each claim functions; where two cards tick the same function NeuralSeek
-"will load-balance across them", and a function no card ticks is disabled — "there is no
-fallback". Pick models per function, then check that every function you rely on is ticked on at
-least one card. The details are on [Multi-LLM](/configuration/multi-llm/).
+Yes, if it is served behind an OpenAI-style `/v1/chat/completions` endpoint and its tokenizer has
+a chat template: pick **Generic (OpenAI-compatible)**. See
+[Self-hosting an LLM](/configuration/administration/self-hosting-an-llm/).
+
+### Why don't I see Add an LLM?
+
+<!-- UNCONFIRMED: "LLM choice is available with NeuralSeek's BYOLLM (bring your own Large Language Model) plan; all other plans default to NeuralSeek's curated LLM" — previous site; no plan control appears on the LLM Details screen -->
+
+Choosing a model requires the BYOLLM (bring your own Large Language Model) plan; other plans use
+NeuralSeek's curated model. If the button is missing from **LLM Details**, check your plan.
+
+## Related
+
+- [LLM Details](/configuration/neural-config/llm-details/) — the cards a model becomes once added
+- [Managed LLM Details](/configuration/neural-config/managed-llm/) — the models on the NeuralSeek platform
+- [Multi-LLM](/configuration/multi-llm/) — several models on one configuration
+- [Multimodal LLM configuration](/configuration/multimodal/) — image, video, speech and music models
+- [Self-hosting an LLM](/configuration/administration/self-hosting-an-llm/) — running your own model
+- [Language handling](/configuration/language/) — which languages a model's card uses
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/) — opening Edit Configuration and saving changes
+- [Embedding models](/configuration/neural-config/embedding-models/) — the sibling dialog for embedding models

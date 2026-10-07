@@ -37,6 +37,30 @@ export type Area = {
 	menu?: string;
 	alias?: string;
 	note?: string;
+	/** Settings-dependent screens (agentic v3.4): the same state with options picked, captured then reloaded. */
+	variants?: Variant[];
+	/** Pick EVERY option of one dropdown in turn and capture another's list (e.g. each LLM platform's models). */
+	sweeps?: Sweep[];
+};
+/**
+ * A sweep expands into one variant per option of `pick` (read from the base state's captured
+ * option list), each capturing `capture`'s option list — `<base>@<id>-<option slug>`. An option an
+ * explicit variant already covers, and the base's own current value, are skipped.
+ */
+export type Sweep = { id: string; base: string; pick: string; capture: string; routes: string[] };
+/**
+ * One variant of a state: from `base` (a state id of the default walk), run `set` in order —
+ * `pick` an option of a dropdown (by its label), or `open` an accordion/button that the picks
+ * revealed — capture as `<base>@<id>`, then reload (the unsaved picks are discarded).
+ * The browser hook lets a pipeline agent pick ONLY the (control, value) pairs listed here, and only
+ * while `explore-plan.ts variant-on` has this variant active.
+ */
+export type Variant = {
+	id: string;
+	base: string;
+	set: ({ pick: string; value: string } | { open: string })[];
+	routes: string[];
+	note?: string;
 };
 export type Areas = Record<string, Area>;
 
@@ -65,7 +89,7 @@ const DEFAULTS: [RegExp, string[]][] = [
 	[/^integrations\/chat-sdk$/, ['chat']],
 	[/^integrations\//, ['admin-tools']],
 	[/^configuration\/neural-config\//, ['neural-config']],
-	[/^configuration\/administration\/(support-plans|self-hosting-an-llm)$/, []],
+	[/^configuration\/administration\/support-plans$/, []],
 	[/^configuration\/administration\//, ['admin-tools']],
 	[/^configuration\//, ['neural-config']],
 	[/^governance\/guardrails\//, ['governance', 'neural-config']],

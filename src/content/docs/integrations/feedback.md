@@ -137,3 +137,12 @@ agent](#embedding-the-feedback-icons-in-a-virtual-agent) for the steps.
 **Can I rate an answer from the API instead of the UI?**
 Yes. Take the answer id from the `/seek` response (the **Category ID / Answer ID** value) and POST
 it to `/rate` with a `score` from `0` to `5`.
+
+**Why doesn't an answer I rated appear in Curate?**
+Personalized answers are not displayed in Curate and are ineligible for curation and intent
+generation, because they may contain personal data. Ask the question again without
+[personalization](/seek/personalization/) to rate an answer you can review there.
+
+**Why is my rating call refused?**
+If your API key is scoped to specific operations, it needs `POST /rate` in its scope. Check the
+key's scope on the [API keys](/configuration/administration/api-keys/) screen.

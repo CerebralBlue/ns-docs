@@ -1,215 +1,169 @@
 ---
 title: "Supported knowledge bases"
-description: "NeuralSeek's KnowledgeBase Type selector offers fifteen stores — Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery, OpenSearch, Kendra, Bedrock, Pinecone, Milvus, Postgres, Virtual KB, NeuralSeek KB, No KnowledgeBase and ChromaDB — and this page lists them with the retrieval features each is known to support."
+description: "The KnowledgeBase Type selector in Neural Config lists sixteen knowledge bases — Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery, OpenSearch, Kendra, Bedrock, IBM CAS, Pinecone, Milvus, Postgres, Virtual KB, NeuralSeek KB, No KnowledgeBase and ChromaDB — and the connection form each one opens decides which retrieval controls, such as filters, re-sorting, full-document return and hybrid or vector search, you can set."
 ---
 
-## What is it
+NeuralSeek answers from the knowledge base you pick with **KnowledgeBase Type**, the first field of [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/). This page compares the sixteen types the selector offers: what each one's connection form asks for, and which retrieval controls — field mapping, filters, re-sorting, full-document return, hybrid or vector search — it gives you. Use it to choose a store and gather its connection details before you switch. What each field means is on KnowledgeBase Connection; the end-to-end walkthrough is [Connect a knowledge base](/knowledge/connect-a-kb/).
 
-A reference page listing every store NeuralSeek can use as its knowledge base, exactly as the
-**KnowledgeBase Type** selector in Neural Config names them, and — where the previous
-documentation recorded it — which retrieval features each store supports. It is a list and a
-capability matrix, not a setup guide: nothing is configured here. The connection itself is made
-in [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/), and several
-stores have their own setup page.
+## Where to find it
 
-## Why it matters
+1. Open [Neural Config](/configuration/neural-config/).
+2. In the routing tree, select **Default Config / Answer Generation**. The **Configuration: Default Config** dialog opens.
+3. Expand **KnowledgeBase Connection**. **KnowledgeBase Type** sits at the top, beside **KnowledgeBase Language**, with **Notes** below them.
 
-The store you connect decides which retrieval features exist for you afterwards. Relevance
-tuning, dynamic filter querying, full document retrieval and external embedding model support are
-properties of the knowledge base, not of NeuralSeek, so a setting documented elsewhere in these
-docs can be absent on your instance simply because the store behind it does not offer that
-feature. Reading the list before you connect is cheaper than discovering the gap after your
-content is indexed.
+![The top of KnowledgeBase Connection: KnowledgeBase Type reading NeuralSeek KB, KnowledgeBase Language reading English, and the Notes box](/img/neural-config/knowledgebase-connection--knowledgebase-type.png)
 
-## When to use it
+**KnowledgeBase Language** and **Notes** stay the same whatever type you pick. Everything below them is the connection form of the selected type, and it changes as soon as you pick another one. The new store is used only once you save the dialog; how **Save** and **Propose Changes** differ is on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-- You are about to connect a knowledge base and want to know which stores are on offer and what
-  you are committing to.
-- A feature described on another page (dynamic filters, vector search, your own embedding model)
-  does not appear on your instance and you need to know whether the store is the reason.
-- You are comparing two stores you could realistically run.
+## Settings
 
-Do not use this page as connection instructions. The fields for each store live on
-[KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/), and the
-end-to-end walkthrough is [Connect a knowledge base](/knowledge/connect-a-kb/).
+### KnowledgeBase Type
 
-## How it works
+The selector lists sixteen types. The menu scrolls after the first four.
 
-### Where the type is chosen
+![The KnowledgeBase Type list open: Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch and ElasticSearch at the top of a scrolling menu](/img/neural-config/knowledgebase-connection--options-knowledgebase-type.png)
 
-The store is picked with the **KnowledgeBase Type** dropdown, inside the **KnowledgeBase
-Connection** section of the **Edit Configuration** dialog in
-[Neural Config](/configuration/neural-config/). **KnowledgeBase Language** and **Notes** sit in the
-same section. The connection fields shown below the dropdown change with the type selected, which
-is why the per-store fields are documented on
-[KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) rather than
-here.
+In screen order:
 
-![KnowledgeBase Connection section: the KnowledgeBase Type dropdown reading NeuralSeek KB, KnowledgeBase Language reading English, and the Notes box](/img/neural-config/knowledgebase-connection--knowledgebase-type.png)
+| KnowledgeBase Type        | What it connects to                                                               | Setup page                                                                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Watson Discovery`        | An IBM Watson Discovery project, signed in with an API key                        | —                                                                                                                                                  |
+| `Watson Discovery (CP4D)` | A Watson Discovery project on Cloud Pak for Data, signed in with user and password | —                                                                                                                                                  |
+| `Elastic AppSearch`       | An Elastic App Search engine                                                      | —                                                                                                                                                  |
+| `ElasticSearch`           | An Elasticsearch index                                                            | [Elasticsearch vector model](/knowledge/elasticsearch-vector-model/), [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/) |
+| `watsonx Discovery`       | An IBM watsonx Discovery index                                                    | [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/)                                                                      |
+| `OpenSearch`              | An OpenSearch index                                                               | —                                                                                                                                                  |
+| `Kendra`                  | An Amazon Kendra index                                                            | —                                                                                                                                                  |
+| `Bedrock`                 | An Amazon Bedrock knowledge base                                                  | —                                                                                                                                                  |
+| `IBM CAS`                 | A vector store in IBM CAS, reached through the CAS API                            | —                                                                                                                                                  |
+| `Pinecone`                | A Pinecone index                                                                  | [Pinecone](/knowledge/pinecone/)                                                                                                                   |
+| `Milvus`                  | A Milvus collection                                                               | —                                                                                                                                                  |
+| `Postgres`                | A Postgres table with an embedding column                                         | —                                                                                                                                                  |
+| `Virtual KB`              | A mAIstro agent that supplies the documents                                       | [Virtual KB](/seek/virtual-kb/)                                                                                                                    |
+| `NeuralSeek KB`           | NeuralSeek's built-in knowledge base, filled with the documents you load          | [Managed knowledge base](/knowledge/managed-knowledgebase/overview/), [Loading documents](/knowledge/load/)                                        |
+| `No KnowledgeBase`        | No store                                                                          | —                                                                                                                                                  |
+| `ChromaDB`                | A ChromaDB collection                                                             | —                                                                                                                                                  |
 
-The list on this page is that dropdown's option list, captured from the running product. Your own
-selector is the authoritative list for the build you run.
+### Connection fields per store
 
-### Every KnowledgeBase Type on the selector
+Each type opens its own connection form under **Notes**. Collect these values before you switch, so the form is never left half-filled.
 
-Opening **KnowledgeBase Type** shows the first six values; the menu scrolls. The full list, in
-screen order, is:
+| KnowledgeBase Type        | Connection fields                                                                                                                                                                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Watson Discovery`        | **Discovery Service Url**, **Discovery API Key**, **Discovery Project ID**                                                                                                                                                         |
+| `Watson Discovery (CP4D)` | **Discovery Service Url**, **Discovery User Name**, **Discovery Password**, **Discovery Auth URL**, **Discovery Project ID**                                                                                                       |
+| `Elastic AppSearch`       | **Elastic AppSearch Endpoint**, **AppSearch Private API Key**, **AppSearch Engine Name**                                                                                                                                           |
+| `ElasticSearch`           | **ElasticSearch Endpoint**, **ElasticSearch Private API Key**, **ElasticSearch Index Name**                                                                                                                                        |
+| `watsonx Discovery`       | **watsonx Discovery Endpoint**, **watsonx Discovery Private API Key** (with a **Generate Key** button beside it), **watsonx Discovery Index Name**                                                                                  |
+| `OpenSearch`              | **OpenSearch Endpoint**, **OpenSearch Username**, **OpenSearch Password**, **OpenSearch Index Name**                                                                                                                               |
+| `Kendra`                  | **Kendra Index ID**, **AWS Region**, **AWS Role Access Key**, **AWS Role Secret Access Key**                                                                                                                                       |
+| `Bedrock`                 | **Bedrock Knowledgebase ID**, **AWS Region**, **AWS Access Key ID**, **AWS Secret Access Key**, **Bedrock Search Type**                                                                                                            |
+| `IBM CAS`                 | **CAS API Base URL**, **CAS Bearer Token**, **Vector Store**, plus a certificate (see [Certificates and TLS connections](#certificates-and-tls-connections))                                                                        |
+| `Pinecone`                | **Pinecone.io Index Name**, **Pinecone.io Index Namespace**, **Pinecone.io API Key**                                                                                                                                               |
+| `Milvus`                  | **Milvus Host:Port**, **Milvus Collection name**, **(Optional) Milvus Database name**, an optional connection token, plus a certificate                                                                                            |
+| `Postgres`                | **Postgres Host:Port**, **Postgres Database name**, **Postgres Username**, **Postgres Password**, **Postgres table name or FQN e.g. schema.tablename**, **Distance Metric**, **Embedding column name**, plus a certificate          |
+| `ChromaDB`                | **ChromaDB Database**, **ChromaDB Tenant**, **ChromaDB API Key**, **ChromaDB Collection**                                                                                                                                          |
+| `Virtual KB`              | **mAIstro Virtual KB agent**                                                                                                                                                                                                       |
+| `NeuralSeek KB`           | None — the form holds only **KnowledgeBase Type**, **KnowledgeBase Language** and **Notes**                                                                                                                                        |
+| `No KnowledgeBase`        | None — the form holds only **KnowledgeBase Type**, **KnowledgeBase Language** and **Notes**                                                                                                                                        |
 
-`Watson Discovery` · `Watson Discovery (CP4D)` · `Elastic AppSearch` · `ElasticSearch` ·
-`watsonx Discovery` · `OpenSearch` · `Kendra` · `Bedrock` · `Pinecone` · `Milvus` · `Postgres` ·
-`Virtual KB` · `NeuralSeek KB` · `No KnowledgeBase` · `ChromaDB`
+![KnowledgeBase Connection with Watson Discovery (CP4D) selected: Discovery Service Url, Discovery User Name, Discovery Password, Discovery Auth URL and Discovery Project ID, followed by the first field-mapping dropdowns](/img/neural-config/knowledgebase-connection@kb-type-watson-discovery-cp4d-panel.png)
 
-![The KnowledgeBase Type option list open, showing Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery and the top of OpenSearch before the menu scrolls](/img/neural-config/knowledgebase-connection--options-knowledgebase-type.png)
+What sets some of these forms apart:
 
-Every type is connected on the same page; a few also have a page of their own.
+- **The two Watson Discovery types differ only in sign-in.** `Watson Discovery` uses **Discovery API Key**; `Watson Discovery (CP4D)` replaces it with **Discovery User Name** and **Discovery Password**, and adds **Discovery Auth URL**, the address it authenticates against.
+- **`watsonx Discovery` has a key button.** **Generate Key** sits beside **watsonx Discovery Private API Key**.
+- **Kendra and Bedrock use different AWS key names.** Kendra asks for **AWS Role Access Key** and **AWS Role Secret Access Key**, Bedrock for **AWS Access Key ID** and **AWS Secret Access Key**. Bedrock also has a **Bedrock Search Type** dropdown, which shows `Default` when you pick the type.
+- **Postgres reads vectors from a column you name.** **Embedding column name** suggests `embedding` as a hint only — type the name of the column that holds your vectors — and **Distance Metric** shows `Cosine Distance (recommended)` — the product's own recommendation.
+- **Milvus takes one token for either credential style.** The optional token field's help reads: "The token can be either an API key or a username and password pair combined with a colon in between." **(Optional) Milvus Database name** shows `default`.
+- **`Pinecone` and `Virtual KB` have their own pages.** Index setup is on [Pinecone](/knowledge/pinecone/); choosing the agent for **mAIstro Virtual KB agent** is on [Virtual KB](/seek/virtual-kb/).
+- **`NeuralSeek KB` needs no connection details** because the store is part of NeuralSeek; you add content by [loading documents](/knowledge/load/). `No KnowledgeBase` has no connection details either.
 
-| KnowledgeBase Type        | Connection fields                                                                | Own page                                                                                                                                             |
-| ------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Watson Discovery`        | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `Watson Discovery (CP4D)` | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `Elastic AppSearch`       | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `ElasticSearch`           | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | [Elasticsearch vector model](/knowledge/elasticsearch-vector-model/), [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/) |
-| `watsonx Discovery`       | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/)                                                                        |
-| `OpenSearch`              | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `Kendra`                  | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `Bedrock`                 | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `Pinecone`                | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | [Pinecone](/knowledge/pinecone/)                                                                                                                     |
-| `Milvus`                  | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `Postgres`                | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `Virtual KB`              | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | [Virtual KB](/seek/virtual-kb/)                                                                                                                      |
-| `NeuralSeek KB`           | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | [Managed knowledge base](/knowledge/managed-knowledgebase/overview/)                                                                                 |
-| `No KnowledgeBase`        | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
-| `ChromaDB`                | [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) | —                                                                                                                                                    |
+![KnowledgeBase Connection with Bedrock selected: Bedrock Knowledgebase ID, AWS Region, AWS Access Key ID, AWS Secret Access Key and Bedrock Search Type reading Default, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and Filter Field](/img/neural-config/knowledgebase-connection@kb-type-bedrock-panel.png)
 
-Three things about this list are worth knowing before you compare it with older material.
+### Certificates and TLS connections
 
-- **The screen spelling is the one to use.** The selector says `Kendra` and `Bedrock`, not "Amazon
-  Kendra" and "Amazon Bedrock", and `Watson Discovery (CP4D)` rather than "Watson Discovery on
-  CP4D".
-- **Coveo is not on the list.** Earlier drafts of these docs named Coveo as a supported store; the
-  captured option list does not offer it.
-- **`ChromaDB` is on the list and nowhere else in these docs.** Nothing beyond its name is known
-  from the capture, so it has no capability row below.
+The `IBM CAS`, `Milvus` and `Postgres` forms have an **Enable One-way TLS Connection** checkbox and a **Choose File** button for a server certificate. The help under the button tells you what the certificate is for:
 
-`NeuralSeek KB` was the value selected on the captured instance. Of the other types, only the
-`NeuralSeek KB` connection fields were on screen during the capture: what `Virtual KB` and
-`No KnowledgeBase` change about retrieval is not shown by the selector itself.
+- `IBM CAS`: "(Optional) Server.pem: Provide the CA certificate used to verify the CAS server. Without it, self-signed certificates are accepted. Choose File then cancel to clear server.pem selection."
+- `Milvus` and `Postgres`: "(Optional) Server.pem: Provide the server.pem certificate and ensure the server name matches the CommonName configured in the certificate. Choose File then cancel to clear server.pem selection."
 
-<!-- UNCONFIRMED: "Virtual KB — a mAIstro agent acting as the knowledge base" and "No KnowledgeBase — mAIstro only, with no retrieval step" — from the previous documentation and this route's gap audit; the Virtual KB and No KnowledgeBase accordion fields were not captured -->
+`Milvus` adds a server name box, which shows `localhost`, with the help "(Optional) Server name: Please ensure the server name matches the CommonName configured in the certificate." Set it to the CommonName in your certificate when you upload one.
 
-The previous documentation described `Virtual KB` as a mAIstro agent standing in for a knowledge
-base (see [Virtual KB](/seek/virtual-kb/)) and `No KnowledgeBase` as running mAIstro with no
-retrieval step at all.
+![KnowledgeBase Connection with Postgres selected: the host, database, user, password and table fields, Distance Metric reading Cosine Distance (recommended), Embedding column name with its embedding hint, and Enable One-way TLS Connection with its Choose File button and help text](/img/neural-config/knowledgebase-connection@kb-type-postgres-panel.png)
 
-### What each store supports
+### Field mapping and retrieval controls by store
 
-Each row is a store; each column is a retrieval feature that either exists for that store or does
-not. No captured screen shows a per-type capability — only the `NeuralSeek KB` field set was open —
-so the whole matrix is carried over from the previous documentation and has not been re-checked
-against the running product. Six types were never in that matrix —
-`Watson Discovery (CP4D)`, `Postgres`, `Virtual KB`, `NeuralSeek KB`, `No KnowledgeBase` and
-`ChromaDB` — and their rows are shown with a dash: their cells have not been documented anywhere,
-and none have been invented here.
+Below the connection fields, thirteen of the types show a field-mapping area: which field of your documents holds the text, the link and the title, and which retrieval controls the store supports. `Virtual KB`, `NeuralSeek KB` and `No KnowledgeBase` have none. What each control does is on KnowledgeBase Connection; this table shows where you find it. ✓ = on that store's form, – = not on it.
 
-<!-- UNCONFIRMED: every cell of the nine documented rows below, including the Kendra footnote — carried over verbatim from the previous MkDocs documentation (ui/integrate/integrations/supported_knowledgebases/supported_knowledgebases.md); no capture of the running product confirms any of them -->
+| Control                                                                                     | Watson Discovery | Watson Discovery (CP4D) | Elastic AppSearch | ElasticSearch | watsonx Discovery | OpenSearch | Kendra | Bedrock | IBM CAS | Pinecone | Milvus | Postgres | ChromaDB |
+| ------------------------------------------------------------------------------------------- | --- | --------- | --------- | ------------- | ----------------- | ---------- | ------ | ------- | ------- | -------- | ------ | -------- | -------- |
+| **Curation Data Field**                                                                     | ✓   | ✓         | ✓         | ✓             | ✓                 | ✓          | –      | –       | –       | ✓        | ✓      | ✓        | –        |
+| **Link Field**, **Document Name Field**                                                     | ✓   | ✓         | ✓         | ✓             | ✓                 | ✓          | ✓      | ✓       | ✓       | ✓        | ✓      | ✓        | ✓        |
+| **Attribute sources inside LLM Context by Document Name**                                   | ✓   | ✓         | ✓         | ✓             | ✓                 | ✓          | ✓      | ✓       | ✓       | ✓        | ✓      | ✓        | ✓        |
+| **Additional Payload Field**, **Include additional Payload Field inside LLM context**       | ✓   | ✓         | –         | ✓             | ✓                 | –          | –      | –       | –       | –        | –      | –        | –        |
+| **Return the full document instead of passages (only enable this if all of your documents are short)** | ✓   | ✓         | ✓         | ✓             | ✓                 | –          | –      | –       | –       | –        | –      | –        | –        |
+| **Preserve the separation of, or combine, document snippets received from the KB source**  | –   | –         | –         | –             | –                 | –          | ✓      | –       | –       | –        | –      | –        | –        |
+| **Filter Field**, **Static Default Filter Value (when no runtime filter is passed)**        | ✓   | ✓         | ✓         | ✓             | ✓                 | ✓          | ✓      | ✓       | ✓       | ✓        | ✓      | ✓        | ✓        |
+| **Re-Sort values list.**                                                                    | ✓   | ✓         | ✓         | ✓             | ✓                 | ✓          | ✓      | ✓       | ✓       | ✓        | ✓      | ✓        | ✓        |
+| **Enable Advanced Schema**                                                                  | ✓   | ✓         | ✓         | ✓             | ✓                 | ✓          | ✓      | ✓       | ✓       | ✓        | ✓      | ✓        | ✓        |
+| **Hybrid & Vector Search Settings**                                                         | –   | –         | –         | ✓             | ✓                 | –          | –      | –       | –       | –        | –      | –        | –        |
 
-| KnowledgeBase Type                                                                            | Supported Search Types | Query Filters | Document Prioritization (Re-Sort) | Relevance Tuning | Dynamic Filter Querying | Full Document Retrieval | External Embedding Model Support |
-| --------------------------------------------------------------------------------------------- | ---------------------- | ------------- | --------------------------------- | ---------------- | ----------------------- | ----------------------- | -------------------------------- |
-| [Watson Discovery](https://cloud.ibm.com/docs/discovery-data?topic=discovery-data-about)      | Lucene                 | ✓             | ✓                                 | ✓                | ✓                       | ✓                       | ✗                                |
-| `Watson Discovery (CP4D)`                                                                     | —                      | —             | —                                 | —                | —                       | —                       | —                                |
-| [Elastic AppSearch](https://www.elastic.co/guide/en/app-search/current/index.html)            | Lucene                 | ✓             | ✓                                 | ✓                | ✗                       | ✓                       | ✗                                |
-| [ElasticSearch](https://www.elastic.co/elasticsearch)                                         | Lucene, Vector, Hybrid | ✓             | ✓                                 | ✗                | ✓                       | ✓                       | ✗                                |
-| [watsonx Discovery](https://cloud.ibm.com/docs/discovery-data?topic=discovery-data-about)     | Lucene, Vector, Hybrid | ✓             | ✓                                 | ✓                | ✓                       | ✓                       | ✗                                |
-| [OpenSearch](https://opensearch.org/)                                                         | Lucene                 | ✓             | ✓                                 | ✗                | ✗                       | ✗                       | ✗                                |
-| [Kendra](https://aws.amazon.com/kendra/)                                                      | Vector (Managed)       | ✓             | ✓                                 | ✗                | ✓\*                     | ✗                       | ✗                                |
-| [Bedrock](https://aws.amazon.com/bedrock/)                                                    | Vector (Managed)       | ✓             | ✓                                 | ✗                | ✗                       | ✓                       | ✗                                |
-| [Pinecone](https://www.pinecone.io/product/)                                                  | Vector                 | ✓             | ✓                                 | ✗                | ✗                       | ✓                       | ✓                                |
-| [Milvus](https://milvus.io/docs/overview.md)                                                  | Vector                 | ✓             | ✓                                 | ✗                | ✗                       | ✓                       | ✓                                |
-| `Postgres`                                                                                    | —                      | —             | —                                 | —                | —                       | —                       | —                                |
-| `Virtual KB`                                                                                  | —                      | —             | —                                 | —                | —                       | —                       | —                                |
-| `NeuralSeek KB`                                                                               | —                      | —             | —                                 | —                | —                       | —                       | —                                |
-| `No KnowledgeBase`                                                                            | —                      | —             | —                                 | —                | —                       | —                       | —                                |
-| `ChromaDB`                                                                                    | —                      | —             | —                                 | —                | —                       | —                       | —                                |
+![The field-mapping area with watsonx Discovery selected: Document Name Field, Additional Payload Field, Include additional Payload Field inside LLM context, Attribute sources inside LLM Context by Document Name, Return the full document instead of passages reading Disabled, Filter Field, Static Default Filter Value, the Re-Sort values list. block with Re-Sort Field and the Priority and Value or RegExp table, and the Enable Advanced Schema button](/img/neural-config/knowledgebase-connection@kb-wxd-panel.png)
 
-\* Kendra offers selective filtering support. See [Dynamic filters](/seek/dynamic-filters/) for
-the operators NeuralSeek can send.
+The rows that need a word of explanation:
 
-— means "not documented", not "not supported". Confirming a row means connecting that store and
-reading the KnowledgeBase Connection and KnowledgeBase Tuning sections it exposes, which is a
-configuration change and has not been done for these docs.
+- **Return the full document instead of passages (only enable this if all of your documents are short)** sends whole documents rather than matching passages; its label is the guidance. It shows `Disabled` when you pick a type that has it.
+- **Preserve the separation of, or combine, document snippets received from the KB source** is Kendra's own dropdown; it shows `Combined Snippets` when you pick `Kendra`.
+- **Filter Field** names the document field retrieval can be filtered on, and **Static Default Filter Value (when no runtime filter is passed)** is the value used when a request carries no filter of its own. Passing a filter with each request is covered on [Dynamic filters](/seek/dynamic-filters/).
+- **Re-Sort values list.** is described on screen as "Enter a prioritized list of values you want to re-rank above other results, regardless of KB score." Pick the **Re-Sort Field**, then add rows, each with a **Priority** and a **Value or RegExp**. Every store with a field-mapping area has it, so you can rank chosen documents first on any of them.
+- **Hybrid & Vector Search Settings** is not part of this form: for `ElasticSearch` and `watsonx Discovery` it appears as its own section of the dialog, after **KnowledgeBase Tuning**. The query types it offers are on [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/), and setting up vectors on an Elastic index on [Elasticsearch vector model](/knowledge/elasticsearch-vector-model/). That section also decides where the query vector comes from: a model deployed in Elasticsearch, such as ELSER, or — with **Use NeuralSeek configured embedding models?** — a model from [Embedding models](/configuration/neural-config/embedding-models/).
 
-The feature columns mean the following.
+**Enable Advanced Schema** is a button at the foot of every field-mapping area; what it does is covered on KnowledgeBase Connection.
 
-<!-- UNCONFIRMED: the four column definitions below are the old page's glossary for the matrix columns; no captured screen defines these terms — kept as explanation only -->
+When you pick a type, the three mapping dropdowns show field names typical for that store. Change them to the fields your own documents use.
 
-- **Supported Search Types** — which of Lucene (keyword), vector and hybrid retrieval the store
-  can perform. This is the column that decides whether the vector and hybrid behaviour described
-  elsewhere in these docs applies to you.
-- **Relevance Tuning** — the store can boost a result when the query contains terms matching a
-  chosen attribute, so a match on a field you care about outranks a match anywhere else.
-- **Dynamic Filter Querying** — NeuralSeek can build a filter from the request at query time and
-  narrow the search before the LLM sees anything. How the filters are written is on
-  [Dynamic filters](/seek/dynamic-filters/).
-- **Vector search** — the store matches on numeric representations of meaning rather than on
-  exact keywords, so a loosely worded question can still retrieve the right passage. A hybrid
-  store does both. See [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/).
-- **External Embedding Model Support** — the store can be fed embeddings from a model you choose
-  instead of its own, for both indexing and query time. The model is then assigned on
-  [Embedding models](/configuration/neural-config/embedding-models/).
+| KnowledgeBase Type                                                             | Curation Data Field | Link Field            | Document Name Field        |
+| ------------------------------------------------------------------------------ | ------------------- | --------------------- | -------------------------- |
+| `Watson Discovery`, `Watson Discovery (CP4D)`                                  | `text`              | `metadata.source.url` | `extracted_metadata.title` |
+| `Elastic AppSearch`, `ElasticSearch`, `watsonx Discovery`, `OpenSearch`        | `body_content`      | `url`                 | `title`                    |
+| `Pinecone`, `Milvus`, `Postgres`                                               | `text`              | `link`                | `title`                    |
+| `Kendra`                                                                       | –                   | `Default`             | `Default`                  |
+| `Bedrock`                                                                      | –                   | `link`                | `title`                    |
+| `IBM CAS`                                                                      | –                   | `docpath`             | `filename`                 |
+| `ChromaDB`                                                                     | –                   | empty                 | empty                      |
 
-### How to choose
+### KnowledgeBase Tuning follows the store
 
-The recommendations below follow the matrix above, so they carry the same caveat: they are the
-previous documentation's guidance for a new deployment, not a support contract. Check your own
-instance before committing.
-
-<!-- UNCONFIRMED: the four recommendations below are derived from the unconfirmed matrix and the previous documentation's "How to choose" guidance; no capture backs them -->
-
-- **You need relevance tuning.** Watson Discovery, watsonx Discovery or Elastic AppSearch.
-- **You need dynamic filter queries.** Watson Discovery, watsonx Discovery or ElasticSearch;
-  Kendra supports a subset of filters.
-- **You need vector search.** ElasticSearch for document-oriented vector search; Milvus or
-  Pinecone for a scalable vector database; Kendra or Bedrock for managed vector search where the
-  chunking, embedding and indexing choices are handled for you. Setup guides:
-  [Pinecone](/knowledge/pinecone/),
-  [Elasticsearch vector model](/knowledge/elasticsearch-vector-model/).
-- **You want to bring your own embedding model.** Pinecone or Milvus, then assign the model on
-  [Embedding models](/configuration/neural-config/embedding-models/). Changing an embedding model
-  means re-embedding the content, so decide this before you index.
+The type you pick also changes the next section of the dialog, [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/). With `NeuralSeek KB` it offers "Expansion Window. How many chunks to grab before and after the target chunk."; with any other type it offers "Snippet size. Use this setting to window relevant details in a document that do not specifically mention the user question, but apply to it." Revisit that section after you switch stores.
 
 ## FAQ
 
-**Which knowledge bases can NeuralSeek connect to?**
+### Which knowledge bases can NeuralSeek search?
 
-The fifteen values of the **KnowledgeBase Type** selector on the captured build: Watson
-Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery,
-OpenSearch, Kendra, Bedrock, Pinecone, Milvus, Postgres, Virtual KB, NeuralSeek KB, No
-KnowledgeBase and ChromaDB. The option list follows the version you are running, so the selector
-in **KnowledgeBase Connection** on your own instance is the authoritative list.
+The sixteen values of **KnowledgeBase Type**: `Watson Discovery`, `Watson Discovery (CP4D)`, `Elastic AppSearch`, `ElasticSearch`, `watsonx Discovery`, `OpenSearch`, `Kendra`, `Bedrock`, `IBM CAS`, `Pinecone`, `Milvus`, `Postgres`, `Virtual KB`, `NeuralSeek KB`, `No KnowledgeBase` and `ChromaDB`.
 
-**Is Coveo supported?**
+### Which stores let me choose hybrid or vector search?
 
-It is not on the captured **KnowledgeBase Type** option list. If your build offers it, the
-selector on your instance will show it; these docs do not describe it.
+`ElasticSearch` and `watsonx Discovery`. They are the only types that add the **Hybrid & Vector Search Settings** section, where you choose how the index is queried. `Pinecone`, `Milvus`, `Postgres` and `ChromaDB` are vector databases by nature and have no query-type setting.
 
-**Can I run NeuralSeek without a knowledge base at all?**
+### Can I make certain documents rank above the rest?
 
-`No KnowledgeBase` is a selectable **KnowledgeBase Type** on the captured build. What it removes
-from the retrieval flow is not described by the selector itself; the previous documentation said
-it runs mAIstro with no retrieval step.
+Yes, on every store with a field-mapping area. Use **Re-Sort values list.**: pick the **Re-Sort Field**, then list the values or regular expressions to rank first, in priority order.
 
-**What is Virtual KB?**
+### What should I have ready before I switch to another store?
 
-A selectable **KnowledgeBase Type** whose connection fields were not captured for these docs. The
-previous documentation described it as a mAIstro agent standing in for a knowledge base; see
-[Virtual KB](/seek/virtual-kb/).
+The values in the store's row of [Connection fields per store](#connection-fields-per-store), and the names of the fields in your documents that hold the text, the link and the title, for the mapping dropdowns.
 
-**Which store supports vector search, or my own embedding model?**
+## Related
 
-From the previous documentation's matrix — not re-checked against the product — ElasticSearch,
-watsonx Discovery, Kendra, Bedrock, Pinecone and Milvus list vector search among their search
-types, and Pinecone and Milvus are the two marked as accepting an external embedding model. The
-per-store pages ([Pinecone](/knowledge/pinecone/),
-[Elasticsearch vector model](/knowledge/elasticsearch-vector-model/),
-[Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/)) are where to
-confirm before you index.
+- [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) — every field of the section explained
+- [Connect a knowledge base](/knowledge/connect-a-kb/) — connecting a store step by step
+- [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) — the section that follows the store
+- [Hybrid, vector & semantic search](/knowledge/hybrid-vector-semantic-search/) — query types for ElasticSearch and watsonx Discovery
+- [Elasticsearch vector model](/knowledge/elasticsearch-vector-model/) — setting up vectors on an Elastic index
+- [Pinecone](/knowledge/pinecone/) — setting up a Pinecone index
+- [Embedding models](/configuration/neural-config/embedding-models/) — the models NeuralSeek can use to compute vectors
+- [Dynamic filters](/seek/dynamic-filters/) — passing a filter with each request
+- [Managed knowledge base](/knowledge/managed-knowledgebase/overview/) — the built-in NeuralSeek KB
+- [Virtual KB](/seek/virtual-kb/) — answering from an mAIstro agent

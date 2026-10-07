@@ -1,191 +1,160 @@
 ---
 title: "Configuration overview"
-description: "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that route matched questions to Seek or to a mAIstro agent, and Guardrails nodes — this page maps the screen and links each part to its own page."
+description: "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that send matching questions to Answer Generation or to a mAIstro agent and can carry a configuration of their own, and Guardrails nodes — this page explains the tree and links each part to its own page."
 ---
 
-## What is it
+**Neural Config** is the console screen where you configure a NeuralSeek instance. It is drawn as a routing tree: a **Default Config** root holds the instance-wide settings — KnowledgeBase, LLM, embedding models, prompts and the rest — and the categories under it catch a kind of question and send it either to answer generation, as [Seek](/seek/overview/) does, or to a [mAIstro](/maistro/overview/) agent. Each level that has settings of its own also has its own [Guardrails](/governance/guardrails/overview/). Read this page to know where a setting lives before you go looking for it; each part of the tree links to the page that documents it.
 
-**Neural Config** is the console screen where an instance is configured. It opens on a routing tree drawn left to right. A **Default Config** node at the top-left holds the settings every answer starts from — KnowledgeBase, LLM, embedding models, platform preferences and the rest — and the branches under it, **Answers (N)**, **Add Intent**, **Category Routing** and **Guardrails**, are where you shape how a question is routed and what it is checked against before and after the LLM.
+## How the Neural Config tree works
 
-**Category Routing** grows one node per **category**. A category names a kind of question, says what to do when a question matches it (answer with Seek, or hand it to a mAIstro agent), and either reuses the Default Configuration or carries a Custom Configuration of its own.
+### The routing tree
 
-## Why it matters
+The **Neural Config** screen is a diagram read left to right: each box is a node, and clicking a node opens its dialog. A wide tree scrolls horizontally.
 
-Everything that changes an answer without changing the KnowledgeBase lives behind this one screen: which LLM answers, how strict the confidence thresholds are, what gets masked, which agent a category of question is routed to. Knowing the shape of the tree tells you where a setting is before you go looking for it.
+![The Neural Config routing tree: Default Config at the top-left with Answers, Add Intent, Category Routing and Guardrails under it; example categories Account Access, Technical Support and Billing branch off Category Routing, API & Integrations (mAIstro-led) hangs off Technical Support, and Backup & Restore and Change Logs sit at the bottom-right](/img/neural-config/default.png)
 
-This page is a map. It does not repeat the settings inside the **Edit Configuration** dialog or the Guardrails tabs — each of those has its own page, linked from the sections below — and it does not explain how a change is committed (**Save**, **Propose Changes**) or the **Add Intent**, **Default Action** and **Delete Configuration** dialogs, which are on [Using the Neural Config page](/configuration/neural-config/using-this-page/). If you already know which settings section you need, go straight to [Neural Config options](/configuration/neural-config/).
+The category names in the pictures on this page (Account Access, Technical Support, Billing, API & Integrations, Refunds) are examples.
 
-Neural Config is the wrong place when the answer is wrong because the content is: a missing, stale or mis-indexed document is a KnowledgeBase task ([Connect a KnowledgeBase](/knowledge/connect-a-kb/)), and no setting on this screen adds knowledge the KnowledgeBase does not hold. It is also more than you need for one setting: if you already know the control, its own page (linked from the sections below) is shorter than the tree.
+- **Default Config** — the root node. Its second line shows the root's action, **Answer Generation**. It opens the Default Configuration dialog, your way into the instance-wide settings ([below](#the-root-node-default-config)).
+- **Answers** — shown with a count in brackets, for example `Answers (3)`. The count differs from branch to branch.
+- **Add Intent** — under the root and under every category. It adds an intent at that level ([below](#intents)).
+- **Category Routing** — the branch point under which that level's categories hang, followed by **Add a Category**. Every category has its own **Category Routing**, so categories nest: in the example, API & Integrations sits under Technical Support.
+- Each category node has three lines: its name, its action (**Answer Generation** or **mAIstro-led**), and a badge — **Default Configuration** when the category runs on the root's settings, **Custom Configuration** when it carries settings of its own.
+- **Guardrails** — under the root and under each category badged **Custom Configuration** ([below](#guardrails-at-each-level)).
+- **Default Action** — under a **mAIstro-led** category; it picks the agent that handles the category's questions ([below](#editing-a-category)).
+- **Backup & Restore** and **Change Logs** — protect the whole configuration ([below](#backups-and-the-change-history)).
 
-## When to use it
+When the `/seek` endpoint is called, NeuralSeek compares the question's intent with the **descriptions** of your categories and routes it into the category it matches. The question then takes that category's branch — its settings, its guardrails or its agent. This is why the category description matters more than the name: a vague or overlapping description sends questions down the wrong branch.
 
-- You are setting up a new instance and need to know where the KnowledgeBase, LLM and platform settings are.
-- Questions about one topic (billing, account access, an API) should be answered under different settings, or by a mAIstro agent instead of Seek, and you want to split them into categories.
-- A category needs guardrails of its own rather than the instance-wide ones.
-- You want to see what changed in the configuration, and by whom, or take a backup before a change.
+<!-- UNCONFIRMED: a question no category catches stays on the root — previous documentation ("Categories are used to drive the path of the multi-agent flow") -->
 
-## How it works
+A question no category catches is handled by the root.
 
-### The Neural Config screen is a routing tree
+### The root node: Default Config
 
-Open **Neural Config** from the top navigation. The screen is a diagram: each box is a node with a coloured bar down its left edge and an icon, and clicking most nodes opens a dialog. The tree is wider than the window — a horizontal scrollbar runs along the bottom, and the right-hand branches are cut off until you scroll.
+The **Default Config** node opens the **Default Configuration** dialog, where you set what the root does with a question and reach the instance-wide settings.
 
-![The Neural Config routing tree: the Default Config root at the top-left with its Answers (22), Add Intent, Category Routing and Guardrails children; Account Access, Technical Support and Billing branch off Category Routing, API & Integrations hangs off Technical Support, and the Backup & Restore / Change Logs toolbar floats bottom-right](/img/neural-config/default.png)
+![The Default Configuration dialog: the Action to take on match selector reading Answer Generation, and a footer with Edit Configuration (gear icon) on the left and Save on the right](/img/neural-config/default-config-answer-generation-panel.png)
 
-- **Default Config** — the root node, top-left, green bar. Two lines: `Default Config` and, under a small icon, the current action, `Answer Generation`. Clicking it opens the **Default Configuration** dialog (next section). It is the only node whose dialog leads to **Edit Configuration**, the door to the instance-wide settings.
-- **Answers (22)** — purple bar, bulb icon; the first child under the root. The number is per branch: the instance captured here shows `Answers (22)` on the root, `Answers (3)` under Account Access, `Answers (4)` under Technical Support and `Answers (2)` under Refunds. Billing and the mAIstro-led API & Integrations have no Answers node. Clicking `Answers (2)` produced no change on the screen during this capture, so what this node opens is not documented here.
-- **Add Intent** — purple bar, chat icon; under the root and under every category. Opens the **Add Intent** dialog, documented on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
-- **Category Routing** — black bar, org-chart icon. It is not clickable; it is the branch point whose children are the existing categories plus **Add a Category**.
-- **Add a Category** — black bar, folder icon; one per Category Routing node. Opens the **Add a Category** dialog, below.
-- **Guardrails** — red bar, shield icon; under the root and under Technical Support, Refunds and Billing — the three categories whose node reads `Custom Configuration`. Account Access, on the Default Configuration, has none. Opens **Guardrails: Default Config**, documented under Governance (see the last section).
-- **Default Action** — green bar, house icon; on this screen it exists only under **API & Integrations**, the mAIstro-led category. Opens **Default Action: API & Integrations**, documented on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
-- Category nodes — three lines: the name, the action, and either `Default Configuration` or `Custom Configuration` (the latter on a grey band). Blue bar for an `Answer Generation` category, orange for a `mAIstro-led` one. On the instance captured here: **Account Access** (Answer Generation, Default Configuration), **Technical Support** (Answer Generation, Custom Configuration), **Billing** (Answer Generation, Custom Configuration — its node is cut off at the bottom of the window), **Refunds** (Answer Generation, Custom Configuration) and **API & Integrations** (mAIstro-led, Default Configuration). API & Integrations hangs off Technical Support's Category Routing, not the root's — categories nest. Clicking a category node opens **Edit Category: \<name\>**.
-- Bottom-right, a floating toolbar holds **Backup & Restore** and **Change Logs**. Both are documented on [Backup, restore & change logs](/configuration/backup-restore/).
+- **Action to take on match** — what the root does with a question. The same two options appear on the root and on every category, and the chosen one is shown on the node's second line:
 
-The tree is a console view, not something the API reports back. A `seek` call through the MCP for `How do I get a refund?` — a question the Refunds category is described to cover — returned no field naming a category, intent or branch; the response held only the answer and its scores:
+  | Option                | What it does                                                                                                                                      |
+  | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | **Answer Generation** | NeuralSeek generates the answer from the KnowledgeBase, as Seek does.                                                                             |
+  | **mAIstro-led**       | The question is handed to a mAIstro agent. A mAIstro-led branch carries a **Default Action** node, where you choose the agent ([below](#editing-a-category)). |
 
-```json
-{
-  "answer": "I do not have any information about \"How do I get a refund?\".",
-  "confidence": 0,
-  "KBscore": 0,
-  "semanticScore": 0,
-  "sources": []
-}
-```
+  ![The Action to take on match list, open: Answer Generation (ticked) and mAIstro-led](/img/neural-config/default-config-answer-generation--options-action-to-take-on-match.png)
 
-(That is the MCP's response shape, not the REST `/seek` response.)
+- **Edit Configuration** (gear icon) — opens **Configuration: Default Config**, the instance-wide settings: an accordion of fourteen sections, from KnowledgeBase Connection to Secrets, with **Propose Changes** and **Save** in its footer. [Neural Config options](/configuration/neural-config/) lists every section and links to its page.
+- **Save** — saves the action. How saving differs from **Propose Changes** is explained on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-### The Default Configuration dialog (root node)
+### Adding a category
 
-Click the **Default Config** node to open the **Default Configuration** dialog. Note the two spellings: the node reads `Default Config`, the dialog header `Default Configuration`.
-
-![The Default Configuration dialog: a Close button top-right, the Action to take on match selector showing Answer Generation, and a footer with Edit Configuration (brown, gear icon) on the left and Save (blue) on the right](/img/neural-config/default-config-answer-generation--default-config-answer-generation.png)
-
-- **Close** (×), top-right of the header — every dialog on this screen closes the same way.
-- **Action to take on match** — a selector showing the root's current action, **Answer Generation**. The screen gives no help text; the two option names are the only explanation.
-
-  ![The Action to take on match selector on the Default Configuration dialog, reading Answer Generation](/img/neural-config/default-config-answer-generation--action-to-take-on-match.png)
-
-  Its options are `Answer Generation` and `mAIstro-led`. What the tree shows for each: an **Answer Generation** branch carries an **Answers (N)** node; the **mAIstro-led** branch carries a **Default Action** node instead, where a mAIstro flow is selected, and its category description on this instance reads `Routed to a mAIstro agent`. The root and four categories are Answer Generation here; API & Integrations is mAIstro-led.
-
-  ![The Action to take on match option list, open: Answer Generation (ticked) and mAIstro-led](/img/neural-config/default-config-answer-generation--options-action-to-take-on-match.png)
-
-- **Edit Configuration** (gear icon), footer left, brown — opens the configuration dialog itself, headed **Configuration: Default Config**. It is an accordion with fourteen sections, in this order on the captured screen:
-  1. [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/)
-  1. [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/)
-  1. [LLM Details](/configuration/neural-config/llm-details/)
-  1. [Embedding Models](/configuration/neural-config/embedding-models/)
-  1. [Company / Organization Preferences](/seek/tuning/)
-  1. [Platform Preferences](/configuration/neural-config/platform-preferences/)
-  1. [Corporate Document Filter](/governance/corporate-document-filter/)
-  1. [Corporate Logging](/governance/logging/)
-  1. [Prompt Engineering](/configuration/neural-config/prompt-engineering/)
-  1. [Dynamic Personalization](/seek/personalization/)
-  1. [Answer Engineering & Preferences](/seek/tuning/)
-  1. [Intent Matching & Cache Configuration](/configuration/neural-config/intent-matching-caching/)
-  1. [mAIstro Configuration](/configuration/neural-config/maistro-configuration/)
-  1. [Secrets](/configuration/neural-config/secrets/)
-
-  What each section holds is on its own page; [Neural Config options](/configuration/neural-config/) lists them all. The accordion's footer offers **Propose Changes** as well as **Save**.
-
-- **Save**, footer right, blue — saves this dialog. What saving means on this screen, and how it differs from proposing a change, is on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
-
-### Categories and the Edit Category dialog
-
-A category is a named kind of question, described in two or three sentences; its action decides what happens when a question matches it. Click any category node to open **Edit Category: \<name\>** — the name is in the title.
-
-![The Edit Category: Refunds dialog: Action to take on match reading Answer Generation, a red Delete Category button, Category Name, Category Description with the Auto-generate description wand, a Category Proposal ID row with a copy button, and a footer with Edit Custom Configuration and Save Category](/img/neural-config/refunds-answer-generation-custom-configu-panel.png)
-
-- **Action to take on match** — the same selector as on the root, with the same two options, `Answer Generation` and `mAIstro-led`. It reads **Answer Generation** on Refunds, Billing and Account Access, and **mAIstro-led** on API & Integrations.
-- **Delete Category** (red, trash icon) — present only on Edit Category, not on Add a Category. Its **Cancel** / **Confirm Delete** confirmation is in the screen's markup; it was not triggered during this capture.
-- **Category Name** — the name shown on the node; placeholder `Payroll`.
-- **Category Description** — helper text `Category Description (2-3 sentences)`; placeholder `Payroll inquiries, Tax withholding questions, benefits contributions`. The wand icon beside the label is named **Auto-generate description**; what it generates from was not exercised. The instance captured here describes each category as the kinds of question it covers — Refunds reads `Refund requests, disputed charges and credit notes. Needs the invoice number and the reason before it can be actioned.`, and API & Integrations reads `Questions about the REST API, webhooks, SDKs and third-party connectors. Routed to a mAIstro agent that can look up the endpoint reference.`
-- **Category Proposal ID** — on a category with a Custom Configuration (Refunds, Billing): a read-only six-digit value shown as a code snippet, with a **Copy to clipboard** button beside it (the button's text reads `Copied!` after use). On a category on the Default Configuration (Account Access, API & Integrations) the same row is labelled **Category ID**. What accepts either value is not shown on this screen.
-
-  ![The Category Proposal ID row on Edit Category: Refunds, a six-digit value with a copy button](/img/neural-config/refunds-answer-generation-custom-configu--category-proposal-id.png)
-
-  ![The Category ID row on Edit Category: Account Access, a six-digit value with a copy button](/img/neural-config/account-access-answer-generation-default--category-id.png)
-
-- **Edit Custom Configuration** (gear icon), footer left, brown — on a category with a Custom Configuration (Refunds, Billing). On a category on the Default Configuration (Account Access, API & Integrations) the same button reads **Add Custom Configuration**. Neither was clicked during this capture.
-  <!-- UNCONFIRMED: Add Custom Configuration opens the same fourteen-section configuration dialog as the root's Edit Configuration, saved against the category — old page ("The familiar NeuralSeek Configuration panel will pop up"); the button was never clicked -->
-  The previous documentation describes **Add Custom Configuration** as opening the same configuration dialog as the root's **Edit Configuration**, saved against the category.
-  <!-- UNCONFIRMED: adding a custom configuration is what adds the Guardrails node under a category — old page ("Upon adding a custom configuration, a new node will appear labeled Guardrails"); consistent with the tree (the three Custom Configuration categories have one, Account Access does not) but the transition was not observed -->
-  It also says that adding one is what puts a **Guardrails** node under the category — consistent with the tree above, where exactly the three Custom Configuration categories have one. Removing a custom configuration (**Delete Configuration**) is covered on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
-- **Save Category**, footer right, blue — saves the dialog.
-- **Close** (×) — as on every dialog.
-
-A mAIstro-led category has the same fields; only the action differs, and the agent itself is chosen on the branch's **Default Action** node rather than in this dialog.
-
-![The Edit Category: API & Integrations dialog: Action to take on match reads mAIstro-led, the description says questions are routed to a mAIstro agent, the ID row is labelled Category ID and the footer button reads Add Custom Configuration](/img/neural-config/api-integrations-maistro-led-default-con-panel.png)
-
-### The Add a Category dialog
-
-**Add a Category** hangs off every **Category Routing** node, beside the existing categories, so a new category can be added at the root or under an existing category.
+A category is a kind of question you want handled differently from the rest — billing questions answered under stricter settings, or API questions sent to an agent. Every **Category Routing** branch ends in **Add a Category**, so a new category can go under the root or under an existing one.
 
 ![The Add a Category dialog: the Action to take on match selector, empty Category Name and Category Description fields showing their placeholders, a greyed-out Add Custom Configuration button and Save Category](/img/neural-config/add-a-category-panel.png)
 
-- **Action to take on match** — opens showing **Answer Generation**; the options are `Answer Generation` and `mAIstro-led`, as on every other node.
+1. In **Action to take on match**, choose **Answer Generation** to have the category's questions answered from the KnowledgeBase, or **mAIstro-led** to hand them to an agent.
+2. In **Category Name**, enter the name the node will show (the placeholder suggests `Payroll`).
+3. In **Category Description (2-3 sentences)**, describe in two or three sentences which questions belong to the category — the placeholder reads `Payroll inquiries, Tax withholding questions, benefits contributions`. This is the text questions are routed by, so name the topics and the kinds of question the category covers, and keep it distinct from its sibling categories. **Auto-generate description** offers a draft.
+4. Select **Save Category**.
 
-  ![The Action to take on match selector on Add a Category, reading Answer Generation](/img/neural-config/add-a-category--action-to-take-on-match.png)
+**Add Custom Configuration** stays greyed out while you add a category; it becomes available on the category's Edit Category dialog once the category is saved.
 
-  ![The Action to take on match option list on Add a Category, open: Answer Generation (ticked) and mAIstro-led](/img/neural-config/add-a-category--options-action-to-take-on-match.png)
+<!-- UNCONFIRMED: a new category uses the Default Configuration settings and Guardrails until it gets its own — previous documentation ("Newly defined categories will automatically utilize the Default Configuration settings and Guardrails") -->
 
-- **Category Name** — empty; placeholder `Payroll`.
+The new category appears under the **Category Routing** node you started from, badged **Default Configuration**: it runs on the root's settings and guardrails until you give it its own.
 
-  ![The empty Category Name field on Add a Category with its Payroll placeholder](/img/neural-config/add-a-category--category-name.png)
+### Editing a category
 
-- **Category Description** — empty; placeholder `Payroll inquiries, Tax withholding questions, benefits contributions`; helper text `Category Description (2-3 sentences)`; the **Auto-generate description** wand is present.
+A category node opens its Edit Category dialog — for example `Edit Category: Refunds` — where you change its action, name or description, copy its ID, give it its own configuration or delete it.
 
-  ![The empty Category Description field on Add a Category, with the Auto-generate description wand beside the label and the helper text Category Description (2-3 sentences) under it](/img/neural-config/add-a-category--category-description-2-3-sentences.png)
+![The Edit Category dialog of a Custom Configuration category (Refunds in the example): Action to take on match, a red Delete Category button, Category Name, Category Description with the Auto-generate description wand, a Category Proposal ID row with a copy button, and a footer with Edit Custom Configuration and Save Category](/img/neural-config/refunds-answer-generation-custom-configu-panel.png)
 
-- **Add Custom Configuration** (gear icon) — present but disabled and greyed out. A category is saved first and gets its custom configuration afterwards, from its own Edit Category dialog.
-- **Save Category**, footer right, blue — saves the new category. There is no **Delete Category** button and no ID row until the category exists.
-- **Close** (×) — as on every dialog.
+- **Delete Category** — removes the category, after a confirmation step.
+- **Category Proposal ID** or **Category ID** — a read-only identifier you can copy when you need to reference the category. A category badged **Custom Configuration** shows **Category Proposal ID**; a category badged **Default Configuration** shows **Category ID**.
+- **Edit Custom Configuration** or **Add Custom Configuration** — **Edit Custom Configuration** on a category that already has its own settings, **Add Custom Configuration** on a category that runs on the root's ([next section](#a-categorys-own-configuration)).
+- **Save Category** — saves the name, description and action.
 
-<!-- UNCONFIRMED: a new category starts on the Default Configuration settings and Guardrails — old page ("Newly defined categories will automatically utilize the Default Configuration settings and Guardrails"); plausible from the Default Configuration third line on Account Access and API & Integrations, but no category was created in this capture -->
+A **mAIstro-led** category has the same dialog with **mAIstro-led** selected.
 
-The previous documentation says a new category starts on the Default Configuration settings and Guardrails until a custom configuration is added; on the captured tree the two categories without one do read `Default Configuration`.
+![The Edit Category dialog of a mAIstro-led category on the Default Configuration (API & Integrations in the example): Action to take on match reads mAIstro-led, the ID row is labelled Category ID and the footer button reads Add Custom Configuration](/img/neural-config/api-integrations-maistro-led-default-con-panel.png)
 
-<!-- UNCONFIRMED: categories require Multi-Agent Routing, switched on "in the bottom right corner of the Configure tab" — old page; this capture's bottom-right toolbar holds Backup & Restore and Change Logs only, and the switch's Upgrade to Multi-Agent / Revert to Single Agent confirmations exist in the markup but were never seen opening -->
+You choose a mAIstro-led category's agent on the **Default Action** node under it, not in this dialog. Its **Select a mAIstro flow** picks the agent that handles the category's questions and previews that agent's flow, so you can check you picked the right one before you save. More on the dialog in [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-Categories are part of Multi-Agent Routing. The instance captured here was already multi-agent; the control that switches the mode was not seen, though its **Upgrade to Multi-Agent** (**Cancel** / **Confirm Upgrade**) and **Revert to Single Agent** (**Cancel** / **Confirm Revert**) confirmations are in the screen's markup. The switch is documented on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
+![The Default Action dialog of a mAIstro-led category (API & Integrations in the example): the Select a mAIstro flow selector with an example agent chosen, a preview of that agent's flow from Seek Input to Seek Output, and Save](/img/neural-config/default-action-panel.png)
 
-### Nodes and buttons documented elsewhere
+### A category's own configuration
 
-These live on this screen but have their own pages:
+Give a category its own configuration when its questions need a different LLM, KnowledgeBase, prompt or threshold from the rest of the instance. On a category badged **Custom Configuration**, **Edit Custom Configuration** opens a dialog headed with the category's name — for example `Configuration: Refunds`. It holds thirteen sections: the same as the root's **Configuration: Default Config** except **mAIstro Configuration**, which is set on the root only. Each section works as described on its own page ([Neural Config options](/configuration/neural-config/)); the difference is scope — a change here applies to the category, not to the whole instance.
 
-- **Guardrails** node → the **Guardrails: Default Config** dialog: a scrolling tab strip with ten tabs in this order — **Semantic Scoring**, **Prompt Injection**, **PII**, **Profanity (HAP)**, **Attribution Protection**, **Warning Confidence**, **Min Confidence**, **Min Text**, **Max Length**, **Custom Governance** — and a **Save** footer. The first tab opens with `The Semantic Scoring model checks the generated answer against the KnowledgeBase sources and rates the answer based on the quantity and focus. Semantic scoring is not available in cross-laguage usecases.` (sic). Start at [Guardrails overview](/governance/guardrails/overview/); per tab: [Semantic Scoring](/governance/guardrails/semantic-scoring/), [Prompt Injection](/governance/guardrails/prompt-injection/), [PII](/governance/pii-detection/), [Profanity (HAP)](/governance/guardrails/profanity-hap/), [Attribution Protection](/governance/guardrails/attribution-protection/), [Warning Confidence and Min Confidence](/governance/guardrails/min-confidence/), [Custom Governance](/governance/guardrails/custom-governance-agents/). The **Semantic Model Tuning** button inside Semantic Scoring opens [Semantic model tuning](/configuration/semantic-model/).
+![The Configuration: Refunds dialog: an accordion from KnowledgeBase Connection down to Intent Matching & Cache Configuration, and a footer with a red Delete Configuration button on the left and Save on the right](/img/neural-config/edit-custom-configuration-edit-panel.png)
 
-  ![The Guardrails: Default Config dialog on its Semantic Scoring tab: the tab strip along the top, the tab's intro paragraph, six Enable/Disable toggles, the Semantic Model Tuning button and a Save footer](/img/neural-config/guardrails-panel.png)
+**Propose Changes** is only on the root's configuration dialog. **Delete Configuration** removes the category's own settings — see [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
-- **Add Intent** node → the **Add Intent** dialog; **Default Action** node (on a mAIstro-led branch) → **Default Action: \<category\>** — both on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
-- **Change Logs** (bottom-right toolbar) → the **Change Log** dialog: tabs **Default Config**, **Billing** and **Technical Support** on this instance — one for the root and one per category with a Custom Configuration, although Refunds, which also has one, showed no tab — and a table with the columns `Proposal ID / Configuration Date`, `User`, `Version` and `Action`, the last holding **Rollback**. See [Backup, restore & change logs](/configuration/backup-restore/).
-- **Backup & Restore** (bottom-right toolbar) → the **Backup and Restore** dialog — same page.
-- The fourteen accordion sections behind **Edit Configuration** → [Neural Config options](/configuration/neural-config/).
+<!-- UNCONFIRMED: Add Custom Configuration opens the same configuration dialog for the category, and saving it switches the badge to Custom Configuration and adds a Guardrails node — previous documentation ("The familiar NeuralSeek Configuration panel will pop up… Upon adding a custom configuration, a new node will appear labeled Guardrails"); consistent with Edit Custom Configuration -->
+
+On a category badged **Default Configuration**, **Add Custom Configuration** opens the same `Configuration: <category>` dialog. Once you save it, the node's badge reads **Custom Configuration** and a **Guardrails** node appears under the category.
+
+<!-- UNCONFIRMED: a category's configuration also applies to the categories nested beneath it — previous documentation ("a custom configuration that will be used by it and nested levels beneath it") -->
+
+A category's configuration is also used by the categories nested beneath it, unless they carry one of their own.
+
+### Guardrails at each level
+
+A **Guardrails** node sits under the root and under every category with a custom configuration, so a category with its own settings can also have its own checks on the answer. Clicking it opens a dialog headed with the level's name — **Guardrails: Default Config** on the root — with the tabs **Semantic Scoring**, **Prompt Injection**, **PII**, **Profanity (HAP)**, **Attribution Protection**, **Warning Confidence**, **Min Confidence**, **Min Text**, **Max Length** and **Custom Governance**. Each tab is documented from the [Guardrails overview](/governance/guardrails/overview/).
+
+![The Guardrails: Default Config dialog on its Semantic Scoring tab: the tab strip along the top, six Enable/Disable switches, the Semantic Model Tuning button and a Save footer](/img/neural-config/guardrails-panel.png)
+
+### Intents
+
+**Add Intent** exists at every level of the tree, so an intent belongs to the level where you add it. In the **Add Intent** dialog you name the intent, give an example question and either write the answer or run a mAIstro agent instead. What intents are and how they are matched is on [Intent Matching & Cache Configuration](/configuration/neural-config/intent-matching-caching/); the dialog itself is on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
+
+![The Add Intent dialog: the Run a mAIstro agent or seek for this intent switch set to Seek, and the Intent Name, Example question and Answer fields above a Save button](/img/neural-config/add-intent-panel.png)
+
+### Backups and the change history
+
+Two controls protect the whole configuration:
+
+- **Backup & Restore** — back up the configuration before a change and restore it afterwards.
+- **Change Logs** — the history of saved configuration versions.
+
+Both are documented on [Backup, restore & change logs](/configuration/backup-restore/).
+
+## When to use it
+
+- **Setting up an instance.** Open **Default Config** → **Edit Configuration** to reach the KnowledgeBase, LLM and platform settings that every answer starts from.
+- **One topic needs different handling.** Add a category when questions about billing, account access or an API should be answered under different settings, or by an agent, while everything else keeps the root's behaviour.
+- **A topic needs its own model, KnowledgeBase or thresholds.** Give that category a custom configuration and, with it, its own **Guardrails**.
+- **A topic is better served by a workflow than a generated answer.** Make the category **mAIstro-led** and choose the agent on its **Default Action** node.
+- **Before a large change.** Take a backup with **Backup & Restore**, and use **Change Logs** to see what changed.
+
+Neural Config is the wrong place when an answer is wrong because the content is: a missing, stale or badly indexed document is a KnowledgeBase task ([Connect a knowledge base](/knowledge/connect-a-kb/)), and no setting on this screen adds knowledge the KnowledgeBase does not hold.
 
 ## FAQ
 
-### Where do I change the KnowledgeBase, LLM or platform settings?
+### What is the Default Config node?
 
-Click the **Default Config** node at the top-left of the Neural Config tree, then **Edit Configuration** in the **Default Configuration** dialog's footer. The configuration dialog is an accordion of fourteen sections; each has its own page under [Neural Config options](/configuration/neural-config/).
+The root of the Neural Config tree. Its **Default Configuration** dialog sets the **Action to take on match** for questions no category catches and, through **Edit Configuration**, opens the instance-wide settings listed on [Neural Config options](/configuration/neural-config/).
 
-### What is the difference between "Answer Generation" and "mAIstro-led"?
+### How do I send one kind of question to an agent instead of a generated answer?
 
-They are the two values of **Action to take on match**, on the root and on every category. An Answer Generation category is answered by Seek and carries an **Answers (N)** node; a mAIstro-led category is handed to a mAIstro agent chosen on its **Default Action** node, and has no Answers node.
+Select **Add a Category** under a **Category Routing** node, set **Action to take on match** to **mAIstro-led**, describe the questions the category should catch, and select **Save Category**. Then click the branch's **Default Action** node and choose the agent in **Select a mAIstro flow**.
 
-### Why does one category say "Custom Configuration" and another "Default Configuration"?
+### How do I give a category its own settings?
 
-It is the node's third line. A category with a Custom Configuration shows **Category Proposal ID** and **Edit Custom Configuration** in its Edit Category dialog and has a **Guardrails** node of its own; a category on the Default Configuration shows **Category ID** and **Add Custom Configuration**, and no Guardrails node.
+Open the category node. On a category badged **Default Configuration**, select **Add Custom Configuration**; on one badged **Custom Configuration**, select **Edit Custom Configuration**. Either opens a `Configuration: <category>` dialog with the root's sections except **mAIstro Configuration**.
 
-### Can I nest a category under another category?
+### Can categories be nested?
 
-Yes. Every category has its own **Category Routing** node with an **Add a Category** child; on the instance captured here, **API & Integrations** hangs off Technical Support's Category Routing.
+Yes. Every category has its own **Category Routing** node with an **Add a Category** at the end, so you can add a category under an existing one — in the example on this page, API & Integrations sits under Technical Support.
 
-### Where are PII, profanity and confidence thresholds?
+## Related
 
-On the **Guardrails** node — under Default Config, and under any category with a Custom Configuration — as tabs of the **Guardrails: Default Config** dialog, not in the Edit Configuration accordion. Start at [Guardrails overview](/governance/guardrails/overview/).
-
-### Where do I see who changed what?
-
-**Change Logs**, in the toolbar at the bottom-right of the tree, lists every saved version per configuration with its user, a version label and a **Rollback** action. See [Backup, restore & change logs](/configuration/backup-restore/).
+- [Neural Config options](/configuration/neural-config/) — every section of the configuration dialog
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/) — Save versus Propose Changes, Add Intent, Default Action, Delete Configuration
+- [Guardrails overview](/governance/guardrails/overview/)
+- [Intent Matching & Cache Configuration](/configuration/neural-config/intent-matching-caching/)
+- [Backup, restore & change logs](/configuration/backup-restore/)
+- [mAIstro overview](/maistro/overview/)
+- [Seek overview](/seek/overview/)

@@ -1,148 +1,111 @@
 ---
 title: "Virtual KB"
-description: "Discover mAIstro's Virtual KnowledgeBase, a powerful tool to unify multiple knowledge sources for enhanced search and discovery. Learn to configure and expand your Virtual KB for flexible, scalable solutions."
+description: "Virtual KB is a KnowledgeBase Type that makes a mAIstro agent the knowledge source for Seek: set KnowledgeBase Type to Virtual KB in KnowledgeBase Connection and choose the agent in mAIstro Virtual KB agent, with no connection or field-mapping settings to fill in."
 ---
 
-## Overview
+A **Virtual KB** turns a [mAIstro](/maistro/overview/) agent into the knowledge base behind [Seek](/seek/overview/). Instead of searching an indexed document store, Seek hands each question to the agent and answers from what the agent returns. Use it when the knowledge you need lives behind an API, on a live site or in a database, or when you want your own logic to decide which passages Seek sees.
 
-**What is it?**
+## How a Virtual KB works
 
-- Virtual KB is a feature in mAIstro that allows you to define a flow and use it as a virtual knowledge base. This feature enables you to combine multiple knowledge sources into a single, unified knowledge base, providing a more comprehensive and flexible solution for your information retrieval needs.
+A Virtual KB has two halves. The agent, built and saved in mAIstro, does the retrieval: it receives the question and returns the passages. The setting in [Neural Config](/configuration/neural-config/) tells Seek to use that agent instead of a connected store. Build the agent first, then point the knowledge base at it.
 
-**Why is it important?**
+### Choose Virtual KB as the KnowledgeBase Type
 
-- A Virtual KB enhances your application's search and discovery by integrating multiple knowledge sources, delivering more comprehensive and relevant results. It offers flexibility and scalability, allowing you to easily adjust the knowledge sources as your needs change.
+![KnowledgeBase Type set to Virtual KB next to KnowledgeBase Language, with the Notes box below](/img/neural-config/knowledgebase-connection@kb-virtual--knowledgebase-type.png)
 
-**How does it work?**
+**Virtual KB** is one of the values of **KnowledgeBase Type**, in the **KnowledgeBase Connection** section of the Edit Configuration dialog. The full list of types, and what each needs, is on [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/) and [Supported knowledge bases](/knowledge/supported-knowledgebases/).
 
-- Virtual KB allows you to connect and integrate various knowledge sources, such as databases, content management systems, and external APIs, into a single virtual knowledge base. Begin by building a flow in mAIstro utilizing our variety of native functions and connectors or reference our Virtual KB example template for an easy guide on configuring a Virtual KB. 
+With **Virtual KB** selected, the section holds four fields: **KnowledgeBase Type**, **KnowledgeBase Language**, **Notes**, and **mAIstro Virtual KB agent**. The agent is the only Virtual KB-specific setting, because the agent decides what comes back and in what shape. **KnowledgeBase Language** and **Notes** work as they do for every type; see [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/).
 
-## Example Template in mAIstro
+### Pick the agent in mAIstro Virtual KB agent
 
-1. Navigate to the mAIstro tab in your NeuralSeek instance.
-2. Click on Example Templates, and search for the template titled **Virtual KB**. 
+![The mAIstro Virtual KB agent dropdown, empty until an agent is chosen](/img/neural-config/knowledgebase-connection@kb-virtual--maistro-virtual-kb-agent.png)
 
-![image](/img/seek/virtual-kb/virtualKB_selectExTemp.png)
-![image](/img/seek/virtual-kb/virtualKB_selectVirtualKBtemplate.png)
+**mAIstro Virtual KB agent** selects the agent Seek calls for retrieval. It appears below **Notes** as soon as the type is **Virtual KB**, and it is empty until you choose an agent, so save the agent in mAIstro before you come here. Changing the agent changes the knowledge source for every answer this configuration generates; treat it like switching the knowledge base itself.
 
-This flow utilizes the **Virtual In** and **Virtual Out** nodes, located underneath RAG Tools on the sidebar menu. It passes a DuckDuckGo Search connector and a Rest API connector with a Wikipedia URL to the Large Language Model for answer generation within the Seek tab. We are now able to utilize the World Wide Web as a knowledge source for answer generation.
+To point Seek at your agent:
 
-![image](/img/seek/virtual-kb/virtualKB_mAIstroVisual.png)
+1. Open **Neural Config** and select the **Default Config / Answer Generation** node, then **Edit Configuration**.
+2. Expand **KnowledgeBase Connection**.
+3. Set **KnowledgeBase Type** to **Virtual KB**.
+4. In **mAIstro Virtual KB agent**, choose your agent.
+5. Select **Save**, or **Propose Changes** to submit the change for review. The difference between the two is explained in [Using the Neural Config page](/configuration/neural-config/using-this-page/).
+6. Ask a question on the [Seek](/seek/overview/) tab and check that the answer draws on what your agent returned.
 
-```
-{{ virtualKbIn  }}
-{{ duckSearch  | query: "<< name: virtualKbIn.contextQuery>>" }}=>{{ variable  | name: "parallelDuckRaw" }}
-{{ post  | url: "https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=<< name: virtualKbIn.contextQuery, prompt: true >>" | body: "" | headers: "" | username: "" | password: "" | apikey: "" | operation: "POST" | jsonToVars: "true" }}=>{{ varsToJSON  | path: "query.search" | variable: "s1" | includePath: "false" | output: "true" }}=>{{ arrayFilter  | filter: "0-3" | filterType: "IndexRange" }}=>{{ reMapJSON  | match: "title" | replace: "document" }}=>{{ reMapJSON  | match: "snippet" | replace: "passage" }}=>{{ regex  | match: "/(\"document\":\")([^\"]+)/g" | replace: "$1$2\",\"url\":\"https://en.wikipedia.org/wiki/$2" | group: "" }}=>{{ regex  | match: "/^\[/" | replace: "" | group: "" }}=>{{ regex  | match: "/<\/?span.*?>/g" | replace: "" | group: "" }}=>{{ variable  | name: "wikipedia" }}
-<< name: parallelDuckRaw, prompt: false >>=>{{ jsonEscape  }}=>{{ variable  | name: "duck" }}=>
-<< name: duck, prompt: false >>=>{{ regex  | match: "/https?:\/\/[^\s)]+/g" | replace: "" | group: "0" }}=>{{ variable  | name: "url" }}
-{{ virtualKbOut  | context: "[{
-\"document\": \"DuckDuckGo Search\",
-\"url\": \"<< name: url >>\",
-\"passage\": \"<< name: duck, prompt: false >>\"
-},<< name: wikipedia, prompt: false >>" | kbCoverage: 0 | kbScore: 0 | url: "<< name: url >>" | document: "" }}
-```
+### Build the agent it calls
 
-## Selecting a Virtual KB
+![Screenshot pending: a Virtual KB agent on the mAIstro canvas, from the virtualKbIn node through one data-fetch step to the virtualKbOut node](/img/_placeholder.svg)
 
-1. Navigate to the Configure tab in your NeuralSeek instance.
-2. Expand the **KnowledgeBase Connection** accordion.
-3. For KnowledgeBase Type, select the **Virtual KB** option.
-4. For mAIstro Virtual KB template, select the **ex_Virtual_KB** option.
-5. Click the red Save icon at the bottom of the screen to save your configuration. 
+<!-- SCREENSHOT: /img/maistro/virtual-kb-agent.png — mAIstro > an agent with virtualKbIn as the first step, one fetch step (web or REST), virtualKbOut as the last step. Why: the reader needs to see where the question enters and where the passages leave. -->
 
-![image](/img/seek/virtual-kb/virtualKB_selectKB.png)
-![image](/img/seek/virtual-kb/virtualKB_selectTemplate.png)
-![image](/img/seek/virtual-kb/virtualKB_saveConfig.png)
+A Virtual KB agent is an ordinary mAIstro agent with a fixed start and end. Its first step must be the `virtualKbIn` node and its last step the `virtualKbOut` node; both are documented with the other retrieval nodes on [RAG Tools](/maistro/ntl/rag-tools/). Everything in between is yours: web fetches, REST calls, database connectors, filters and rewrites.
 
-## Seek With a Virtual KB
+`virtualKbIn` hands the agent the question and its context as variables:
 
-1. Navigate to the Seek tab in your NeuralSeek instance.
-2. Type in any question. For example, **Who is Taylor Swift?**
-3. Click the Seek button to generate an answer. 
+| Variable                     | What it holds                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------------- |
+| `virtualKbIn.originalQuery`  | The user's original input.                                                                   |
+| `virtualKbIn.contextQuery`   | The query enhanced with earlier turns of the conversation ([context keeping](/seek/conversational-context/)). |
+| `virtualKbIn.language`       | The selected or determined language.                                                         |
+| `virtualKbIn.langCode`       | The selected or determined language code.                                                    |
+| `virtualKbIn.intent`         | The selected or determined intent.                                                           |
+| `virtualKbIn.categoryName`   | The selected or determined category name.                                                    |
+| `virtualKbIn.filter`         | The filter string used.                                                                      |
+| `virtualKbIn.prefs`          | The instance preferences, secrets redacted — only when `passPrefs` is `true` (opt-in).        |
 
-As we review the answer generated, we can highlight over the statistical details and source brought back by NeuralSeek. The response is synthesized from a combination of DuckDuckGo and Wikipedia searches related to the singer. Our semantic analysis tells us about the varying jumps between source articles. Considering there is vast information on Wikipedia about Taylor Swift, we also receive a 99% KB Coverage score back. 
- 
-By expanding the sources below, we can examine each one in detail. The provenance highlights indicate the specific keywords and phrases drawn from each source to form the final response.
+`virtualKbOut` returns the result to Seek. Its `url` and `document` parameters name the primary source URL and document, and both are optional. In NTL the two ends of the agent look like this:
 
-![image](/img/seek/virtual-kb/virtualKB_seek.png)
-![image](/img/seek/virtual-kb/virtualKB_seekStats.png)
-
-## Expanding Your KnowledgeBase
-
-Ultimately, you can connect virtually any knowledge source to your NeuralSeek instance for answer generation via the Virtual KB connectors in mAIstro. You can choose from a variety of built-in database connectors, KnowelgeBase connectors, or Web Search connectors. Or, connect to any additional source via our Rest API connector node. 
-
-#### Building a Flow
-
-1. Navigate to mAIstro in your NeuralSeek Instance.
-2. Select the **Virtual KB - In** node from the sidebar menu under RAG Tools. 
-
-This node gives you several variables to use inside of your flow. 
-
-![image](/img/seek/virtual-kb/virtualKB_addKBin.png)
-
-3. Select the **Website Data** node from the sidebar menu under Get Data. This will automatically link below your first node.
-4. Click the gear icon to input any valid URL. In this example, we are connecting to a Google search: `https://www.google.com/search?gfns=1&q=<< name: virtualKbIn.contextQuery>>`
-5. Select the **Set Variable** node from the sidebar menu under Control Flow. 
-6. Click and drag the Set Variable node to the right of the Website Data node to chain it. 
-7. Click the gear icon to set the variable name. In this example, the variable name is `google`. 
-
-The addition of the variable **virtualKbIn.contextQuery** allows the context of the user's query to be dynamically carried forward in the Google search. 
-
-![image](/img/seek/virtual-kb/virtualKB_addWeb1.png)
-![image](/img/seek/virtual-kb/virtualKB_addVar1.png)
-
-8. Select a second **Website Data** node. 
-9. Click the gear icon to input any additional URL. In this example, we are connecting to NeuralSeek's documentation page: `https://documentation.neuralseek.com/`
-10. Select the **Set Variable** node from the sidebar menu under Control Flow. 
-11. Click and drag the Set Variable node to the right of the second Website Data node to chain it. 
-12. Click the gear icon to set the variable name. In this example, the variable name is `docs`.
-
-We have added the NeuralSeek documentation as a second source of reference for our KnowledgeBase and are performing a static pull of the website's information.
-
-![image](/img/seek/virtual-kb/virtualKB_addWeb2.png)
-![image](/img/seek/virtual-kb/virtualKB_addVar2.png)
-
-13. Select the **Virtual KB - Out** node from the sidebar menu under RAG Tools. 
-14. Click the gear icon to configure the information to be piped back into Seek. In this example, we want to define the passage by including the variable names: `<< name: google >>\n<< name: docs >>`. 
-15. Additionally, we can preset the kbCoverage, kbScore, url, and document name. In this example, we define the document name as `Virtual KB`. 
-16. Save your mAIstro flow with a unique name and optional description. In this example, the name is `websiteKB`.
-
-Both of the websites will now be pulled live every time a Seek comes in. The information scraped from the sites will come out dynamically and in parallel, then plugged back into the Seek process for answer generation.
-
-:::note
-While we use a single, concatenated document here for the sake of simplicity, it is possible to split this into multiple documents. Simply build a JSON object with an array of document objects containing properties: document (title), url, score, and passage.
-:::
-
-![image](/img/seek/virtual-kb/virtualKB_addKBout.png)
-![image](/img/seek/virtual-kb/virtualKB_finalBuild.png)
-![image](/img/seek/virtual-kb/virtualKB_saveNewFlow.png)
-
+```text
+{{ virtualKbIn | passPrefs: "false" }}
+{{ virtualKbOut | url: "..." | document: "..." }}
 ```
 
-{{ virtualKbIn  }}
-{{ web  | url: "https://www.google.com/search?gfns=1&q=<< name: virtualKbIn.contextQuery>>" }}=>{{ variable  | name: "google" }}
-{{ web  | url: "https://documentation.neuralseek.com/" }}=>{{ variable  | name: "docs" }}
-{{ virtualKbOut  | context: "<< name: google >>\n<< name: docs >>" | kbCoverage: 0 | kbScore: 0 | url: "" | document: "Virtual KB" }}
+<!-- UNCONFIRMED: virtualKbOut also takes context (plain text or an array of passages), kbCoverage and kbScore (0-100, optional) — old RAG Tools page (maistro/ntl/rag-tools); the current NTL reference excerpt shows only url and document -->
 
-```
+The passages themselves go in the `context` parameter, as plain text or as an array, and the optional `kbCoverage` and `kbScore` (0–100) report how well the returned context covers the question and how confident it is.
 
-#### Configuring a Virtual KB
+<!-- UNCONFIRMED: an example template named "Virtual KB" exists under mAIstro Example Templates (old name ex_Virtual_KB) — old seek/virtual-kb page -->
 
-1. Navigate to the Configure tab in your NeuralSeek instance.
-2. Expand the **KnowledgeBase Connection** accordion.
-3. For KnowledgeBase Type, select the **Virtual KB** option.
-4. For mAIstro Virtual KB template, select the **websiteKB** option.
-5. Click the red Save icon at the bottom of the screen to save your configuration. 
+To start from a working agent, open the **Virtual KB** example in mAIstro's example templates and replace its fetch step with your own source.
 
-![image](/img/seek/virtual-kb/virtualKB_saveNewConfig.png)
+### KnowledgeBase Tuning with a Virtual KB
 
-#### Seek with a Virtual KB
+The **KnowledgeBase Tuning** section stays in the dialog when **Virtual KB** is selected. With this type it carries **Snippet size**, which windows the relevant details in a document that do not mention the question directly but apply to it, and it keeps **KnowledgeBase Query Cache (minutes)**. What each setting does is on [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/).
 
-1. Navigate to the Seek tab in your NeuralSeek instance.
-2. Type in any question. For example, **Does NeuralSeek provide a Hands-On Lab?**
-3. Click the Seek button to generate an answer. 
+## When to use a Virtual KB
 
-We can expand the Virtual KB source underneath KnowledgeBase Context and view which information was pulled from the Google Search and which was pulled from our NeuralSeek Documentation URL to generate the answer.
+- **The source cannot be indexed ahead of time.** It sits behind an API, a live website or a database that nobody is going to export.
+- **The content changes faster than you could re-index it**, so Seek should read it at question time.
+- **You want your own logic between the source and Seek** — which results, in what shape, with which titles and links — or you want to combine several sources into one answer.
 
-![image](/img/seek/virtual-kb/virtualKB_seekNewBuild.png)
-![image](/img/seek/virtual-kb/virtualKB_seekNewContext.png)
+Weigh the cost: an indexed knowledge base has done its retrieval work before the question arrives, while a Virtual KB agent runs when it does. Any external call the agent makes becomes part of the work behind every answer, so a slow source means slower answers.
+
+It is the wrong tool when your content is a stable document set. Load it into a regular knowledge base (see [Supported knowledge bases](/knowledge/supported-knowledgebases/)) and let the index do the retrieval. **No KnowledgeBase**, another **KnowledgeBase Type** value, connects no knowledge base; see [Supported knowledge bases](/knowledge/supported-knowledgebases/) for what each type does.
+
+## FAQ
+
+### Do I need an index, endpoint or API key for a Virtual KB?
+
+No. With **Virtual KB** selected, **KnowledgeBase Connection** shows only **KnowledgeBase Type**, **KnowledgeBase Language**, **Notes** and **mAIstro Virtual KB agent**. Any credentials the agent needs to reach its own sources belong in the agent.
+
+### Where do I build the agent, and what must it contain?
+
+In [mAIstro](/maistro/overview/). The first step must be `virtualKbIn` and the last step `virtualKbOut`; see [RAG Tools](/maistro/ntl/rag-tools/). Save the agent, then choose it in **mAIstro Virtual KB agent**.
+
+### What is the difference between Virtual KB and No KnowledgeBase?
+
+**Virtual KB** retrieves through the agent you choose in **mAIstro Virtual KB agent**, and Seek answers from what it returns. **No KnowledgeBase** connects no knowledge source. See [Supported knowledge bases](/knowledge/supported-knowledgebases/).
+
+### Do KnowledgeBase Tuning settings still apply?
+
+The **KnowledgeBase Tuning** section stays in the dialog with a Virtual KB, including **Snippet size** and **KnowledgeBase Query Cache (minutes)**. See [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/) for what each one does.
+
+## Related
+
+- [KnowledgeBase Connection](/configuration/neural-config/knowledgebase-connection/)
+- [Supported knowledge bases](/knowledge/supported-knowledgebases/)
+- [KnowledgeBase Tuning](/configuration/neural-config/knowledgebase-tuning/)
+- [RAG Tools](/maistro/ntl/rag-tools/)
+- [mAIstro overview](/maistro/overview/)
+- [Seek overview](/seek/overview/)
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/)

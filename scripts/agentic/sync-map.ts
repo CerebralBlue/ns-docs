@@ -6,8 +6,9 @@
  * Run by the workflow after a route's gates PASS. Copies the page's frontmatter `description`
  * into the route's block in scripts/migration-map.json by string surgery (`patchRouteBlock`),
  * so the map — which the stub generator, the sidebar and the IA step read — stops carrying the
- * old marketing line once the page is rewritten. `status` is never touched here (`auto` stays;
- * `adopted` is a human's mark). No change when the two already match.
+ * old marketing line once the page is rewritten. Because it only runs after the gates PASS, it
+ * also sets `status: written` (from stub/draft) — the pipeline's "gated" mark. `adopted` is a
+ * human's mark and is never touched. No change when both already match.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -30,13 +31,20 @@ if (/^["'].*["']$/.test(description))
 	description = JSON.parse(
 		description.startsWith("'") ? `"${description.slice(1, -1).replace(/"/g, '\\"')}"` : description
 	);
-const result = { runId, route, changed: false, description };
+const result = { runId, route, changed: false, description, status: info?.status as string };
 if (!info) {
 	console.error(`${route} is not in the map`);
 	process.exit(1);
 }
+let text2 = text;
+if (info.status === 'stub' || info.status === 'draft') {
+	text2 = patchRouteBlock(text, route, (b) =>
+		b.replace(/"status": "(stub|draft)"/, '"status": "written"')
+	);
+	result.status = 'written';
+}
 if (description && description !== (info.description ?? '')) {
-	const next = patchRouteBlock(text, route, (block) =>
+	text2 = patchRouteBlock(text2, route, (block) =>
 		/"description":\s*"(?:[^"\\]|\\.)*"/.test(block)
 			? block.replace(
 					/"description":\s*"(?:[^"\\]|\\.)*"/,
@@ -47,14 +55,14 @@ if (description && description !== (info.description ?? '')) {
 					`\n$1"description": ${JSON.stringify(description)},\n$1"status":`
 				)
 	);
-	if (next !== text) {
-		JSON.parse(next); // the map must still parse
-		writeFileSync(MAP_PATH, next);
-		result.changed = true;
-	}
+}
+if (text2 !== text) {
+	JSON.parse(text2); // the map must still parse
+	writeFileSync(MAP_PATH, text2);
+	result.changed = true;
 }
 console.log(
 	args.flags.has('json')
 		? JSON.stringify(result)
-		: `${route}: description ${result.changed ? 'synced' : 'unchanged'}`
+		: `${route}: ${result.changed ? 'synced' : 'unchanged'} (status ${result.status})`
 );

@@ -1,7 +1,7 @@
 /**
  * The orchestrator's decisions, bounded by code (agentic v3.3).
  *
- *   bun scripts/agentic/orchestrate.ts decide <run> <stage> --decision '<json>' [--json]
+ *   bun scripts/agentic/orchestrate.ts decide <run> <stage> --decision-file <path> | --decision '<json>' [--json]
  *       validates a checkpoint decision {verdict, decision, agent?, routes?, hint?, reason?,
  *       backlog?} against the vocabulary and the retry budget, appends it to R/decisions.jsonl
  *       (as taken, or as overridden with the reason), and prints what the script must do:
@@ -211,9 +211,12 @@ if (import.meta.main) {
 		const stage = args.positional[2];
 		let d: Decision;
 		try {
-			d = JSON.parse(args.get('decision') ?? '');
+			// --decision-file: the planner wrote its decision to disk — read it there, so the decision
+			// never has to be retyped into a command line by an LLM wrapper (2026-10-01).
+			const file = args.get('decision-file');
+			d = JSON.parse(file ? readFileSync(file, 'utf8') : (args.get('decision') ?? ''));
 		} catch {
-			console.error('decide needs --decision <json>');
+			console.error('decide needs --decision-file <path> (or --decision <json>)');
 			process.exit(1);
 		}
 		const r = decide(runId, stage, d!);

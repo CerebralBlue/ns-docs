@@ -170,8 +170,9 @@ export function createGraphView(
 		switch (node.status) {
 			case 'adopted':
 				return palette.adopted;
-			case 'auto':
+			case 'written':
 				return palette.auto;
+			case 'draft':
 			case 'stub':
 				return palette.stub;
 			default:

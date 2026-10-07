@@ -1,47 +1,40 @@
 {
-  "$comment": "Single source of truth for the old-docs -> new-site restructure. Keys of `routes` are new-site routes (file: src/content/docs/<route>.md). `sources` are paths relative to sourceRoot — the old MkDocs docs at the pinned commit of CerebralBlue/knowledge (the port toolchain is retired; git commit 80ee3b9); the first source is the primary content donor. `status`: stub (placeholder, rewritten by `bun run stubs`) | auto (machine-converted verbatim from the old page on 2026-09-17, not verified against the product; nothing regenerates it) | adopted (human-edited and checked). `gaps` is the documentation-gap audit (2026-08-04): undocumented product surfaces this route must cover, rendered into the stub as a worklist. `kill` lists old pages that are deliberately not migrated. This file doubles as the link-rewrite map and the future redirect map.",
-  "sourceRoot": "https://github.com/CerebralBlue/knowledge/tree/c5bda9c3b0394e4cbd2259560dc9a826d80f5d55/neuralseek/documentation/docs",
-  "sourceCommit": "c5bda9c3b0394e4cbd2259560dc9a826d80f5d55",
+  "$comment": "The site's route registry. Keys of `routes` are routes (file: src/content/docs/<route>.md). `status`: stub (placeholder, rewritten by `bun run stubs`) | draft (prose not yet checked against the product — the verbatim MkDocs port or an unverified edit) | written (written by the /docs-explore pipeline and passed its gates) | adopted (a human checked it; set by hand, with `reviewedAt` + `reviewedRun`; the pipeline never downgrades it). `type`: the page contract (scripts/agentic/contract.ts). `console`: the console areas whose captures a route is written from (first = owner). `gaps`: what the page must still cover; `gapsResolved`: gaps a capture disproved (never documented as absences). `redirects`: old MkDocs URL → new route, kept for the documentation.neuralseek.com cutover (scripts/url-inventory.ts). `renamed`: old route → new route or prose.",
   "routes": {
     "getting-started/what-is-neuralseek": {
       "title": "What is NeuralSeek",
-      "description": "Discover NeuralSeek, the AI-powered Answers-as-a-Service that enhances virtual agents with precise, fact-checked responses. Explore seamless integrations, cloud options, and hands-on training today!",
-      "sources": ["index.md"],
-      "action": "rewrite",
-      "status": "auto",
+      "description": "NeuralSeek answers questions from your own KnowledgeBase with a large language model, shows the sources behind each answer, and lets you build no-code LLM routines in mAIstro — this page walks through the Home screen and each navbar item.",
+      "status": "written",
+      "type": "concept",
       "console": ["home", "seek"]
     },
     "getting-started/quickstart-seek": {
       "title": "Quickstart: Seek",
       "description": "Get your first grounded answer from NeuralSeek in about 15 minutes.",
-      "sources": [],
-      "action": "new",
       "console": ["home", "seek"],
-      "status": "stub"
+      "status": "written",
+      "type": "quickstart"
     },
     "getting-started/quickstart-maistro": {
       "title": "Quickstart: mAIstro",
-      "description": "Build and run your first mAIstro agent.",
-      "sources": [],
-      "action": "new",
+      "description": "Open mAIstro from the NeuralSeek Home page, learn that a first agent is a flow of NTL nodes built around the LLM node, and find the two places agents run: Run Agents and Seek.",
       "console": ["home", "maistro"],
-      "status": "stub"
+      "status": "written",
+      "type": "quickstart"
     },
     "getting-started/concepts": {
       "title": "Core concepts",
-      "description": "The Seek pipeline, mAIstro agents, knowledge bases, and the curation lifecycle — how the pieces fit together.",
-      "sources": [],
-      "action": "new",
+      "description": "NeuralSeek's core concepts: Seek answers a question from your KnowledgeBase through an LLM and scores the answer, mAIstro builds agents, KnowledgeBase holds the documents, and Curate is where answers are reviewed and trained — each reached from a label in the console.",
       "console": ["home"],
-      "status": "stub"
+      "status": "written",
+      "type": "concept"
     },
     "getting-started/onboarding-wizard": {
       "title": "Onboarding wizard",
       "description": "The first-run setup flow that walks a new instance through Basics, Data, LLM, About, Tune and Q&A.",
-      "sources": [],
-      "action": "new",
       "console": ["home"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "The six wizard steps: Basics, Data, LLM, About, Tune, Q&A (Admin Tools > QA Tools)",
         "The already-onboarded gate — the page becomes a 'use Configure instead' dead end",
@@ -50,10 +43,9 @@
     },
     "getting-started/how-to-get-neuralseek": {
       "title": "How to get NeuralSeek",
-      "description": "The plans NeuralSeek is sold under, what each one includes, and how to get an instance. Deployment and platform detail lives in Reference > Deployment.",
-      "sources": ["more_about_NS/plans.md"],
-      "action": "distill",
-      "status": "auto",
+      "description": "NeuralSeek is sold under plans that differ in which LLM you can use and where the product can run; this page compares the plans, says where to get an instance, and shows where to change your support and development subscription from Home.",
+      "status": "written",
+      "type": "concept",
       "console": ["home"],
       "gaps": [
         "Renamed from 'Deployment options' per Robert's review (2026-08-04)",
@@ -61,30 +53,41 @@
         "Support plans — Home > Update Support Plan bills immediately, then rebills every 30 days (cross-link configuration/administration/support-plans)"
       ]
     },
-
     "seek/overview": {
       "title": "Seek overview",
-      "description": "Discover NeuralSeek's Seek feature, offering precise, context-rich answers from your KnowledgeBase. Ensure transparency with source highlights and semantic match scores for reliable, trustworthy insights.",
-      "sources": ["ui/seek/index.md"],
-      "action": "rewrite",
-      "status": "auto",
+      "description": "The Seek tab is NeuralSeek's answer playground: ask a question, read the generated answer, and inspect the provenance, statistics and source passages behind it.",
+      "status": "written",
+      "type": "concept",
       "console": ["seek"],
       "gaps": [
         "KnowledgeBase Context accordions — the passage used from each source document",
-        "Trained Answers panel — signals a curated answer was served instead of a fresh generation",
-        "Stump Speech panel — whether the always-pinned document contributed",
         "Statistical Details view and the Semantic Score Details modal behind the percentage",
-        "Relevancy % control beside the KnowledgeBase context",
         "Filter Text syntax — what to actually type into the filter box",
         "Personalize modal — the same three fields the Seek API accepts"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Trained Answers panel — signals a curated answer was served instead of a fresh generation",
+          "run": "202610070412-seek",
+          "why": "no panel or label 'Trained Answers' in any of the 7 Seek states of capture 202610070412-seek (default, filter, personalize, statistical-details, seek, cached-label, other-neuralseek); a served-from-cache answer is marked by the Cached badge beside Total Response Time (cached-label). A panel shown only for a curated answer is not excluded — the overview brief keeps it as an open question"
+        },
+        {
+          "gap": "Stump Speech panel — whether the always-pinned document contributed",
+          "run": "202610070412-seek",
+          "why": "no panel or label 'Stump Speech' in any of the 7 Seek states of capture 202610070412-seek; below the statistics table there is only KnowledgeBase Context. Stump Speech exists as a Company / Organization Preferences setting in Neural Config (owned by seek/tuning). Whether a panel appears when Stump Speech is filled in is an open question in the overview brief"
+        },
+        {
+          "gap": "Relevancy % control beside the KnowledgeBase context",
+          "run": "202610070412-seek",
+          "why": "no control and no 'Relevancy' label in any state; each KnowledgeBase Context entry is one expand button holding the source URL and an unlabelled percentage (states/default.yml, /img/seek/default--knowledgebase-context.png), documented as a value of the entry"
+        }
       ]
     },
     "seek/tuning": {
       "title": "Tuning answers",
-      "description": "Tuning a NeuralSeek agent means controlling which documentation reaches the LLM and how the LLM is told to write from it — diagnosed on the Seek tab and changed in the Edit Configuration dialog of Neural Config.",
-      "sources": ["guides/data/tuning_guide/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Tuning NeuralSeek answers means checking a real answer on the Seek tab, then shaping it with the Answer Engineering & Preferences and Company / Organization Preferences sections of Neural Config, after KnowledgeBase Tuning has the right documents reaching the LLM.",
+      "status": "written",
+      "type": "concept",
       "console": ["neural-config:advanced", "seek"],
       "gaps": [
         "Answer Engineering & Preferences accordion (IA 2026-09-19): this page owns the whole section until configuration/neural-config/answer-engineering exists — the 'How verbose should an average answer be?' slider, 'Force Answers from the Knowledgebase', and the Regular Expression / Replacement post-processing table with its 'Add a new row.' control",
@@ -93,60 +96,64 @@
     },
     "seek/virtual-kb": {
       "title": "Virtual KB",
-      "description": "Discover mAIstro's Virtual KnowledgeBase, a powerful tool to unify multiple knowledge sources for enhanced search and discovery. Learn to configure and expand your Virtual KB for flexible, scalable solutions.",
-      "sources": ["guides/data/virtual_kb/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Virtual KB is a KnowledgeBase Type that makes a mAIstro agent the knowledge source for Seek: set KnowledgeBase Type to Virtual KB in KnowledgeBase Connection and choose the agent in mAIstro Virtual KB agent, with no connection or field-mapping settings to fill in.",
+      "status": "written",
+      "type": "concept",
       "console": ["neural-config:advanced", "seek"]
     },
     "seek/dynamic-filters": {
       "title": "Dynamic filters",
       "description": "Narrow a single seek to a subset of KnowledgeBase documents at query time by typing a DQL filter string into the Seek tab's Filter dialog.",
-      "sources": ["guides/data/dynamic_filters/index.md"],
-      "action": "keep",
       "status": "adopted",
+      "reviewedAt": "2026-10-07",
+      "type": "concept",
       "console": ["seek", "neural-config:advanced"]
     },
     "seek/conversational-context": {
       "title": "Conversational context",
       "description": "NeuralSeek resolves a follow-up question against the earlier turns of a conversation when the seek request carries a constant session_id or user_id; the Platform Preferences settings — Context Turns, Context Timeout - Session, Context Timeout - User Only, Context detection and Force carry context — decide how much is carried and for how long.",
-      "sources": [
-        "features/convo_context/index.md",
-        "guides/integration/providing_context/index.md"
-      ],
-      "action": "merge",
       "status": "adopted",
+      "reviewedAt": "2026-10-07",
+      "reviewedRun": "202609271100-neural-config",
+      "type": "concept",
       "console": ["neural-config:advanced", "seek"]
     },
     "seek/caching": {
       "title": "Caching",
-      "description": "NeuralSeek has three caches — one on KnowledgeBase queries and two on answers (edited and normal) — each with its own setting in the Neural Config Edit Configuration dialog.",
-      "sources": ["features/caching/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "NeuralSeek caches at two levels — KnowledgeBase search results for a set number of minutes, and finished answers through the Edited answer cache and the Normal answer cache — to answer repeated questions faster and with the same wording.",
+      "status": "written",
+      "type": "concept",
       "console": ["neural-config:advanced", "seek"]
     },
     "seek/personalization": {
       "title": "Personalization",
       "description": "Personalization tailors a Seek answer to one customer using preferred name, products and other CRM details — tested in the Personalize modal and enabled in Neural Config.",
-      "sources": ["features/dynamic_pers/index.md"],
-      "action": "keep",
       "status": "adopted",
+      "reviewedAt": "2026-10-07",
+      "type": "concept",
       "console": ["seek", "neural-config:advanced"],
       "gaps": [
-        "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced)",
+        "Enable Dynamic Personalization — the on/off switch",
         "Personalization agent — the agent that adjusts answers using the personalization details",
         "Its NTL surface: the Personalization In/Out node pair (cross-link maistro/ntl/pipeline-hooks)",
         "Its test surface: the Seek > Personalize modal",
         "The Dynamic Personalization accordion by label (IA 2026-09-19): the section header 'Dynamic Personalization', 'Enable Dynamic Personalization' and 'mAIstro Personalization Agent' — Neural Config > Default Config > Edit Configuration > Dynamic Personalization"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Enable Dynamic Personalization — the on/off switch (Neural Config > Toggle Advanced) — the 'Toggle Advanced' path",
+          "run": "202610011319-neural-config",
+          "why": "no Toggle Advanced control in capture 202610010144; Enable Dynamic Personalization sits in the plain Dynamic Personalization accordion of Edit Configuration (state dynamic-personalization)"
+        }
       ]
     },
     "seek/curation": {
       "title": "Answer curation",
       "description": "The Curate screen lists the intents NeuralSeek groups user questions into, with their example questions and answers; there you filter and recategorise intents, add examples, upload Q&A pairs in bulk and export intents to a virtual agent.",
-      "sources": ["ui/curate/index.md", "features/answer_curation/index.md"],
-      "action": "merge",
       "status": "adopted",
+      "reviewedAt": "2026-10-07",
+      "reviewedRun": "202610062029-curate",
+      "type": "task",
       "console": ["curate"],
       "gaps": [
         "Delete user data — the bulk GDPR/CCPA erasure path",
@@ -161,54 +168,49 @@
     },
     "seek/chat-client": {
       "title": "Chat client",
-      "description": "Explore NeuralSeek's Chat feature for dynamic, one-on-one dialogues with a virtual agent. Easily embed it on your site for engaging, context-aware interactions.",
-      "sources": ["ui/chat/index.md"],
-      "action": "rewrite",
-      "status": "auto",
+      "description": "The Chat screen in the NeuralSeek console lets you hold test conversations in the same chat widget your visitors get when you embed it, and keeps every conversation in Chat History to reopen, rename, delete or download.",
+      "status": "written",
+      "type": "task",
       "console": ["chat"],
       "gaps": [
         "Edit Configuration — chat against a specific configuration or category; this is how routing is tested",
         "Rename Chat and running several test conversations side by side"
       ]
     },
-
     "maistro/overview": {
       "title": "mAIstro overview",
-      "description": "Explore mAIstro, a dynamic platform for retrieval-augmented generation. Seamlessly integrate your preferred LLM, enhance data quality, and enjoy user-friendly content creation with expert guidance.",
-      "sources": ["ui/maistro/index.md"],
-      "action": "rewrite",
-      "status": "auto",
+      "description": "mAIstro is the NeuralSeek screen where you build, save, browse, schedule and inspect agents — flows of nodes that are also written as NTL — and the starting point for every mAIstro page.",
+      "status": "written",
+      "type": "concept",
       "console": ["maistro"]
     },
     "maistro/visual-editor": {
       "title": "Visual editor",
-      "description": "Build agent flows visually in the mAIstro editor.",
-      "sources": [],
-      "action": "new",
+      "description": "The mAIstro Agent Editor is a canvas where you build an agent from nodes in a function library, run it from the run bar, and save it as an agent; the same flow is available as NTL text on the NTL tab.",
       "console": ["maistro"],
-      "status": "stub"
+      "status": "written",
+      "type": "concept"
     },
     "maistro/inspector": {
       "title": "Running and inspecting an agent",
-      "description": "Run an agent from the editor and read what happened: the timeline, the output previews, override input and user agents.",
-      "sources": [],
-      "action": "new",
+      "description": "Run a mAIstro agent from the editor, read its result in the Agent Output views, preview the documents it writes, and open the Inspector to look inside the run.",
       "console": ["runagent", "maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Inspector > Timeline — where run time went, per node, for this run",
         "Output format previews — Word, PDF, CSV and PPT, which verify document-creating nodes",
+        "Agent Output: tabs under the Agent Editor canvas — Inline, Raw, Text, HTML, Microsoft Word, PDF, CSV, PPT — and the Inspector button (bug icon, top right); captured in 202610070538-maistro (state agent-editor and every node state); the Inspector panel itself was not opened",
         "Set agent Override Input — supply an override input for a test run",
         "Attach User Agents (attaching, not just saving)"
       ]
     },
     "maistro/agent-visualizer": {
       "title": "Agent Visualizer",
-      "description": "A call graph of your whole agent fleet, built from every agent's NTL — read it to answer 'what calls this agent?'.",
-      "sources": [],
-      "action": "new",
+      "description": "The mAIstro Visualizer draws the calls between your saved agents as a graph of boxes and arrows, so you can see what calls an agent and what it calls before you change it.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "What the graph is built from and how to read it",
         "Visualizer vs Agent Editor — 'what calls this agent' vs 'what does this agent do'",
@@ -217,24 +219,23 @@
     },
     "maistro/agent-registry": {
       "title": "Agent Registry",
-      "description": "Named pools of agents that Select an Agent and Agent Plan choose from at run time. For the NTL node, see the Agent Registry node reference.",
-      "sources": [],
-      "action": "new",
+      "description": "An agent registry is a named pool of saved mAIstro agents that the Select Agent and Select Agent Plan nodes choose from at run time; you list and create registries on the mAIstro Registry tab.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "Create Registry and Edit Registry",
+        "Delete Registry — in the selection bar ('N item selected') shown once a registry row is selected; not visible in 202610070538-maistro because the list was empty",
         "Why registries exist — they are the pool run-time agent selection draws from",
         "Disambiguation: this is the product screen; maistro/ntl/agent-registry is the NTL node"
       ]
     },
     "maistro/agent-marketplace": {
       "title": "Agent Marketplace",
-      "description": "Browse, search and load pre-built agents and starter templates, including agents from external marketplaces.",
-      "sources": [],
-      "action": "new",
+      "description": "The Agent Marketplace is the Marketplace tab in mAIstro, where you search and filter a catalogue of ready-to-use agents and starter templates by type and category, then open one to load it instead of building an agent from scratch.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "Browse experience — search by name, description, audience or capability; filter by type and category",
         "Pre-built agents vs starter templates — which to load and which to modify",
@@ -243,41 +244,52 @@
     },
     "maistro/agent-scheduler": {
       "title": "Agent Scheduler",
-      "description": "Run an agent on a schedule: recurrence, parameters, where the output goes, and what happens on failure.",
-      "sources": [],
-      "action": "new",
+      "description": "Run a saved mAIstro agent on a cron schedule, see when each schedule last ran and runs next, and find out when a scheduled run fails.",
       "console": ["maistro"],
-      "status": "stub",
-      "gaps": [
-        "Recurrence options",
-        "Parameters passed on each scheduled run",
-        "Output destination",
-        "Failure behaviour"
+      "status": "written",
+      "type": "task",
+      "gaps": ["Recurrence options", "Failure behaviour"],
+      "gapsResolved": [
+        {
+          "gap": "Parameters passed on each scheduled run",
+          "run": "202610070538-maistro",
+          "why": "the Create a Schedule form (state create-schedule) has exactly three inputs: Select a mAIstro agent, Schedule: Cron expression (+ Edit schedule) and Schedule Description; no parameter field. Kept as an open question in the brief, not documented as an absence"
+        },
+        {
+          "gap": "Output destination",
+          "run": "202610070538-maistro",
+          "why": "neither the Create a Schedule form (state create-schedule) nor the schedule list (state scheduler: Agent, Last Run (UTC), Next Run (UTC), Description, Enabled) has an output or destination setting. Kept as an open question in the brief"
+        }
       ]
     },
     "maistro/run-agents": {
       "title": "Run Agents",
-      "description": "Dashboards of agent tiles for people who never open mAIstro — the same mechanism as Custom Governance dashboards, pointed at doing work rather than watching metrics.",
-      "sources": [],
-      "action": "new",
+      "description": "Run Agents is the console screen where you open a dashboard and its panels run their mAIstro agents and show the results, so people can use agents without building them.",
       "console": ["runagent", "maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Run Agents vs Custom Governance — same mechanism, 'do work' vs 'watch metrics'",
-        "Add Dashboard / Add Panel — bind an agent to a tile with a title, columns and rows",
+        "Add Panel — bind an agent to a tile with a title, columns and rows",
         "Set agent Parameters per panel",
         "Sequential run on load — outside edit mode every panel executes when the dashboard opens",
         "Panel cost — every panel run is a billable agent run",
         "The Run Agents permission also grants NeuralEdit; they cannot be separated"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Add Dashboard / Add Panel — bind an agent to a tile with a title, columns and rows — the Add Dashboard half",
+          "run": "202610070721-runagent",
+          "why": "no Add Dashboard control on /runagent in any of the 3 states of capture 202610070721-runagent (default, agent-dashboards, example-dashboard): the Agent Dashboards group lists only Example Dashboard, even in its collapsed markup (state agent-dashboards), whereas the same group markup on Custom Governance carries Add Dashboard (capture 202610060102-governance, state custom-governance). Captured with Edit off; whether it appears with Edit on stays an open question in the brief. Add Panel is on screen (disabled) and stays a gap"
+        }
       ]
     },
     "maistro/neuraledit/overview": {
       "title": "NeuralEdit overview",
-      "description": "An AI document editor grounded in your own files, driven by a mAIstro agent.",
-      "sources": [],
-      "action": "new",
+      "description": "NeuralEdit is a document editor with an AI assistant beside it that drafts and rewrites text from your own reference files, with its behaviour set by a mAIstro agent.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "What NeuralEdit is and where it lives (NeuralEdit in the navbar)",
         "Permission bundling — the Run Agents permission also grants NeuralEdit; they cannot be separated"
@@ -286,35 +298,35 @@
     "maistro/neuraledit/context-files": {
       "title": "Context files",
       "description": "Files NeuralEdit reads but never edits — the core concept behind grounding an edit in your own documents.",
-      "sources": [],
-      "action": "new",
       "console": ["maistro"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "What a context file is, how it differs from the file being edited, and how to add one"
       ]
     },
     "maistro/neuraledit/editing-and-reviewing": {
       "title": "Editing and reviewing",
-      "description": "Browse or create a file, review the AI's diff before accepting it, and commit the result.",
-      "sources": [],
-      "action": "new",
+      "description": "Open or create a file in NeuralEdit, ask the assistant to write or change text, check your changes, format the document, then save it or download it as text, Word, PowerPoint or HTML.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "File Browser and Create File",
         "Compare Changes — review the diff before accepting",
         "Undo / Redo / Save File",
-        "NeuralEdit Settings — confirm whether the panel is enabled before documenting it"
+        "NeuralEdit Settings — confirm whether the panel is enabled before documenting it",
+        "Download options beside Current file: Download text file, Download as Word document (.docx), Download as PowerPoint (.pptx), Download as HTML (.html)",
+        "Rich text formatting toolbar — B / I / U, lists, H1 / H2 / P, Code, alignment, Quote, Font family, Font size, Text and Fill colour, Table, Card, Link, Clear",
+        "AI Chat Assistant panel — Send a request to the agent; the — / + buttons minimise and restore the panel"
       ]
     },
     "maistro/neuraledit/authoring-an-agent": {
       "title": "Authoring a NeuralEdit agent",
-      "description": "NeuralEdit's behaviour is defined by a mAIstro agent that starts with the NeuralEdit input node.",
-      "sources": [],
-      "action": "new",
+      "description": "NeuralEdit runs a mAIstro agent: load a NeuralEdit agent from the mAIstro Marketplace, or build one that begins with the NeuralEdit - In node, then save it and check which agent NeuralEdit uses.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "The NeuralEdit Input node and the shape of a NeuralEdit agent",
         "Cross-link: maistro/ntl/pipeline-hooks"
@@ -322,11 +334,10 @@
     },
     "maistro/ntl-overview": {
       "title": "NTL overview",
-      "description": "The NeuralSeek Template Language: syntax, variables, and how nodes compose into agents.",
-      "sources": [],
-      "action": "new",
+      "description": "NTL (NeuralSeek Template Language) is the text form of a mAIstro agent — how nodes, chaining, variables and secrets are written, and when to edit an agent in the NTL tab instead of the visual Agent Editor.",
       "console": ["maistro"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "TOOLING (not a page): the NTL doc generator has stopped detecting nodes; fixing it closes 103 of 112 node gaps",
         "TOOLING: retarget the generator at this site — output location, aside syntax, per-page frontmatter, drop the old nav file",
@@ -334,49 +345,45 @@
         "27 label mismatches between doc headings and the product's node names (e.g. KB Search vs KB Documentation)"
       ]
     },
-
     "maistro/ntl/get-data": {
       "title": "Get Data",
       "description": "User input text or prompting.",
-      "sources": ["ui/maistro/features/ntl_functions/get_data.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/upload-data": {
       "title": "Upload Data",
       "description": "Read a local document :::note[Parameters]",
-      "sources": ["ui/maistro/features/ntl_functions/upload_data.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference",
+      "gaps": [
+        "Use Document's Select Document dialog — browse the instance's files (Files, Up one folder), Manage files (Upload, Upload & OCR, Move, Delete) and Select one; captured in 202610070538-maistro, state use-document"
+      ]
     },
     "maistro/ntl/generate-data": {
       "title": "Generate Data",
       "description": "This node takes all text flowing into it and sends it to an LLM.",
-      "sources": ["ui/maistro/features/ntl_functions/generate_data.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/local-cache": {
       "title": "Local Cache",
       "description": "Read from local cache :::note[Parameters]",
-      "sources": ["ui/maistro/features/ntl_functions/local_cache.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/extract-data": {
       "title": "Extract Data",
       "description": "NeuralSeek Entity extraction.",
-      "sources": ["ui/maistro/features/ntl_functions/extract_data.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "reference",
       "gaps": ["Gather — collect values from a user using slots defined on the Extract tab"]
     },
     "maistro/ntl/multi-agent": {
       "title": "Multi-Agent",
       "description": "Import and run another m<span class='d1'>AI</span>stro template in the same variable space as the current m<span class='d1'>AI</span>stro.",
-      "sources": ["ui/maistro/features/ntl_functions/multi-agent.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "reference",
       "gaps": [
         "LLM Plan / LLM Act — build a plan in JSON, then execute it via sub-LLM calls",
         "Make & Test NTL — generate NTL, test it, iterate",
@@ -386,23 +393,20 @@
     "maistro/ntl/control-flow": {
       "title": "Control Flow",
       "description": "This node allows for comments and description of surrounding NTL :::note[Parameters]",
-      "sources": ["ui/maistro/features/ntl_functions/control_flow.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/rag-tools": {
       "title": "RAG Tools",
       "description": "Use with a custom RAG flow to send answers to Curate and Analytics.",
-      "sources": ["ui/maistro/features/ntl_functions/rag_tools.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/guardrails": {
       "title": "GuardRails",
       "description": "Protect from prompt injection.",
-      "sources": ["ui/maistro/features/ntl_functions/guardrails.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "reference",
       "gaps": [
         "HTTP Guardrails — block outbound HTTP after this node; affects everything downstream",
         "Create / Validate JWT — sign and verify JWTs inside an agent",
@@ -413,16 +417,14 @@
     "maistro/ntl/system-variables": {
       "title": "System Variables",
       "description": "Insert the current date.",
-      "sources": ["ui/maistro/features/ntl_functions/system_variables.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/sandboxes": {
       "title": "Sandboxes",
       "description": "Run arbitrary javascript ESM code.",
-      "sources": ["ui/maistro/features/ntl_functions/sandboxes.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "reference",
       "gaps": [
         "Custom Connector — call another agent as an isolated connector (not in the node menu)"
       ]
@@ -430,16 +432,14 @@
     "maistro/ntl/send-data": {
       "title": "Send Data",
       "description": "Send a REST request and return the received data :::note[Parameters]",
-      "sources": ["ui/maistro/features/ntl_functions/send_data.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/agent-registry": {
       "title": "Agent Registry node",
       "description": "Given an example agent, neuralseekupdates:",
-      "sources": ["ui/maistro/features/ntl_functions/agent_registry.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "reference",
       "gaps": [
         "Retitled 'Agent Registry node' to disambiguate from the maistro/agent-registry product screen"
       ]
@@ -447,9 +447,8 @@
     "maistro/ntl/database-connections": {
       "title": "Database Connections",
       "description": "The Database Connections allow us to use SQL queries to retrieve data, and subsequently use that data for natural language processing with TableUnderstanding…",
-      "sources": ["ui/maistro/features/ntl_functions/database_connections.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "reference",
       "gaps": [
         "The IBM DB2 node is documented but no such node appears in the product — verify before publishing"
       ]
@@ -457,9 +456,8 @@
     "maistro/ntl/pipeline-hooks": {
       "title": "Pipeline hooks",
       "description": "The In/Out node pairs that make the pipeline-agent settings in Neural Config usable — governance, personalization, post-KB, save hooks, corporate logging, Slack events and NeuralEdit.",
-      "sources": [],
-      "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "14 pipeline-hook nodes that make 9 Neural Config settings usable",
         "Pre-llm Governance In/Out and Governance Input/Output (Guardrails > Custom Governance)",
@@ -475,9 +473,8 @@
     "maistro/ntl/charts-and-telemetry": {
       "title": "Charts and telemetry",
       "description": "The chart nodes that render HTML visualisations and the instance-data nodes that feed them — together these are what makes an agent eligible to be a dashboard panel.",
-      "sources": [],
-      "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "6 chart nodes: bar, line, pie, area, doughnut, bubble (mAIstro > Charting & Graphs)",
         "4 telemetry nodes: GUI logins, Seek users, mAIstro users, agent details (mAIstro > Instance Data)",
@@ -488,9 +485,8 @@
     "maistro/ntl/multimodal": {
       "title": "Multimodal nodes",
       "description": "Nodes that work on audio and images rather than text.",
-      "sources": [],
-      "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "Speech to Text — send audio to a speech model and return text (not in the node menu)",
         "Owned by the NTL doc generator once it is fixed — this stub reserves the route"
@@ -499,79 +495,68 @@
     "maistro/ntl/modify-data/transform": {
       "title": "Transform",
       "description": "Summarize a large block of text into a smaller set of extracted sentences.",
-      "sources": ["ui/maistro/features/ntl_functions/modify_data/transform.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/modify-data/string-toolbox": {
       "title": "String Toolbox",
       "description": "Convert a string to UPPERCASE.",
-      "sources": ["ui/maistro/features/ntl_functions/modify_data/string_toolbox.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/modify-data/json-toolbox": {
       "title": "JSON Toolbox",
       "description": "Turn a JSON object into flattened variables for use in later steps.",
-      "sources": ["ui/maistro/features/ntl_functions/modify_data/json_toolbox.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/modify-data/xml-toolbox": {
       "title": "XML Toolbox",
       "description": "Turn XML into JSON",
-      "sources": ["ui/maistro/features/ntl_functions/modify_data/xml_toolbox.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/modify-data/code-toolbox": {
       "title": "Code Toolbox",
       "description": "Extract code from markdown.",
-      "sources": ["ui/maistro/features/ntl_functions/modify_data/code_toolbox.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/aws-s3": {
       "title": "AWS S3",
       "description": "Connect to AWS s3 and read a file :::note[Parameters]",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/aws_s3.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/databases": {
       "title": "Databases",
       "description": "Connect to a DB2 database and run a sql query, returning the data.",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/databases.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/github": {
       "title": "GitHub",
       "description": "Connect to Github and run a search for Issues and Pull Requests based on the provided query, returning the data.",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/github.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/google-drive": {
       "title": "Google Drive",
       "description": "Read from Google Drive.",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/google_drive.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/jira": {
       "title": "Jira",
       "description": "Connect to Jira and run a search based on the provided query, returning the data.",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/jira.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/knowledgebases": {
       "title": "Knowledge Bases",
       "description": "Run an exists, index, get, search, update, or delete operation on ElasticSearch :::note[Parameters]",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/knowledgebases.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "reference",
       "gaps": [
         "ES KB Add Document — chunk, embed and index a document into Elasticsearch (not in the node menu)"
       ]
@@ -579,9 +564,8 @@
     "maistro/ntl/integrations/mcp": {
       "title": "MCP client",
       "description": "Call external MCP (Model Context Protocol) tools and agents from inside your own agent.",
-      "sources": [],
-      "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "The MCP client node — calling an external MCP agent",
         "Cross-link: integrations/mcp-server is the other direction (exposing your agents)",
@@ -591,9 +575,8 @@
     "maistro/ntl/integrations/a2a": {
       "title": "a2a client",
       "description": "Call external agents over the Agent-to-Agent protocol from inside your own agent.",
-      "sources": [],
-      "action": "new",
       "status": "stub",
+      "type": "reference",
       "gaps": [
         "The a2a client node — calling an external a2a agent",
         "Cross-link: integrations/a2a-server is the other direction (exposing your agents)",
@@ -603,76 +586,73 @@
     "maistro/ntl/integrations/sharepoint": {
       "title": "SharePoint",
       "description": "Connect to SharePoint and list files.",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/sharepoint.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/slack": {
       "title": "Slack",
       "description": "Connect to Slack and run a search for messages based on the provided query.",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/slack.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/trello": {
       "title": "Trello",
       "description": "Connect to Trello and run a search :::note[Parameters]",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/trello.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/watsonx-governance": {
       "title": "watsonx.governance",
       "description": "Connect to watsonx.governance and log a Seek.",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/watsonx.governance.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
     "maistro/ntl/integrations/web-search": {
       "title": "Web Search",
       "description": "Search the web using Google.",
-      "sources": ["ui/maistro/features/ntl_functions/integrations/web_searches.md"],
-      "action": "keep",
-      "status": "auto"
+      "status": "draft",
+      "type": "reference"
     },
-
     "knowledge/ingestion-overview": {
       "title": "Getting documents in",
-      "description": "The six ways documents reach a NeuralSeek knowledge base, and how to choose between them.",
-      "sources": [],
-      "action": "new",
+      "description": "Content reaches the knowledge base NeuralSeek answers from in several ways — among them the Data Loader, SharePoint Online sync, a mAIstro agent of your own, or an index you already run and connect — and this page helps you choose.",
       "console": ["knowledge", "data-loader"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "Route readers between the six ingestion paths: Load, Crawler, SharePoint sync, KB API, ES KB Add Document node, and connecting an existing index"
       ]
     },
     "knowledge/connect-a-kb": {
       "title": "Connect a knowledge base",
-      "description": "Step-by-step walkthrough for admins connecting a knowledge base to NeuralSeek: open the KnowledgeBase Connection section of Neural Config, pick the KnowledgeBase Type, set the KnowledgeBase Language, save, and confirm with a Seek.",
-      "sources": ["ui/integrate/index.md"],
-      "action": "rewrite",
-      "status": "auto",
+      "description": "Step-by-step walkthrough for admins connecting a knowledge base to NeuralSeek: open KnowledgeBase Connection in Neural Config, pick the KnowledgeBase Type, fill in the store's fields, set the KnowledgeBase Language, save, and confirm with a Seek.",
+      "status": "written",
+      "type": "task",
       "console": ["neural-config", "knowledge"]
     },
     "knowledge/supported-knowledgebases": {
       "title": "Supported knowledge bases",
-      "description": "NeuralSeek's KnowledgeBase Type selector offers fifteen stores — Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery, OpenSearch, Kendra, Bedrock, Pinecone, Milvus, Postgres, Virtual KB, NeuralSeek KB, No KnowledgeBase and ChromaDB — and this page lists them with the retrieval features each is known to support.",
-      "sources": ["ui/integrate/integrations/supported_knowledgebases/supported_knowledgebases.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "The KnowledgeBase Type selector in Neural Config lists sixteen knowledge bases — Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch, ElasticSearch, watsonx Discovery, OpenSearch, Kendra, Bedrock, IBM CAS, Pinecone, Milvus, Postgres, Virtual KB, NeuralSeek KB, No KnowledgeBase and ChromaDB — and the connection form each one opens decides which retrieval controls, such as filters, re-sorting, full-document return and hybrid or vector search, you can set.",
+      "status": "written",
+      "type": "reference",
       "console": ["neural-config"],
       "gaps": [
-        "Six KB types missing from the support matrix: Watson Discovery on CP4D, Postgres, Coveo, Virtual KB, NeuralSeek KB, and No KnowledgeBase"
+        "Five KB types missing from the support matrix: Watson Discovery on CP4D, Postgres, Virtual KB, NeuralSeek KB, and No KnowledgeBase"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Six KB types missing from the support matrix: … Coveo … (the Coveo part)",
+          "run": "202610011319-neural-config",
+          "why": "Coveo is not a KnowledgeBase Type: the option list in knowledgebase-connection--options-knowledgebase-type (capture 202610010144) has 16 values — Watson Discovery … ChromaDB — with no Coveo, and every kb-type sweep variant shows the same list"
+        }
       ]
     },
     "knowledge/document-manager": {
       "title": "Document Manager",
-      "description": "Search the indexed documents on your instance, see how many there are, and delete the ones you no longer want retrieved.",
-      "sources": [],
-      "action": "new",
+      "description": "The Knowledgebase Manager lists the records indexed in your NeuralSeek knowledge base, shows a document count, and lets you search, page through and select records to remove outdated content.",
       "console": ["knowledge"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "Where it is: KnowledgeBase in the navbar",
         "Search and the document count",
@@ -683,11 +663,10 @@
     },
     "knowledge/hybrid-vector-semantic-search": {
       "title": "Hybrid, vector and semantic search",
-      "description": "How NeuralSeek queries Elasticsearch and watsonx Discovery indexes — keyword, vector, hybrid and semantic query types, and who computes the query vector.",
-      "sources": [],
-      "action": "new",
+      "description": "The Hybrid & Vector Search Settings section of Neural Config, shown only when the KnowledgeBase Type is ElasticSearch or watsonx Discovery, sets the Elastic Query Type — Lucene, Hybrid, Vector or Semantic — and decides whether NeuralSeek or a model deployed in Elasticsearch turns the question into a query vector.",
       "console": ["neural-config", "knowledge"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "Query Type: Semantic — an Elasticsearch semantic query via an inference endpoint",
         "'Use NeuralSeek embedding models?' — whether NeuralSeek or Elasticsearch computes the query vector",
@@ -697,26 +676,23 @@
     },
     "knowledge/pinecone": {
       "title": "Pinecone setup",
-      "description": "Unlock seamless integration with Pinecone as your knowledge base using our step-by-step guide. Learn to configure, upload documents via Node.js, and master its key functionalities.",
-      "sources": ["guides/integration/pinecone_configuration/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "To use a Pinecone index as NeuralSeek's knowledge base, set KnowledgeBase Type to Pinecone in the KnowledgeBase Connection section of Neural Config, enter the index name, namespace and API key, map your records' metadata keys, and save.",
+      "status": "written",
+      "type": "task",
       "console": ["neural-config"]
     },
     "knowledge/elasticsearch-vector-model": {
       "title": "Elasticsearch vector model",
-      "description": "Learn to configure environments, create API keys, set up machine learning, download models, and verify data embeddings seamlessly with NeuralSeek's ElasticSearch Vector Search guide.",
-      "sources": ["guides/integration/elasticsearch_vector_model/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Connect NeuralSeek to an Elasticsearch index that holds embeddings: set KnowledgeBase Type to ElasticSearch, enter the endpoint, API key and index, map the index fields, then set Elastic Query Type to Vector with the model and embedding field the index was built with.",
+      "status": "written",
+      "type": "task",
       "console": ["neural-config", "neural-config:advanced"]
     },
     "knowledge/load": {
       "title": "Loading documents",
-      "description": "Effortlessly load documents into your Knowledgebase with NeuralSeek's Data Loader. Simplify data import to Elastic, databases, or REST services using mAIstro templates.",
-      "sources": ["ui/load/index.md"],
-      "action": "rewrite",
-      "status": "auto",
+      "description": "The Data Loader hands each file you drop on it to a mAIstro loader template, which reads the file and writes it to the NeuralSeek knowledge base, an Elasticsearch index or any other store a mAIstro node can reach.",
+      "status": "written",
+      "type": "task",
       "console": ["data-loader", "knowledge"],
       "gaps": [
         "Loader template selector — which mAIstro template processes the upload",
@@ -727,9 +703,8 @@
     "knowledge/extract": {
       "title": "Extracting data",
       "description": "NeuralSeek's Extract tool can effortlessly extract and manage entities from your text with a user-friendly interface. Customize entities for precision and tailor the process to your needs.",
-      "sources": ["ui/extract/index.md"],
-      "action": "rewrite",
-      "status": "auto",
+      "status": "draft",
+      "type": "task",
       "console": ["admin-tools"],
       "gaps": [
         "Custom Entities tab — define your own entity types",
@@ -740,10 +715,9 @@
     },
     "knowledge/table-understanding": {
       "title": "Table understanding",
-      "description": "Unlock seamless table data extraction with NeuralSeek's Table Understanding. Optimize document queries effortlessly, though note it requires 1 seek query per table.",
-      "sources": ["features/table_understanding/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Table Understanding is the NeuralSeek LLM function for table data in your documents; you turn it on by ticking it on an LLM card in LLM Details, and only a model that supports it can take it.",
+      "status": "written",
+      "type": "concept",
       "console": ["knowledge"],
       "gaps": [
         "Guidance is stale: re-crawl and re-load now re-process and cost, but the docs still say crawls are ineligible"
@@ -751,31 +725,32 @@
     },
     "knowledge/auto-data-cleanse": {
       "title": "Auto data cleanse",
-      "description": "Discover NeuralSeek's Automatic Data Cleansing. Streamline web-scraped content by removing nuisances like banners and cookies, ensuring high-quality, focused information for your organization.",
-      "sources": ["features/auto_data_cleanse/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "HTML Cleansing cleans web pages scraped into a supported knowledge base so page clutter does not reach answers; you switch it on or off and add your own CSS selectors to remove in Platform Preferences.",
+      "status": "written",
+      "type": "concept",
       "console": ["knowledge"]
     },
     "knowledge/managed-knowledgebase/overview": {
       "title": "Managed KnowledgeBase overview",
-      "description": "What a NeuralSeek-hosted knowledge base is, what it holds, and when you would use one instead of bringing your own index.",
-      "sources": [],
-      "action": "new",
+      "description": "The managed KnowledgeBase is the knowledge base NeuralSeek hosts for you: set KnowledgeBase Type to NeuralSeek KB, load documents with the Data Loader, and review them in the Knowledgebase Manager.",
       "console": ["knowledge"],
-      "status": "stub",
-      "gaps": [
-        "KnowledgeBase > General (managed plans only) — language and document count",
-        "When the managed KB is available at all, and what it replaces"
+      "status": "written",
+      "type": "concept",
+      "gaps": ["When the managed KB is available at all, and what it replaces"],
+      "gapsResolved": [
+        {
+          "gap": "KnowledgeBase > General (managed plans only) — language and document count",
+          "run": "202610070302-knowledge",
+          "why": "the KnowledgeBase screen (capture 202610070302, state default, heading 'Knowledgebase Manager', instance on KnowledgeBase Type NeuralSeek KB) is one page with no tabs, so there is no General tab; Document Count is on that page and KnowledgeBase Language is in Neural Config > KnowledgeBase Connection (capture 202610010144), both briefed for this route"
+        }
       ]
     },
     "knowledge/managed-knowledgebase/web-crawler": {
       "title": "Web crawler",
       "description": "Crawl a domain into the managed knowledge base, on demand or on a weekly or monthly schedule.",
-      "sources": [],
-      "action": "new",
       "console": ["knowledge"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "Crawl a domain; weekly or monthly recrawl",
         "What crawling triggers: Auto Data Cleanse, and re-triggering Table Understanding costs"
@@ -784,10 +759,9 @@
     "knowledge/managed-knowledgebase/synonyms": {
       "title": "Synonyms",
       "description": "Synonym sets that make retrieval treat your organisation's vocabulary as equivalent.",
-      "sources": [],
-      "action": "new",
       "console": ["knowledge"],
       "status": "stub",
+      "type": "task",
       "gaps": [
         "Defining synonym sets",
         "Synonyms vs stopwords vs allowed words — three different levers, easily confused"
@@ -796,23 +770,26 @@
     "knowledge/managed-knowledgebase/kb-api": {
       "title": "KnowledgeBase API",
       "description": "The API surface for the managed KnowledgeBase — the third of NeuralSeek's three API surfaces.",
-      "sources": [],
-      "action": "new",
       "console": ["knowledge"],
       "status": "stub",
+      "type": "reference",
       "gaps": [
-        "KnowledgeBase > API",
         "How it differs from the runtime API and the Console API (cross-link integrations/rest-and-console-api)"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "KnowledgeBase > API",
+          "run": "202610070302-knowledge",
+          "why": "the KnowledgeBase screen (capture 202610070302, state default, heading 'Knowledgebase Manager', instance on NeuralSeek KB) is one page with no tabs and no API section, link, key or endpoint; the Data Loader (state go-to-document-loader) has none either"
+        }
       ]
     },
-
     "integrations/overview": {
       "title": "What can we connect to?",
       "description": "One map of every external system NeuralSeek connects to — knowledge bases, LLMs, virtual agents, chat platforms, protocol servers and the APIs — with a link to each setup guide.",
-      "sources": [],
-      "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "Requested by Robert (2026-08-04): a sitemap page that ties every external connection together",
         "Linked from Getting Started as well as from Integrations — intentionally the same page in two places",
@@ -821,19 +798,17 @@
     },
     "integrations/virtual-agents": {
       "title": "Virtual agents",
-      "description": "Explore NeuralSeek's supported virtual agents, including watsonx Assistant and AWS Lex. Discover features like fallback search, answer curation, and round-trip monitoring for enhanced chatbot integration.",
-      "sources": ["ui/integrate/integrations/supported_virtual_agents/supported_virtual_agents.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "NeuralSeek connects to watsonx Assistant, AWS Lex and Kore.ai through setup screens under API's & Integration, which cover fallback search into NeuralSeek and round-trip monitoring of the intents you curate.",
+      "status": "written",
+      "type": "concept",
       "console": ["admin-tools"]
     },
     "integrations/virtual-agents/watsonx-assistant": {
       "title": "watsonx Assistant",
-      "description": "Wire NeuralSeek into watsonx Assistant with the custom extension, and send its logs back for round-trip monitoring.",
-      "sources": [],
-      "action": "new",
+      "description": "Connect IBM watsonx Assistant to NeuralSeek by uploading the Watson Custom OpenAPI file as a custom extension with API key auth, and send the assistant's logs back through a log webhook so NeuralSeek can flag curated intents that need updating.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Watson OpenAPI: two downloads — the full spec file vs the Watson Custom file, and when to use each",
         "Watson Logs setup — round-trip logging from watsonx Assistant"
@@ -841,56 +816,53 @@
     },
     "integrations/virtual-agents/aws-lex": {
       "title": "AWS Lex",
-      "description": "Route the Lex fallback intent to NeuralSeek through a Lambda, and enable round-trip logs.",
-      "sources": [],
-      "action": "new",
+      "description": "NeuralSeek connects to an Amazon Lex V2 bot through two AWS Lambda functions: one sends questions that reach the bot's FallbackIntent to NeuralSeek's Seek endpoint, the other ships the bot's conversation logs to NeuralSeek every 15 minutes for round-trip monitoring.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "LexV2 Lambda — route the Lex fallback intent to NeuralSeek",
-        "LexV2 Logs — round-trip logging"
+        "LexV2 Logs — round-trip logging",
+        "The Lambda Archive download on both LexV2 screens, and the AWS console links the steps use: LexV2, Functions, Log Groups, Rules"
       ]
     },
     "integrations/virtual-agents/kore-ai": {
       "title": "Kore.ai",
-      "description": "Round-trip monitoring of a Kore.ai assistant through event tasks.",
-      "sources": [],
-      "action": "new",
+      "description": "KoreAI Logs sets up round-trip monitoring for a Kore.ai bot: a Dialog Task fired on the End of Task event posts the conversation context to NeuralSeek, which then flags curated intents whose source documents have changed.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": ["KoreAI Logs — round-trip monitoring via Kore.ai event tasks"]
     },
     "integrations/training-virtual-agents": {
       "title": "Training virtual agents",
       "description": "Turn the intents, example questions and answers curated in NeuralSeek's Curate screen into training data for a virtual agent such as watsonx Assistant or AWS Lex, in the format set by Virtual Agent Type.",
-      "sources": ["guides/integration/training_virtual_agents/index.md"],
-      "action": "keep",
       "status": "adopted",
+      "reviewedAt": "2026-10-07",
+      "reviewedRun": "202610062029-curate",
+      "type": "task",
       "console": ["curate", "admin-tools"]
     },
     "integrations/watsonx-assistant-streaming": {
       "title": "watsonx Assistant streaming",
-      "description": "Unlock a dynamic user experience with mAIstro NTL Endpoint and Watsonx Assistant! Learn to enable streaming for faster, interactive chatbot responses. Follow our step-by-step guide to enhance engagement.",
-      "sources": ["guides/integration/wa_context_guide/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Stream a mAIstro agent's answer into an IBM watsonx Assistant chat by calling it through the NeuralSeek custom extension, with streaming allowed on the agent's LLM node and switched on in watsonx Assistant.",
+      "status": "written",
+      "type": "task",
       "console": ["admin-tools"]
     },
     "integrations/nice-cxone": {
       "title": "NICE CXone",
-      "description": ">",
-      "sources": ["guides/integration/nice_cxone_integration/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Connect a NICE CXone chat channel to a NeuralSeek mAIstro agent through the Virtual Agent Hub Custom Exchange Endpoint, a CXone Studio script and a proxy-tunnel agent.",
+      "status": "draft",
+      "type": "task",
       "console": ["admin-tools"]
     },
     "integrations/slack-extension": {
       "title": "Slack extension",
       "description": "Put NeuralSeek in Slack: credentials, event handler agents, behaviour settings and manifest generation.",
-      "sources": [],
-      "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Credentials and manifest generation",
         "Event handler agents (cross-link maistro/ntl/pipeline-hooks: Slack Event In, Out, Cancel)",
@@ -900,11 +872,10 @@
     },
     "integrations/teams-extension": {
       "title": "Microsoft Teams extension",
-      "description": "Put NeuralSeek in Teams: Azure Bot credentials, the welcome message, and the downloadable app package.",
-      "sources": [],
-      "action": "new",
+      "description": "The Teams Extension connects NeuralSeek to Microsoft Teams through an Azure Bot: you point the bot's messaging endpoint at NeuralSeek, save its Microsoft App ID, client secret and (for a Single Tenant bot) Tenant ID in Teams Credentials, then install the Teams app package NeuralSeek generates.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Azure Bot credentials, welcome message, app package download",
         "Single-tenant vs multi-tenant — Tenant ID is required for single-tenant and left empty for multi-tenant"
@@ -912,36 +883,35 @@
     },
     "integrations/mcp-server": {
       "title": "MCP server",
-      "description": "Expose your agents as MCP tools over a Bearer-authenticated endpoint, so any MCP client can call them.",
-      "sources": [],
-      "action": "new",
+      "description": "The MCP Server screen gives you your instance's MCP server URL and the Authorization: Bearer header format, so an MCP client can connect with a NeuralSeek API key and consume your mAIstro agents.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Admin Tools > Integrate > MCP Server — endpoint and Bearer auth",
         "Which agents are exposed and how they appear as tools",
-        "Cross-link: maistro/ntl/integrations/mcp is the client direction"
+        "Cross-link: maistro/ntl/integrations/mcp is the client direction",
+        "The screen's link to the protocol site, https://modelcontextprotocol.io/"
       ]
     },
     "integrations/a2a-server": {
       "title": "a2a server",
-      "description": "Expose your agents over the Agent-to-Agent protocol.",
-      "sources": [],
-      "action": "new",
+      "description": "The a2a Server screen under API's & Integration gives the URL and the Bearer authentication header an Agent-to-Agent (a2a) client needs to call your NeuralSeek mAIstro agents.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Admin Tools > Integrate > a2a Server",
-        "Cross-link: maistro/ntl/integrations/a2a is the client direction"
+        "Cross-link: maistro/ntl/integrations/a2a is the client direction",
+        "The screen's link to the protocol repository, https://github.com/a2aproject/A2A"
       ]
     },
     "integrations/sharepoint-sync": {
       "title": "SharePoint sync",
-      "description": "Sync SharePoint sites into an index with the four-step wizard, optionally carrying each document's permissions across for per-user filtering.",
-      "sources": [],
-      "action": "new",
+      "description": "The SharePoint Online Background Connector indexes SharePoint Online documents into the NeuralSeek managed KnowledgeBase or your own Elasticsearch index, configured in four steps: credentials, site collections, sync target, and schedule.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "The four-step wizard",
         "Capture access control — pull SharePoint permissions for per-user document filtering",
@@ -951,61 +921,57 @@
     },
     "integrations/webhook": {
       "title": "Webhook",
-      "description": "The generic inbound entry point — call NeuralSeek from anything that can send an HTTP request.",
-      "sources": [],
-      "action": "new",
+      "description": "The WebHook screen gives you the Seek endpoint URL and the instance ID that a chatbot or any other HTTP client needs, together with an API key you create, to ask NeuralSeek a question.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": ["Admin Tools > Integrate > WebHook — the generic inbound entry point"]
     },
     "integrations/rest-and-console-api": {
       "title": "REST and Console APIs",
-      "description": "NeuralSeek's three API surfaces — the runtime API, the Console (management) API, and the managed KnowledgeBase API — and which one to reach for.",
-      "sources": [],
-      "action": "new",
+      "description": "NeuralSeek has three API surfaces: the runtime API at /v1/<instance id> for Seek, mAIstro and related calls, the Console API at /c1/<instance id> for managing an instance's data, and the separate managed KnowledgeBase API.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Console API — the management API for configuration, curation and governance data",
         "Three API surfaces: runtime API, Console API, and the managed KB API are different things",
-        "Which credential each surface accepts (cross-link configuration/administration/api-keys)"
+        "Which credential each surface accepts (cross-link configuration/administration/api-keys)",
+        "Admin Tools > API's & Integration > API and Console API — the in-console API reference: the ./neuralseek.json and ./consoleapi.json spec files, Authorize, and Schemas",
+        "The Console API's operation list (POST /addIntent … POST /agentpanels) — summarise what the operations manage, grouped, rather than listing each one"
       ]
     },
     "integrations/chat-sdk": {
       "title": "Chat SDK",
       "description": "Integrate NeuralSeek's Chat SDK effortlessly into your website! Enable dynamic Q&A with KnowledgeBase content, document uploads, and customizable chat widgets.",
-      "sources": ["guides/integration/chat_sdk_integration/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "written",
+      "type": "task",
       "console": ["chat"]
     },
     "integrations/feedback": {
       "title": "Implementing feedback",
       "description": "Rate a NeuralSeek answer with the Thumbs Up / Thumbs Down icons on the Seek answer panel, read those ratings back in Curate, embed the icons in a virtual agent, and rate answers programmatically with the /rate API.",
-      "sources": ["guides/integration/implementing_feedback/index.md"],
-      "action": "keep",
       "status": "adopted",
+      "reviewedAt": "2026-10-07",
+      "type": "task",
       "console": ["seek", "curate"]
     },
-
     "configuration/overview": {
       "title": "Configuration overview",
-      "description": "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that route matched questions to Seek or to a mAIstro agent, and Guardrails nodes — this page maps the screen and links each part to its own page.",
-      "sources": ["ui/configure/index.md"],
-      "action": "rewrite",
-      "status": "auto",
+      "description": "The Neural Config screen is a routing tree: a Default Config root that holds the instance-wide settings, categories that send matching questions to Answer Generation or to a mAIstro agent and can carry a configuration of their own, and Guardrails nodes — this page explains the tree and links each part to its own page.",
+      "status": "written",
+      "type": "concept",
       "console": ["neural-config", "neural-config:advanced"],
       "gaps": [
-        "The routing tree itself (Default Config root, Answers (N), Add Intent, Category Routing, Guardrails nodes) and the Edit Category dialog — owned here (IA 2026-09-18); using-this-page owns the framing controls (Toggle Advanced, Save vs Propose, Add Intent modal, Default Action, Delete Configuration)"
+        "The routing tree itself (Default Config root, Answers (N), Add Intent, Category Routing, Guardrails nodes) and the Edit Category dialog — owned here (IA 2026-09-18); using-this-page owns the framing controls (Save vs Propose, Add Intent modal, Default Action, Delete Configuration)"
       ]
     },
     "configuration/neural-config/index": {
       "title": "Neural Config options",
       "description": "A directory of the Edit Configuration dialog on the Neural Config screen: its fourteen sections in screen order, one line each, with a link to the page that documents every setting inside them.",
-      "sources": [],
-      "action": "new",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Two of the fourteen Edit Configuration sections have no page of their own: Company / Organization Preferences and Answer Engineering & Preferences. Until those routes are accepted, both entries in this directory point at Tuning answers (/seek/tuning/), which owns their controls — do not leave them as dead entries (IA 2026-09-19)",
         "Corporate Document Filter and Corporate Logging are sections of this accordion whose pages live in Governance — link out to /governance/corporate-document-filter/ and /governance/logging/ (IA 2026-09-19)"
@@ -1013,27 +979,31 @@
     },
     "configuration/neural-config/using-this-page": {
       "title": "Using the Neural Config page",
-      "description": "How a change on the Neural Config screen is committed — Save versus Propose Changes, and the version prompt — plus the node dialogs that belong to no settings section: Add Intent, Default Action, Delete Configuration and the single-agent/multi-agent switch.",
-      "sources": [],
-      "action": "new",
+      "description": "On the Neural Config screen a change applies only when you select Save in the dialog footer; this page shows how to save or propose configuration changes, add an intent, choose the agent of a mAIstro-led category, and delete a category's own configuration.",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "task",
       "gaps": [
-        "Toggle Advanced — half the settings are hidden until it is on (no control by that name exists in any of the 34 states of the 2026-09-19 capture; confirm the build has it before writing, and if it does not, say so instead of describing it — IA 2026-09-19)",
         "Save vs Propose Changes, Version, Change Logs",
         "Add Intent modal — create an intent answered by Seek or by a mAIstro agent",
         "Default Action on the routing root — hand everything to one agent; the product warns against it",
         "Delete Configuration — removes a category's custom configuration and all child settings",
         "The 'Complete' confirmation dialog (Ok) in the /configure markup — assigned here by IA 2026-09-19 as the Save/Propose acknowledgement; it was never seen opening, so confirm which action raises it ('Proposal Activated' is the proposal one and belongs to configuration/backup-restore)"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Toggle Advanced — half the settings are hidden until it is on",
+          "run": "202610011319-neural-config",
+          "why": "no state snapshot of any of the nine neural-config captures (202609181401 … 202610010144) contains 'Toggle Advanced'; every Edit Configuration section is a plain accordion header in edit-configuration-edit (KnowledgeBase Connection … Secrets)"
+        }
       ]
     },
     "configuration/neural-config/knowledgebase-connection": {
       "title": "KnowledgeBase Connection",
-      "description": "KnowledgeBase Connection is the first section of the Edit Configuration dialog in Neural Config: it sets the KnowledgeBase Type NeuralSeek queries, the KnowledgeBase Language of that content, and the Notes stored with the configuration — and the type it names decides which other connection fields the section shows.",
-      "sources": [],
-      "action": "new",
+      "description": "KnowledgeBase Connection, the first section of Neural Config's Edit Configuration dialog, sets which of sixteen KnowledgeBase Types NeuralSeek retrieves from, the language of that content, the store's connection details, and which document fields become the passage, link and title.",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Watson Discovery on CP4D — adds an Auth URL field",
         "watsonx Discovery — endpoint, private key, index, plus the Generate Key helper",
@@ -1042,22 +1012,27 @@
         "Bedrock — KB ID, region, keys, and the Bedrock Search Type dropdown",
         "Milvus — host, collection, database, token, one-way TLS, server name",
         "Postgres — pgvector as the store: table, distance metric, embedding column",
-        "Coveo — org ID, search token, and attribute sources in LLM context",
         "Virtual KB (config side) — pick a mAIstro agent to act as the knowledge base",
         "NeuralSeek KB — the built-in option",
         "No KnowledgeBase — run mAIstro-only with no retrieval",
         "Advanced Schema: which payload fields reach the prompt, not just the API response",
         "Combine / separate snippets — merge a document's passages or keep them apart",
         "The 'Generate an API key' dialog (with its Generate button) — assigned here by IA 2026-09-19 as the watsonx Discovery Generate Key helper; it sits in the /configure markup but was never opened during the capture, so confirm which KnowledgeBase Type raises it before writing"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Coveo — org ID, search token, and attribute sources in LLM context",
+          "run": "202610011319-neural-config",
+          "why": "Coveo is not among the 16 KnowledgeBase Type options in knowledgebase-connection--options-knowledgebase-type (capture 202610010144) nor in any kb-type sweep variant's option list"
+        }
       ]
     },
     "configuration/neural-config/knowledgebase-tuning": {
       "title": "KnowledgeBase Tuning",
-      "description": "KnowledgeBase Tuning is the Neural Config section that shapes what retrieval hands the LLM: how many documents a Seek returns, how they are scored, how many neighbouring chunks come with a match, how long query results are cached, and whether a mAIstro agent runs over them first.",
-      "sources": [],
-      "action": "new",
+      "description": "KnowledgeBase Tuning is the Neural Config section that shapes what retrieval hands the LLM: how many documents a Seek uses, how they are scored and dated, how much text around a match comes with it, how long query results are cached, and whether a mAIstro agent processes them first.",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "mAIstro Post-KB Agent — run an agent over retrieved documents before they reach the LLM (cross-link maistro/ntl/pipeline-hooks)",
         "Expansion Window — chunks to grab either side of the match (NeuralSeek KB only)",
@@ -1067,11 +1042,10 @@
     },
     "configuration/neural-config/llm-details": {
       "title": "LLM Details",
-      "description": "Per-model configuration: which of the 20 LLM functions a model may perform, its model code, context window, cost multiplier and modalities.",
-      "sources": [],
-      "action": "new",
+      "description": "LLM Details is the Neural Config section where you add language models as cards and tick, on each card, the LLM Functions that model performs — a function no card has ticked is disabled, with no fallback.",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "The 20 assignable LLM functions",
         "Additional LLMs default to opted out of everything except mAIstro",
@@ -1086,20 +1060,20 @@
     },
     "configuration/neural-config/managed-llm": {
       "title": "Managed LLM Details",
-      "description": "Pick the NeuralSeek-hosted model and its version.",
-      "sources": [],
-      "action": "new",
+      "description": "A managed LLM is a model NeuralSeek provides: in the Add an LLM dialog you choose Platform NeuralSeek, pick the model under LLM Selection, read its LLM Notes, and its card in LLM Details asks only for LLM Languages under Connection Info.",
       "console": ["neural-config"],
-      "status": "stub",
-      "gaps": ["Choosing the NeuralSeek-hosted model and its version (V1–V2.1)"]
+      "status": "written",
+      "type": "reference",
+      "gaps": [
+        "Add an LLM → Platform NeuralSeek → LLM Selection: the managed models (Managed GPT, gpt-5-mini, gpt-oss-120b/20b, Managed Claude Opus/Sonnet/Haiku, gpt-4o-mini-tts, gpt-image, Translate) — what each is for and its capabilities"
+      ]
     },
     "configuration/neural-config/embedding-models": {
       "title": "Embedding models",
-      "description": "The Embedding Models section of Edit Configuration lists one card per embedding model and assigns each model to KB Search, mAIstro or Vector Intent.",
-      "sources": [],
-      "action": "new",
+      "description": "The Embedding Models section of Edit Configuration adds embedding models from AWS, Azure, NeuralSeek, OpenAI or watsonx.ai and assigns each one to KB Search, mAIstro or Vector Intent.",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Adding an embedding model (Neural Config > Default Config > Edit Configuration > Embedding Models — the 2026-09-19 capture has no Toggle Advanced control; the section is a plain accordion header)",
         "Assigning a model to retrieval, agents or intent matching",
@@ -1110,10 +1084,9 @@
     "configuration/neural-config/maistro-configuration": {
       "title": "mAIstro Configuration",
       "description": "The Edit Configuration section where external agent marketplaces are registered — one endpoint and one API key per marketplace, so their agents can be loaded in mAIstro.",
-      "sources": [],
-      "action": "new",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Registering an external marketplace: endpoint plus API key for each",
         "Cross-link: maistro/agent-marketplace is where they show up"
@@ -1121,11 +1094,10 @@
     },
     "configuration/neural-config/platform-preferences": {
       "title": "Platform Preferences",
-      "description": "Platform Preferences is the section of the Edit Configuration dialog in Neural Config that sets instance-wide request behaviour: the generation timeout, how much conversation context is carried and for how long, cross-language and default output language, filter relaxation, plan streaming and logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords and HTML cleansing, and the mAIstro agents run on save and after each Seek.",
-      "sources": [],
-      "action": "new",
+      "description": "Platform Preferences is the Neural Config section for instance-wide request behaviour: the generation timeout, conversation context, cross-language and output language, filter relaxation, logging, the one-way Hide API Keys switch, the virtual agent export format, stopwords, HTML cleansing, and the mAIstro agents run on save and after each Seek.",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Context Timeout — Session: how long a session-based conversation keeps its context",
         "Context Timeout — User Only: the same for user-only requests, which expires far sooner",
@@ -1142,11 +1114,10 @@
     },
     "configuration/neural-config/prompt-engineering": {
       "title": "Prompt Engineering",
-      "description": "Prompt Engineering is the section of the Edit Configuration dialog where an expert user injects extra instructions into the LLM prompt and shifts NeuralSeek's baseline temperature, top probability, frequency penalty and token cap — at the cost of support for the instance.",
-      "sources": [],
-      "action": "new",
+      "description": "Prompt Engineering is the Neural Config section where an expert user adds instructions to NeuralSeek's LLM prompt and offsets temperature, top probability, frequency penalty and maximum tokens for Seek answers, at the cost of support for the instance.",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Temperature — how much variability the LLM may use",
         "Top Probability — share of the probability mass sampled at each step",
@@ -1157,11 +1128,10 @@
     },
     "configuration/neural-config/intent-matching-caching": {
       "title": "Intent Matching & Cache",
-      "description": "How an incoming question is matched to a known intent, and the conditions under which a cached answer may be served.",
-      "sources": [],
-      "action": "new",
+      "description": "The Intent Matching & Cache Configuration section of a NeuralSeek configuration sets how questions are grouped into intents and when an edited or recent answer may be served from cache instead of being generated.",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Rebuild Vector Intents — recompute vectors for every intent; expensive",
         "Require Cache to Follow Context? — only serve a cached answer if the conversation context matches",
@@ -1173,10 +1143,9 @@
     "configuration/neural-config/secrets": {
       "title": "Secrets",
       "description": "Secrets is the last section of the Edit Configuration dialog in Neural Config: a Name / Value table for values mAIstro flows use as variables without carrying them in the agent.",
-      "sources": [],
-      "action": "new",
       "console": ["neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Secrets behave differently on on-prem installs",
         "`prompt: false` parameters fall back to the secret store — pass the parameter explicitly to override"
@@ -1184,11 +1153,10 @@
     },
     "configuration/administration/api-keys": {
       "title": "API keys",
-      "description": "Create, scope and expire API keys — including per-endpoint scoping and the rule that an unscoped key is an admin key.",
-      "sources": [],
-      "action": "new",
+      "description": "The API Keys screen creates, scopes, expires and deletes the keys that authenticate calls to NeuralSeek; a key left unscoped has full access.",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Bulk create — 1 to 100 keys at once, auto-numbered from the name you give",
         "Key expiration — optional expiry date, with Expires and Expired badges",
@@ -1196,16 +1164,16 @@
         "Per-key scoping across 5 areas: Functions, Configs, Agents, API, Console API",
         "Unscoped = full access — leaving everything unchecked makes it an admin key",
         "Function vs API scopes are mutually exclusive — pick one model per key",
-        "Endpoint-level permissions — method plus path pattern, for the API and Console API scopes"
+        "Endpoint-level permissions — method plus path pattern, for the API and Console API scopes",
+        "The list toolbar and table: Search API keys, Delete all expired, Create ApiKey, Select all API keys, the sortable Name / Key / Last used / Expires columns, and the + Details row expander"
       ]
     },
     "configuration/administration/embed-codes": {
       "title": "Embed codes",
       "description": "The browser-safe credential: a separate header scoped to only the Seek and mAIstro endpoints, meant to ship in frontend code.",
-      "sources": [],
-      "action": "new",
       "console": ["admin-tools"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Admin Tools > Integrate > Embed Seek & mAIstro",
         "Embed code vs API key — embed codes are safe in browser code, API keys are not"
@@ -1214,10 +1182,9 @@
     "configuration/administration/users-and-permissions": {
       "title": "Users and permissions",
       "description": "Manage who can reach your instance and what each of the 13 permissions unlocks — including two that grant more than their name suggests.",
-      "sources": [],
-      "action": "new",
-      "console": ["admin-tools"],
-      "status": "stub",
+      "console": ["profile"],
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Users page — manage authorized users and their permissions (avatar > Users)",
         "Profile page — your user ID and your enabled capabilities",
@@ -1229,31 +1196,29 @@
     "configuration/administration/default-permissions": {
       "title": "Default permissions",
       "description": "What a new user gets before an admin touches anything.",
-      "sources": [],
-      "action": "new",
-      "console": ["admin-tools"],
-      "status": "stub",
+      "console": ["profile"],
+      "status": "written",
+      "type": "task",
       "gaps": ["avatar > Default Permissions — the baseline every new user starts from"]
     },
     "configuration/administration/self-hosting-an-llm": {
       "title": "Self-hosting an LLM",
-      "description": "Point NeuralSeek at a model you host yourself with HuggingFace TGI or vLLM, wired through the Generic platform option.",
-      "sources": [],
-      "action": "new",
-      "console": [],
-      "status": "stub",
+      "description": "The Self-Host an LLM screen in API's & Integration names the two inference servers NeuralSeek supports for running your own model, vLLM and Huggingface TGI, and the model is then connected in Neural Config through Add an LLM with the Generic (OpenAI-compatible) platform.",
+      "console": ["admin-tools"],
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Admin Tools > Integrate > Self-Hosted LLM (BYOLLM plans only)",
-        "HuggingFace TGI and vLLM, wired to the Generic platform option"
+        "HuggingFace TGI and vLLM, wired to the Generic platform option",
+        "The Self-Host an LLM screen (Admin Tools > API's & Integration): vLLM's Installation, Quickstart and Supported Models links, and the vLLM and Huggingface TGI GitHub repositories"
       ]
     },
     "configuration/administration/flex-licensing": {
       "title": "Flex licensing",
       "description": "Self-report installs and users on a Flex plan, download a license file, and size the hardware each instance needs.",
-      "sources": [],
-      "action": "new",
       "console": ["admin-tools"],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "Admin Tools > Customize (Flex plan) — self-report installs and users, download a license file",
         "Sizing: roughly 12 cores, 64 GB RAM, 100 GB disk plus an A10G-class GPU; ~10,000 users per instance"
@@ -1262,48 +1227,49 @@
     "configuration/administration/support-plans": {
       "title": "Support plans",
       "description": "Changing your support plan and how it is billed.",
-      "sources": [],
-      "action": "new",
       "console": [],
       "status": "stub",
+      "type": "concept",
       "gaps": [
         "Home > Update Support Plan — changing plan bills immediately, then rebills every 30 days"
       ]
     },
     "configuration/supported-llms": {
       "title": "Supported LLMs",
-      "description": "Which language models NeuralSeek can use is decided by the Add an LLM dialog in LLM Details on your own instance, not by a fixed list; this page explains how to read that list, what a Managed model card is, and where each model's settings live.",
-      "sources": ["ui/integrate/integrations/supported_llms/supported_llms.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "The language models NeuralSeek supports are the ones offered by the Add an LLM dialog in Neural Config's LLM Details section — 14 platforms including xAI, DeepSeek, Perplexity, Xiaomi and NeuralSeek's own managed models — and each model's LLM Notes state what it cannot do before you add it.",
+      "status": "written",
+      "type": "reference",
       "console": ["neural-config"],
       "gaps": [
-        "xAI is missing from the supported-LLM platform list",
         "The model catalogue is stale — around 287 models are offered and the list is roughly two generations behind"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "xAI is missing from the supported-LLM platform list",
+          "run": "202610011731-neural-config",
+          "why": "xAI is the 13th of 14 Platform values in the Add an LLM dialog (capture 202609270311, states/add-an-llm--options-platform.yml:789), and the variant add-an-llm@llm-platform-xai shows LLM Selection grok-code-fast-1 with its LLM Notes"
+        }
       ]
     },
     "configuration/multi-llm": {
       "title": "Multi-LLM",
-      "description": "A NeuralSeek instance can run several LLMs at once: each model is a card in LLM Details, each card claims the functions it is allowed to perform, two cards sharing a function are load-balanced, and a function no card claims is disabled with no fallback.",
-      "sources": ["features/multi_llm/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "A NeuralSeek instance can run several LLMs at once: each model is a card in LLM Details, each card claims the LLM Functions it performs, a function ticked on two cards is load-balanced across them, and a function no card claims is disabled with no fallback.",
+      "status": "written",
+      "type": "task",
       "console": ["neural-config"]
     },
     "configuration/multimodal": {
       "title": "Multimodal LLM configuration",
-      "description": "NeuralSeek records which model can produce or transform media through six checkboxes on each LLM Details card — Image Generation, Image Edits, Video, Speech, Music and Speech to Text — and greys out the ones a model cannot do.",
-      "sources": ["guides/models/multimodal/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Six of the LLM Functions on every LLM Details model card — Image Generation, Image Edits, Video, Speech, Music and Speech to Text — decide which model handles media jobs, and the Add an LLM dialog's LLM Notes show a model's media support before you add it.",
+      "status": "written",
+      "type": "concept",
       "console": ["neural-config"]
     },
     "configuration/semantic-model": {
       "title": "Semantic model tuning",
-      "description": "The Semantic Scoring tab of a configuration's Guardrails dialog switches NeuralSeek's semantic score model on, decides whether that score drives the Warning and Minimum confidence guardrails and reranking, and opens the Semantic Model Tuning modal that holds its penalties and weights.",
-      "sources": ["guides/models/semantic_model/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Semantic model tuning sets the four penalties, two weights and the always-allowed terms that decide how NeuralSeek's semantic score rates a generated answer against the KnowledgeBase sources it was built from.",
+      "status": "written",
+      "type": "concept",
       "console": ["neural-config:advanced"],
       "gaps": [
         "This page owns the Semantic Model Tuning modal (the button on the Guardrails > Semantic Scoring tab; never opened in the 2026-09-19 capture). The six toggles on that tab — Enable the Semantic Score Model, Use Semantic Score as the basis for Warning & Minimum confidence., Rerank the search results based on the Semantic Match, Check document titles / URL's as part of the Semantic Match, Remove sentences containing hallucinated key words — belong to governance/guardrails/semantic-scoring; name them here as the way in and link there rather than describing each (IA 2026-09-19)"
@@ -1311,47 +1277,53 @@
     },
     "configuration/language": {
       "title": "Language handling",
-      "description": "Where NeuralSeek's three language settings live — KnowledgeBase Language, Default Output Language and Cross Language — how they decide which language a question is retrieved and answered in, and which LLM card handles translation and language identification.",
-      "sources": ["features/language/index.md", "features/language_indentification/index.md"],
-      "action": "merge",
-      "status": "auto",
+      "description": "NeuralSeek's language behaviour is set by KnowledgeBase Language, Default Output Language and Cross Language in Neural Config, and carried out by the LLM cards that have the Translate and Fallback Language Id functions enabled.",
+      "status": "written",
+      "type": "reference",
       "console": ["neural-config:advanced"]
     },
     "configuration/backup-restore": {
       "title": "Backup, restore & change logs",
-      "description": "Effortlessly manage your NeuralSeek settings with our comprehensive Backup and Restore guide. Learn to download, edit, and re-upload curated data, ensuring your content is always secure and up-to-date.",
-      "sources": ["guides/integration/backup_and_restore/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Use the Neural Config toolbar to download or upload your configuration settings, back up or restore the whole instance, and review every saved configuration version in the Change Log with a Rollback on each row.",
+      "status": "written",
+      "type": "task",
       "console": ["neural-config"],
       "gaps": [
         "Change Logs per-category tabs — a Default Config tab plus one tab per category (the tab shares its name with the routing tree's root node, which configuration/overview owns; this page documents the tab only — IA 2026-09-19)",
         "Rollback — revert to a previous configuration version",
-        "Activate / Delete Proposal — the proposal lifecycle (legacy but supported)",
         "Propose Changes — save a configuration change without applying it (legacy but supported)",
         "Backup & Restore button on the Neural Config toolbar (bottom-right, beside Change Logs) — the Backup and Restore dialog: Download Settings, Upload Settings (Choose File), Backup, Restore; the old 'Show advanced options' path on this page is stale",
         "Change Log table — columns Proposal ID / Configuration Date, User, Version (can carry a free-text label instead of 'Version N'), Action; a row expands to the changed keys plus a note, and carries a Rollback icon"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Activate / Delete Proposal — the proposal lifecycle (legacy but supported)",
+          "run": "202610011319-neural-config",
+          "why": "no Activate or Delete Proposal control in any of the 59 states of capture 202610010144 (default + variants); only the hidden 'Proposal Activated' acknowledgement is in the page markup, and no Change Log row shows a proposal id"
+        }
       ]
     },
-
     "governance/overview": {
       "title": "Governance overview",
-      "description": "Explore NeuralSeek's Governance tab for a comprehensive view of RAG governance. Access insights on system performance, semantic confidence, and documentation metrics to make informed decisions.",
-      "sources": ["ui/governance/index.md", "reference_material/governance/governance.md"],
-      "action": "merge",
-      "status": "auto",
+      "description": "Governance is the NeuralSeek console area that reports on Seek answers, mAIstro agent runs, usage and instance health, organised into Seek Governance, mAIstro Governance and Custom Governance dashboards.",
+      "status": "written",
+      "type": "concept",
       "console": ["governance"],
-      "gaps": [
-        "The old standalone governance page is empty — decide what it contributes before merging it in"
+      "gaps": [],
+      "gapsResolved": [
+        {
+          "gap": "The old standalone governance page is empty — decide what it contributes before merging it in",
+          "run": "202610060102-governance",
+          "why": "resolved: the merged reference_material page contributed nothing (the MERGE block in the ported page is empty); the brief drops the leftover MERGE / STILL TO DOCUMENT comments"
+        }
       ]
     },
     "governance/guardrails/overview": {
       "title": "Guardrails overview",
-      "description": "The Guardrails dialog in Neural Config holds ten tabs behind one Save — four that act on the user's question, four that act on the generated answer, and one that hooks mAIstro agents onto both sides.",
-      "sources": [],
-      "action": "new",
+      "description": "NeuralSeek's guardrails live in one Neural Config dialog with ten tabs behind a single Save: some screen the user's question before the KnowledgeBase lookup and the LLM call, others check the generated answer, and Custom Governance hooks mAIstro agents onto both sides.",
       "console": ["governance", "neural-config"],
-      "status": "auto",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "How the 10 tabs relate; which fire before vs after generation",
         "This is the map page for the whole governance/guardrails/ subtree",
@@ -1362,11 +1334,10 @@
     },
     "governance/guardrails/profanity-hap": {
       "title": "Profanity (HAP)",
-      "description": "The hate/abuse/profanity filter, plus the allow-list and block-list that adjust its built-in corpus.",
-      "sources": [],
-      "action": "new",
+      "description": "The Profanity (HAP) guardrail chooses which filter screens questions for hate, abuse and profanity, sets the reply a blocked user reads, and adjusts NeuralSeek's built-in word list with an allow-list and a block-list.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "HAP allow-list — words the profanity filter should ignore",
         "HAP block-list — words to block on top of the built-in corpus",
@@ -1376,25 +1347,29 @@
     },
     "governance/guardrails/prompt-injection": {
       "title": "Prompt injection",
-      "description": "Score, strip and block prompt-injection attempts before they reach the model.",
-      "sources": [],
-      "action": "new",
+      "description": "The Prompt Injection guardrail scores every user question against NeuralSeek's prompt-injection model, strips or blocks input above the thresholds you set, and removes words you list as never allowed.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "'Try it Out' — score a candidate prompt before setting a threshold",
         "How the two thresholds interact: removal runs first, then the block threshold is evaluated",
-        "The tab's controls by label: 'Blocked Word Action' selector (value seen: Remove from the input), the blocked-words list, and the two sliders Prompt Injection Removal Threshold / Prompt Injection Threshold (Disable … 1)",
-        "'Prompt Injection Testing' — the dialog behind 'Try it Out' (a Test button); it is in the /configure markup (IA 2026-09-19, assigned here)"
+        "The tab's controls by label: 'Blocked Word Action' selector (value seen: Remove from the input), the blocked-words list, and the two sliders Prompt Injection Removal Threshold / Prompt Injection Threshold (Disable … 1)"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "'Prompt Injection Testing' — the dialog behind 'Try it Out' (a Test button); it is in the /configure markup (IA 2026-09-19, assigned here)",
+          "run": "202610060102-governance",
+          "why": "Try it Out is disabled in every neural-config capture (state try-it-out: noChange); the dialog title exists only in hidden page markup, never rendered — a markup-only label is not a label"
+        }
       ]
     },
     "governance/guardrails/semantic-scoring": {
       "title": "Semantic scoring",
-      "description": "Score how well an answer is supported by its sources, and act on the result.",
-      "sources": [],
-      "action": "new",
+      "description": "The Semantic Scoring tab of the Guardrails dialog turns on NeuralSeek's semantic score, which rates each generated answer against its KnowledgeBase sources, and decides whether that score drives the confidence thresholds, reorders sources and removes unsupported sentences.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "LLM Decline Penalty — penalty when the answer looks like a refusal (Semantic Model Tuning)",
         "The five sub-toggles are disabled until the semantic model is switched on",
@@ -1406,22 +1381,20 @@
     },
     "governance/guardrails/attribution-protection": {
       "title": "Attribution protection",
-      "description": "Require answers to stay attributable to their source documents.",
-      "sources": [],
-      "action": "new",
+      "description": "The Attribution Protection guardrail sets how much generated text about your company, or about people and things, NeuralSeek tolerates when the KnowledgeBase has no specific reference for it — on a slider from Rigid to Standard.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Attribution tolerance is 3 discrete levels (Rigid, medium, Standard), not a continuous slider"
       ]
     },
     "governance/guardrails/min-confidence": {
       "title": "Minimum confidence",
-      "description": "What happens when NeuralSeek is not confident enough to answer — the fallback agent, fallback URL, and the cost of pre-running them.",
-      "sources": [],
-      "action": "new",
+      "description": "The Min Confidence and Warning Confidence guardrails decide what happens to a low-confidence answer: below one threshold NeuralSeek replaces it with your own reply or a mAIstro agent's, below the other it shows the answer with a warning in front.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Pre-run min confidence agent — runs the fallback agent speculatively for speed, and costs a run every time",
         "URL Fallback > Category — resolve the fallback URL from the matched intent category",
@@ -1432,11 +1405,10 @@
     },
     "governance/guardrails/custom-governance-agents": {
       "title": "Custom governance agents",
-      "description": "The only extension point inside the live request path: agents that can rewrite or block user input before retrieval, and the generated answer after it.",
-      "sources": [],
-      "action": "new",
+      "description": "The Custom Governance tab of the Guardrails dialog connects one mAIstro agent that runs before the KnowledgeBase lookup and the LLM call to modify or govern the user's input, and one that runs after the LLM call to modify or govern the answer.",
       "console": ["governance", "neural-config"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "The Custom Governance tab as a whole",
         "Pre-LLM custom governance agent — rewrite or block user input before retrieval and generation",
@@ -1447,10 +1419,9 @@
     },
     "governance/pii-detection": {
       "title": "PII detection",
-      "description": "Discover NeuralSeek's advanced PII detection, ensuring data privacy by identifying, masking, and managing sensitive information. Customize settings for specific needs and maintain compliance effortlessly.",
-      "sources": ["features/pii_detect/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "NeuralSeek finds personal data in a user's question with built-in detectors, your own regular expressions and LLM-trained example sentences, then flags, masks, hides or deletes it according to the PII tab of the Guardrails dialog.",
+      "status": "written",
+      "type": "concept",
       "console": ["governance", "neural-config:advanced"],
       "gaps": [
         "Extra PII names list — add personal names a general model will not recognise (PII tab > NeuralSeek PII Detectors)",
@@ -1460,11 +1431,10 @@
     },
     "governance/red-team-testing": {
       "title": "Red team testing",
-      "description": "Automated adversarial testing of a single agent — planned, executed and graded by agents, across five attack categories.",
-      "sources": [],
-      "action": "new",
+      "description": "Run an automated red team test against one mAIstro agent and read its security assessment: an overall score, five attack categories, the risks found, recommended mitigations and the test logs.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
+      "type": "task",
       "gaps": [
         "Governance > mAIstro Governance > Red Team Testing",
         "The 5 test categories: Prompt Injection, Data Exfiltration, SQL Injection, Unauthorized Access, Service Disruption",
@@ -1474,10 +1444,9 @@
     },
     "governance/logging": {
       "title": "Logging",
-      "description": "Discover how NeuralSeek's Round Trip Logging enhances Virtual Agent performance by tracking interactions and alerting you to outdated content. Ensure your responses stay accurate and up-to-date!",
-      "sources": ["features/RT_logging/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Corporate Logging connects NeuralSeek to your own audit log store — ElasticSearch, OpenSearch or a mAIstro agent — so every request and response to the Seek API endpoint and the Curate tab is recorded where your organization keeps its audit trail.",
+      "status": "written",
+      "type": "concept",
       "console": ["governance", "neural-config:advanced"],
       "gaps": [
         "Corporate Logging: Logger Service — ElasticSearch, OpenSearch or mAIstro; the choice changes every field below it",
@@ -1492,11 +1461,10 @@
     },
     "governance/corporate-document-filter": {
       "title": "Corporate document filter",
-      "description": "The corporate document filter sends the ids of the documents NeuralSeek found, plus the user's id, to an endpoint you run on every request — any id the endpoint does not return is blocked.",
-      "sources": [],
-      "action": "new",
+      "description": "The corporate document filter sends the ids of the documents NeuralSeek found, plus the id of the user asking, to an endpoint you run on every request, and blocks any document whose id the endpoint does not return.",
       "console": ["neural-config", "governance"],
-      "status": "auto",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "The assembled filter request URL the page shows inline",
         "Together with SharePoint access control this is the per-user document-security story (cross-link integrations/sharepoint-sync)"
@@ -1505,26 +1473,26 @@
     "governance/replay": {
       "title": "Replay",
       "description": "Explore NeuralSeek's Replay feature to revisit past Q&As, track documentation changes, and see how answers evolve. Perfect for understanding updates and refining your knowledge.",
-      "sources": ["features/replay_feature/index.md", "guides/data/replay_guide/index.md"],
-      "action": "merge",
-      "status": "auto",
-      "console": ["governance"]
+      "status": "draft",
+      "type": "task",
+      "console": ["governance"],
+      "gaps": [
+        "The replay entry point is not captured (IA 2026-10-06, run 202610060102): Seek Logs ends every answer with an unnamed, empty link and mAIstro Logs has an empty Link column while Enable Corporate Logging is Disabled — needs a capture with Corporate Logging connected and traffic logged"
+      ]
     },
     "governance/data-security": {
       "title": "Data security & privacy",
       "description": "NeuralSeek ensures to encrypt, localize, and protect your data, ensuring ownership and confidentiality. Visit to explore our secure solutions.",
-      "sources": ["more_about_NS/data_security_and_privacy.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "concept",
       "console": ["governance"]
     },
     "governance/analytics/reading-the-dashboards": {
       "title": "Reading the dashboards",
-      "description": "How to read any Governance dashboard: the Filter modal, which pages your plan hides, and which setting each metric reflects.",
-      "sources": [],
-      "action": "new",
+      "description": "How to read any NeuralSeek Governance dashboard: narrow it by category, intent and date range with the filter bar, read its panels, and trace each metric back to the setting behind it.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
+      "type": "concept",
       "gaps": [
         "The Filter modal — slice any dashboard by intent category or by runtime filter",
         "BYOLLM gating — four Token/Cost pages do not exist on non-BYOLLM instances",
@@ -1535,10 +1503,9 @@
     "governance/analytics/seek-overview": {
       "title": "Seek overview dashboard",
       "description": "The default Governance landing page and its eleven panels.",
-      "sources": [],
-      "action": "new",
       "console": ["governance"],
-      "status": "stub",
+      "status": "draft",
+      "type": "reference",
       "gaps": [
         "Governance Rings — composite view of guardrail activity",
         "Category Landscape — traffic distribution across intent categories",
@@ -1550,11 +1517,10 @@
     },
     "governance/analytics/seek-tokens-cost": {
       "title": "Seek tokens & cost",
-      "description": "Token consumption and spend for Seek traffic, broken down by model and by runtime filter. BYOLLM instances only.",
-      "sources": [],
-      "action": "new",
+      "description": "The Token Insights and Cost Insights dashboards show how many tokens Seek traffic consumes, its estimated cost per seek and per 1,000 seeks, and how model prices compare.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "LLM Token Intensity — token consumption per model",
         "Cost Orbit — cost distribution visualisation",
@@ -1564,11 +1530,10 @@
     },
     "governance/analytics/seek-logs-and-config-insights": {
       "title": "Seek logs & configuration insights",
-      "description": "The per-request Seek log, re-categorising an intent from a log row, and the configuration change history.",
-      "sources": [],
-      "action": "new",
+      "description": "Seek Logs lists every Seek exchange with its intent, category, score, response time and cache status, and Configuration Insights shows each saved configuration version with the settings it changed.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Edit Category from a log row — re-categorise an intent; this trains future categorisation",
         "Configuration Insights page — configuration change history as an audit view"
@@ -1576,29 +1541,34 @@
     },
     "governance/analytics/agent-insights-and-details": {
       "title": "Agent insights & details",
-      "description": "Fleet-wide agent behaviour and the per-agent drill-down: timing, ranking, latency distribution, guardrail hits and the invocation tree.",
-      "sources": [],
-      "action": "new",
+      "description": "The mAIstro Governance dashboards for agents: Agent Insights reports run time, usage, guardrail activations and timing across all agents, Agent Details drills into one agent's latency and invocation tree, and Agent Timeline steps through one agent's events.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Agent Execution Timeline — when agents ran and for how long",
-        "Agent Run Ranking — agents ranked by runs, cost or duration",
+        "Agent Run Ranking — all agents ordered by run count",
         "Component Timing Guitar Chart — which node type is the bottleneck across all your agents",
         "Agent Details page — per-agent drill-down, 13 panels",
         "P50 / P95 / Peak latency — averages hide the timeouts users actually notice",
         "Guardrails hit — how often this agent tripped a guardrail",
         "Agent invocation tree — which agents called which, and how deep",
         "Time in phase / Phase mix — where run time goes, by phase"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Agent Run Ranking — agents ranked by runs, cost or duration",
+          "run": "202610060102-governance",
+          "why": "state agent-insights: the panel subtitle reads 'All agents ordered by run count.' and there is no selector for cost or duration; the panel stays as a gap with the captured ordering"
+        }
       ]
     },
     "governance/analytics/agent-logs-tokens-cost": {
       "title": "mAIstro logs, tokens & cost",
-      "description": "The per-run agent logs behind the Agent Details aggregates, and agent token and cost reporting.",
-      "sources": [],
-      "action": "new",
+      "description": "mAIstro Logs lists every agent run with its date, run ID, user, agent and runtime, and the mAIstro Governance group's Token Insights and Cost Insights pages report agent token use and spend.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "mAIstro Logs page — per-run agent logs behind the Agent Details aggregates",
         "Agent token and cost pages (BYOLLM only)"
@@ -1606,11 +1576,10 @@
     },
     "governance/analytics/model-comparison": {
       "title": "Model comparison",
-      "description": "Run the same Seek or the same agent across your configured models and compare the results side by side.",
-      "sources": [],
-      "action": "new",
+      "description": "Model Comparison in Governance runs one question through Seek on each LLM you select from your configured models and shows response time, Semantic Score and LLM Rank side by side.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Seek Model Comparison — run one Seek across your configured models and compare",
         "Agent Model Comparison — run one agent across multiple models and compare"
@@ -1618,11 +1587,10 @@
     },
     "governance/analytics/custom-dashboards": {
       "title": "Custom dashboards",
-      "description": "Dashboards whose panels are mAIstro agents — the same mechanism behind Custom Governance and Run Agents.",
-      "sources": [],
-      "action": "new",
+      "description": "Custom dashboards live in the Custom Governance group of Governance: open the Agent Growth and Users dashboards, start a new one with Add Dashboard, and use the Edit switch that Add Panel and Delete Dashboard depend on.",
       "console": ["governance"],
-      "status": "stub",
+      "status": "written",
+      "type": "reference",
       "gaps": [
         "Custom Governance dashboards — panels that are mAIstro agents",
         "Add Dashboard / Add Panel — bind an agent to a tile with a title, columns and rows",
@@ -1636,10 +1604,9 @@
     },
     "governance/semantic-analytics": {
       "title": "Semantic analytics",
-      "description": "Discover how NeuralSeek's Semantic Analytics enhances response accuracy by linking answers to their sources. Explore semantic match scores, color-coded insights, and customizable configurations.",
-      "sources": ["features/semantic_analytics/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "While the semantic score model is enabled, NeuralSeek compares each Seek answer with the source passages it was generated from, and the Semantic Insights dashboard aggregates those scores and source-coverage measurements over a date range so you can see how well answers stay grounded in your documents.",
+      "status": "written",
+      "type": "concept",
       "console": ["governance", "seek"],
       "gaps": [
         "Absorbs the Seek > Semantic Insights dashboard",
@@ -1652,9 +1619,8 @@
     "governance/content-analytics": {
       "title": "Content analytics",
       "description": "Unlock insights with NeuralSeek's Content Analytics! Effortlessly track user queries, assess documentation coverage, and optimize content performance with built-in analytics—no extra code needed.",
-      "sources": ["features/content_analytics/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "status": "draft",
+      "type": "concept",
       "console": ["governance"],
       "gaps": [
         "Absorbs the Documentation Insights dashboard",
@@ -1664,52 +1630,63 @@
     "governance/sentiment": {
       "title": "Sentiment",
       "description": "Discover NeuralSeek's Sentiment Analysis: Uncover emotional tones in text using advanced NLP. Enhance customer interactions by tailoring responses based on sentiment scores.",
-      "sources": ["features/sentiment/index.md"],
-      "action": "keep",
-      "status": "auto",
-      "console": ["governance"]
+      "status": "draft",
+      "type": "concept",
+      "console": ["governance"],
+      "gaps": [
+        "The `sentiment` value of the REST /seek response (0 most negative … 9 most positive in the old page) — unconfirmed (IA 2026-10-06, run 202610060102): no Governance screen, no Seek Logs column and no NTL node (probe p62: zero matches in ntl://reference) shows sentiment"
+      ]
     },
     "governance/intent-categorization": {
       "title": "Intent categorization",
-      "description": "Discover how NeuralSeek's Intent Categorization effortlessly organizes user input into customizable categories, enhancing efficiency and routing accuracy. Perfect for scaling within organizations.",
-      "sources": ["features/intent_cat/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "Intent categorization sorts the questions that reach NeuralSeek into categories you define on the Neural Config screen; each category decides whether Seek answers a matching question or a mAIstro agent takes it, and Intent Insights reports coverage and confidence per category.",
+      "status": "written",
+      "type": "concept",
       "console": ["governance"],
       "gaps": [
-        "Absorbs the Neural Config > Intent Categorization panel",
-        "Category table — add, edit and delete intent categories",
         "Action to take on match — Answer Generation, or hand the request to a mAIstro agent",
         "Category description and auto-generate — the description is what input is matched against; the LLM can draft it",
         "Category ID — the ID used to reference a category from the API",
         "Delete cascade — deleting a category deletes all child categories and settings",
-        "These categories ARE the multi-agent routing categories; one set, two screens",
-        "Its test surface: Chat > Edit Configuration"
+        "These categories ARE the multi-agent routing categories; one set, two screens"
+      ],
+      "gapsResolved": [
+        {
+          "gap": "Absorbs the Neural Config > Intent Categorization panel",
+          "run": "202610060102-governance",
+          "why": "no panel or label 'Intent Categorization' in any of the 59 states of neural-config capture 202610010144; categories are nodes of the routing tree (Add a Category / Edit Category: <name>), owned by configuration/overview. The brief explains them as shared controls."
+        },
+        {
+          "gap": "Category table — add, edit and delete intent categories",
+          "run": "202610060102-governance",
+          "why": "no category table on any captured screen; add/edit/delete happen on routing-tree nodes (Add a Category dialog, Edit Category dialog with Delete Category) in neural-config 202610010144, owned by configuration/overview and linked from this page"
+        },
+        {
+          "gap": "Its test surface: Chat > Edit Configuration",
+          "run": "202610060102-governance",
+          "why": "chat capture 202609300237, state edit-chatconfig: Edit Configuration is a JSON chat-widget configuration (userId, chatTheme, maistroLed, maistroFlow, …) with no category key or selector"
+        }
       ]
     },
     "governance/entity-extraction": {
       "title": "Entity extraction",
-      "description": "Discover NeuralSeek's Entity Extraction feature, enabling seamless entity detection in text with custom definitions and multilingual support. Integrate effortlessly via REST API to enhance virtual agents.",
-      "sources": ["features/entity_extraction/index.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "NeuralSeek entity extraction reads a sentence and returns the entities it detects, each as an entity type with the matched text, for use in mAIstro agents, virtual agents and chatbots.",
+      "status": "written",
+      "type": "concept",
       "console": ["admin-tools", "governance"]
     },
-
     "reference/changelog": {
       "title": "Changelog",
-      "description": "Discover the latest updates in NeuralSeek's changelog! From new out-of-the-box integrations supporting the market's leading models, to new no-code toolsets for building AI Agents in mAIstro, stay in the know on NeuralSeek's powerful new releases that elevate your AI experience.",
-      "sources": ["changelog.md"],
-      "action": "keep",
-      "status": "auto",
+      "description": "NeuralSeek's release notes, month by month from February 2023 to July 2026, with the newest items also listed under Newest features on the Home screen.",
+      "status": "written",
+      "type": "reference",
       "console": ["home"]
     },
     "reference/deployment": {
       "title": "Deployment",
-      "description": "Where NeuralSeek runs — SaaS, on-prem and Flex — and what changes about the product on each.",
-      "sources": ["more_about_NS/plans.md"],
-      "action": "distill",
-      "status": "auto",
+      "description": "NeuralSeek runs either as a SaaS service or, under the Flex plan, installed on your own hardware on OpenShift or Kubernetes; this page covers what changes in the product on each, and how an on-prem install is sized and installed.",
+      "status": "written",
+      "type": "concept",
       "console": ["home"],
       "gaps": [
         "Split out of getting-started/deployment per Robert's review (2026-08-04): mechanics live here, plans and purchasing live in Getting Started",
@@ -1719,10 +1696,9 @@
     },
     "reference/plans-and-platforms": {
       "title": "Plans & platforms",
-      "description": "Explore NeuralSeek's diverse plans tailored for your needs, from pay-per-answer to bring-your-own-LLM options. Enhance your business with advanced AI features and seamless integration.",
-      "sources": ["more_about_NS/plans.md"],
-      "action": "distill",
-      "status": "auto",
+      "description": "Which areas the NeuralSeek console navbar shows, and which plan, deployment or user-permission condition can hide a page that the documentation describes.",
+      "status": "written",
+      "type": "reference",
       "console": ["home"],
       "gaps": [
         "Boundary: this page is the gating reference; purchasing lives in getting-started/how-to-get-neuralseek",
@@ -1730,16 +1706,101 @@
       ]
     }
   },
-  "kill": {
-    "ui/index.md": "UI tab-tour shell; nothing to salvage",
-    "ui/home/index.md": "UI tab tour; real content moves to Getting Started + getting-started/onboarding-wizard",
-    "features/index.md": "MkDocs tag index; site graph/backlinks replace it",
-    "guides/data/proposals/index.md": "Legacy per RJ (confirm at review)",
-    "guides/data/doc_ingestion/index.md": "Outdated ingestion guide (kill vs future rewrite — open question)",
-    "more_about_NS/index.md": "Marketing; belongs on the main site",
-    "more_about_NS/partners.md": "Marketing; belongs on the main site"
-  },
   "renamed": {
     "getting-started/deployment": "Split 2026-08-04 per Robert's review into getting-started/how-to-get-neuralseek (plans, purchasing) and reference/deployment (platform mechanics). Redirect the old route to the former."
+  },
+  "redirects": {
+    "$comment": "Old MkDocs source path (relative to the old docs root at sourceCommit of CerebralBlue/knowledge, neuralseek/documentation/docs) → the new route that replaces it; the first source of a route is its primary donor. `kill`: old pages deliberately not carried over, with the reason. Used by scripts/url-inventory.ts to build the redirect map at the domain cutover.",
+    "sourceCommit": "c5bda9c3b0394e4cbd2259560dc9a826d80f5d55",
+    "from": {
+      "index.md": "getting-started/what-is-neuralseek",
+      "more_about_NS/plans.md": "getting-started/how-to-get-neuralseek",
+      "ui/seek/index.md": "seek/overview",
+      "guides/data/tuning_guide/index.md": "seek/tuning",
+      "guides/data/virtual_kb/index.md": "seek/virtual-kb",
+      "guides/data/dynamic_filters/index.md": "seek/dynamic-filters",
+      "features/convo_context/index.md": "seek/conversational-context",
+      "guides/integration/providing_context/index.md": "seek/conversational-context",
+      "features/caching/index.md": "seek/caching",
+      "features/dynamic_pers/index.md": "seek/personalization",
+      "ui/curate/index.md": "seek/curation",
+      "features/answer_curation/index.md": "seek/curation",
+      "ui/chat/index.md": "seek/chat-client",
+      "ui/maistro/index.md": "maistro/overview",
+      "ui/maistro/features/ntl_functions/get_data.md": "maistro/ntl/get-data",
+      "ui/maistro/features/ntl_functions/upload_data.md": "maistro/ntl/upload-data",
+      "ui/maistro/features/ntl_functions/generate_data.md": "maistro/ntl/generate-data",
+      "ui/maistro/features/ntl_functions/local_cache.md": "maistro/ntl/local-cache",
+      "ui/maistro/features/ntl_functions/extract_data.md": "maistro/ntl/extract-data",
+      "ui/maistro/features/ntl_functions/multi-agent.md": "maistro/ntl/multi-agent",
+      "ui/maistro/features/ntl_functions/control_flow.md": "maistro/ntl/control-flow",
+      "ui/maistro/features/ntl_functions/rag_tools.md": "maistro/ntl/rag-tools",
+      "ui/maistro/features/ntl_functions/guardrails.md": "maistro/ntl/guardrails",
+      "ui/maistro/features/ntl_functions/system_variables.md": "maistro/ntl/system-variables",
+      "ui/maistro/features/ntl_functions/sandboxes.md": "maistro/ntl/sandboxes",
+      "ui/maistro/features/ntl_functions/send_data.md": "maistro/ntl/send-data",
+      "ui/maistro/features/ntl_functions/agent_registry.md": "maistro/ntl/agent-registry",
+      "ui/maistro/features/ntl_functions/database_connections.md": "maistro/ntl/database-connections",
+      "ui/maistro/features/ntl_functions/modify_data/transform.md": "maistro/ntl/modify-data/transform",
+      "ui/maistro/features/ntl_functions/modify_data/string_toolbox.md": "maistro/ntl/modify-data/string-toolbox",
+      "ui/maistro/features/ntl_functions/modify_data/json_toolbox.md": "maistro/ntl/modify-data/json-toolbox",
+      "ui/maistro/features/ntl_functions/modify_data/xml_toolbox.md": "maistro/ntl/modify-data/xml-toolbox",
+      "ui/maistro/features/ntl_functions/modify_data/code_toolbox.md": "maistro/ntl/modify-data/code-toolbox",
+      "ui/maistro/features/ntl_functions/integrations/aws_s3.md": "maistro/ntl/integrations/aws-s3",
+      "ui/maistro/features/ntl_functions/integrations/databases.md": "maistro/ntl/integrations/databases",
+      "ui/maistro/features/ntl_functions/integrations/github.md": "maistro/ntl/integrations/github",
+      "ui/maistro/features/ntl_functions/integrations/google_drive.md": "maistro/ntl/integrations/google-drive",
+      "ui/maistro/features/ntl_functions/integrations/jira.md": "maistro/ntl/integrations/jira",
+      "ui/maistro/features/ntl_functions/integrations/knowledgebases.md": "maistro/ntl/integrations/knowledgebases",
+      "ui/maistro/features/ntl_functions/integrations/sharepoint.md": "maistro/ntl/integrations/sharepoint",
+      "ui/maistro/features/ntl_functions/integrations/slack.md": "maistro/ntl/integrations/slack",
+      "ui/maistro/features/ntl_functions/integrations/trello.md": "maistro/ntl/integrations/trello",
+      "ui/maistro/features/ntl_functions/integrations/watsonx.governance.md": "maistro/ntl/integrations/watsonx-governance",
+      "ui/maistro/features/ntl_functions/integrations/web_searches.md": "maistro/ntl/integrations/web-search",
+      "ui/integrate/index.md": "knowledge/connect-a-kb",
+      "ui/integrate/integrations/supported_knowledgebases/supported_knowledgebases.md": "knowledge/supported-knowledgebases",
+      "guides/integration/pinecone_configuration/index.md": "knowledge/pinecone",
+      "guides/integration/elasticsearch_vector_model/index.md": "knowledge/elasticsearch-vector-model",
+      "ui/load/index.md": "knowledge/load",
+      "ui/extract/index.md": "knowledge/extract",
+      "features/table_understanding/index.md": "knowledge/table-understanding",
+      "features/auto_data_cleanse/index.md": "knowledge/auto-data-cleanse",
+      "ui/integrate/integrations/supported_virtual_agents/supported_virtual_agents.md": "integrations/virtual-agents",
+      "guides/integration/training_virtual_agents/index.md": "integrations/training-virtual-agents",
+      "guides/integration/wa_context_guide/index.md": "integrations/watsonx-assistant-streaming",
+      "guides/integration/nice_cxone_integration/index.md": "integrations/nice-cxone",
+      "guides/integration/chat_sdk_integration/index.md": "integrations/chat-sdk",
+      "guides/integration/implementing_feedback/index.md": "integrations/feedback",
+      "ui/configure/index.md": "configuration/overview",
+      "ui/integrate/integrations/supported_llms/supported_llms.md": "configuration/supported-llms",
+      "features/multi_llm/index.md": "configuration/multi-llm",
+      "guides/models/multimodal/index.md": "configuration/multimodal",
+      "guides/models/semantic_model/index.md": "configuration/semantic-model",
+      "features/language/index.md": "configuration/language",
+      "features/language_indentification/index.md": "configuration/language",
+      "guides/integration/backup_and_restore/index.md": "configuration/backup-restore",
+      "ui/governance/index.md": "governance/overview",
+      "reference_material/governance/governance.md": "governance/overview",
+      "features/pii_detect/index.md": "governance/pii-detection",
+      "features/RT_logging/index.md": "governance/logging",
+      "features/replay_feature/index.md": "governance/replay",
+      "guides/data/replay_guide/index.md": "governance/replay",
+      "more_about_NS/data_security_and_privacy.md": "governance/data-security",
+      "features/semantic_analytics/index.md": "governance/semantic-analytics",
+      "features/content_analytics/index.md": "governance/content-analytics",
+      "features/sentiment/index.md": "governance/sentiment",
+      "features/intent_cat/index.md": "governance/intent-categorization",
+      "features/entity_extraction/index.md": "governance/entity-extraction",
+      "changelog.md": "reference/changelog"
+    },
+    "kill": {
+      "ui/index.md": "UI tab-tour shell; nothing to salvage",
+      "ui/home/index.md": "UI tab tour; real content moves to Getting Started + getting-started/onboarding-wizard",
+      "features/index.md": "MkDocs tag index; site graph/backlinks replace it",
+      "guides/data/proposals/index.md": "Legacy per RJ (confirm at review)",
+      "guides/data/doc_ingestion/index.md": "Outdated ingestion guide (kill vs future rewrite — open question)",
+      "more_about_NS/index.md": "Marketing; belongs on the main site",
+      "more_about_NS/partners.md": "Marketing; belongs on the main site"
+    }
   }
 }

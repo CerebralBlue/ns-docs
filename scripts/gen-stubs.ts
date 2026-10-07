@@ -3,12 +3,10 @@
  *
  * For every route with status "stub", writes src/content/docs/<route>.md
  * containing frontmatter (title + description) and a short placeholder body.
- * Descriptions fall back to the primary old-doc source's frontmatter
- * description when the map doesn't override one. A route's `gaps` array is
- * rendered as a "To document on this page" worklist.
+ * A route's `gaps` array is rendered as a "To document on this page" worklist.
  *
  * Safe to re-run: existing files whose map status is no longer "stub"
- * (auto/adopted) are never touched; stub files are re-written each run.
+ * (draft/written/adopted) are never touched; stub files are re-written each run.
  *
  * Usage: bun run stubs
  */
@@ -33,15 +31,6 @@ if (!map.routes || typeof map.routes !== 'object') {
 	process.exit(1);
 }
 
-const actionNote: Record<string, string> = {
-	keep: 'Content will be converted from the existing documentation.',
-	rewrite: 'Content will be rewritten from the existing documentation with a capability focus.',
-	merge: 'Content will be merged from multiple existing pages.',
-	distill:
-		'Content will be distilled from the existing documentation (developer/admin scope only).',
-	new: 'This page is brand new for the restructured docs.',
-};
-
 let written = 0;
 let skipped = 0;
 
@@ -53,9 +42,6 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 	}
 	const title = info.title ?? route.split('/').pop();
 	const description = info.description ?? `${title} — NeuralSeek documentation.`;
-	const sourcesLine = info.sources?.length
-		? `\nSource${info.sources.length > 1 ? 's' : ''}: ${info.sources.map((s: string) => `\`${s}\``).join(', ')} (${info.action}).`
-		: '';
 	// The gap audit (2026-08-04) rides along in the map so each stub shows the work it owes.
 	// Kept as a plain markdown list, not an ns-* directive: stubs are regenerated wholesale and
 	// a directive here would put container-nesting rules in the generator for no benefit.
@@ -72,7 +58,7 @@ description: ${JSON.stringify(description)}
 This page is part of the new documentation structure and its content is being prepared.
 :::
 
-${actionNote[info.action] ?? ''}${sourcesLine}${gapsBlock}
+${gapsBlock.trimStart()}
 `;
 	mkdirSync(dirname(outPath), { recursive: true });
 	writeFileSync(outPath, body);

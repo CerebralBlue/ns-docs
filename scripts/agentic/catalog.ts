@@ -79,10 +79,10 @@ export function buildCatalog() {
 			};
 		});
 	// The Workflow's stages, from the docs-explore script's meta.phases (parsed as text).
-	const skill = join(ROOT, '.claude/skills/docs-explore/SKILL.md');
+	const skill = join(ROOT, '.claude/skills/docs-explore/workflow.js');
 	const phases: { title: string; detail: string }[] = [];
 	if (existsSync(skill)) {
-		const js = readFileSync(skill, 'utf8').match(/```js\n([\s\S]*?)```/)?.[1] ?? '';
+		const js = readFileSync(skill, 'utf8');
 		for (const m of js.matchAll(/\{\s*title:\s*'([^']+)',\s*detail:\s*'([^']+)'\s*\}/g))
 			phases.push({ title: m[1], detail: m[2] });
 		for (const m of js.matchAll(/\{\s*title:\s*'([^']+)',\s*detail:\s*\n?\s*'([^']+)',?\s*\}/g))

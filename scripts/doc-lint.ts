@@ -30,6 +30,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { contractProblems, isPageType } from './agentic/contract';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const MAP_PATH = join(ROOT, 'scripts/migration-map.json');
@@ -54,9 +55,11 @@ if (!all && prefixes.length === 0) {
 
 const map: { routes: Record<string, any> } = JSON.parse(readFileSync(MAP_PATH, 'utf8'));
 const staleHashes = oldDocsImageHashes();
-
-/** The five sections of planning/templates/feature-page.md. */
-const CONTRACT_SECTIONS = ['What is it', 'Why it matters', 'When to use it', 'How it works', 'FAQ'];
+/** route → last pipeline run (private; absent in CI). */
+const INDEX_PATH = join(ROOT, '_private/agentic-v2/index.json');
+const pipelineIndex: Record<string, { runId?: string }> | null = existsSync(INDEX_PATH)
+	? JSON.parse(readFileSync(INDEX_PATH, 'utf8'))
+	: null;
 
 /**
  * The visible "screenshot pending" graphic. A page referencing it is honest about a gap
@@ -107,7 +110,7 @@ function splitFrontmatter(raw: string): { fm: string; body: string; offset: numb
 	return { fm: m[1], body: raw.slice(m[0].length), offset: m[0].split('\n').length - 1 };
 }
 
-function lintPage(status: string, raw: string, findings: Finding[]) {
+function lintPage(status: string, type: string | undefined, raw: string, findings: Finding[]) {
 	// A CRLF file (a Windows checkout or editor) must lint the same as its LF twin.
 	const { fm, body, offset } = splitFrontmatter(raw.replace(/\r\n/g, '\n'));
 
@@ -309,22 +312,9 @@ function lintPage(status: string, raw: string, findings: Finding[]) {
 	// contract would print the same warning on 121 routes and drown the real ones.
 	if (status === 'stub') return;
 
-	const present = new Set(headings.filter((h) => h.depth === 2).map((h) => h.text.toLowerCase()));
-	const missing = CONTRACT_SECTIONS.filter((s) => !present.has(s.toLowerCase()));
-	if (missing.length && missing.length < CONTRACT_SECTIONS.length)
-		findings.push({
-			level: 'warn',
-			line: 1,
-			rule: 'page-contract',
-			message: `missing section(s): ${missing.join(', ')}`,
-		});
-	else if (missing.length === CONTRACT_SECTIONS.length)
-		findings.push({
-			level: 'warn',
-			line: 1,
-			rule: 'page-contract',
-			message: 'follows none of the feature-page template sections',
-		});
+	// The per-type page contract (scripts/agentic/contract.ts) — one warning per problem.
+	for (const problem of contractProblems(fm, body, isPageType(type) ? type : 'concept'))
+		findings.push({ level: 'warn', line: 1, rule: 'page-contract', message: problem });
 }
 
 let errors = 0;
@@ -349,7 +339,19 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 			message: 'no page file — run `bun run stubs`',
 		});
 	} else {
-		lintPage(info.status, readFileSync(path, 'utf8'), findings);
+		lintPage(info.status, info.type, readFileSync(path, 'utf8'), findings);
+	}
+	// An adopted page the pipeline rewrote after the human review (index.json is private and
+	// absent in CI — then the check is skipped).
+	if (info.status === 'adopted' || info.reviewedRun) {
+		const last = pipelineIndex?.[route]?.runId;
+		if (last && info.reviewedRun !== last)
+			findings.push({
+				level: 'warn',
+				line: 1,
+				rule: 'changed-since-review',
+				message: `rewritten by run ${last} after the human review (${info.reviewedRun ?? 'no reviewedRun'}, ${info.reviewedAt ?? 'no reviewedAt'}) — re-review, then set reviewedRun`,
+			});
 	}
 
 	// A draft is allowed to be unfinished; "adopted" means a human called it done.
@@ -367,7 +369,7 @@ for (const [route, info] of Object.entries<any>(map.routes)) {
 	errors += e;
 	warnings += w;
 
-	report.push(`\n${rel}  [${info.status}${adopted ? '' : ' — draft, warnings only'}]`);
+	report.push(`\n${rel}  [${info.status}${adopted ? '' : ' — warnings only until adopted'}]`);
 	for (const f of shown.sort((a, b) => a.line - b.line))
 		report.push(
 			`  ${level(f) === 'error' ? 'ERROR' : 'warn '} ${String(f.line).padStart(4)}  ${f.rule.padEnd(18)} ${f.message}`

@@ -9,6 +9,7 @@
  *   bun scripts/agentic/queue.ts <area> --capture-only [--only <route>]… [--states a,b,…] [--json]
  *       explore + brief the owned routes, write no pages (a capture for later --write-only runs);
  *       --states limits the walk to those state ids (list the ancestors on the path too)
+ *       --variants a,b captures only those areas.json variants (default all; `none` skips them)
  *   … --dry-run     print what would be queued; write nothing, touch current-run never
  *       no browser: write from the area's latest capture (captures.json) or --from. --only may
  *       name ANY non-NTL route — the capture decides, ownership only sets the night's default;
@@ -44,9 +45,11 @@ import {
 	routeFolder,
 	runDir,
 	RUNS_DIR,
+	VERSIONS_FILE,
 	writeJson,
+	type Versions,
 } from './lib';
-import { readdirSync } from 'node:fs';
+import { readdirSync, rmSync } from 'node:fs';
 
 const args = parseArgs(process.argv.slice(2));
 const areaName = args.positional[0];
@@ -74,9 +77,24 @@ const stateFilter = (args.get('states') ?? '')
 	.split(',')
 	.map((x) => x.trim())
 	.filter(Boolean);
+// Variants to capture (areas.json variants[] ids); empty = all the area declares, `none` = skip them.
+const variantFilter = (args.get('variants') ?? '')
+	.split(',')
+	.map((x) => x.trim())
+	.filter(Boolean);
 const dryRun = args.flags.has('dry-run');
 const allBriefed = args.flags.has('all-briefed');
 const rewrite = args.flags.has('rewrite'); // --all-briefed ignores index.json / earlier write.json
+// An experiment that was never verified back blocks every run (playground-versions.json pending).
+{
+	const pending = readJson<Versions>(VERSIONS_FILE)?.pending;
+	if (pending && !dryRun) {
+		console.error(
+			`experiment ${pending.run} ${pending.id} (${pending.control} = ${pending.value}) is still pending — roll back to "${pending.baselineVersion}" (_private/agentic-v2/playground-versions.md), verify, then start a run`
+		);
+		process.exit(2);
+	}
+}
 // The pipeline runs against the playground and nothing else — fail before any agent starts.
 const inst = loadInstances();
 const rc = rcInstance();
@@ -213,6 +231,14 @@ const areaJson = {
 	entry: area.entry ?? null,
 	menu: (area as any).menu ?? null,
 	states: stateFilter,
+	variants:
+		captureRun || variantFilter.includes('none')
+			? []
+			: (area.variants ?? []).filter((v) => !variantFilter.length || variantFilter.includes(v.id)),
+	sweeps:
+		captureRun || variantFilter.includes('none')
+			? []
+			: (area.sweeps ?? []).filter((w) => !variantFilter.length || variantFilter.includes(w.id)),
 	note: area.note ?? null,
 	instance: { host: inst.host, id: inst.playground },
 	createdAt: new Date().toISOString(),
@@ -224,6 +250,9 @@ const areaJson = {
 if (!dryRun) {
 	writeJson(join(dir, 'area.json'), areaJson);
 	writeFileSync(CURRENT_RUN_FILE, runId + '\n');
+	// A variant allowlist left behind by a crashed run must never carry over.
+	for (const id of existsSync(RUNS_DIR) ? readdirSync(RUNS_DIR) : [])
+		rmSync(join(RUNS_DIR, id, 'variant-allowlist.json'), { force: true });
 	// The planner plans against the pipeline as it is now, never a stale picture of it.
 	writeJson(CATALOG_FILE, buildCatalog());
 }

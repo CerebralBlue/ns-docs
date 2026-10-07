@@ -1,7 +1,8 @@
-# `scripts/migration-map.json`
+# `scripts/migration-map.json` — the route registry
 
-The single source of truth for the old-docs → new-site restructure. It also doubles as the
-link-rewrite map for the converter and as the future redirect map.
+The site's route registry: one entry per page, what state it is in, what kind of page it is,
+which console screens it is written from, and what it still owes. (The file name is from the
+migration; renaming it to `routes.json` is planned for the domain cutover.)
 
 Read this before editing the map or picking up a route.
 
@@ -9,10 +10,11 @@ Read this before editing the map or picking up a route.
 
 - [Top-level shape](#top-level-shape)
 - [A route entry](#a-route-entry)
-- [`status` — the field that protects your work](#status--the-field-that-protects-your-work)
-- [`action` — which path a route is on](#action--which-path-a-route-is-on)
-- [`gaps` — the documentation gap audit](#gaps--the-documentation-gap-audit)
-- [`kill` and `renamed`](#kill-and-renamed)
+- [`status` — who may touch the page](#status--who-may-touch-the-page)
+- [`type` — the page contract](#type--the-page-contract)
+- [`console` — where the facts come from](#console--where-the-facts-come-from)
+- [`gaps` and `gapsResolved`](#gaps-and-gapsresolved)
+- [`redirects` and `renamed`](#redirects-and-renamed)
 - [Editing the map safely](#editing-the-map-safely)
 - [Useful one-liners](#useful-one-liners)
 
@@ -21,129 +23,96 @@ Read this before editing the map or picking up a route.
 ```jsonc
 {
   "$comment": "…",
-  "sourceRoot": "/home/fabio/Documents/NeuralSeek/ns-documentation/knowledge/neuralseek/documentation/docs",
-  "routes":  { "<new route>": { … }, … },   // 151 entries
-  "kill":    { "<old path>": "why it is not migrating", … },
-  "renamed": { "<old route>": "what happened to it", … }
+  "routes": { "<route>": { … }, … },          // 151 entries, in the site's reading order
+  "renamed": { "<old route>": "what happened to it" },
+  "redirects": {
+    "sourceCommit": "…",                       // the old MkDocs docs at CerebralBlue/knowledge
+    "from": { "<old source path>": "<route>" },  // old URL → the route that replaces it
+    "kill": { "<old source path>": "why it was not carried over" }
+  }
 }
 ```
 
-A key of `routes` is the new-site route, which is also the file path:
-`src/content/docs/<route>.md`, served at `/<route>/` (plus the `/ns-docs` base at build time).
+A key of `routes` is the route and the file path: `src/content/docs/<route>.md`, served at
+`/<route>/` (plus the `/ns-docs` base at build time).
 
 ## A route entry
 
 ```jsonc
-"seek/curation": {
-  "title": "Answer curation",
-  "description": "…",                 // optional — 77 of 151 have one
-  "sources": [                        // always present; empty array for new pages
-    "ui/curate/index.md",             // paths relative to sourceRoot
-    "features/answer_curation/index.md"
-  ],
-  "action": "merge",
-  "status": "adopted",
-  "gaps": [ "…", "…" ]                // optional — 96 of 151 have one
+"configuration/neural-config/llm-details": {
+  "title": "LLM Details",
+  "description": "…",                      // synced from the page's frontmatter by sync-map.ts
+  "console": ["neural-config"],            // first = the area that owns the page
+  "status": "written",
+  "type": "reference",
+  "reviewedAt": "2026-10-02",              // only with status adopted, set by hand
+  "reviewedRun": "202609270311-neural-config",
+  "gaps": ["…"],
+  "gapsResolved": [{ "gap": "…", "run": "…", "why": "…" }]
 }
 ```
 
-`title`, `sources`, `action` and `status` are on every entry. The **first** source is the primary
-content donor; its frontmatter `description` is the fallback when the entry has no `description`.
+## `status` — who may touch the page
 
-Counts at last check: 151 routes; 76 with sources, 75 without.
+| Status    | Meaning                                                              | Set by                                                   | Regenerated?              |
+| --------- | -------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------- |
+| `stub`    | generated placeholder                                                | `gen-stubs.ts`                                           | **every** `bun run stubs` |
+| `draft`   | prose not yet checked against the product (verbatim port, mid-write) | `prepare-write.ts` (stub → draft)                        | never                     |
+| `written` | written by the `/docs-explore` pipeline and its gates passed         | `sync-map.ts`, after the gates PASS                      | never                     |
+| `adopted` | a human checked it                                                   | **a person, by hand**, with `reviewedAt` + `reviewedRun` | never                     |
 
-## `status` — the field that protects your work
+- `prepare-write.ts` **refuses** to rewrite an `adopted` page (exit 1; the writer never starts)
+  unless `--allow-adopted` — then it becomes `written` and keeps its review fields.
+- `doc-lint` warns `changed-since-review` when `_private/agentic-v2/index.json` shows a newer run
+  than `reviewedRun`: re-read the page, then update `reviewedRun`.
+- Working by hand on a `stub`, move it to `draft` first, so `bun run stubs` cannot reclaim it.
+- `adopted` does not mean free of `<!-- SCREENSHOT -->` markers — image findings never block.
 
-| Status    | Meaning                             | Who overwrites it                                     |
-| --------- | ----------------------------------- | ----------------------------------------------------- |
-| `stub`    | generated placeholder               | `bun run stubs` rewrites it **every run**             |
-| `auto`    | drafted by the old converter script | nothing regenerates it — treat as an unverified draft |
-| `adopted` | a human has edited the page         | **nothing ever touches it**                           |
+## `type` — the page contract
 
-Set `adopted` the moment you start editing a page. It is the only thing standing between an
-afternoon of writing and a regenerated blank page. The converter sets `auto` for you; moving to
-`adopted` is always manual.
+`concept` · `task` · `reference` · `quickstart`. Decides the required sections
+(`scripts/agentic/contract.ts`, `references/page-contract.md`). Seeded by route pattern on
+2026-09-30; correct it here when a page is clearly another type.
 
-Two corollaries worth remembering:
+## `console` — where the facts come from
 
-- The converter **skips** `adopted` routes. If a page still needs converting, convert first, then
-  flip the status.
-- `adopted` does not mean _finished_. Several adopted pages still carry `<!-- MERGE: -->` markers
-  and their gap comment. Always read the file before assuming.
+The console areas (`_private/agentic-v2/areas.json`) whose captures a page is written from; the
+first owns it. `[]` = a reference page with no screen (written from config/MCP resources, with an
+Unverified caution). `bun scripts/agentic/areas.ts list` prints the split.
 
-Distribution at last check: 121 `stub`, 21 `auto`, 9 `adopted`.
+## `gaps` and `gapsResolved`
 
-## `action` — which path a route is on
+`gaps` lists product surfaces the page must still cover. Stub pages show them as a visible "To
+document on this page" list; older ported pages carry them as a hidden
+`<!-- STILL TO DOCUMENT ON THIS PAGE: -->` comment. A gap a capture **disproves** (no such control
+on any captured screen) is moved by the IA stage to `gapsResolved` with the run and the evidence —
+it is never documented as an absence ("there is none").
 
-| Action    | Count | Meaning                                                                      |
-| --------- | ----- | ---------------------------------------------------------------------------- |
-| `new`     | 75    | Nothing to migrate. Write it from the product. **Path B.**                   |
-| `keep`    | 60    | Straight conversion of one old page.                                         |
-| `rewrite` | 8     | Old page exists but needs rewriting with a capability focus, not a UI tour.  |
-| `merge`   | 5     | Two or more old pages become one. The converter concatenates; a human folds. |
-| `distill` | 3     | Take only the developer/admin-relevant slice of a longer old page.           |
+## `redirects` and `renamed`
 
-`keep`, `rewrite`, `merge` and `distill` are all Path A. `gen-stubs.ts` turns each action into a
-one-line note on the stub page, which is why a stub says things like "Content will be merged from
-multiple existing pages."
-
-## `gaps` — the documentation gap audit
-
-`gaps` is a list of product surfaces someone confirmed are undocumented on that route. It is
-rendered into the page two different ways depending on status:
-
-- **Stub pages** (`bun run stubs`) render it as a visible `## To document on this page` section —
-  so ~70 draft pages currently publish their own worklist. That is deliberate while the site is
-  unannounced.
-- **Converted pages** render it as an HTML comment at the bottom:
-  `<!-- STILL TO DOCUMENT ON THIS PAGE: … -->` — invisible on the published site, visible to
-  whoever edits the file.
-
-For a `new` route the gaps array is effectively the page outline. For a converted route it is the
-list of things the old page never covered. Either way the page is not done until the list is worked
-through and the comment deleted.
-
-96 of 151 routes carry a gap list.
-
-## `kill` and `renamed`
-
-`kill` maps an old source path to the reason it is deliberately **not** migrating — UI tab-tour
-shells, MkDocs tag indexes, marketing pages that belong on the main site, and a couple of
-"confirm at review" entries. Check it before hunting for a source that seems to be missing.
-
-`renamed` records structural moves, with the redirect intent spelled out — for example
-`getting-started/deployment` was split into `getting-started/how-to-get-neuralseek` (plans,
-purchasing) and `reference/deployment` (platform mechanics). Check it when a link will not resolve.
+`redirects.from` maps each old MkDocs page to the route that replaced it (a route's first source
+was its primary donor); `redirects.kill` lists old pages deliberately not carried over, with the
+reason. `scripts/url-inventory.ts` reconciles them against the old site's sitemap and builds the
+redirect map at the domain cutover. `renamed` records structural moves between new routes.
 
 ## Editing the map safely
 
-The file is hand-grouped with blank lines between sections, and the converter edits it with
-targeted string replacement to preserve that. Match it:
-
-- Make small, targeted edits (`Edit`), not a JSON reserialize.
-- Keep tab indentation and grouping intact.
-- Do not reorder routes; the order is the site's reading order.
-- `bun run format:check` covers this file via Prettier, so a malformed edit fails `verify`.
+- Small, targeted edits (`Edit`); keep the 2-space indentation; `bun run format:check` covers the
+  file, so a malformed edit fails `verify`.
+- Do not reorder routes casually; the order is the reading order the IA stage maintains.
+- Pipeline agents never edit it except the IA agent (string surgery on `gaps`, `gapsResolved`,
+  `description`, `renamed`, new stub routes) — the scripts own `status`.
 
 ## Useful one-liners
 
 ```bash
 # One route's entry
-python3 -c "import json,sys; print(json.dumps(json.load(open('scripts/migration-map.json'))['routes'][sys.argv[1]], indent=2))" seek/curation
+jq '.routes["seek/curation"]' scripts/migration-map.json
 
-# Everything still to migrate (has sources, not adopted)
-python3 -c "
-import json
-r=json.load(open('scripts/migration-map.json'))['routes']
-for k,v in r.items():
-    if v['sources'] and v['status']!='adopted': print(v['status'], v['action'], k)
-"
+# Routes by status, and by type
+jq -r '[.routes[].status]|group_by(.)|map("\(.[0]) \(length)")[]' scripts/migration-map.json
+jq -r '.routes|to_entries[]|"\(.value.type) \(.key)"' scripts/migration-map.json
 
-# Every from-scratch page and its gap count
-python3 -c "
-import json
-r=json.load(open('scripts/migration-map.json'))['routes']
-for k,v in r.items():
-    if v['action']=='new': print(len(v.get('gaps',[])), k)
-"
+# Pages a human has reviewed, with the run they read
+jq -r '.routes|to_entries[]|select(.value.status=="adopted")|"\(.key) \(.value.reviewedAt) \(.value.reviewedRun)"' scripts/migration-map.json
 ```

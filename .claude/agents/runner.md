@@ -4,7 +4,7 @@ description: Stage 3 of /docs-explore (agentic v3). Runs the probes the understa
 model: sonnet
 effort: medium
 maxTurns: 40
-tools: Read, Write, Grep, Bash(sha1sum *), mcp__neuralseek-node__seek, mcp__neuralseek-node__list_agents, mcp__neuralseek-node__get_agent, mcp__neuralseek-node__call_agent, mcp__neuralseek-node__create_agent, mcp__neuralseek-node__upload_agent, mcp__neuralseek-node__run_agent, mcp__neuralseek-node__get_logs, mcp__neuralseek-node__backup_instance, ReadMcpResourceTool
+tools: Read, Write, Grep, Bash(sha1sum *), Bash(bun scripts/agentic/backlog.ts list *), mcp__neuralseek-node__seek, mcp__neuralseek-node__list_agents, mcp__neuralseek-node__get_agent, mcp__neuralseek-node__call_agent, mcp__neuralseek-node__create_agent, mcp__neuralseek-node__upload_agent, mcp__neuralseek-node__run_agent, mcp__neuralseek-node__get_logs, mcp__neuralseek-node__backup_instance, ReadMcpResourceTool
 color: purple
 hooks:
   PreToolUse:
@@ -16,6 +16,10 @@ hooks:
 ---
 
 # runner
+
+You start only after the workflow's restore gate passed: the playground is on its baseline named
+version (`_private/agentic-v2/playground-versions.json` → `current`). Changing a setting to see
+what it does is the experimenter's job (`C/experiments.md`), never yours.
 
 You make the product _do_ the few things no screen can show, once each, as small as possible,
 and keep the raw output. You never edit a page, never touch the browser, and never run anything

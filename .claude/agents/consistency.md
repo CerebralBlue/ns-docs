@@ -2,7 +2,7 @@
 name: consistency
 description: The cross-page pass that runs once after every section of a /docs-night has been written. For one route, reads its page and its neighbours (pages sharing a console area, linked pages, siblings) plus the neighbours' verified evidence, and reports where the pages contradict each other, say the same thing twice, or fail to link. Read-only on pages; writes only its consistency.json. A writer fixes what it finds, once.
 model: sonnet
-effort: medium
+effort: high
 maxTurns: 25
 tools: Read, Grep, Glob, Write
 color: yellow
@@ -36,8 +36,15 @@ folder>/brief.md` — its controls (labels, values, options, quoted from the scr
 2. **Duplicates** — a section that re-documents a screen another page owns (owner = the page
    whose `console` area it is, or the more specific page). `keep` names the page that should
    keep the full text; the other should shrink to a sentence + link.
-3. **Missing links** — this page names a feature/screen a neighbour documents and does not link
-   to it (authored links are `[text](/route/)`, no `/ns-docs` prefix).
+3. **Missing links** — this page names a feature/screen another page documents and does not
+   link to it (authored links are `[text](/route/)`, no `/ns-docs` prefix). Check the
+   neighbours AND the concepts in the page's brief (`## Concepts → owner pages`), which can point
+   outside the neighbour list.
+4. **Sidebar coherence across areas** — the page's place in the sidebar (`astro.config.mjs`)
+   contradicts how the console organises it (a page filed under a group whose console screen is
+   elsewhere; siblings in an order the console does not use; a label the console names
+   differently). Report `{route, issue, evidence, proposed}` under `sidebar`; the main session
+   decides — you never edit the sidebar.
 
 Be exact and quote. A finding without both quotes is not a finding. Ignore wording differences
 that carry no fact.
@@ -67,6 +74,14 @@ that carry no fact.
   ],
   "missing_links": [
     { "to": "governance/replay", "why": "the page describes outdated-answer detection Replay owns" }
+  ],
+  "sidebar": [
+    {
+      "route": "configuration/neural-config/embedding-models",
+      "issue": "listed after Managed LLM Details; the console's accordion has Embedding Models right after LLM Details",
+      "evidence": "neural-config states order",
+      "proposed": "move after LLM Details"
+    }
   ],
   "verdict": "consistent | needs-fix"
 }

@@ -9,40 +9,47 @@
  * Result → runs/<id>/<route>/gates.json.
  *
  *   lint       bun scripts/doc-lint.ts <route> --strict — any ERROR fails
- *   contract   the five h2s in order incl. a FAQ with ≥ 3 entries, title + description present,
- *              no leftover MERGE / STILL TO DOCUMENT / ASK marker
+ *   contract   the page type's contract (contract.ts: concept · task · reference · quickstart) —
+ *              title + description, intro paragraph, the type's h2s, a closing Related, an
+ *              optional FAQ with ≥ 2 entries, no leftover MERGE / STILL TO DOCUMENT / ASK marker
  *   links      every internal ](/…) link resolves to a route, a renamed key, or a file; a link
  *              whose sentence names a **topic** the (unwritten) target page does not mention is
  *              a warning line, never a FAIL
- *   images     every image exists, is not an old-docs carry-over, and a placeholder is
- *              followed by a SCREENSHOT marker within 3 lines
+ *   images     every image exists, is not an old-docs carry-over, is used once per page, and a
+ *              placeholder is followed by a SCREENSHOT marker within 3 lines
  *   coverage   the page names ≥ 90 % of the controls coverage-plan.json assigns to it — owned
- *              plus the shared ones naming the route; zero on a console route FAILs
+ *              plus the shared ones naming the route; zero FAILs only on a `reference`-type
+ *              console route (a concept, task or quickstart page may own no controls)
  *              (coverage.ts — the writer's own check, re-run here)
  *   section-image  every ### section that names an assigned control carries a real image
  *              (the capture has a crop per section; a placeholder there is a writer omission)
  *   values     WARN: bold labels / code values on the page that no snapshot of the capture
  *              contains and no UNCONFIRMED marker covers (values.ts) — the reviewer rules on each
+ *   audience   the page talks to a customer: no "playground", "the MCP", "probe", "our test";
+ *              no control explained "by its label"
  *   facts      ≤ 4 `<!-- UNCONFIRMED: … -->` markers; more means the page is old prose with a
  *              new coat and Fabio should look at it. Reference-kind routes are exempt.
  *
  * `bun run verify` (the build) is not here: it runs once per area run, after the last writer.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { coverageOf } from './coverage';
+import { contractProblems, IMAGE_SECTION, isPageType, type PageType } from './contract';
 import { unbackedValues } from './values';
 import {
 	captureDir,
 	DOCS_DIR,
 	loadMap,
 	parseArgs,
+	parseSnapshot,
 	readJson,
 	ROOT,
 	routeDir,
 	runDir,
 	sha1,
+	walkSnapshot,
 	writeJson,
 } from './lib';
 
@@ -57,6 +64,8 @@ const gates: Record<string, { status: Status; detail: string[] }> = {};
 const gate = (name: string, status: Status, detail: string[] = []) =>
 	(gates[name] = { status, detail });
 const { map } = loadMap();
+const mapType = map.routes?.[route]?.type;
+const pageType: PageType = isPageType(mapType) ? mapType : 'concept';
 const rd = routeDir(runId, route);
 const pagePath = join(DOCS_DIR, `${route}.md`);
 
@@ -105,35 +114,14 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 		);
 }
 // ── contract ──────────────────────────────────────────────────────────────────
+// Per page type (scripts/agentic/contract.ts): concept · task · reference · quickstart.
 {
-	const CONTRACT = ['What is it', 'Why it matters', 'When to use it', 'How it works', 'FAQ'];
-	const detail: string[] = [];
-	if (!/^title:\s*\S/m.test(fm)) detail.push('frontmatter: no title');
-	if (!/^description:\s*\S/m.test(fm)) detail.push('frontmatter: no description');
-	const h2: string[] = [];
-	outsideFences((line) => {
-		const m = line.match(/^##\s+(.+?)\s*$/);
-		if (m) h2.push(m[1].toLowerCase());
-	});
-	const positions = CONTRACT.map((s) => h2.indexOf(s.toLowerCase()));
-	const missing = CONTRACT.filter((s, i) => positions[i] < 0);
-	if (missing.length) detail.push(`missing h2: ${missing.join(', ')}`);
-	const present = positions.filter((p) => p >= 0);
-	if (present.some((p, i) => i > 0 && p < present[i - 1]))
-		detail.push('contract sections out of order');
-	if (/^#\s/m.test(body)) detail.push('in-body H1');
-	// FAQ: every page ends with ≥ 3 questions (a `### Q` heading or a bold/`**Q**` line ending in `?`).
-	const faqStart = lines.findIndex((l) => /^##\s+FAQ\s*$/i.test(l));
-	if (faqStart >= 0) {
-		const faq = lines.slice(faqStart + 1).join('\n');
-		const questions = (
-			faq.match(/^(###\s+.+\?|\*\*[^*]+\?\*\*|-\s+\*\*Q:?\*\*.+|<details>)\s*$/gm) ?? []
-		).length;
-		if (questions < 3) detail.push(`FAQ has ${questions} question(s); 3 or more required`);
-	}
-	if (/<!--\s*(MERGE|STILL TO DOCUMENT|ASK):/.test(body))
-		detail.push('a MERGE / STILL TO DOCUMENT / ASK marker is still on the page');
-	gate('contract', detail.length ? 'FAIL' : 'PASS', detail);
+	const detail = contractProblems(fm, body, pageType);
+	gate(
+		'contract',
+		detail.length ? 'FAIL' : 'PASS',
+		detail.length ? detail : [`${pageType} contract`]
+	);
 }
 // ── links ─────────────────────────────────────────────────────────────────────
 {
@@ -159,7 +147,7 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 			// a stub or verbatim old prose is a WARNING, never a fail — the target may be written
 			// later tonight; the report counts these and the consistency pass re-checks them.
 			const targetInfo = map.routes[key];
-			if (targetInfo && targetInfo.status !== 'adopted') {
+			if (targetInfo && !['adopted', 'written'].includes(targetInfo.status)) {
 				const targetPage = [`${key}.md`, `${key}/index.md`]
 					.map((f) => join(DOCS_DIR, f))
 					.find((f) => existsSync(f));
@@ -199,9 +187,16 @@ const outsideFences = (fn: (line: string, i: number) => void) => {
 	} catch {
 		detail.push('note: scripts/old-docs-image-hashes.json missing — stale-image check inert');
 	}
+	const seenAt = new Map<string, number>();
 	outsideFences((line, i) => {
 		for (const m of line.matchAll(/!\[[^\]]*\]\((\/img\/[^)\s]+)\)/g)) {
 			const p = m[1];
+			// One picture, one place: the same screenshot under two sections explains neither.
+			if (p !== PLACEHOLDER && seenAt.has(p))
+				detail.push(
+					`line ${at(i)}: ${p} is already shown at line ${seenAt.get(p)} — crop the section instead`
+				);
+			else seenAt.set(p, at(i));
 			if (p === PLACEHOLDER) {
 				if (!/<!--\s*SCREENSHOT:/.test(lines.slice(i + 1, i + 4).join('\n')))
 					detail.push(`line ${at(i)}: placeholder without a SCREENSHOT marker within 3 lines`);
@@ -254,8 +249,9 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 	else {
 		const detail: string[] = [];
 		// split the body into ### sections (outside fences)
-		// Only the ### sections under "How it works" are illustrated sections; the FAQ and the
-		// contract's first three h2s are prose. A section passes with its own real image, or when
+		// Only the ### sections under the type's illustrated h2 (contract.ts IMAGE_SECTION: How it
+		// works · Settings · Step …; any h2 for a task page) are illustrated sections; the intro,
+		// FAQ, Related and Before you begin are prose. A section passes with its own real image, or when
 		// every control it names is already illustrated by a crop elsewhere on the page (a
 		// "Staleness" paragraph about a slider shown two sections up needs no second picture).
 		let cur: { title: string; start: number; text: string[] } | null = null;
@@ -264,7 +260,11 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 		outsideFences((line, i) => {
 			const h2 = line.match(/^##\s+(.+?)\s*$/);
 			if (h2) {
-				inHow = /^how it works$/i.test(h2[1]);
+				const t = h2[1].toLowerCase();
+				const want = IMAGE_SECTION[pageType];
+				inHow = want
+					? t.includes(want)
+					: !/faq|related|before you begin|verify|troubleshoot/.test(t);
 				cur = null;
 				return;
 			}
@@ -284,9 +284,32 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 			...body.matchAll(/!\[([^\]]*)\]\((\/img\/(?!_placeholder\.svg)[^)\s]+)\)/g),
 		].map((m) => normT(`${m[1]} ${m[2].replace(/[-_/.]/g, ' ')}`));
 		const isIllustrated = (label: string) => illustrated.some((t) => t.includes(label));
+		// Capturable = a label that is a NAMED node on some captured screen (a button, a field, a
+		// heading…). A JSON key inside a code box (the Chat SDK's `instanceId`, `chatTimeout`) is
+		// not a node, so no crop can ever exist for it — requiring one parked chat-sdk (2026-09-30).
+		const capturable = new Set<string>();
+		const sd = join(captureDir(runId), 'states');
+		if (existsSync(sd))
+			for (const f of readdirSync(sd))
+				if (f.endsWith('.yml'))
+					walkSnapshot(parseSnapshot(readFileSync(join(sd, f), 'utf8')), (n) => {
+						if (n.name) capturable.add(normT(n.name).trim());
+					});
+		const warn: string[] = [];
 		for (const sec of sections) {
 			const text = normT(sec.title + '\n' + sec.text.join('\n'));
-			const names = labels.filter((l) => l && text.includes(l));
+			const all = labels.filter((l) => l && text.includes(l));
+			const names = capturable.size ? all.filter((l) => capturable.has(l.trim())) : all;
+			const keysOnly = all.filter((l) => !names.includes(l));
+			if (keysOnly.length && !names.length) {
+				// config keys: a code fence or a table naming them is the right illustration
+				const shown = sec.text.some((l) => /^\s*(```|\|)/.test(l));
+				if (!shown)
+					warn.push(
+						`warn line ${sec.start}: "${sec.title}" documents config keys (${keysOnly.slice(0, 3).join(', ')}) with neither a table nor a code sample`
+					);
+				continue;
+			}
 			if (!names.length) continue;
 			const hasImage = sec.text.some((l) =>
 				/!\[[^\]]*\]\(\/img\/(?!_placeholder\.svg)[^)\s]+\)/.test(l)
@@ -301,7 +324,7 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 		gate(
 			'section-image',
 			detail.length ? 'FAIL' : 'PASS',
-			detail.length ? detail : [`${sections.length} section(s) checked`]
+			detail.length ? [...detail, ...warn] : [`${sections.length} section(s) checked`, ...warn]
 		);
 	}
 }
@@ -315,6 +338,35 @@ const isReference = area?.kind === 'reference' || (routeInfo && !(routeInfo.cons
 		`${marks.length} unconfirmed fact(s)${isReference ? ' (reference kind — no limit)' : ''}`,
 		...marks.map((m) => `unconfirmed: ${m}`),
 	]);
+}
+// ── audience ─────────────────────────────────────────────────────────────
+// The reader is a customer: the page never talks about how it was researched (the playground,
+// the MCP, probes, runs) and never explains a control "by its label" — that is a guess, not a fact.
+{
+	const TALK = /\b(playground|the MCP|probe[sd]?|our tests?|we tested|during (the|this) run)\b/i;
+	const HEDGE = /\b(by its label|(its|the) label (suggests|says|implies)|going by the label)\b/i;
+	const detail: string[] = [];
+	const noComments = body.replace(/<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, ' '));
+	const plain = noComments.split('\n');
+	let inFence = false;
+	for (const [i, line] of plain.entries()) {
+		if (/^\s*(`{3,}|~{3,})/.test(line)) {
+			inFence = !inFence;
+			continue;
+		}
+		if (inFence) continue;
+		const t = line.match(TALK);
+		if (t)
+			detail.push(
+				`line ${at(i)}: "${t[0]}" — pages are for customers; describe the product, not how it was researched`
+			);
+		const h = line.match(HEDGE);
+		if (h)
+			detail.push(
+				`line ${at(i)}: "${h[0]}" — say what the control does (experiment, probe, or an UNCONFIRMED source), not what its label suggests`
+			);
+	}
+	gate('audience', detail.length ? 'FAIL' : 'PASS', detail);
 }
 // ── values (WARN — never parks; the reviewer rules on each) ───────────────
 {

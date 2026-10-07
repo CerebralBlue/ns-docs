@@ -258,7 +258,7 @@
 	background: var(--ns-graph-adopted);
 }
 
-.ns-graph-legend i[data-status='auto'] {
+.ns-graph-legend i[data-status='written'] {
 	background: var(--ns-graph-auto);
 }
 

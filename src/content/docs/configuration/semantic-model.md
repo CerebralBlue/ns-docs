@@ -1,249 +1,198 @@
 ---
 title: "Semantic model tuning"
-description: "The Semantic Scoring tab of a configuration's Guardrails dialog switches NeuralSeek's semantic score model on, decides whether that score drives the Warning and Minimum confidence guardrails and reranking, and opens the Semantic Model Tuning modal that holds its penalties and weights."
+description: "Semantic model tuning sets the four penalties, two weights and the always-allowed terms that decide how NeuralSeek's semantic score rates a generated answer against the KnowledgeBase sources it was built from."
 ---
 
-## What is it
+The semantic score is NeuralSeek's rating of how well a generated answer is backed by the
+KnowledgeBase passages it came from. The **Semantic Model Tuning** settings decide how that score
+is computed: how much an answer loses for nouns its sources do not back, for stitching many
+documents together or for declining to answer, and which terms never count against it. Tune them
+when correct answers keep scoring low, or weak answers keep scoring high, across many questions —
+the values apply to every answer the configuration produces.
 
-**Semantic Scoring** is the first tab of the **Guardrails** dialog that belongs to each
-configuration on the Neural Config routing tree. The tab's own description is the shortest
-definition of the feature:
+## How semantic model tuning works
 
-> The Semantic Scoring model checks the generated answer against the KnowledgeBase sources and
-> rates the answer based on the quantity and focus. Semantic scoring is not available in
-> cross-laguage usecases.
+### Where the tuning lives
 
-(The spelling `cross-laguage` is the screen's.)
+The tuning belongs to a configuration's guardrails. On [Neural Config](/configuration/neural-config/),
+select the configuration's [**Guardrails**](/governance/guardrails/overview/) node. The dialog that opens is titled after the
+configuration (`Guardrails: Default Config` for the default one) and starts on the **Semantic
+Scoring** tab, which describes the model this way: "The Semantic Scoring model checks the
+generated answer against the KnowledgeBase sources and rates the answer based on the quantity and
+focus."
 
-The tab holds six toggles and one button. The first toggle, **Enable the Semantic Score Model**,
-switches the model on; the other five decide what the score feeds and what the match is allowed
-to look at; the **Semantic Model Tuning** button opens the modal with the penalties and weights
-behind the score. This page covers all of them. What the tab produces is a _score_ on an answer —
-the `semanticScore` a Seek response carries — not a change to the answer text, with one exception
-named below.
+![The Guardrails: Default Config dialog on the Semantic Scoring tab, with six toggles and the Semantic Model Tuning button below them](/img/neural-config/guardrails-panel.png)
 
-## Why it matters
+The six toggles on that tab decide whether a score is computed and what it is used for:
+**Enable the Semantic Score Model**, **Use Semantic Score as the basis for Warning & Minimum
+confidence.**, **Rerank the search results based on the Semantic Match**, **Check document titles
+as part of the Semantic Match**, **Check document URL's as part of the Semantic Match** and
+**Remove sentences containing hallucinated key words**. Each is explained on
+[Semantic scoring](/governance/guardrails/semantic-scoring/). The tuning only matters while
+**Enable the Semantic Score Model** is on — with it off there is no score for the settings to
+shape.
 
-The semantic score is the number NeuralSeek gives an answer for how well it is backed by the
-KnowledgeBase passages it was generated from. On the playground, a Seek asked through the MCP
-while the model was on came back with the score next to the KnowledgeBase score:
+To open the tuning, select **Semantic Model Tuning** at the bottom of the tab. A **Semantic Model
+Tuning** window opens over the Guardrails dialog. Because each **Guardrails** node opens the
+dialog for its own configuration, check the dialog title before you change anything.
 
-```text
-"confidence": 18,
-"KBscore": 100,
-"semanticScore": 18,
-```
+### The score on an answer
 
-(input: "How does NeuralSeek calculate the semantic score of an answer?", via the MCP)
+Each Seek answer carries two scores. **KnowledgeBase Confidence** rates how well the retrieved
+documents match the question; **Semantic Match** rates how well the answer itself is backed by
+those documents. In the [Seek](/seek/overview/) tab both appear as rows under the answer; the REST
+response returns them as `KBscore` and `semanticScore`.
 
-Two toggles turn that number into behaviour. With **Use Semantic Score as the basis for Warning &
-Minimum confidence.** on, it is the score the warning and minimum-confidence guardrails act on, so
-a harshly scored answer can be flagged or held back even though it was correct. With **Rerank the
-search results based on the Semantic Match** on, it also has a say in which source document is
-treated as the top one. A badly tuned model is therefore expensive in both directions: too strict
-and good answers are held back; too lenient and thinly sourced answers pass the guardrails
-untouched.
+The two can disagree. Asked `What is semantic scoring in NeuralSeek?`, NeuralSeek returned a
+`KBscore` of 100 and a `semanticScore` of 25: the documents matched the question fully, yet the
+answer was rated as only partly backed by them. A gap like this is what the tuning works on.
+Trends across many answers are on [Semantic analytics](/governance/semantic-analytics/).
+
+Before you change a value, find out what lowered the score. In the answer's **Semantic Analysis**
+row, select **Statistical Details**. The **Semantic Score Details** window lists Semantic Match %,
+Source Jumps, Standard Deviation, Top Source Coverage, Total Coverage, Normalized Answer Length,
+Longest Phrase, Unattributed Key Terms, Unattributed Terms, Unattributed Numbers and Removed
+Sentences.
+
+<!-- UNCONFIRMED: mapping of Semantic Score Details lines to tuning settings (Unattributed Key Terms → Missing key search term penalty, Unattributed Terms → Missing search term penalty, Source Jumps → Source Jump penalty, Total Coverage → Total Coverage Weight) — inferred from the names and the old MkDocs "Semantic model tuning" page -->
+
+Match the line to a setting: Unattributed Key Terms to **Missing key search term penalty**,
+Unattributed Terms to **Missing search term penalty**, Source Jumps to **Source Jump penalty**,
+and a low Total Coverage on a long answer to **Total Coverage Weight**. Change that setting, save,
+and ask the same question again.
+
+### The penalties
+
+Four penalties lower the score when an answer shows a sign of weak backing. Each has a description
+that starts with its name, a slider whose track is labelled `0%` to `100%`, and a number box beside
+the track that shows the value.
+
+![The Semantic Model Tuning window: four penalties and two weights, each with a track and a number box, and the allowed-terms box below them](/img/neural-config/semantic-model-tuning.png)
+
+| Setting                             | What the penalty is for (the screen's description)                                                                                                                         | When to lower it                                                                   |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Missing key search term penalty** | "After scoring, this penalty is applied for answers that are missing KnowledgeBase attribution of proper nouns that were included in the search."                          | Correct answers lose points over product, company or person names in the question. |
+| **Missing search term penalty**     | "After scoring, this penalty is applied for answers that are missing KnowledgeBase attribution of other nouns that were included in the search."                           | Correct answers lose points over the question's general vocabulary.                |
+| **Source Jump penalty**             | "When answers join across many source documents it can be an indication of lost meaning or intent, depending on your source documentation."                               | Good answers in your content routinely combine several documents.                  |
+| **LLM Decline Penalty**             | "When LLM answers seem to indicate the question is unrelated to the documentation, or refuses to answer, apply additional penalty to the semantic score."                   | Declining answers are replaced by the minimum-confidence reply more often than you want (see below). |
+
+Raise a penalty to be stricter about its cause. The two missing-term penalties can be set
+independently, so a configuration can be strict about names and lenient about general vocabulary,
+or the reverse. The track labels do not describe the scale of every number box, so read and
+compare values in the boxes, not by the position of the slider.
+
+**LLM Decline Penalty** looks at the answer's tone rather than its sources: an answer in which the
+LLM declines, or says the question is off-topic, is pushed further down. With **Use Semantic
+Score as the basis for Warning & Minimum confidence.** on, a higher value makes such answers more
+likely to fall below the [Minimum confidence](/governance/guardrails/min-confidence/) threshold,
+where that guardrail's reply replaces them; a lower value lets them through with less of a drop.
+
+<!-- UNCONFIRMED: lower Source Jump penalty when good answers must stitch many documents; raise it to favour answers from one or few documents — old MkDocs "Semantic model tuning" page -->
+
+The **Source Jump penalty** depends most on how your documentation is split: lower it when
+answers usually have to stitch many documents together, and raise it to favour answers drawn from
+one or a few documents.
+
+### The weights
+
+Two more settings in the same window balance the penalties against how much of the answer its
+sources cover.
+
+- **Total Coverage Weight** — "Looking at the answer, how much weight should be given to the
+  total coverage alone, regardless of other penalty. Increasing this helps prevent abnormally low
+  scores from long highly stitched answers. Decreasing will better catch hallucination in short
+  answers". Increase it when long answers built from many documents score abnormally low;
+  decrease it when short answers score better than their sources justify.
+- **ReRank min coverage %** — "What is the minimum coverage of the total answer that the top used
+  source document needs to be reranked over the top KB-scored document." The top KB-scored
+  document is the one retrieval ranked first; the top used source is the leading document among
+  those the answer drew on. A higher value reranks less often, a lower value lets the semantic
+  match override retrieval more readily. It works together with **Rerank the search results based
+  on the Semantic Match** on the Semantic Scoring tab.
+
+### Terms that are never penalised
+
+Some terms legitimately appear in answers but never in your documents — a product name, a
+version, a competitor. The box at the bottom of the window, **Words or phrases to always allow in
+responses without penalty (nouns, named entities). Separate multiple by comma.**, takes those
+terms; its placeholder shows the format, `myCoolProduct, myCoolProduct v2`.
+
+![The allowed-terms box with its placeholder and its label](/img/neural-config/semantic-model-tuning--words-or-phrases-to-always-allow-in-resp.png)
+
+An allowed term is narrower than a lower penalty: the penalties keep working for every other
+term, so add the name here before you lower **Missing key search term penalty** for everyone.
+
+### Saving the tuning
+
+The tuning window has only **Close**. To keep your changes, close the window, then select
+**Save** in the Guardrails dialog behind it. How a save becomes a version of the configuration,
+and how to propose a change for review instead, is on
+[Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
 ## When to use it
 
-Open this tab when you need to:
+Open **Semantic Model Tuning** when you see the same pattern across many answers:
 
-- turn the semantic score on or off for a configuration;
-- decide whether the confidence guardrails judge answers by the semantic score;
-- let the semantic match rerank the search results, or extend the match to document titles and
-  URLs;
-- strip sentences built on key words the KnowledgeBase never mentioned;
-- adjust the penalties and weights behind the score, through **Semantic Model Tuning**.
+- correct answers keep scoring low because they combine several documents, or because the
+  question names a product or person your documents spell differently;
+- short answers score higher than their sources justify;
+- answers that rightly use a term your KnowledgeBase never contains are marked down for it;
+- answers are warned or blocked by Minimum confidence and the warning guardrail more or less often than they should be, and **Use Semantic Score as
+  the basis for Warning & Minimum confidence.** is on.
 
-It is the wrong tool in two cases. When **Cross Language** is `True` on
-[Platform Preferences](/configuration/neural-config/platform-preferences/), there is no semantic
-score to tune — both that setting's help text and this tab say semantic scoring is not available
-cross-language. And when a single answer scores badly, read its analysis on the Seek tab first
-(see [Tuning answers](/seek/tuning/)): the tuning values apply to every answer the configuration
-produces, so a change made to rescue one question moves the score of everything else too.
+It is the wrong tool in three cases:
 
-The older documentation for this feature gave one piece of method advice: treat semantic model
-tuning as a fine-tuning exercise after data preparation and
-[KnowledgeBase tuning](/configuration/neural-config/knowledgebase-tuning/), not a first resort,
-and change one value at a time before re-testing broadly. Nothing on the current screen confirms
-or contradicts it — it is working advice carried over from that page, not a screen fact, and it
-was not re-checked against the present product.
+- **One answer is wrong.** A value here moves every score the configuration produces; look at that
+  answer first with [Tuning answers](/seek/tuning/).
+- **The answer is generated across languages.** With **Cross Language** on in
+  [Platform preferences](/configuration/neural-config/platform-preferences/), NeuralSeek
+  translates into the KB language when it differs from the Seek language, and "Semantic Scoring
+  is not possible on Cross-language response generation, so it will be automatically disabled."
+  The tuning has no effect on those answers. See [Language handling](/configuration/language/).
+- **Retrieval brings back the wrong documents.** Fix the content and
+  [KnowledgeBase tuning](/configuration/neural-config/knowledgebase-tuning/) first.
 
-## How it works
+<!-- UNCONFIRMED: semantic model tuning is a last fine-tuning step after data preparation and KnowledgeBase tuning; change sparingly and re-test broadly — old MkDocs "Semantic model tuning" page -->
 
-![The Neural Config page with the Guardrails dialog open on its Semantic Scoring tab](/img/neural-config/guardrails.png)
-
-### Where semantic scoring lives
-
-On the **Neural Config** page, click a **Guardrails** node on the routing tree. A dialog opens
-whose title names the configuration it belongs to — `Guardrails: Default Config` for the default
-one — with **Semantic Scoring** already selected. The rest of the tab strip, in order, is
-**Prompt Injection**, **PII**, **Profanity (HAP)**, **Attribution Protection**, **Warning
-Confidence**, **Min Confidence**, **Min Text**, **Max Length** and **Custom Governance**; those
-tabs are described from [Guardrails overview](/governance/guardrails/overview/), not here.
-
-![The Guardrails: Default Config dialog on its Semantic Scoring tab: the tab strip, the intro paragraph, six toggles, the Semantic Model Tuning button and the Save bar](/img/neural-config/guardrails-panel.png)
-
-The dialog's footer is a blue **Save** bar; the × in the title bar is **Close**. Nothing on this
-page was saved while it was written.
-
-The tree shows further **Guardrails** nodes under the categories of a multi-agent configuration,
-so each node opens the dialog for its own configuration. Whether a category's tab starts from the
-default configuration's values or from its own was not checked; read the toggles on the dialog
-you actually opened.
-
-:::note
-Older documentation sends you to a "Governance and Guardrails" dropdown on a Configure tab. On
-the current console the tab is reached from a **Guardrails** node on the Neural Config routing
-tree.
-:::
-
-### The Semantic Scoring toggles
-
-Each control on the tab is a checkbox drawn as a toggle whose text reads `Enable` when it is on
-and `Disable` when it is off. The screen carries the labels only — there is no help text per
-toggle — so what follows is the label, the value the playground showed, and what the label
-implies.
-
-![The six Semantic Scoring toggles under the tab's intro paragraph](/img/neural-config/guardrails-panel.png)
-
-- **Enable the Semantic Score Model** — `Enable` on the playground. This is the switch the
-  other five presuppose: they concern the score this one produces, so with it off there is
-  nothing for them to act on.
-- **Use Semantic Score as the basis for Warning & Minimum confidence.** — `Enable` on the
-  playground (the trailing full stop is part of the label). "Warning & Minimum confidence" are two
-  other tabs of the same dialog: **Warning Confidence**, whose controls are `Confidence % for
-  warning` and `Prepend a warning on low confidence results`, and **Min Confidence**, described
-  in [Minimum confidence](/governance/guardrails/min-confidence/). With this toggle on, those
-  guardrails take the semantic score as their basis; which score they use when it is off is not
-  stated on the screen.
-- **Rerank the search results based on the Semantic Match** — `Enable` on the playground. The
-  only text on the screen that says what threshold a rerank uses is the `ReRank min coverage %`
-  description in the tuning modal (below).
-- **Check document titles as part of the Semantic Match** — `Disable` on the playground. By its
-  label, it lets the document title count towards the match as well as the passage text.
-- **Check document URL's as part of the Semantic Match** — `Disable` on the playground (`URL's`
-  as on screen). By its label, the same for the document URL.
-- **Remove sentences containing hallucinated key words** — `Disable` on the playground. By its
-  label this is the one toggle on the tab that changes what the user reads rather than a score:
-  it drops sentences that rest on key words with no KnowledgeBase attribution. The behaviour was
-  not observed while writing this page.
-
-Whether a change to any toggle commits with the dialog's **Save** was not exercised; the Save bar
-is the only commit control the dialog shows.
-
-### Semantic Model Tuning
-
-The last control on the tab is a black button labelled **Semantic Model Tuning** with a tune
-icon. It opens a modal titled `Semantic Model Tuning` that lists the six settings behind the
-score and closes with **Close**.
-
-![The Semantic Model Tuning button at the bottom of the Semantic Scoring tab](/img/neural-config/guardrails-panel.png)
-
-![Screenshot needed — the Semantic Model Tuning modal](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: Neural Config > Guardrails node > Semantic Scoring tab > click "Semantic Model Tuning": the modal with its six settings, their controls and current values, and whatever sits below them. Why: the modal was never opened in this capture, so no image, value or control type is confirmed. -->
-
-The modal was not opened for this page, so no value, control type or range is confirmed here —
-read the current values from your screen. What the screen does carry, verbatim, is the name and
-description of each setting:
-
-- **Missing key search term penalty.** "After scoring, this penalty is applied for answers that
-  are missing KnowledgeBase attribution of proper nouns that were included in the search."
-- **Missing search term penalty.** "After scoring, this penalty is applied for answers that are
-  missing KnowledgeBase attribution of other nouns that were included in the search."
-- **Source Jump penalty.** "When answers join across many source documents it can be an
-  indication of lost meaning or intent, depending on your source documentation."
-- **LLM Decline Penalty.** "When LLM answers seem to indicate the question is unrelated to the
-  documentation, or refuses to answer, apply additional penalty to the semantic score."
-- **Total Coverage Weight.** "Looking at the answer, how much weight should be given to the total
-  coverage alone, regardless of other penalty. Increasing this helps prevent abnormally low scores
-  from long highly stitched answers. Decreasing will better catch hallucination in short answers"
-- **ReRank min coverage %.** "What is the minimum coverage of the total answer that the top used
-  source document needs to be reranked over the top KB-scored document."
-
-The descriptions give the direction of each change. The two attribution penalties differ only in
-what they cover — proper nouns for the key-term penalty, other nouns for the plain one. Lowering
-**Source Jump penalty** suits documentation where legitimate answers routinely stitch across many
-documents; raising it pushes towards answers cited from one or few. **Total Coverage Weight** goes
-up when long, stitched answers score abnormally low and down when short answers score better
-than they should. **ReRank min coverage %** only matters while **Rerank the search results based
-on the Semantic Match** is on: it is the share of the answer the top used source document must
-cover before it outranks the top KB-scored document.
-
-<!-- UNCONFIRMED: below the six settings the modal has a text box described as "Words or phrases to always allow in responses without penalty (nouns, named entities). Separate multiple by comma." — old MkDocs page ("Allowed Terms") and the run-1204 page; not in any snapshot of this capture -->
-
-Older documentation also describes an allowed-terms text box at the bottom of the modal, for
-product or brand names that your KnowledgeBase never mentions and that should not count as
-unattributed terms. It is not in this capture; check the modal on your screen.
-
-The modal's own button is **Close** and the dialog behind it has **Save**, so the values you type
-are most likely committed by the dialog's Save, not by closing the modal. That is read from the
-structure of the two windows; the behaviour was not exercised.
-
-### Cross Language
-
-**Cross Language** lives on
-[Platform Preferences](/configuration/neural-config/platform-preferences/) in the Edit
-Configuration dialog, not on this tab, and it is the one setting elsewhere that switches semantic
-scoring off regardless of the toggles above. Its help text: "Translate into the KB language when
-the KB language is different than the Seek Language. Semantic Scoring is not possible on
-Cross-language response generation, so it will be automatically disabled." It was `False` on the
-playground.
-
-![The Cross Language setting on Platform Preferences, with its help text and the value False](/img/neural-config/platform-preferences--cross-language.png)
-
-How the KB and Seek languages are decided is on [Language handling](/configuration/language/).
-
-### Reading the score on the Seek tab
-
-The number these toggles produce is shown with each answer on the **Seek** page.
-
-<!-- UNCONFIRMED: the Seek page's "Statistical Details" button opens a "Semantic Score Details" modal with the per-factor breakdown — old MkDocs page (semantic model tuning) and the pipeline's v2-run screen notes (conventions.md); the Seek tab is not in this capture -->
-
-A **Statistical Details** button there is said to open the **Semantic Score Details** modal
-with the per-factor breakdown. Neither belongs to this dialog and neither was captured for this
-page, so treat those two names as unverified until the Seek tab is captured; the answer panel is
-described in [Tuning answers](/seek/tuning/). Read that breakdown before changing a tuning value,
-so the change targets the penalty that actually lowered the score.
+Treat semantic model tuning as the last step after data preparation and KnowledgeBase tuning:
+change one value at a time, and re-test a broad set of questions after each change.
 
 ## FAQ
 
-### Where do I turn semantic scoring on?
+### A correct answer gets a low semantic score. What do I change?
 
-On the **Neural Config** page, click the **Guardrails** node of the configuration. The dialog
-opens on **Semantic Scoring**, and **Enable the Semantic Score Model** is its first toggle.
+Find which penalty applies — proper nouns from the question, other nouns, many source documents,
+or an answer that declines — and lower that one. If the cause is a single term your documents
+never contain, add it to the allowed-terms box instead. For long answers stitched from many
+documents, **Total Coverage Weight** is the other setting to try.
 
-### Why is there no semantic score on my answers?
+### Does tuning change which answers are warned or blocked?
 
-Two settings to check. Either **Enable the Semantic Score Model** is off on this tab, or
-**Cross Language** is `True` on Platform Preferences — both screens say semantic scoring is not
-available cross-language, and the Platform Preferences help text says it is disabled
-automatically in that case.
+Only when **Use Semantic Score as the basis for Warning & Minimum confidence.** is on in the
+Semantic Scoring tab. Then the semantic score is what the warning and
+[minimum confidence](/governance/guardrails/min-confidence/) thresholds are compared against, and
+a harsher penalty can push answers under them.
 
-### Does the semantic score change the answer text?
+### Where do I save the tuning?
 
-Only **Remove sentences containing hallucinated key words** touches the answer, by its label. The
-other five toggles govern the score itself, whether it is the basis for the Warning and Minimum
-confidence guardrails, and reranking — and the six tuning settings change the score, not the
-text. A score change can still change what a user finally sees, because the confidence guardrails
-act on it.
+In the Guardrails dialog. The tuning window has only **Close**; close it and select **Save** in
+the dialog behind it.
 
-### What does "Use Semantic Score as the basis for Warning & Minimum confidence." do?
+### Why does tuning change nothing for some answers?
 
-It makes the **Warning Confidence** and **Min Confidence** guardrails act on the semantic score.
-The label says "basis for"; which score those tabs use when the toggle is off is not stated on
-the screen.
+Check that **Enable the Semantic Score Model** is on in the configuration you are testing — each
+**Guardrails** node has its own settings — and that the answer is not generated across languages,
+where semantic scoring is not available.
 
-### Where are the penalty values?
+## Related
 
-Behind **Semantic Model Tuning** at the bottom of the tab — six settings: missing key search term
-penalty, missing search term penalty, source jump penalty, LLM decline penalty, total coverage
-weight and ReRank min coverage %. Their current values are read from your screen; this page does
-not list them.
-
-### Do the toggles apply to every configuration?
-
-Each **Guardrails** node on the routing tree opens the dialog for its own configuration — the
-title says which, `Guardrails: Default Config` for the default one — so the toggles you set belong
-to that configuration. Whether a category starts from the default's values was not checked.
+- [Semantic scoring](/governance/guardrails/semantic-scoring/) — the six toggles on the Semantic
+  Scoring tab
+- [Guardrails overview](/governance/guardrails/overview/) — every tab of the Guardrails dialog
+- [Minimum confidence](/governance/guardrails/min-confidence/) — the thresholds the semantic score
+  can feed
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/) — saving and
+  proposing changes
+- [Seek](/seek/overview/) and [Semantic analytics](/governance/semantic-analytics/) — where the
+  score is shown
+- [Language handling](/configuration/language/) — cross-language answers

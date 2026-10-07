@@ -1,240 +1,203 @@
 ---
 title: "Backup, restore & change logs"
-description: "The two buttons on the floating toolbar of the Neural Config screen: Backup & Restore, which downloads or uploads a settings file and backs up or restores the whole instance, and Change Logs, which lists every saved configuration version by date, user and label with a Rollback action per row."
+description: "Use the Neural Config toolbar to download or upload your configuration settings, back up or restore the whole instance, and review every saved configuration version in the Change Log with a Rollback on each row."
 ---
 
-## What is it
-
-Two buttons share a small floating toolbar at the bottom right of the **Neural Config** routing
-tree:
-
-- **Backup & Restore** opens the **Backup and Restore** dialog, which covers two different things:
-  a configuration settings file you can download and upload again, and a full-instance backup and
-  restore.
-- **Change Logs** opens the **Change Log** dialog: one tab per configuration, listing every saved
-  version with its date, the user who saved it, a version label and a **Rollback** action.
-
-Both act on _configuration_ — the settings behind the routing tree. Curated answers are backed
-up elsewhere; see [Curated answers are a different backup](#curated-answers-are-a-different-backup).
-
-:::note
-Older documentation told you to select **Show advanced options** on the Configure tab first.
-There is no such toggle on the current screen: the toolbar is always visible at the bottom right
-of the tree.
-:::
-
-## Why it matters
-
-The configuration decides how every answer is produced — which knowledge base and LLM are used,
-how strict the thresholds are, what is masked, which category is routed where. A change applies
-to every request that follows, and most settings have no undo of their own.
-
-The two dialogs cover the two ways that goes wrong. A downloaded settings file is a point you can
-return to by uploading it again. The Change Log is the record of what actually changed, by whom
-and when, with a rollback per saved version — so you do not have to remember which of the
-accordion sections someone edited last week.
-
-The Change Log is the right tool for "what changed?"; it is the wrong tool for moving a
-configuration between instances — that is what the settings file is for.
-
-## When to use it
-
-- Before a configuration change you are not sure about: take a settings file first.
-- When an answer changed and nobody knows which setting moved: open **Change Logs** for that
-  configuration and expand the newest rows.
-- When a change has to be undone: use **Rollback** on the row that introduced it.
-- When a whole instance has to be preserved, not just its settings: **Backup**, and later
-  **Restore** — knowing that the dialog calls restoring permanent and irreversible.
-
-## How it works
-
-![The Neural Config routing tree; the floating toolbar with Backup & Restore and Change Logs sits at the bottom right](/img/neural-config/default.png)
-
-### The Neural Config toolbar
-
-The toolbar floats over the routing tree at the bottom right of the screen and holds two buttons:
-
-- **Backup & Restore** — the dark left half, with a download-tray icon. Opens the **Backup and
-  Restore** dialog.
-- **Change Logs** — the blue right half, with a list icon. Opens the dialog titled **Change Log**
-  (singular — the button says "Change Logs", the dialog says "Change Log").
-
-Neither button carries an accessible name of its own in the page markup: the name comes from the
-visible text beside the icon. If you drive the console with a screen reader or an automation
-tool, look for that text rather than a button label.
-
-The tree itself — the category nodes and what each one opens — is described on
+Two buttons float at the bottom right of the **Neural Config** routing tree, and they cover the
+two ways a configuration change can go wrong. **Backup & Restore** gives you a copy you keep
+outside the instance: the configuration settings as a file, or a backup of the whole instance.
+**Change Logs** is the record inside the instance: every saved version of a configuration, who
+saved it and when, what it changed, and a **Rollback** to return to it. Use the first before a
+risky change, and the second when answers changed and you need to find out why — or undo it. The
+routing tree itself, and the configurations it holds, are explained in
 [Configuration overview](/configuration/overview/).
 
-### The Backup and Restore dialog
+## Download or upload the configuration settings
 
-![The Backup and Restore dialog from an earlier playground capture: a Configuration Settings section with Download Settings and Upload Settings, and a Full Instance Backup & Restore section with Backup and Restore in red under the line "Restoring is permanent and irreversible"](/img/configuration/backup-restore/backup-restore-dialog.png)
+A settings file is a restore point you keep yourself. Take one before a change you might want to
+reverse — a new LLM, a different knowledge base, stricter thresholds — and upload it again to
+return to that point.
 
-The dialog is titled **Backup and Restore** and holds four actions. The screen shows only their
-labels — there is no help text — and the dialog was not opened for the capture this page was
-written from; the image above is an earlier capture of the same instance, and the two section
-headings come from it.
+![The Backup and Restore dialog over the Neural Config routing tree: Download Settings and Upload Settings under Configuration Settings, Backup and Restore in red under Full Instance Backup & Restore, and the toolbar with Backup & Restore and Change Logs at the bottom right](/img/configuration/backup-restore/backup-restore-dialog.png)
 
-**Configuration Settings** — the settings of this instance as a file.
+To download the settings:
 
-- **Download Settings** — downloads the current configuration.
-- **Upload Settings** — uploads a configuration file back into the instance.
+1. Go to **Neural Config** and select **Backup & Restore** on the toolbar at the bottom right of
+   the routing tree. The **Backup and Restore** dialog opens.
+2. Under **Configuration Settings**, select **Download Settings**.
+3. Keep the downloaded file somewhere safe, and name it so you can tell later which state of the
+   configuration it holds.
 
-**Full Instance Backup & Restore** — the whole instance, not just its settings. The dialog prints
-one line under this heading: `(Restoring is permanent and irreversible)`.
+To upload a settings file:
 
-- **Backup** — takes the full-instance backup.
-- **Restore** — restores one. **Backup** and **Restore** are drawn in red, unlike the pair above
-  them.
+1. Go to **Neural Config** and select **Backup & Restore**.
+2. Under **Configuration Settings**, select **Upload Settings**.
+3. Choose the settings file in your browser's file picker.
 
-Both upload paths pick the file with a **Choose File** button — the browser's own file picker.
-The page carries two of them; which one belongs to **Upload Settings** and which to **Restore**
-is not visible in the markup, so follow the button you clicked rather than the one you expect.
+If the instance hides API keys from configuration admins, plan to re-enter them after an upload —
+see [Troubleshooting](#api-keys-are-missing-after-upload-settings).
 
-What a settings file contains, and what a full backup includes beyond the configuration, is not
-stated anywhere on the screen. Treat a downloaded file as a restore point — something to upload
-back through the same dialog — rather than something to read or edit.
+## Back up or restore the whole instance
 
-Nothing in this dialog is staged: there is no **Save** step and no **Propose Changes** step, unlike
-the configuration dialogs described on
-[Using the Neural Config page](/configuration/neural-config/using-this-page/).
+When the whole instance has to be preserved, not only its configuration, use the lower half of
+the same dialog, headed **Full Instance Backup & Restore**. Under the heading the dialog warns:
+`(Restoring is permanent and irreversible)`. Its two buttons, **Backup** and **Restore**, are
+drawn in red to set them apart from the settings pair above.
 
-:::caution[Hide API Keys changes what an import gives back]
-**Hide API Keys** on
-[Platform Preferences](/configuration/neural-config/platform-preferences/) shows `False` on the
-captured instance. Its help text says that setting it to true "will require you re-enter all API
-keys when importing a configuration file", and that "once set to true this option cannot be
-disabled". On an instance where it has ever been on, plan to re-enter every LLM, embedding and
-integration key after **Upload Settings**.
-:::
+1. Go to **Neural Config** and select **Backup & Restore**.
+2. To take a backup, select **Backup** under **Full Instance Backup & Restore**.
+3. To restore the instance from a backup, first take a fresh **Backup** (or at least
+   **Download Settings**) so you have a way back, then select **Restore**.
 
-### The Change Log dialog
+<!-- UNCONFIRMED: curated Q&A has its own backup on the Curate screen (Download to CSV / Load Q&A) — from the old page; not on the Neural Config screen -->
 
-![Screenshot needed — the Change Log dialog: the Default Config, Billing and Technical Support tabs, and a table with the columns Proposal ID / Configuration Date, User, Version and Action](/img/_placeholder.svg)
+Curated questions and answers are backed up separately, from the Curate screen — see
+[Answer curation](/seek/curation/).
 
-<!-- SCREENSHOT: /img/neural-config/change-logs-panel.png — the Change Log dialog opened from the
-     Neural Config toolbar, Default Config tab. The capture at that path exists but shows a real
-     person's e-mail address in every row of the User column; redact it or recapture on an
-     instance whose saves belong to a service account before placing it here. -->
+## Review what changed in the Change Log
 
-**Change Logs** opens a dialog titled **Change Log**, with a **Close** (×) control at the top
-right and a blue **Close** bar at the bottom.
+The Change Log answers "what changed, who saved it, and when?" for each configuration. Open it
+when answers change and nobody knows why, or before you roll anything back.
 
-**Tabs** — one per configuration:
+![The Change Log dialog: the Default Config, Billing and Technical Support tabs above a table with the columns Proposal ID / Configuration Date, User, Version and Action, one row per saved version with a Rollback icon at the end; user names are redacted](/img/neural-config/change-logs-panel--redacted.png)
 
-- **Default Config** — selected when the dialog opens; the instance-wide configuration's log.
-- **Billing** and **Technical Support** — on the captured instance, these are the two categories
-  whose node on the tree reads `Custom Configuration`. Categories marked `Default Configuration`
-  (**Account Access**, **API & Integrations**) have no tab: they use the default configuration
-  and so have no log of their own. Only the **Default Config** panel was opened for this page;
-  the other two tabs were not clicked.
+1. Go to **Neural Config** and select **Change Logs**, to the right of **Backup & Restore** on the
+   toolbar. A dialog titled **Change Log** opens with the **Default Config** tab selected.
+2. Select the tab of the configuration you want to inspect. **Default Config** holds the log of
+   the instance's default configuration. The other tabs are named after routing categories —
+   **Billing** and **Technical Support**, for example — and hold the log of the configuration
+   that category carries of its own.
+3. Read the rows, newest first.
+4. To see what a version changed, select the chevron at the start of its row.
 
-**The table** — the **Default Config** panel is a table with an unlabelled first column (the row
-expander) and four named columns:
+Each tab is a table with these columns:
 
-- **Proposal ID / Configuration Date** — every row on the captured instance holds an ISO
-  timestamp of the save (`2026-09-17T20:35:05.260Z` on the newest row). No captured row shows a
-  proposal id here, so what a proposal row looks like is not documented.
+- **Proposal ID / Configuration Date** — when the version was saved, as an ISO 8601 date-time in
+  UTC (it ends in `Z`).
 - **User** — the account that saved the version, shown as its sign-in e-mail address.
-- **Version** — a label. Ten captured rows read `Version 7`, `Version 10`, `Version 11`,
-  `Version 15` … `Version 21` from newest to oldest — the numbers are not consecutive and the
-  higher ones sit on the older rows — so treat them as labels, not as a position in the list.
-  The newest row reads `PII rules for support intake` — free
-  text, so the label is whatever was typed when the change was saved. The prompt that takes it
-  is covered on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
-- **Action** — holds the **Rollback** icon for that row.
+- **Version** — the name given to the version when it was saved, or `Version N` when it was saved
+  without one. In the log, higher numbers sit on older rows, and the numbering runs across all the
+  tabs together, so `Version N` is a position in the history rather than a fixed id. Identify a
+  version by its date-time or its name.
+- **Action** — the **Rollback** icon for that row (see
+  [Roll back to an earlier version](#roll-back-to-an-earlier-version)).
 
-**Expanding a row** — the chevron at the left of a row opens it. The expanded content is a nested
-list of the configuration keys that changed in that version, each key followed by two values;
-the pairs look like `id: "516263" "883203"` and `re: "Billing" "Refunds"`, that is old value and
-new value, although the screen does not label which is which. Keys seen on the captured
-instance include `categories` (with the category `id`, `proposal`, `re` and `rp` entries),
-`details`, `embeddingModels`, `piiTraining`, `prePiiFilter` and `score`. Under the list sits the
-save timestamp and, when one was entered, the note saved with the change — on the newest
-captured row: `Added three pre-LLM regex filters (SSN, card number, employee ID) and two LLM-based
-PII training examples. Requested by the support team before the customer portal launch.`
+<!-- UNCONFIRMED: Version N labels renumber when a new version is saved — hands-on record of the product, 2026-09-26; not shown on a captured screen -->
 
-**Rollback** is offered per row, so a rollback returns to one specific saved version rather than
-stepping back once. It was not exercised while this page was written — rolling a shared
-instance back is not something to try for a screenshot — so what the confirmation looks like,
-and what happens to a proposal in flight, is not described here.
+Because `Version N` counts back from the newest save, the label on a given row can change when a
+new version is saved. Naming versions when you save them, as described in
+[Using the Neural Config page](/configuration/neural-config/using-this-page/), keeps the log
+readable later.
 
-### Proposals — what the screen shows and what it does not
+An expanded row lists the configuration keys that changed in that version, each followed by two
+values: the value before the save, then the value after. The keys are the configuration's
+internal names — for example `categories`, `piiTraining` or `postKBAgent` — not the labels you
+see in the **Configuration: Default Config** dialog. Below the list sit the save date-time and one line of text:
+either the note typed when the version was saved, or a line starting
+`Updated settings for the following fields:` followed by the key names. A note is what makes a
+row useful months later, for example: "Added three pre-LLM regex filters (SSN, card number,
+employee ID) and two LLM-based PII training examples. Requested by the support team before the
+customer portal launch."
 
-The Change Log is where a proposal — a configuration saved with **Propose Changes** instead of
-**Save** — would surface. The on-screen evidence for that is thin, and this section says exactly
-how thin.
+### About proposals
 
-- The first column is named **Proposal ID / Configuration Date**, and expanded rows carry a
-  `proposal:` key with a six-digit value (`"516263"`, `"861640"`) inside `categories`. That is the
-  entire on-screen evidence that proposals have ids.
-  <!-- UNCONFIRMED: a proposal is listed in the first column by its id instead of a date — inferred from the column name only; no proposal row was captured -->
-  A proposal row is presumably listed by that id where a saved version shows its date.
-- **Propose Changes** sits beside **Save** in the footer of the Edit Configuration dialog. What
-  distinguishes the two, and the version prompt, are on
-  [Using the Neural Config page](/configuration/neural-config/using-this-page/); neither button
-  was pressed for this page.
-- **Log Alternate Configs** on
-  [Platform Preferences](/configuration/neural-config/platform-preferences/) is the one setting
-  on the screen that names a proposal in use: its help text reads "When calling seek with a
-  Proposal or Override of the configuration, should the answers be logged to the Curate Tab."
-  (it shows `True` on the captured instance). So a proposal can be exercised by Seek before it is
-  active, and that switch decides whether those answers reach Curate.
-- The page markup carries a **Proposal Activated** acknowledgement (a dialog with a single **Ok**
-  button) and a **Complete** one (also **Ok**). Neither was seen opening, so which action raises
-  which is not documented here.
-  <!-- UNCONFIRMED: the proposal lifecycle beyond Propose Changes — an Activate step and a Delete Proposal action ("legacy but supported") — from the migration-map gap list; on no captured screen or snapshot -->
-  Older material describes an **Activate** step and a **Delete Proposal** action for a pending
-  proposal; neither appears on any captured screen, so they are listed here only so you know to
-  look for them.
+**Propose Changes** sits next to **Save** in the footer of the **Configuration: Default Config**
+dialog. What it does, and how it differs from **Save**, is covered on
+[Using the Neural Config page](/configuration/neural-config/using-this-page/). In the Change Log,
+the first column is named **Proposal ID / Configuration Date**, and inside an expanded row that
+touches categories, a `proposal:` key carries a six-digit id.
 
-### Curated answers are a different backup
+![The Log Alternate Configs setting on Platform Preferences, with its help text about logging answers from a Proposal or Override to the Curate Tab](/img/neural-config/platform-preferences--log-alternate-configs.png)
 
-Neither toolbar button touches curated question-and-answer content. Curated answers live on the
-**Curate** screen and are exported and re-imported there, not from Neural Config.
-<!-- UNCONFIRMED: Curate's Download to CSV (after selecting intents) and Load Q&A → Q&A Upload page are the curated backup path — from the old page; the Curate screen is not in this capture -->
-The old documentation describes a **Download to CSV** action and a **Load Q&A** upload on that
-screen; see [Answer curation](/seek/curation/) for the current controls.
+A proposal lets you test a configuration with Seek before it goes live. **Log Alternate Configs**
+on [Platform Preferences](/configuration/neural-config/platform-preferences/) decides whether
+those answers are kept: "When calling seek with a Proposal or Override of the configuration,
+should the answers be logged to the Curate Tab." Turn it off if answers from a configuration under
+test should not mix with production answers on Curate.
+
+## Roll back to an earlier version
+
+Every row of every tab carries its own **Rollback**, so you return the configuration to the
+version you pick — not one step back. Read the expanded row first, so you know which keys the
+rollback will change.
+
+<!-- UNCONFIRMED: Rollback applies immediately with no confirmation; a Complete dialog ("Your transaction has been processed. Click Ok to refresh the page.") follows with Ok; a rollback that changes something adds a new row named after the version it undid (a captured Default Config row pair shows this), a rollback to the live version adds none — hands-on record of the product, 2026-09-26 -->
+
+1. Go to **Neural Config** and select **Change Logs**.
+2. Select the tab of the configuration you want to roll back.
+3. Find the version you want to return to by its date-time or name, and expand its row to check
+   what it changes.
+4. Select **Rollback** in that row's **Action** column. The rollback applies at once; a
+   **Complete** message follows: "Your transaction has been processed. Click Ok to refresh the
+   page."
+5. Select **Ok** to refresh the page.
+6. Open **Change Logs** again. A rollback that changed the configuration appears as a new row at
+   the top of the tab, carrying the name of the version it replaced. Expand it: its values run
+   from the replaced version's settings back to the ones you returned to.
+
+Because the rollback takes effect immediately, answers produced afterwards already use the
+restored configuration. If you are not sure, **Download Settings** first so you can return to the
+current state.
+
+## Troubleshooting
+
+### API keys are missing after Upload Settings
+
+![The Hide API Keys setting on Platform Preferences, with its help text about re-entering API keys when importing a configuration file](/img/neural-config/platform-preferences--hide-api-keys.png)
+
+**Hide API Keys** on
+[Platform Preferences](/configuration/neural-config/platform-preferences/) keeps API keys away from
+configuration admins. Its help text warns: "Setting this option to true will require you re-enter
+all API keys when importing a configuration file. Once set to true this option cannot be
+disabled." Uploading a file with **Upload Settings** is most likely that import, so on an instance
+where the option was ever set to true, re-enter every LLM, embedding and integration key after the
+upload.
+
+### A Version number now points at a different row
+
+`Version N` is a position in the history, not a fixed id, so the same label can land on another
+row after new versions are saved. Note a version's date-time from **Proposal ID / Configuration
+Date** instead, or name your versions when you save them.
+
+### You can't tell which version is live
+
+The newest row on a tab is the last change saved or rolled back for that configuration. To see
+the settings themselves, open the configuration from the routing tree: **Edit Configuration** opens
+**Configuration: Default Config**, and **Edit Custom Configuration** on a category opens a dialog
+titled **Configuration:** followed by the category name.
 
 ## FAQ
 
-### Where are Backup & Restore and Change Logs?
+### What is the difference between Download Settings and Backup?
 
-On the floating toolbar at the bottom right of the **Neural Config** routing tree — **Backup &
-Restore** on the left, **Change Logs** on the right. There is no "Show advanced options" step;
-that instruction is out of date.
-
-### What is in the Backup and Restore dialog?
-
-Four actions: **Download Settings** and **Upload Settings** under **Configuration Settings**, and
-**Backup** and **Restore** under **Full Instance Backup & Restore**, with the warning that
-restoring is permanent and irreversible. The two upload paths use a browser **Choose File**
-picker. The dialog shows labels only, so what a settings file or a full backup contains is not
-documented.
+**Download Settings** and **Upload Settings** sit under **Configuration Settings** and move the
+configuration as a file. **Backup** and **Restore** sit under **Full Instance Backup & Restore**
+and cover the whole instance; the dialog warns that restoring is permanent and irreversible.
 
 ### How do I see who changed a configuration and when?
 
-Open **Change Logs**, pick the tab — **Default Config**, or a category with a configuration of
-its own such as **Billing** or **Technical Support** — and read **Proposal ID / Configuration
-Date**, **User** and **Version**. Expand a row to see the keys that changed, their old and new
-values, and the note saved with the change.
+Select **Change Logs**, open the configuration's tab, and read **User** and **Proposal ID /
+Configuration Date** on the row. Expand the row to see the keys that changed, their values before
+and after, and the note saved with the change.
 
-### Why does the Version column say something other than "Version N"?
+### Why did "Version 7" move to a different row?
 
-Because it is a label typed at save time, not a counter. The newest captured row reads
-`PII rules for support intake`; the rows around it read `Version 7` to `Version 21`, out of
-order.
+`Version N` counts back from the newest save across all configurations, so it shifts as new
+versions are saved. Identify versions by their date-time, or give them a name when you save them.
 
-### How do I undo a change?
+### Does a rollback delete the newer versions?
 
-Every row of the Change Log carries **Rollback** in its **Action** column, so you return to the
-specific version you pick rather than one step back. It was not exercised on the shared instance
-this page was written from, so the confirmation it shows and its effect on a pending proposal are
-not documented.
+<!-- UNCONFIRMED: a rollback adds a new row and removes none — hands-on record of the product, 2026-09-26 -->
 
-### Will my API keys come back after an import?
+No. A rollback that changes the configuration is added to the log as a new row; the versions
+saved after the one you returned to stay in the list, so you can roll forward again.
 
-Only if **Hide API Keys** on
-[Platform Preferences](/configuration/neural-config/platform-preferences/) has never been set
-to true. Its help text says that setting it requires re-entering every API key when importing a
-configuration file, and that the option cannot be turned off again once set.
+## Related
+
+- [Configuration overview](/configuration/overview/) — the routing tree, Default Config and
+  categories with a configuration of their own
+- [Using the Neural Config page](/configuration/neural-config/using-this-page/) — Save, Propose
+  Changes and naming a version
+- [Platform Preferences](/configuration/neural-config/platform-preferences/) — Hide API Keys and
+  Log Alternate Configs
+- [Answer curation](/seek/curation/) — curated questions and answers
