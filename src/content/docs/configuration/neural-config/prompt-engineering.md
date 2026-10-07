@@ -44,9 +44,7 @@ To turn the section off again, set **Enable Prompt Engineering (Void all support
 
 The four sliders under **Seek Weight Tuning.** adjust how the LLM generates Seek answers. Each one is an offset from the value NeuralSeek would use on its own, not a raw model parameter: the track runs from `-100%` to `100%`, and the number beside the track shows the current value. A slider stays greyed out while **Enable Prompt Engineering (Void all support and guarantees)** reads **Disabled**.
 
-![The Seek Weight Tuning heading and the Temperature slider, with its -100% and 100% ends and a value of 0; the slider and its help text are greyed out because Enable Prompt Engineering reads Disabled](/img/neural-config/prompt-engineering--seek-weight-tuning--crop.png)
-
-<!-- SCREENSHOT: /img/neural-config/prompt-engineering@enabled--seek-weight-tuning.png — Neural Config > Default Config > Edit Configuration > Prompt Engineering with Enable Prompt Engineering picked as Enabled (unsaved variant, then reload): the four sliders in their active state. Why: every capture shows the section disabled, so the sliders are greyed out and read as washed out. -->
+![Seek Weight Tuning with Enable Prompt Engineering set to Enabled: the Temperature, Top Probability, Frequency penalty and Maximum Tokens sliders, each from -100% to 100% with its value box at 0](/img/neural-config/prompt-engineering@enabled--seek-weight-tuning.png)
 
 <!-- UNCONFIRMED: 0 leaves NeuralSeek's baseline unchanged — inferred from the -100%…100% scale, the midpoint position and the "Adjust our baseline" help text of Maximum Tokens; not observed in an answer -->
 

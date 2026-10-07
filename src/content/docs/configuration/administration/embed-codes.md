@@ -32,9 +32,7 @@ Use an [API key](/configuration/administration/api-keys/) instead when the call 
 
 ### Find your embed code
 
-![API's & Integration, Embed Key selected in the side navigation: the Embed Seek card with the embedcode step, the embed code box and the Seek endpoint box, each with a Copy to clipboard button](/img/admin-tools/embed-key.png)
-
-<!-- SCREENSHOT: /img/admin-tools/embed-key.png — redact the embed code (first box) and the host and instance id in the endpoint URL (second box) before publishing -->
+![API's & Integration, Embed Key selected in the side navigation: the Embed Seek card with the embedcode step, the embed code box and the Seek endpoint box, each with a Copy to clipboard button; the code and instance id are replaced with placeholders here](/img/admin-tools/embed-key.png)
 
 1. Open **API's & Integration**. It is a link in the top navigation and also an item in the **Admin Tools** menu.
 2. In the side navigation, select **Embed Key**. It is the second item, directly under **API Keys**.

@@ -35,9 +35,7 @@ Select the person icon (the avatar) at the top right of the console header. It i
 - **Default Permissions** — the baseline for new users, described on [Default permissions](/configuration/administration/default-permissions/).
 - **Users** — every authorized user and their permissions.
 
-![Screenshot needed — the account side navigation with Profile, Default Permissions and Users](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: /img/profile/default.png recropped to the side navigation (Profile / Default Permissions / Users) only — the full viewport shows the signed-in account email in the page heading -->
+![The Profile area's side navigation: Profile (selected), Default Permissions and Users](/img/profile/side-navigation.png)
 
 ### Your profile and enabled capabilities
 
@@ -47,17 +45,13 @@ Below the heading, the **Access** section titled **Permissions** says "Your enab
 
 The Profile page has no buttons, inputs or toggles. You cannot change your own permissions here; someone with access to the Users page changes them.
 
-![Screenshot needed — the Permissions card grid on the Profile page](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: /pr-profile, crop of the "Access / Permissions" section only (the card grid under the heading "Permissions"), full height so the Governance card is included — the full viewport /img/profile/default.png shows the signed-in email in the "User profile" heading -->
+![The Access section of the Profile page: the Permissions heading and one card per enabled permission, from Admin to Governance, each with a green dot](/img/profile/permissions-cards.png)
 
 ### The Users page
 
 The **Users** page opens under the eyebrow **Administration** with the line "Manage authorized users and NeuralSeek access permissions for this instance." Its **Access control** section, **Authorized users**, reads "Search, review, and update permissions for users who have access to this NeuralSeek workspace."
 
-![Screenshot needed — the Authorized users table on the Users page](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: /img/profile/users--authorized-users.png with the Email and ID cells masked (or recaptured with a test account) — the current crop shows real account emails -->
+![The Authorized users section of the Users page: the search box, Add user, and the table with Email, ID and Permissions columns; the e-mail addresses are replaced with examples](/img/profile/users--authorized-users.png)
 
 The table has three columns, and each column header is a button:
 

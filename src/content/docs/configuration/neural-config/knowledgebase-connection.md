@@ -115,9 +115,7 @@ Both types search an Elasticsearch index; watsonx Discovery reaches it through I
 
 **Generate Key** is a helper for filling in the private API key next to it.
 
-![Placeholder: the watsonx Discovery connection fields with the Generate Key button](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: /img/neural-config/knowledgebase-connection@kb-wxd--connection.png — Neural Config > Default Config > Edit Configuration > KnowledgeBase Connection with KnowledgeBase Type = watsonx Discovery: crop watsonx Discovery Endpoint, watsonx Discovery Private API Key with Generate Key, and watsonx Discovery Index Name. Why: Generate Key exists only on this type and no crop shows it -->
+![KnowledgeBase Connection with KnowledgeBase Type set to watsonx Discovery: the watsonx Discovery Endpoint, the Private API Key with the Generate Key button below it, and the Index Name](/img/neural-config/knowledgebase-connection@kb-wxd--connection.png)
 
 Both types continue with the full [field mapping](#field-mapping) block. They also add a separate section to the dialog, **Hybrid & Vector Search Settings**, right after **KnowledgeBase Tuning**. It sets whether NeuralSeek runs a Lucene, hybrid or vector query against the index, and it is documented in [Hybrid, vector and semantic search](/knowledge/hybrid-vector-semantic-search/). For setting up the embedding model in Elasticsearch, see [Elasticsearch vector model](/knowledge/elasticsearch-vector-model/).
 

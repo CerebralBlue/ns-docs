@@ -48,9 +48,7 @@ When the same function is ticked on two or more cards, NeuralSeek load-balances 
    <!-- UNCONFIRMED: the pencil beside Weight opens the Load Balancing Weight dialog (a 1 to 100 scale), and a card with a higher weight takes a larger share of a shared function — the dialog is part of the section but was not opened in the capture; how weights divide traffic is not stated on the screen -->
 2. Set each card's share. The foot of every card shows its **LLM ID** and its **Weight**, each with a pencil icon; select the pencil beside **Weight**, set the value in **Load Balancing Weight**, and select **Update**.
 
-   ![Screenshot pending: the Load Balancing Weight dialog opened from the pencil beside a card's Weight](/img/_placeholder.svg)
-
-   <!-- SCREENSHOT: /img/neural-config/llm-details--load-balancing-weight.png — Neural Config > Default Config / Answer Generation > Edit Configuration > LLM Details > the pencil beside Weight on any card: the open Load Balancing Weight dialog with its 1–100 scale and Cancel / Update. Why: this is the one step on the page the reader cannot see before doing it. -->
+   ![The Load Balancing Weight dialog: the help text about weighting cards enabled for the same language and function, a slider from 1 to 100 with its number box, and Cancel / Update](/img/neural-config/llm-details--load-balancing-weight.png)
 
 3. Select **Save** and name the version.
 

@@ -101,9 +101,7 @@ Each card ends with two values you can edit, each with an **Edit Name** pencil:
 
 To change either value, select its **Edit Name** pencil: the one beside **LLM ID** opens **Edit Card ID**, and the one beside **Weight** opens **Load Balancing Weight**, which runs from 1 to 100. Select **Update** to apply the new value.
 
-![Screenshot pending: the Load Balancing Weight dialog opened from a card's Weight pencil](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: /img/neural-config/llm-details--load-balancing-weight.png — Neural Config > Default Config / Answer Generation > Edit Configuration > LLM Details > the Edit Name pencil beside Weight on any card: the open Load Balancing Weight dialog with its 1–100 scale and Cancel / Update. Why: the reader has only the closed Weight row to go on. -->
+![The Load Balancing Weight dialog: the help text about weighting cards enabled for the same language and function, a slider from 1 to 100 with its number box, and Cancel / Update](/img/neural-config/llm-details--load-balancing-weight.png)
 
 An NTL `LLM` step accepts a card's **LLM ID** in its `modelCard` parameter (see [Generate data](/maistro/ntl/generate-data/)). This one-step agent, given the Managed GPT card's ID:
 
