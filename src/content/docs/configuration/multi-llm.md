@@ -17,7 +17,7 @@ A NeuralSeek instance can run several language models side by side. Each model i
 
    > You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them for the selected functions that have multiple LLM's. Features that an LLM are not capable of will be unselectable. If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled.
 
-   ![The LLM Details section: the Add an LLM button and the load-balancing and no-fallback rules beside it, above two model cards — Managed GPT, with System AI ticked and the media functions greyed out, and Managed gpt-image, with Image Generation and Image Edits ticked and the text functions greyed out — each ending in its LLM ID and Weight row](/img/neural-config/llm-details-panel.png)
+   ![The LLM Details section: the Add an LLM button and the load-balancing and no-fallback rules beside it, above two model cards — Managed GPT, with System AI ticked and the media functions greyed out, and Managed gpt-image, with Image Generation and Image Edits ticked and the text functions greyed out — each ending in its LLM ID and Weight row](/img/neural-config/llm-details-panel--crop.png)
 
    <!-- UNCONFIRMED: Add places the chosen model as a new card in LLM Details — Add was not pressed in the capture -->
 

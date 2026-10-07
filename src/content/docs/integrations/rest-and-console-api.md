@@ -1,15 +1,14 @@
 ---
 title: "REST and Console APIs"
-description: "NeuralSeek has three API surfaces: the runtime API at /v1/<instance id> for Seek, mAIstro and related calls, the Console API at /c1/<instance id> for managing an instance's data, and the separate managed KnowledgeBase API."
+description: "NeuralSeek has two API surfaces: the runtime API at /v1/<instance id> for Seek, mAIstro and related calls, and the Console API at /c1/<instance id> for managing an instance's data."
 ---
 
 ## What is it
 
-NeuralSeek has three HTTP APIs, and each one does a different job:
+NeuralSeek has two HTTP APIs, and each one does a different job:
 
 - **The runtime API** handles the calls your applications make while they run: Seek answers, mAIstro agents, ratings, translation, guardrails, analytics and logs. You find it on the **API** screen.
 - **The Console API** manages the data behind the console screens: intents, answers, curated data, mAIstro files, NeuralEdit, governance figures, documents and dashboards. You find it on the **Console API** screen.
-- **The managed KnowledgeBase API** is a third, separate API for a managed KnowledgeBase. It is not on either of these screens and has its own page: [KnowledgeBase API](/knowledge/managed-knowledgebase/kb-api/).
 
 The **API** and **Console API** screens are both in **API's & Integration**, in the side navigation. Each one is an interactive OpenAPI 3.0 viewer that shows the API's spec file, its base URL for your instance, an **Authorize** button, and every operation grouped by topic.
 
@@ -21,7 +20,6 @@ If you pick the wrong surface, the call fails in ways that can be hard to diagno
 
 - **Use the runtime API** from a server, script or integration that asks questions, runs mAIstro agents, rates answers, translates text, checks for PII, or reads analytics and logs. The [Webhook](/integrations/webhook/) screen's URL is this API's `/seek` operation.
 - **Use the Console API** to automate what you would otherwise do in the console. For example, you can load intent examples, edit or delete answers, pull curated data (the same data as the [Curation](/seek/curation/) screen), manage mAIstro files, or read governance figures (see [Governance](/governance/overview/)).
-- **Use the [KnowledgeBase API](/knowledge/managed-knowledgebase/kb-api/)** for a managed KnowledgeBase. Neither screen here covers it.
 
 When not to use them:
 
@@ -30,13 +28,12 @@ When not to use them:
 
 ## How it works
 
-### Three API surfaces
+### Two API surfaces
 
 | Surface                  | Screen          | Spec title        | Server option on the screen                                      | Base URL                                   | Covers                                                                                                   |
 | ------------------------ | --------------- | ----------------- | ---------------------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
 | Runtime API              | **API**         | **NeuralSeek**    | `https://<console host>/v1/{instance} - NeuralSeek API server`     | `https://<console host>/v1/<instance id>`  | Seek, NeuralEdit streaming, ratings, mAIstro, categorize, extract, translate, guardrails, training, tests, analytics, logs, keys, user data |
 | Console API              | **Console API** | **NeuralSeek UI** | `https://<console host>/c1/{instance} - NeuralSeek Console server` | `https://<console host>/c1/<instance id>`  | Intents, categories, answers, questions, curated data, mAIstro files and agent list, NeuralEdit, governance, documents, dashboards |
-| Managed KnowledgeBase API | not on these screens | —            | —                                                                | see [KnowledgeBase API](/knowledge/managed-knowledgebase/kb-api/) | A managed KnowledgeBase                                                                                  |
 
 Both specs share the subtitle "NeuralSeek - The business LLM accelerator" and carry a version badge and an `OAS 3.0` badge. Each screen shows your own console host and instance ID. On this page they appear as `<console host>` and `<instance id>`.
 

@@ -25,7 +25,7 @@ A category that has its own **Custom Configuration** has the same section in its
 
 ### Enable Prompt Engineering
 
-![The Prompt Engineering section expanded: the red warning box, the description, the Enable Prompt Engineering dropdown set to Disabled, the greyed-out instruction box, and the start of Seek Weight Tuning, with Propose Changes and Save in the dialog footer](/img/neural-config/prompt-engineering-panel.png)
+![The Prompt Engineering section expanded: the red warning box, the description, the Enable Prompt Engineering dropdown set to Disabled, and the instruction box below it, greyed out because the section is disabled](/img/neural-config/prompt-engineering--enable--crop.png)
 
 The section describes its purpose in one paragraph:
 
@@ -44,31 +44,27 @@ To turn the section off again, set **Enable Prompt Engineering (Void all support
 
 The four sliders under **Seek Weight Tuning.** adjust how the LLM generates Seek answers. Each one is an offset from the value NeuralSeek would use on its own, not a raw model parameter: the track runs from `-100%` to `100%`, and the number beside the track shows the current value. A slider stays greyed out while **Enable Prompt Engineering (Void all support and guarantees)** reads **Disabled**.
 
+![The Seek Weight Tuning heading and the Temperature slider, with its -100% and 100% ends and a value of 0; the slider and its help text are greyed out because Enable Prompt Engineering reads Disabled](/img/neural-config/prompt-engineering--seek-weight-tuning--crop.png)
+
+<!-- SCREENSHOT: /img/neural-config/prompt-engineering@enabled--seek-weight-tuning.png — Neural Config > Default Config > Edit Configuration > Prompt Engineering with Enable Prompt Engineering picked as Enabled (unsaved variant, then reload): the four sliders in their active state. Why: every capture shows the section disabled, so the sliders are greyed out and read as washed out. -->
+
 <!-- UNCONFIRMED: 0 leaves NeuralSeek's baseline unchanged — inferred from the -100%…100% scale, the midpoint position and the "Adjust our baseline" help text of Maximum Tokens; not observed in an answer -->
 
 A value of 0 sits at the centre of the track and leaves NeuralSeek's baseline as it is. Move one slider at a time and compare answers to the same question before and after, so you can tell which change made the difference.
 
 #### Temperature
 
-![The Temperature slider with its help text, the -100% and 100% ends of the track, and the value box](/img/neural-config/prompt-engineering--temperature-how-much-variablity-is-provi.png)
-
 **Temperature** sets "how much variablity is provided in generated responses" (the screen's spelling). Moving it towards `100%` lets the wording vary more from one answer to the next; moving it towards `-100%` makes answers more repeatable. Lower it when the same question gets noticeably different answers and you need them consistent.
 
 #### Top Probability
-
-![The Top Probability slider with its help text, the -100% and 100% ends of the track, and the value box](/img/neural-config/prompt-engineering--top-probability-for-each-portion-of-the-.png)
 
 **Top Probability** sets, "for each portion of the generation, what percentage of the top options are considered". Moving it towards `100%` lets the LLM choose from a larger share of its candidate words, which gives more varied wording; moving it towards `-100%` keeps it to the most likely candidates. It works in the same direction as **Temperature**, so change one or the other, not both at once.
 
 #### Frequency penalty
 
-![The Frequency penalty slider with its help text, the -100% and 100% ends of the track, and the value box](/img/neural-config/prompt-engineering--frequency-penalty-how-much-penalty-to-ap.png)
-
 **Frequency penalty** sets "how much penalty to apply to generated portions of text that are repeated". Raise it when answers repeat the same phrase or sentence; lower it when an answer has to repeat exact terms, such as product names or field labels, and the LLM avoids them.
 
 #### Maximum Tokens
-
-![The Maximum Tokens slider with its help text, the -100% and 100% ends of the track, and the value box](/img/neural-config/prompt-engineering--maximum-tokens-adjust-our-baseline-varie.png)
 
 **Maximum Tokens** adjusts "our baseline (varies per answer verbosity) requested maximum tokens" — the cap on answer length that NeuralSeek requests from the LLM. Moving it towards `100%` requests a higher cap; moving it towards `-100%` a lower one, which can cut long answers short.
 

@@ -59,9 +59,7 @@ Curated questions and answers are backed up separately, from the Curate screen â
 The Change Log answers "what changed, who saved it, and when?" for each configuration. Open it
 when answers change and nobody knows why, or before you roll anything back.
 
-![The Change Log dialog: the Default Config, Billing and Technical Support tabs above a table with the columns Proposal ID / Configuration Date, User, Version and Action](/img/_placeholder.svg)
-
-<!-- SCREENSHOT: /img/neural-config/change-logs-panel.png â€” Neural Config > Change Logs, Default Config tab: redact the User column and the Version labels, or recapture with a service account. Why: shows the tabs, the four columns and the Rollback icon in one view -->
+![The Change Log dialog: the Default Config, Billing and Technical Support tabs above a table with the columns Proposal ID / Configuration Date, User, Version and Action, one row per saved version with a Rollback icon at the end; user names are redacted](/img/neural-config/change-logs-panel--redacted.png)
 
 1. Go to **Neural Config** and select **Change Logs**, to the right of **Backup & Restore** on the
    toolbar. A dialog titled **Change Log** opens with the **Default Config** tab selected.

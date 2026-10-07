@@ -3,6 +3,8 @@ title: "Users and permissions"
 description: "The Profile page shows the NeuralSeek permissions enabled for your own account, and the Users page lists every authorized user of an instance with their permissions and lets you change them with Change Permissions."
 ---
 
+<!-- TODO: RBAC — revisit this page when the RBAC work ships (reviewer, 2026-10-07) -->
+
 ## What is it
 
 NeuralSeek controls what each person can do in an instance through **permissions** — thirteen of them, such as **Seek**, **Configure** or **Run Agents**. Two account screens show them:

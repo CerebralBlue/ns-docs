@@ -9,7 +9,7 @@ description: "LLM Details is the Neural Config section where you add language mo
 
 Open **Neural Config**, select the **Default Config / Answer Generation** node on the routing tree, select **Edit Configuration**, and expand **LLM Details** — the third section, after **KnowledgeBase Connection** and **KnowledgeBase Tuning**. The section's other neighbours are listed on [Neural Config](/configuration/neural-config/).
 
-![The Edit Configuration dialog with LLM Details expanded: the Add an LLM button and the rules beside it, then the Managed GPT and Managed gpt-image cards with Connection Info and LLM Functions, and Propose Changes and Save in the footer](/img/neural-config/llm-details.png)
+![The Configuration: Default Config dialog with LLM Details expanded under KnowledgeBase Connection and KnowledgeBase Tuning: the Add an LLM button and the rules beside it](/img/neural-config/llm-details--dialog-top--crop.png)
 
 Changes to a card take effect only after you select **Save** or **Propose Changes** at the foot of the dialog; what each does is on [Using the Neural Config page](/configuration/neural-config/using-this-page/).
 
@@ -37,7 +37,7 @@ Each card is titled with the model's name, for example **Managed GPT**.
 
 <!-- UNCONFIRMED: Copy duplicates the card, so the same model can run with different functions or a different weight — migration gap audit ("Copy LLM — duplicate a model card"); the screen names the icon only "Copy" -->
 
-**Copy**, the icon at the card's top right, duplicates the card. Use it when you want the same model on a second card — for example to give it a different set of functions or a different weight.
+**Copy** duplicates the card. Use it when you want the same model on a second card — for example to give it a different set of functions or a different weight.
 
 ### Connection Info and LLM Languages
 
@@ -55,9 +55,9 @@ For a model on your own provider account, **Connection Info** is also where the 
 
 ### LLM Functions
 
-**LLM Functions** is the grid of checkboxes that assigns work to the card's model. Tick a function to send that work to this model; untick it to take the work away. **Enable All** and **Disable All**, the two icons beside the **LLM Functions** title, tick or untick every selectable function on that card only.
+**LLM Functions** is the grid of checkboxes that assigns work to the card's model. Tick a function to send that work to this model; untick it to take the work away. **Enable All** and **Disable All** tick or untick every selectable function on that card only.
 
-![The LLM Details section with two cards: Managed GPT, where most text functions are selectable and Table Understanding and the media functions are greyed out, and Managed gpt-image, where only Image Generation and Image Edits are selectable; the last function row of each grid ends with the maistro box; each card ends with its LLM ID and Weight row, each with an Edit Name pencil, and the top of its Delete and Test buttons](/img/neural-config/llm-details-panel.png)
+![The LLM Functions grids of two cards: on Managed GPT most text functions are selectable while Table Understanding and the media functions are greyed out; on Managed gpt-image only Image Generation and Image Edits are selectable](/img/neural-config/llm-details--llm-functions--crop.png)
 
 A greyed-out checkbox is a function the model cannot perform — "Features that an LLM are not capable of will be unselectable." In the image above, the **Managed GPT** card cannot take **Table Understanding** or the media functions, and the **Managed gpt-image** card can take only **Image Generation** and **Image Edits**. To get a greyed-out function, tick it on a card whose model supports it, or add such a model.
 
@@ -90,7 +90,9 @@ The **maistro** box on a model card is written in lower case; the **mAIstro** bo
 
 ### LLM ID, Weight and Delete
 
-The row at the foot of each card shows two values, each with a pencil icon named **Edit Name**:
+Each card ends with two values you can edit, each with an **Edit Name** pencil:
+
+![The LLM ID and Weight row of two cards: ns-gpt-5 and ns-gpt-image, each with Weight 100 and an Edit Name pencil beside both values](/img/neural-config/llm-details--llm-id-weight--crop.png)
 
 - **LLM ID** — the card's identifier in this configuration, for example `ns-gpt-5` on Managed GPT. It is also the value an NTL `LLM` step takes in `modelCard` (below).
 - **Weight** — the card's share when it handles a function together with other cards. How weights divide the work is on [Multi-LLM](/configuration/multi-llm/).
@@ -119,7 +121,7 @@ When you rename a card's **LLM ID**, update every agent that names it.
 
 <!-- UNCONFIRMED: Delete removes the card from the configuration; Test runs a test completion against the model to verify its credentials and does not save the configuration — previous Neural Config overview -->
 
-**Delete**, at the foot of the card, removes the card from the configuration. Every function that only this card had ticked is disabled until another card takes it. **Test**, beside it, sends a test call to the model to check its connection; it does not save the configuration, so select **Save** afterwards to keep your changes.
+**Delete** removes the card from the configuration. Every function that only this card had ticked is disabled until another card takes it. **Test** sends a test call to the model to check its connection; it does not save the configuration, so select **Save** afterwards to keep your changes.
 
 ## Limits and interactions
 

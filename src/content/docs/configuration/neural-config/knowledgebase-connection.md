@@ -54,7 +54,7 @@ These three controls appear for every type.
 
 Which store fits your content, and what each one supports, is compared in [Supported KnowledgeBases](/knowledge/supported-knowledgebases/). The end-to-end setup, including the work on the store's side, is in [Connect a KnowledgeBase](/knowledge/connect-a-kb/).
 
-**KnowledgeBase Language** is a full alphabetical list of 185 languages, from `Abkhazian` to `Zulu`. Brazilian Portuguese is spelled `Brazillian Portuguese` in the list, separately from `Portuguese`. This setting describes your content; the language answers are written in is set elsewhere, see [Language](/configuration/language/).
+**KnowledgeBase Language** is a full alphabetical list of 185 languages, from `Abkhazian` to `Zulu`. This setting describes your content; the language answers are written in is set elsewhere, see [Language](/configuration/language/).
 
 ![The KnowledgeBase Language dropdown open, showing Abkhazian, Afar, Afrikaans and Akan at the top of a scrolling list](/img/neural-config/knowledgebase-connection--options-knowledgebase-language.png)
 
@@ -84,7 +84,7 @@ Both Discovery types point at a Discovery project. They differ in how NeuralSeek
 | **Discovery Auth URL**   | Watson Discovery (CP4D)                      | The Cloud Pak for Data authentication endpoint of your cluster, which ends in `/icp4d-api`.                     |
 | **Discovery Project ID** | Both                                         | The Discovery project to search.                                                                                 |
 
-![KnowledgeBase Connection with KnowledgeBase Type set to Watson Discovery (CP4D): Discovery Service Url, Discovery User Name, Discovery Password, Discovery Auth URL and Discovery Project ID above the field-mapping dropdowns](/img/neural-config/knowledgebase-connection@kb-type-watson-discovery-cp4d-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to Watson Discovery (CP4D): Discovery Service Url, Discovery User Name, Discovery Password, Discovery Auth URL and Discovery Project ID above the field-mapping dropdowns](/img/neural-config/knowledgebase-connection@kb-type-watson-discovery-cp4d-panel--crop.png)
 
 Both types continue with the full [field mapping](#field-mapping) block, including the additional payload fields.
 
@@ -96,7 +96,7 @@ Both types continue with the full [field mapping](#field-mapping) block, includi
 | **AppSearch Private API Key**  | The App Search private API key.                                       |
 | **AppSearch Engine Name**      | The engine to search, for example `kbase`.                            |
 
-![KnowledgeBase Connection with KnowledgeBase Type set to Elastic AppSearch: Elastic AppSearch Endpoint, AppSearch Private API Key and AppSearch Engine Name, then the field-mapping dropdowns](/img/neural-config/knowledgebase-connection@kb-type-elastic-appsearch-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to Elastic AppSearch: Elastic AppSearch Endpoint, AppSearch Private API Key and AppSearch Engine Name, then the field-mapping dropdowns](/img/neural-config/knowledgebase-connection@kb-type-elastic-appsearch-panel--crop.png)
 
 ### ElasticSearch and watsonx Discovery
 
@@ -121,7 +121,7 @@ Both types search an Elasticsearch index; watsonx Discovery reaches it through I
 
 Both types continue with the full [field mapping](#field-mapping) block. They also add a separate section to the dialog, **Hybrid & Vector Search Settings**, right after **KnowledgeBase Tuning**. It sets whether NeuralSeek runs a Lucene, hybrid or vector query against the index, and it is documented in [Hybrid, vector and semantic search](/knowledge/hybrid-vector-semantic-search/). For setting up the embedding model in Elasticsearch, see [Elasticsearch vector model](/knowledge/elasticsearch-vector-model/).
 
-![The Edit Configuration dialog with KnowledgeBase Type set to watsonx Discovery: the end of KnowledgeBase Connection, then KnowledgeBase Tuning and an expanded Hybrid & Vector Search Settings section with its Elastic Query Type dropdown, followed by LLM Details](/img/neural-config/knowledgebase-connection@kb-wxd.png)
+![With KnowledgeBase Type set to watsonx Discovery, the Hybrid & Vector Search Settings section appears between KnowledgeBase Tuning and LLM Details, with its Elastic Query Type dropdown reading Lucene](/img/neural-config/knowledgebase-connection@kb-wxd--hybrid-vector--crop.png)
 
 ### OpenSearch
 
@@ -134,7 +134,7 @@ OpenSearch signs in with a user name and password rather than an API key.
 | **OpenSearch Password**   | That user's password.                                          |
 | **OpenSearch Index Name** | The index to search, for example `kbase`.                      |
 
-![KnowledgeBase Connection with KnowledgeBase Type set to OpenSearch: OpenSearch Endpoint, OpenSearch Username, OpenSearch Password and OpenSearch Index Name above the field-mapping dropdowns](/img/neural-config/knowledgebase-connection@kb-type-opensearch-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to OpenSearch: OpenSearch Endpoint, OpenSearch Username, OpenSearch Password and OpenSearch Index Name above the field-mapping dropdowns](/img/neural-config/knowledgebase-connection@kb-type-opensearch-panel--crop.png)
 
 ### Kendra
 
@@ -146,7 +146,7 @@ OpenSearch signs in with a user name and password rather than an API key.
 | **AWS Role Secret Access Key**                                                         | The secret that goes with that access key.                                                                                                                   |
 | **Preserve the separation of, or combine, document snippets received from the KB source** | Whether the snippets Kendra returns for a document reach the answer merged or kept apart. `Combined Snippets` merges them. Only Kendra has this setting.   |
 
-![KnowledgeBase Connection with KnowledgeBase Type set to Kendra: Kendra Index ID, AWS Region, AWS Role Access Key and AWS Role Secret Access Key, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and the snippet dropdown reading Combined Snippets](/img/neural-config/knowledgebase-connection@kb-type-kendra-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to Kendra: Kendra Index ID, AWS Region, AWS Role Access Key and AWS Role Secret Access Key, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and the snippet dropdown reading Combined Snippets](/img/neural-config/knowledgebase-connection@kb-type-kendra-panel--crop.png)
 
 ### Bedrock
 
@@ -158,7 +158,7 @@ OpenSearch signs in with a user name and password rather than an API key.
 | **AWS Secret Access Key**    | The secret that goes with that access key.                                  |
 | **Bedrock Search Type**      | The kind of search NeuralSeek asks Bedrock to run, for example `Default`.   |
 
-![KnowledgeBase Connection with KnowledgeBase Type set to Bedrock: Bedrock Knowledgebase ID, AWS Region, AWS Access Key ID, AWS Secret Access Key and Bedrock Search Type reading Default, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and Filter Field](/img/neural-config/knowledgebase-connection@kb-type-bedrock-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to Bedrock: Bedrock Knowledgebase ID, AWS Region, AWS Access Key ID, AWS Secret Access Key and Bedrock Search Type reading Default, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and Filter Field](/img/neural-config/knowledgebase-connection@kb-type-bedrock-panel--crop.png)
 
 ### IBM CAS
 
@@ -171,13 +171,13 @@ OpenSearch signs in with a user name and password rather than an API key.
 
 The certificate upload explains itself on screen: "(Optional) Server.pem: Provide the CA certificate used to verify the CAS server. Without it, self-signed certificates are accepted. Choose File then cancel to clear server.pem selection." Upload the CA certificate when you want NeuralSeek to verify the server instead of accepting a self-signed certificate.
 
-![KnowledgeBase Connection with KnowledgeBase Type set to IBM CAS: CAS API Base URL, CAS Bearer Token, Vector Store, the Enable One-way TLS Connection checkbox with Choose File and its help text, then Link Field and Document Name Field](/img/neural-config/knowledgebase-connection@kb-type-ibm-cas-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to IBM CAS: CAS API Base URL, CAS Bearer Token, Vector Store, the Enable One-way TLS Connection checkbox with Choose File and its help text, then Link Field and Document Name Field](/img/neural-config/knowledgebase-connection@kb-type-ibm-cas-panel--crop.png)
 
 ### Pinecone
 
 Pinecone asks for **Pinecone.io Index Name**, **Pinecone.io Index Namespace** and **Pinecone.io API Key**, followed by the field mapping. The full setup, from creating the index to mapping its fields, is in [Pinecone](/knowledge/pinecone/).
 
-![KnowledgeBase Connection with KnowledgeBase Type set to Pinecone: Pinecone.io Index Name, Pinecone.io Index Namespace and Pinecone.io API Key, then Curation Data Field, Link Field, Document Name Field and Attribute sources inside LLM Context by Document Name](/img/neural-config/knowledgebase-connection@kb-pinecone-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to Pinecone: Pinecone.io Index Name, Pinecone.io Index Namespace and Pinecone.io API Key, then Curation Data Field, Link Field, Document Name Field and Attribute sources inside LLM Context by Document Name](/img/neural-config/knowledgebase-connection@kb-pinecone-panel--crop.png)
 
 ### Milvus
 
@@ -192,7 +192,7 @@ Pinecone asks for **Pinecone.io Index Name**, **Pinecone.io Index Namespace** an
 
 When you enable TLS, the upload's help text applies: "(Optional) Server.pem: Provide the server.pem certificate and ensure the server name matches the CommonName configured in the certificate. Choose File then cancel to clear server.pem selection."
 
-![KnowledgeBase Connection with KnowledgeBase Type set to Milvus: Milvus Host:Port, Milvus Collection name, the optional database name and token, Enable One-way TLS Connection with Choose File, the optional server name, then Curation Data Field and Link Field](/img/neural-config/knowledgebase-connection@kb-type-milvus-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to Milvus: Milvus Host:Port, Milvus Collection name, the optional database name and token, Enable One-way TLS Connection with Choose File, the optional server name, then Curation Data Field and Link Field](/img/neural-config/knowledgebase-connection@kb-type-milvus-panel--crop.png)
 
 ### Postgres
 
@@ -207,7 +207,7 @@ When you enable TLS, the upload's help text applies: "(Optional) Server.pem: Pro
 | **Embedding column name**                            | The column that holds the vectors, for example `embedding`.                                                  |
 | **Enable One-way TLS Connection**                    | Turns on TLS to the server, with an optional `server.pem` upload; the help text is the same as for Milvus.  |
 
-![KnowledgeBase Connection with KnowledgeBase Type set to Postgres: host and port, database name, user name, password, table name, Distance Metric reading Cosine Distance (recommended), Embedding column name, and Enable One-way TLS Connection with Choose File](/img/neural-config/knowledgebase-connection@kb-type-postgres-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to Postgres: host and port, database name, user name, password, table name, Distance Metric reading Cosine Distance (recommended), Embedding column name, and Enable One-way TLS Connection with Choose File](/img/neural-config/knowledgebase-connection@kb-type-postgres-panel--crop.png)
 
 ### ChromaDB
 
@@ -218,13 +218,13 @@ When you enable TLS, the upload's help text applies: "(Optional) Server.pem: Pro
 | **ChromaDB API Key**   | The key NeuralSeek authenticates with. |
 | **ChromaDB Collection** | The collection to search.           |
 
-![KnowledgeBase Connection with KnowledgeBase Type set to ChromaDB: ChromaDB Database, ChromaDB Tenant, ChromaDB API Key and ChromaDB Collection, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and Filter Field](/img/neural-config/knowledgebase-connection@kb-type-chromadb-panel.png)
+![KnowledgeBase Connection with KnowledgeBase Type set to ChromaDB: ChromaDB Database, ChromaDB Tenant, ChromaDB API Key and ChromaDB Collection, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and Filter Field](/img/neural-config/knowledgebase-connection@kb-type-chromadb-panel--crop.png)
 
 ### Field mapping
 
 Every external store, that is every type except `NeuralSeek KB`, `No KnowledgeBase` and `Virtual KB`, follows its connection fields with a mapping block. It tells NeuralSeek which field of your documents is the passage text, which is the link and which is the title. NeuralSeek cites sources with these fields, so a wrong mapping gives answers with untitled sources or no links.
 
-![The field-mapping block on Watson Discovery: Curation Data Field, Link Field, Document Name Field, Additional Payload Field, Include additional Payload Field inside LLM context, Attribute sources inside LLM Context by Document Name reading Enabled, and the full-document dropdown reading Disabled](/img/neural-config/knowledgebase-connection@kb-type-watson-discovery--re-sort-values-list.png)
+![The field-mapping block on Watson Discovery: Curation Data Field, Link Field, Document Name Field, Additional Payload Field, Include additional Payload Field inside LLM context, Attribute sources inside LLM Context by Document Name reading Enabled, and the full-document dropdown reading Disabled](/img/neural-config/knowledgebase-connection@kb-type-watson-discovery--field-mapping--crop.png)
 
 <!-- UNCONFIRMED: Curation Data Field holds the document body; Link Field is the URL shown below the title or as a link in the Virtual Agent chat bubble; Attribute sources… introduces each passage as "The document 'name' states that: …", which helps some LLMs track sources — from the old Configuration overview page; the screen shows only the labels -->
 
@@ -266,7 +266,7 @@ Which mapping rows each type shows:
 
 The end of every external store's form restricts which documents a Seek can return and pushes chosen documents to the top.
 
-![The end of the form: Filter Field, Static Default Filter Value (when no runtime filter is passed), the Re-Sort values list. heading with its Re-Sort Field and Priority / Value or RegExp table, and the Enable Advanced Schema button](/img/neural-config/knowledgebase-connection@kb-wxd-panel.png)
+![The end of the form: Filter Field, Static Default Filter Value (when no runtime filter is passed), the Re-Sort values list. heading with its Re-Sort Field and Priority / Value or RegExp table, and the Enable Advanced Schema button](/img/neural-config/knowledgebase-connection@kb-wxd--filter-resort--crop.png)
 
 | Setting                                                          | What it does                                                                                                                       |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |

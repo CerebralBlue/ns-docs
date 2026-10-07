@@ -177,7 +177,8 @@ These are in `CLAUDE.md`; repeated here because they bite while writing.
   `bun scripts/doc-lint.ts --all --screenshots` prints that backlog. Image findings are warnings
   and never block a page.
 - **Look at every image you place** (Read shows it): the right section, not the one above it,
-  not cut off, no selection highlight, no real instance id or key. `bun scripts/agentic/image-check.ts <route>`
+  not cut off, no selection highlight, **no scroll bar** (crop the right edge off before
+  placing it), no real instance id or key. `bun scripts/agentic/image-check.ts <route>`
   measures it; the `image-reviewer` agent judges it.
 
 ## Check — mechanical first, then fresh eyes

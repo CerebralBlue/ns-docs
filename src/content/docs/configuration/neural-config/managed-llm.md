@@ -7,11 +7,13 @@ A managed LLM is a language model that NeuralSeek provides for you. You add it l
 
 Choose a managed model when you want a working model without arranging a provider account, key or endpoint of your own. It is the wrong choice when the model must run on your own provider account, for data-residency, contract or cost reasons, or when you need to fix the exact model version yourself. In those cases choose that provider under **Platform** instead.
 
+<!-- UNCONFIRMED / TODO for SME: availability of managed LLMs by deployment and plan — reportedly not offered on on-prem (Flex) installs, and possibly limited for partner / IBM plans. Nothing captured or in the repo states this: reference/deployment.md only says Flex is a bring-your-own-LLM plan, and the plan matrix on reference/plans-and-platforms.md is itself UNCONFIRMED. Confirm before documenting. -->
+
 ## Where to find it
 
 Open **Neural Config** and select the **Default Config** node (**Answer Generation**) on the routing tree. In the **Configuration: Default Config** dialog, expand **LLM Details** and select **Add an LLM**, then choose **NeuralSeek** under **Platform**. The other sections of the dialog are listed on [Neural Config](/configuration/neural-config/).
 
-![The Configuration: Default Config dialog with LLM Details expanded: the Add an LLM button and its help paragraph, then the Managed GPT and Managed gpt-image cards, and Propose Changes and Save in the footer](/img/neural-config/llm-details.png)
+![The Configuration: Default Config dialog with LLM Details expanded: the Add an LLM button and its help paragraph](/img/neural-config/llm-details--dialog-top--crop.png)
 
 The help paragraph beside **Add an LLM** applies to managed models as to any other: "You must add at least one LLM. If you add multiple, NeuralSeek will load-balance across them for the selected functions that have multiple LLM's. Features that an LLM are not capable of will be unselectable. If you do not provide an LLM for a function, there is no fallback and that function of NeuralSeek will be disabled."
 
@@ -28,7 +30,7 @@ A new card is kept only when you select **Save** or **Propose Changes** at the f
 | **Platform**      | Who provides the model. **NeuralSeek** makes it a managed model. Every other entry is an outside provider; the full list is on [Supported LLMs](/configuration/supported-llms/). | Choose **NeuralSeek** first; the **LLM Selection** list follows the platform.                         |
 | **LLM Selection** | The model within the platform. With **Platform** set to **NeuralSeek**, it lists the models NeuralSeek provides, for example **Managed GPT**.                    | Select each candidate in turn and read its notes on the right before you add one.                     |
 
-Selecting **Platform** and **LLM Selection** is all the dialog asks for. **Cancel** closes it without adding anything; **Add** is the button that adds the selected model as a new card in **LLM Details**.
+**Platform** and **LLM Selection** are all the dialog asks for. Select **Add** to add the model as a new card in **LLM Details**.
 
 ### LLM Notes
 
@@ -66,7 +68,7 @@ The rest of the card works the same way for every model and is described on [LLM
 
 Below **Connection Info**, **LLM Functions** (with **Enable All** and **Disable All**) lists the jobs the card can take. On a managed card the functions its notes list as unsupported are greyed out and cannot be ticked, which is what the help paragraph means by "Features that an LLM are not capable of will be unselectable". A function can be selectable without being ticked; only ticked functions are sent to that card.
 
-![The LLM Details section with two cards, each with Connection Info and LLM Functions: Managed GPT with Table Understanding and the media functions greyed out and only System AI ticked, and Managed gpt-image with only Image Generation and Image Edits selectable and ticked; each card shows LLM Languages 187, its LLM ID and Weight 100](/img/neural-config/llm-details-panel.png)
+![The LLM Functions grids of two managed cards: Managed GPT with Table Understanding and the media functions greyed out and only System AI ticked, and Managed gpt-image with only Image Generation and Image Edits selectable and ticked](/img/neural-config/llm-details--llm-functions--crop.png)
 
 For example, a configuration might hold these four managed cards, each set up for a different job. They illustrate how cards can be set up, not defaults:
 
@@ -109,3 +111,4 @@ Read the **LLM ID** at the foot of its card. It equals the **Model Code** in the
 - [Multimodal LLM configuration](/configuration/multimodal/): image, video and speech functions
 - [Language handling](/configuration/language/): languages and translation
 - [Using the Neural Config page](/configuration/neural-config/using-this-page/): saving and proposing changes
+- [Plans and platforms](/reference/plans-and-platforms/): what each plan and deployment includes

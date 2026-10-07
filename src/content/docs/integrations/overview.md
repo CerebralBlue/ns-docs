@@ -27,7 +27,7 @@ This page is the wrong place to follow a setup end to end. Go to the linked guid
 
 ### Where the integrations live in the console
 
-Open **API's & Integration** in the top navigation. The same link is the first item of the **Admin Tools** menu. It opens the **API Keys** screen, and a side navigation on the left lists every integration screen, in this order: **API Keys**, **Embed Key**, **MCP Server**, **a2a Server**, **LexV2 Lambda**, **LexV2 Logs**, **KoreAI Logs**, **SharePoint**, **Slack Extension**, **Teams Extension**, **Watson Custom Extension**, **Watson Logs**, **WebHook**, **API**, **Console API** and **Self-Hosted LLM**.
+Every integration screen lives under **API's & Integration** (also reachable from the **Admin Tools** menu): credentials (**API Keys**, **Embed Key**), protocol servers (**MCP Server**, **a2a Server**), virtual-agent and chat connectors, **SharePoint**, **WebHook**, the two API references (**API**, **Console API**) and **Self-Hosted LLM**.
 
 ![The API's & Integration screen: the side navigation lists API Keys, Embed Key, MCP Server, a2a Server, LexV2 Lambda, LexV2 Logs, KoreAI Logs, SharePoint, Slack Extension, Teams Extension, Watson Custom Extension, Watson Logs, WebHook, API, Console API and Self-Hosted LLM; the Admin Tools menu is open with API's & Integration, Data Loader, Entity Extraction, Chat SDK, QA Tools and Curate](/img/admin-tools/default.png)
 
@@ -90,15 +90,18 @@ These entries put NeuralSeek inside a chat tool, or let other AI tools and servi
 
 MCP and a2a work in both directions, and the two directions are documented separately. **MCP Server** and **a2a Server** expose _your_ agents to outside clients. To have one of your agents call _someone else's_ MCP server or a2a agent, use the mAIstro integrations instead: [mAIstro MCP](/maistro/ntl/integrations/mcp/) and [mAIstro a2a](/maistro/ntl/integrations/a2a/).
 
-### The three API surfaces
+### The two API surfaces
 
-When no dedicated integration fits, you call NeuralSeek directly over HTTP. There are three APIs, and they do different jobs:
+When no dedicated integration fits, you call NeuralSeek directly over HTTP. There are two APIs, and they do different jobs:
 
-- **API** (side navigation) — the runtime API: the calls that do the work, such as Seek and mAIstro.
-- **Console API** (side navigation) — the management API: the calls that administer the instance rather than answer questions.
-- **Managed KnowledgeBase API** — not in the API's & Integration side navigation; it works with the managed KnowledgeBase. See [KnowledgeBase API](/knowledge/managed-knowledgebase/kb-api/).
+- **API** — the runtime API: the calls that do the work, such as Seek and mAIstro.
+- **Console API** — the management API: the calls that administer the instance rather than answer questions.
 
-[REST and Console APIs](/integrations/rest-and-console-api/) explains all three and when to reach for each. The Add API Key dialog (above) has separate **API** and **CONSOLE API** scope groups, so a key can be scoped to the endpoints of either.
+<!-- UNCONFIRMED: whether the Train KB (API) and Documents (Console API) groups address the managed KnowledgeBase specifically; the captures show the group names only. -->
+
+Knowledge-base operations are part of these two APIs, not a separate one: the API reference has a **Train KB** group and the Console API reference a **Documents** group.
+
+[REST and Console APIs](/integrations/rest-and-console-api/) explains both and when to reach for each. The Add API Key dialog (above) has separate **API** and **CONSOLE API** scope groups, so a key can be scoped to the endpoints of either.
 
 ### One link per setup guide
 
@@ -128,7 +131,6 @@ When no dedicated integration fits, you call NeuralSeek directly over HTTP. Ther
 | Your agents calling an a2a agent              | mAIstro                                                               | [mAIstro a2a](/maistro/ntl/integrations/a2a/)                            |
 | Webhook                                       | API's & Integration → **WebHook**                                     | [Webhook](/integrations/webhook/)                                        |
 | Runtime API and Console API                   | API's & Integration → **API**, **Console API**                        | [REST and Console APIs](/integrations/rest-and-console-api/)             |
-| Managed KnowledgeBase API                     | —                                                                     | [KnowledgeBase API](/knowledge/managed-knowledgebase/kb-api/)            |
 
 A dash means the guide has no screen of its own under API's & Integration.
 

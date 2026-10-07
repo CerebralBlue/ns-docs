@@ -35,7 +35,9 @@ Look at the image, then at the heading and the sentences around it. Decide one v
 - `truncated` — the section is cut off at the edge (fields missing that the text names).
 - `too-small` — a lone checkbox, a label or a single word; it illustrates nothing a sentence
   could not say.
-- `artefact` — a text-selection highlight, a hover tooltip or a focus ring over the content.
+- `artefact` — a text-selection highlight, a hover tooltip or a focus ring over the content, or
+  a **scroll bar** (usually the dialog's, along the right edge). Never ship a scroll bar: recrop
+  it off (fix `recrop` with the x-range that ends before it).
 - `sensitive` — a real instance id in a URL, an API key, an e-mail, a person's name, a
   customer's data. (An embed code is public by design — not sensitive.)
 - `alt-mismatch` — the alt text describes something else.

@@ -57,15 +57,10 @@ Do not use it for these, which have their own homes:
 
 ![The Edit Configuration dialog scrolled to the bottom: Secrets is the last accordion header, expanded, below mAIstro Configuration](/img/neural-config/secrets.png)
 
-Open Neural Config (`/configure`), click the **Default Config / Answer Generation** node, then
-**Edit Configuration**. The dialog is a list of accordion sections; **Secrets** is the last
-one, so you scroll past **mAIstro Configuration** to reach it.
+Open **Neural Config**, select the **Default Config / Answer Generation** node, then
+**Edit Configuration**, and expand **Secrets**, the last section.
 
 ### The Secrets section
-
-**Secrets** is an accordion header. Clicking it expands the section in place, the same way every
-other section of the dialog behaves — the dialog stays open and the other sections keep their
-state.
 
 ![The expanded Secrets section: the two help sentences, the Name and Value column headers, and the add button in the empty row](/img/neural-config/secrets--be-sure-to-escape-any-double-quotes-in-y.png)
 
@@ -112,16 +107,28 @@ There is no test mode for this section — try it on an instance you own, not on
 configuration somebody else depends on.
 :::
 
-### How an agent reads a secret
+### Use a secret in a mAIstro node
 
-The Secrets screen says only that the values "will be available as variables in mAIstro". The
-consumer side is documented with mAIstro, not here.
+The section says its values "will be available as variables in mAIstro". You pick them where a
+node takes its input:
 
-<!-- UNCONFIRMED: the mAIstro visual builder has a hover menu "Secrets" that lists the variables defined as secrets in the configure tab — from the old prose on /maistro/overview/, not observed in this capture -->
+1. In the mAIstro visual builder, open the node whose parameter needs the value — for example a
+   connector's token field, or any text parameter.
+2. In the parameter's text box, use the picker with four tabs: **Secrets**, **Variables**,
+   **Dynamic** and **New**.
+3. On the **Secrets** tab, select the secret by its **Name**. The tab lists every row saved in
+   this **Secrets** section.
 
-The [mAIstro overview](/maistro/overview/) describes a **Secrets** entry in the visual
-builder's hover menus that lists the secrets defined on this screen, so a flow can insert one
-without retyping it.
+![The Variables to JSON node dialog with the parameter picker open on its Secrets tab, beside the Variables, Dynamic and New tabs; the tab reads "No Secrets defined"](/img/neural-config/secrets--maistro-param-secrets-tab.png)
+
+If the tab reads "No Secrets defined", no row has been saved here yet: add the secret, **Save**
+the configuration, and reopen the node.
+
+<!-- UNCONFIRMED: what selecting a secret inserts into the parameter (the exact NTL reference to the secret's name) — no capture or NTL resource shows it; the reviewer's screenshot shows only the empty Secrets tab -->
+
+Selecting a secret puts a reference to its name into the parameter, so the agent's NTL carries
+the name and never the value. The other three tabs work with the agent's own variables, described
+in [NTL](/maistro/ntl-overview/).
 
 Two rules that circulate about secrets are **not** stated on this screen, and the NTL reference
 does not state them either. The runner searched the `ntl://reference` resource for "secret" and
@@ -157,9 +164,9 @@ fill in **Name** and **Value**, then **Save** the dialog.
 
 **How does an agent get at the value?**
 
-The screen says secrets "will be available as variables in mAIstro". The exact syntax belongs
-to the [NTL](/maistro/ntl-overview/) side; the `prompt: false` fallback often described for it
-is not confirmed on this screen or in the NTL reference, so verify it on your instance.
+Pick it on the **Secrets** tab of the picker in the node's parameter box, as described in
+[Use a secret in a mAIstro node](#use-a-secret-in-a-maistro-node). The `prompt: false` fallback
+often described for secrets is unverified, so check it on your instance before you rely on it.
 
 **My value contains double quotes — what do I do?**
 

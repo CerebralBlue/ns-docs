@@ -1,37 +1,32 @@
 ---
 title: "What is NeuralSeek"
-description: "NeuralSeek answers questions from your own KnowledgeBase with a large language model, shows the sources behind each answer, and lets you build no-code LLM routines in mAIstro — this page walks through the Home screen and each navbar item."
+description: "NeuralSeek answers questions from your own KnowledgeBase with a large language model, shows the sources and scores behind each answer, lets you curate and govern those answers, and builds no-code LLM agents in mAIstro."
 ---
 
-## What is it
-
 NeuralSeek answers questions from your organization's own content. You connect a **KnowledgeBase**,
-ask a question on the **Seek** tab, and NeuralSeek has a large language model (LLM) write the answer
-from the passages it retrieved — and shows you which sources those passages came from. Around that
-core sit the tools to improve answers over time (**Curate**, **Analytics**, **Governance**), to
-configure the whole pipeline (**Neural Config**), and to build LLM-backed routines without code
-(**mAIstro**).
-
-NeuralSeek describes itself as "AI-Powered Answers-as-a-Service" — the title of one of the videos on
-the Home screen. The typical consumer of those answers is a virtual agent (a chatbot) that calls
-NeuralSeek when it has no scripted reply, but the same answers are available to people directly in
-the console.
+ask a question, and NeuralSeek has a large language model (LLM) write the answer from the passages
+it retrieved — then shows you which sources those passages came from and how far to trust the
+result. Around that core sit the tools to improve answers over time (**Curate**), to watch how
+answers and agents behave (**Governance**), to configure the whole pipeline (**Neural Config**), and
+to build LLM-backed routines without code (**mAIstro**). This page is for anyone deciding whether
+NeuralSeek fits a use case, or starting out with it.
 
 ## Why it matters
 
-NeuralSeek answers from your documents and shows the sources behind each answer. The Home screen
-names three things you can do with that:
+An LLM on its own answers from what it learned in training, and you cannot see where an answer came
+from. NeuralSeek answers from your documents instead, and puts the evidence next to every answer:
 
-- You can "trace answers back to their sources and train question-to-source relevancy" on the
-  **Seek** tab.
-- You can "edit, organize, and train Answers on style and content" on the **Curate** tab.
-- You can view **Analytics** "on your content and explore how source coverage and confidence has
-  changed over time".
+- **Answers you can trace.** Each answer on **Seek** lists the KnowledgeBase documents it was built
+  from, with a percentage for how much each one matched, and a set of scores for the answer itself.
+- **Answers you can correct.** On **Curate** you edit, organize and train answers on style and
+  content, so a wrong or weak answer is fixed once rather than every time it is asked.
+- **Answers you can audit.** **Governance** reports how confident and safe answers are, what the
+  guardrails caught, what agents did and what tokens and usage you consume.
 
 ## When to use it
 
 - **Answers for a virtual agent.** Your chatbot handles the scripted intents; NeuralSeek answers the
-  long tail from your documentation. Start from the Home tile "**Integrate** with your Virtual Agent".
+  long tail from your documentation. See [What can we connect to?](/integrations/overview/).
 - **Internal knowledge search.** Employees ask questions on **Seek** and get an answer with its
   sources, instead of searching a document library.
 - **Content and automation.** **mAIstro** generates content, automates tasks and runs LLM-backed
@@ -42,114 +37,68 @@ KnowledgeBase, so load or fix the content first.
 
 ## How it works
 
-![The NeuralSeek Home screen after sign-in: the navbar, the "Watch. Learn. Build faster." video browser and the Next steps panel](/img/home/default.png)
+![The Seek page after a question: the answer with provenance highlights, the Session Options panel, and the first rows of the scores table](/img/home/seek.png)
 
-### What you see when you sign in
+1. **Your content.** The [KnowledgeBase](/knowledge/ingestion-overview/) holds the documents
+   NeuralSeek answers from. [Neural Config](/configuration/overview/) chooses which KnowledgeBase is
+   connected and which LLM writes the answers.
+2. **A question.** A person on the **Seek** page, a virtual agent, or a call to the API asks it.
+   NeuralSeek searches the KnowledgeBase and has the LLM write an answer from what it found.
+3. **The answer and its evidence.** The answer comes back with the source documents behind it and
+   scores such as **Semantic Match**, **KnowledgeBase Confidence** and **KnowledgeBase Coverage**.
+   [Guardrails](/governance/guardrails/overview/) screen the question and the answer on the way.
+4. **Improve and monitor.** [Curation](/seek/curation/) is where answers are edited and trained;
+   [Governance](/governance/overview/) reports on answers and agent runs over time.
+5. **Go beyond question and answer.** [mAIstro](/maistro/overview/) builds agents — flows of nodes
+   that call the LLM, fetch data, call REST services or run Seek — and those agents can run on their
+   own or as part of an answer.
 
-The first screen after sign-in is **Home** — you get back to it with the **Home** navbar link or the
-NeuralSeek logo. Its heading reads "Watch. Learn. Build faster." and it has three parts: the video
-browser (below), a **Support & Development Subscription** button in the top-right corner, and a
-**Get more value from NeuralSeek** panel. The subscription button opens the support and development
-subscription options; see [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/).
+How these pieces fit together is explained in [Core concepts](/getting-started/concepts/). To see it
+working, ask a first question with [Quickstart: Seek](/getting-started/quickstart-seek/) or build a
+first agent with [Quickstart: mAIstro](/getting-started/quickstart-maistro/).
 
-![The Get more value from NeuralSeek panel: Newest features on the left, eight next-step tiles on the right](/img/home/default--get-more-value-from-neuralseek.png)
+### Where to start in the console
 
-**Get more value from NeuralSeek** (eyebrow "Next steps") says: "Continue setting up your
-environment, connect with the community, and explore the tools that help you improve answers over
-time." On its left, the **Newest features** list names recent additions to the product; the full
-history is in the [changelog](/reference/changelog/). On its right are eight tiles. Each linked word
-opens that part of the console:
+The first screen after sign-in is **Home**. Its **Get more value from NeuralSeek** panel collects
+the next steps — integrating with a virtual agent, asking on Seek, curating, exploring mAIstro and
+NeuralEdit, and the community — and its **Newest features** list names recent additions; the full
+history is in the [changelog](/reference/changelog/).
 
-| Tile                                                                                                        | Where the link goes                                                                                         |
-| ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Get a support and development subscription                                                                  | Text only — use the **Support & Development Subscription** button                                           |
-| Join our **community** to learn and get help                                                                | The NeuralSeek community site, `https://neuralseek.com/community`                                           |
-| Try **NeuralEdit**, our interactive agent-assisted document creation and editing tool                       | The **NeuralEdit** screen — see [NeuralEdit overview](/maistro/neuraledit/overview/)                        |
-| **Integrate** with your Virtual Agent                                                                       | **Neural Config** — see [What can we connect to?](/integrations/overview/)                                  |
-| Trace answers back to their sources and train question-to-source relevancy on the **Seek** tab              | The **Seek** tab — see [Seek](/seek/overview/)                                                              |
-| Edit, organize, and train Answers on style and content on your Q&A content on the **Curate** tab            | The **Curate** tab — see [Answer curation](/seek/curation/)                                             |
-| Explore **mAIstro** and generate content, automate tasks, and build LLM-backed routines with no code        | The **mAIstro** screen — see [mAIstro](/maistro/overview/)                                                  |
-| View **Analytics** on your content and explore how source coverage and confidence has changed over time     | The **Analytics** screen — see [Content analytics](/governance/content-analytics/)                          |
-
-### The product, by navbar item
-
-The navbar across the top of every screen is the map of the product. Its items, left to right, are
-**Home**, **Neural Config**, **Seek**, **KnowledgeBase**, **mAIstro**, **NeuralEdit**,
-**Governance**, **Run Agents** and **Admin Tools** (a menu, not a link). **Curate** and
-**Analytics** are not in the navbar; you reach them from the Home tiles above, and **Curate** also
-from the **Admin Tools** menu. The avatar at the far right opens your profile.
-
-![The Seek tab with an answer: the navbar at the top, the answer with its scores, and the KnowledgeBase Context list of sources](/img/home/seek--knowledgebase-context.png)
-
-| Navbar item       | What it is for                                                                                        | Read more                                                   |
-| ----------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| **Home**          | The landing screen: videos, next steps, newest features.                                              | This page                                                   |
-| **Neural Config** | The configuration of the answer pipeline — KnowledgeBase connection, LLM, prompts, answer rules.     | [Configuration overview](/configuration/overview/)          |
-| **Seek**          | Ask a question and get an answer from your KnowledgeBase, with its scores and sources.               | [Seek](/seek/overview/)                                     |
-| **KnowledgeBase** | The documents NeuralSeek answers from.                                                                | [Getting documents in](/knowledge/ingestion-overview/)      |
-| **mAIstro**       | Build agents and LLM-backed routines without code.                                                    | [mAIstro](/maistro/overview/)                               |
-| **NeuralEdit**    | An agent-assisted document editor.                                                                    | [NeuralEdit overview](/maistro/neuraledit/overview/)        |
-| **Governance**    | Dashboards on how answers and agents behave.                                                          | [Governance](/governance/overview/)                         |
-| **Run Agents**    | Dashboards of agent tiles for people who do not open mAIstro.                                         | [Run Agents](/maistro/run-agents/)                          |
-| **Admin Tools**   | A menu of administration and integration screens.                                                     | [What can we connect to?](/integrations/overview/)          |
-
-The screenshot shows what "trace answers back to their sources" means in practice. After a
-question, the **Seek** tab shows the answer, a table of scores for it — among them
-**Semantic Match**, **KnowledgeBase Confidence** and **KnowledgeBase Coverage** — and a
-**KnowledgeBase Context** list with the URL of each source document and a percentage for how much
-it matched. How
-these fit together is explained in [Concepts](/getting-started/concepts/); to ask your first
-question, follow [Quickstart: Seek](/getting-started/quickstart-seek/).
-
-### Learn with the video browser
-
-The top of Home is a region called the NeuralSeek video browser — NeuralSeek's video library inside
-the console. It has two parts.
-
-The player shows one video, with a "Now playing" card beside it giving the title, its date and "Learn
-more about NeuralSeek". The player carries the usual YouTube controls: **Play video**,
-**Show player controls** / **Hide player controls**, **Copy link** (copies the video's address),
-**Watch on YouTube** (opens it on YouTube), and the channel link **NeuralSeek**.
-
-![The two scroll buttons of the video list](/img/home/default--video-scroller-controls.png)
-
-Below the player is the list, **NeuralSeek videos**. Each entry reads "Play" followed by the video
-title, with its publication date. The list holds the monthly
-webinars in English and Spanish, feature walkthroughs (mAIstro, analytics, intent matching, round-trip
-logging) and provisioning tutorials for cloud providers. A line under the list tells you how many
-videos loaded.
-
-- **Search NeuralSeek videos** — a search box that filters the list.
-- **Scroll videos left** / **Scroll videos right** — the ‹ and › buttons move the list sideways.
+![The Get more value from NeuralSeek panel: Newest features on the left, the next-step tiles on the right](/img/home/default--get-more-value-from-neuralseek.png)
 
 ### Deployment and plans
 
-Home does not say where NeuralSeek runs or which plan you are on. For deployment options see
-[Deployment](/reference/deployment/); for plans and how to sign up see
-[How to get NeuralSeek](/getting-started/how-to-get-neuralseek/).
+For where NeuralSeek can run, see [Deployment](/reference/deployment/). For plans and how to sign
+up, see [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/).
 
 ## FAQ
-
-**What is the first screen I see after signing in?**
-**Home**. It has a video browser under the heading "Watch. Learn. Build faster.", a
-**Support & Development Subscription** button, and a **Get more value from NeuralSeek** panel with
-next-step tiles and a **Newest features** list.
 
 **Where do I ask a question?**
 On **Seek** in the navbar. The answer comes with its scores and the list of source documents it was
 built from. [Quickstart: Seek](/getting-started/quickstart-seek/) walks through a first question.
 
 **Where do I build agents?**
-In **mAIstro** — the Home tile describes it as the place to "generate content, automate tasks, and
-build LLM-backed routines with no code". Start with
-[Quickstart: mAIstro](/getting-started/quickstart-maistro/). **Run Agents** is where people use
-finished agents without opening mAIstro.
+In **mAIstro**, where you generate content, automate tasks and build LLM-backed routines with no
+code. Start with [Quickstart: mAIstro](/getting-started/quickstart-maistro/).
+[Run Agents](/maistro/run-agents/) is where people use finished agents without opening mAIstro.
 
 **How do I connect NeuralSeek to my virtual agent?**
-The Home tile "**Integrate** with your Virtual Agent" opens **Neural Config**. The supported
-platforms and how each connects are in [What can we connect to?](/integrations/overview/).
+The supported platforms and how each connects are in
+[What can we connect to?](/integrations/overview/).
 
-**Where can I get help or learn more?**
-The **community** link on Home opens the NeuralSeek community, and the video browser on Home holds
-webinars and feature walkthroughs. For a support and development subscription, use the button in
-the top-right corner of Home.
+**How do I check that answers are safe and accurate?**
+Each answer shows its sources and scores on **Seek**. For the view across all answers and agent
+runs, use [Governance](/governance/overview/); to change what NeuralSeek blocks or warns about, use
+the [Guardrails](/governance/guardrails/overview/).
+
+**Where can I get help?**
+The **community** link on Home opens the NeuralSeek community. For a support and development
+subscription, see [How to get NeuralSeek](/getting-started/how-to-get-neuralseek/).
+
+## Related
+
+- [Core concepts](/getting-started/concepts/)
+- [Quickstart: Seek](/getting-started/quickstart-seek/)
+- [Quickstart: mAIstro](/getting-started/quickstart-maistro/)
+- [Governance overview](/governance/overview/)
+- [What can we connect to?](/integrations/overview/)

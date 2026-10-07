@@ -30,7 +30,7 @@ To get a first draft, select the wand icon beside the label, **Auto-generate des
 Categorization is also routing. Each category's **Action to take on match** decides who handles a question that falls into it:
 
 - **Answer Generation** — Seek answers the question from your [KnowledgeBase](/knowledge/connect-a-kb/), using the category's configuration: the Default Configuration, or the category's Custom Configuration if you gave it one.
-- **mAIstro-led** — the question goes to a mAIstro agent. The category's **Default Action** on the routing tree picks the agent; see [Intents and the Default Action](/configuration/overview/#intents-and-the-default-action).
+- **mAIstro-led** — the question goes to a mAIstro agent. The category's **Default Action** on the routing tree picks the agent; see [Editing a category](/configuration/overview/#editing-a-category).
 
 ![The Action to take on match selector set to Answer Generation, with the Delete Category button below it in the Edit Category dialog](/img/neural-config/account-access-answer-generation-default--action-to-take-on-match.png)
 
