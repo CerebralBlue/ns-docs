@@ -71,7 +71,7 @@ export default defineConfig({
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/CerebralBlue/ns-docs' },
 			],
 			// The 8 top-level groups are the tree the team approved (the original IA proposal is
-			// archived in _private/archive/planning/). Order and labels inside a group follow the
+			// archived in the private ns-docs-agentic repo, archive/planning/). Order and labels inside a group follow the
 			// console: the IA stage reorders and relabels to mirror the product, and reports it.
 			// Subtrees use explicit `items` rather than `autogenerate` so an overview page can
 			// lead its group — autogenerate sorts alphabetically and would bury it mid-list.

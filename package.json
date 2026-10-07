@@ -14,8 +14,7 @@
     "format:check": "prettier --check .",
     "lint:css": "stylelint \"src/**/*.css\"",
     "verify": "bun run format:check && bun run lint:css && bun run check && bun run build",
-    "graph": "bun scripts/gen-graph.ts",
-    "test:agentic": "bun test scripts/agentic"
+    "graph": "bun scripts/gen-graph.ts"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.37.7",
