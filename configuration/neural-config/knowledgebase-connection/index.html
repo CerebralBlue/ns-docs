@@ -1,0 +1,784 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-bguv2lll"> <head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>KnowledgeBase Connection | NeuralDocs</title><link rel="canonical" href="https://cerebralblue.github.io/ns-docs/configuration/neural-config/knowledgebase-connection/"/><link rel="sitemap" href="/ns-docs/sitemap-index.xml"/><script src="/ns-docs/ntl-viz.js" defer></script><link rel="shortcut icon" href="/ns-docs/favicon.png" type="image/png"/><meta name="generator" content="Astro v5.18.2"/><meta name="generator" content="Starlight v0.37.7"/><meta property="og:title" content="KnowledgeBase Connection"/><meta property="og:type" content="article"/><meta property="og:url" content="https://cerebralblue.github.io/ns-docs/configuration/neural-config/knowledgebase-connection/"/><meta property="og:locale" content="en"/><meta property="og:description" content="KnowledgeBase Connection, the first section of Neural Config's Edit Configuration dialog, sets which of sixteen KnowledgeBase Types NeuralSeek retrieves from, the language of that content, the store's connection details, and which document fields become the passage, link and title."/><meta property="og:site_name" content="NeuralDocs"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="KnowledgeBase Connection, the first section of Neural Config's Edit Configuration dialog, sets which of sixteen KnowledgeBase Types NeuralSeek retrieves from, the language of that content, the store's connection details, and which document fields become the passage, link and title."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/ns-docs/_astro/print.DNXP8c50.css" media="print"><link rel="stylesheet" href="/ns-docs/_astro/index.Bx92TaV9.css"><script type="module" src="/ns-docs/_astro/page.B1D-nYk3.js"></script></head> <body class="astro-bguv2lll"> <a href="#_top" class="astro-7q3lir66">Skip to content</a>  <div class="page sl-flex astro-vrdttmbt"> <header class="header astro-vrdttmbt"><div class="header astro-kmkmnagf"> <div class="title-wrapper sl-flex astro-kmkmnagf"> <a href="/ns-docs/" class="site-title sl-flex astro-m46x6ez3">  <img class="light:sl-hidden print:hidden astro-m46x6ez3" alt src="/ns-docs/_astro/neuraldocs-logo-dark.DrqSJvpC.svg" width="1441" height="312"> <img class="dark:sl-hidden print:block astro-m46x6ez3" alt src="/ns-docs/_astro/neuraldocs-logo-light.Dnb1aJ1s.svg" width="1441" height="312"> <span class="sr-only astro-m46x6ez3" translate="no"> NeuralDocs </span> </a>  </div> <div class="sl-flex print:hidden astro-kmkmnagf"> <site-search class="astro-kmkmnagf astro-v37mnknz" data-translations="{&#34;placeholder&#34;:&#34;Search&#34;}"> <button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-v37mnknz"> <svg aria-hidden="true" class="astro-v37mnknz astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg> <span class="sl-hidden md:sl-block astro-v37mnknz" aria-hidden="true">Search</span> <kbd class="sl-hidden md:sl-flex astro-v37mnknz" style="display: none;"> <kbd class="astro-v37mnknz">Ctrl</kbd><kbd class="astro-v37mnknz">K</kbd> </kbd> </button> <dialog style="padding:0" aria-label="Search" class="astro-v37mnknz"> <div class="dialog-frame sl-flex astro-v37mnknz">  <button data-close-modal class="sl-flex md:sl-hidden astro-v37mnknz"> Cancel </button> <div class="search-container astro-v37mnknz"> <div id="starlight__search" class="astro-v37mnknz"></div> </div> </div> </dialog> </site-search>  <script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script> <script type="module" src="/ns-docs/_astro/Search.astro_astro_type_script_index_0_lang.J3Itg-hX.js"></script>   </div> <div class="sl-hidden md:sl-flex print:hidden right-group astro-kmkmnagf"> <div class="sl-flex social-icons astro-kmkmnagf"> <a href="https://github.com/CerebralBlue/ns-docs" rel="me" class="sl-flex astro-wy4te6ga"><span class="sr-only astro-wy4te6ga">GitHub</span><svg aria-hidden="true" class="astro-wy4te6ga astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a> <a href="https://neuralseek.com" rel="me" class="ns-social sl-flex astro-dv46nlzh"> <span class="sr-only astro-dv46nlzh">NeuralSeek</span> <span class="ns-mark astro-dv46nlzh" aria-hidden="true" style="--ns-mark: url(/ns-docs/_astro/neuraldocs-icon.3uQmbAUF.png)"></span> </a>  </div> <starlight-theme-select>  <label style="--sl-select-width: 6.25em" class="astro-4yphtoen"> <span class="sr-only astro-4yphtoen">Select theme</span> <svg aria-hidden="true" class="icon label-icon astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg> <select autocomplete="off" class="astro-4yphtoen"> <option value="dark" class="astro-4yphtoen">Dark</option><option value="light" class="astro-4yphtoen">Light</option><option value="auto" selected class="astro-4yphtoen">Auto</option> </select> <svg aria-hidden="true" class="icon caret astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg> </label>  </starlight-theme-select>  <script>
+	StarlightThemeProvider.updatePickers();
+</script> <script type="module">const r="starlight-theme",o=e=>e==="auto"||e==="dark"||e==="light"?e:"auto",c=()=>o(typeof localStorage<"u"&&localStorage.getItem(r));function n(e){typeof localStorage<"u"&&localStorage.setItem(r,e==="light"||e==="dark"?e:"")}const l=()=>matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";function t(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e==="auto"?l():e,n(e)}matchMedia("(prefers-color-scheme: light)").addEventListener("change",()=>{c()==="auto"&&t("auto")});class s extends HTMLElement{constructor(){super(),t(c()),this.querySelector("select")?.addEventListener("change",a=>{a.currentTarget instanceof HTMLSelectElement&&t(o(a.currentTarget.value))})}}customElements.define("starlight-theme-select",s);</script> <script type="module">class s extends HTMLElement{constructor(){super();const e=this.querySelector("select");e&&(e.addEventListener("change",t=>{t.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=t.currentTarget.value)}),window.addEventListener("pageshow",t=>{if(!t.persisted)return;const n=e.querySelector("option[selected]")?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}}customElements.define("starlight-lang-select",s);</script> </div> </div> </header> <nav class="sidebar print:hidden astro-vrdttmbt" aria-label="Main"> <starlight-menu-button class="print:hidden astro-jif73yzw"> <button aria-expanded="false" aria-label="Menu" aria-controls="starlight__sidebar" class="sl-flex md:sl-hidden astro-jif73yzw"> <svg aria-hidden="true" class="open-menu astro-jif73yzw astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg> <svg aria-hidden="true" class="close-menu astro-jif73yzw astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg> </button> </starlight-menu-button> <script type="module">class s extends HTMLElement{constructor(){super(),this.btn=this.querySelector("button"),this.btn.addEventListener("click",()=>this.toggleExpanded());const t=this.closest("nav");t&&t.addEventListener("keyup",e=>this.closeOnEscape(e))}setExpanded(t){this.setAttribute("aria-expanded",String(t)),document.body.toggleAttribute("data-mobile-menu-expanded",t)}toggleExpanded(){this.setExpanded(this.getAttribute("aria-expanded")!=="true")}closeOnEscape(t){t.code==="Escape"&&(this.setExpanded(!1),this.btn.focus())}}customElements.define("starlight-menu-button",s);</script>   <div id="starlight__sidebar" class="sidebar-pane astro-vrdttmbt"> <div class="sidebar-content sl-flex astro-vrdttmbt"> <sl-sidebar-state-persist data-hash="0h2jc0f" class="astro-kku4brbg"> <script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script>  <ul class="top-level astro-3ii7xxms"> <li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Getting Started</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="0"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/getting-started/what-is-neuralseek/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">What is NeuralSeek</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/getting-started/quickstart-seek/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Quickstart: Seek</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/getting-started/quickstart-maistro/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Quickstart: mAIstro</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/getting-started/concepts/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Core concepts</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/getting-started/onboarding-wizard/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Onboarding wizard</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/getting-started/how-to-get-neuralseek/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">How to get NeuralSeek</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">What can we connect to?</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Seek — Answering Questions</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="1"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/seek/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Overview</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/seek/tuning/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Tuning answers</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/seek/virtual-kb/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Virtual KB</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/seek/personalization/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Personalization</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/seek/dynamic-filters/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Dynamic filters</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/seek/conversational-context/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Conversational context</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/seek/caching/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Caching</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/seek/curation/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Answer curation</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/seek/chat-client/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Chat client</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">mAIstro — Agents &amp; Workflows</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="2"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Overview</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/visual-editor/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Agent Editor</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/inspector/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Running &amp; inspecting an agent</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl-overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">NTL overview</span>  </a> </li><li class="astro-3ii7xxms"> <details class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">NTL Node Reference</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="3"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/agent-registry/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Agent Registry node</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/charts-and-telemetry/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Charts and telemetry</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/control-flow/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Control Flow</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/database-connections/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Database Connections</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/extract-data/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Extract Data</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/generate-data/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Generate Data</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/get-data/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Get Data</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/guardrails/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">GuardRails</span>  </a> </li><li class="astro-3ii7xxms"> <details class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">integrations</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="4"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/a2a/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">a2a client</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/aws-s3/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">AWS S3</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/databases/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Databases</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/github/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">GitHub</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/google-drive/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Google Drive</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/jira/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Jira</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/knowledgebases/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Knowledge Bases</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/mcp/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">MCP client</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/sharepoint/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">SharePoint</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/slack/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Slack</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/trello/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Trello</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/watsonx-governance/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">watsonx.governance</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/integrations/web-search/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Web Search</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/local-cache/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Local Cache</span>  </a> </li><li class="astro-3ii7xxms"> <details class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">modify-data</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="5"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/modify-data/code-toolbox/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Code Toolbox</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/modify-data/json-toolbox/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">JSON Toolbox</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/modify-data/string-toolbox/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">String Toolbox</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/modify-data/transform/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Transform</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/modify-data/xml-toolbox/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">XML Toolbox</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/multi-agent/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Multi-Agent</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/multimodal/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Multimodal nodes</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/pipeline-hooks/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Pipeline hooks</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/rag-tools/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">RAG Tools</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/sandboxes/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Sandboxes</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/send-data/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Send Data</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/system-variables/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">System Variables</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/ntl/upload-data/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Upload Data</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/agent-marketplace/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Agent Marketplace</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/agent-visualizer/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Agent Visualizer</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/agent-registry/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Agent Registry</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/agent-scheduler/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Agent Scheduler</span>  </a> </li><li class="astro-3ii7xxms"> <details class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">NeuralEdit</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="6"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/neuraledit/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Overview</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/neuraledit/context-files/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Context files</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/neuraledit/editing-and-reviewing/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Editing &amp; reviewing</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/neuraledit/authoring-an-agent/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Authoring a NeuralEdit agent</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/maistro/run-agents/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Run Agents</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Knowledge &amp; Data</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="7"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/ingestion-overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Getting documents in</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/connect-a-kb/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Connect a knowledge base</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/supported-knowledgebases/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Supported knowledge bases</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/elasticsearch-vector-model/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Elasticsearch vector model</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/hybrid-vector-semantic-search/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Hybrid, vector &amp; semantic search</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/pinecone/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Pinecone setup</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/document-manager/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Knowledgebase Manager</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/load/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Data Loader</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/table-understanding/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Table understanding</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/auto-data-cleanse/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Auto data cleanse</span>  </a> </li><li class="astro-3ii7xxms"> <details class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Managed KnowledgeBase</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="8"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/managed-knowledgebase/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Overview</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/managed-knowledgebase/web-crawler/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Web crawler</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/managed-knowledgebase/synonyms/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Synonyms</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/knowledge/managed-knowledgebase/kb-api/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">KnowledgeBase API</span>  </a> </li> </ul>  </details> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Integrations</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="9"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">What can we connect to?</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/virtual-agents/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Virtual agents</span>  </a> </li><li class="astro-3ii7xxms"> <details class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Virtual agent platforms</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="10"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/virtual-agents/watsonx-assistant/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">watsonx Assistant</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/virtual-agents/aws-lex/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">AWS Lex</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/virtual-agents/kore-ai/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Kore.ai</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/training-virtual-agents/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Training virtual agents</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/watsonx-assistant-streaming/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">watsonx Assistant streaming</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/nice-cxone/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">NICE CXone</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/slack-extension/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Slack extension</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/teams-extension/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Microsoft Teams extension</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/sharepoint-sync/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">SharePoint sync</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/mcp-server/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">MCP server</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/a2a-server/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">a2a server</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/webhook/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Webhook</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/rest-and-console-api/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">REST &amp; Console APIs</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/chat-sdk/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Chat SDK</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/integrations/feedback/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Implementing feedback</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Configuration</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="11"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Overview</span>  </a> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Neural Config</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="12"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/using-this-page/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Using the Neural Config page</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Neural Config options</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/knowledgebase-connection/" aria-current="page" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">KnowledgeBase Connection</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/knowledgebase-tuning/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">KnowledgeBase Tuning</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/llm-details/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">LLM Details</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/managed-llm/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Managed LLM Details</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/embedding-models/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Embedding models</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/platform-preferences/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Platform Preferences</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/prompt-engineering/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Prompt Engineering</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/intent-matching-caching/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Intent Matching &amp; Cache</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/maistro-configuration/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">mAIstro Configuration</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/neural-config/secrets/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Secrets</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/supported-llms/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Supported LLMs</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/multi-llm/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Multi-LLM</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/administration/self-hosting-an-llm/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Self-hosting an LLM</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/multimodal/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Multimodal</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/semantic-model/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Semantic model tuning</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/language/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Language handling</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/backup-restore/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Backup, restore &amp; change logs</span>  </a> </li><li class="astro-3ii7xxms"> <details class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Administration</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="13"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/administration/api-keys/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">API keys</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/administration/embed-codes/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Embed codes</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/administration/users-and-permissions/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Users &amp; permissions</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/administration/default-permissions/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Default permissions</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/administration/flex-licensing/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Flex licensing</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/configuration/administration/support-plans/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Support plans</span>  </a> </li> </ul>  </details> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Governance &amp; Analytics</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="14"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/governance/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Overview</span>  </a> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Dashboards</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="15"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/governance/analytics/reading-the-dashboards/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Reading the dashboards</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/analytics/seek-overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Seek overview</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/semantic-analytics/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Semantic analytics</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/content-analytics/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Content analytics</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/intent-categorization/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Intent categorization</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/analytics/seek-logs-tokens-cost/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Seek logs, tokens &amp; cost</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/analytics/model-comparison/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Model comparison</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/analytics/agent-insights-and-details/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Agent insights &amp; details</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/analytics/agent-logs-tokens-cost/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">mAIstro logs, tokens &amp; cost</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/analytics/custom-dashboards/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Custom dashboards</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <details class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Guardrails</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="16"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/governance/guardrails/overview/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Guardrails overview</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/guardrails/semantic-scoring/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Semantic scoring</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/guardrails/prompt-injection/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Prompt injection</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/pii-detection/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">PII detection</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/guardrails/profanity-hap/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Profanity (HAP)</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/guardrails/min-confidence/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Minimum confidence</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/guardrails/custom-governance-agents/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Custom governance agents</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/red-team-testing/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Red team testing</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/logging/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Logging</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/corporate-document-filter/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Corporate document filter</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/governance/replay/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Replay</span>  </a> </li> </ul>  </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Reference</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="17"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/ns-docs/reference/changelog/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Changelog</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/reference/deployment/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Deployment</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/reference/plans-and-platforms/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Plans &amp; platforms</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/ns-docs/reference/data-security/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Data security &amp; privacy</span>  </a> </li> </ul>  </details> </li> </ul>   <script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script> </sl-sidebar-state-persist>  <div class="md:sl-hidden"> <div class="mobile-preferences sl-flex astro-wu23bvmt"> <div class="social-icons astro-wu23bvmt"> <a href="https://github.com/CerebralBlue/ns-docs" rel="me" class="sl-flex astro-wy4te6ga"><span class="sr-only astro-wy4te6ga">GitHub</span><svg aria-hidden="true" class="astro-wy4te6ga astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a> <a href="https://neuralseek.com" rel="me" class="ns-social sl-flex astro-dv46nlzh"> <span class="sr-only astro-dv46nlzh">NeuralSeek</span> <span class="ns-mark astro-dv46nlzh" aria-hidden="true" style="--ns-mark: url(/ns-docs/_astro/neuraldocs-icon.3uQmbAUF.png)"></span> </a>  </div> <starlight-theme-select>  <label style="--sl-select-width: 6.25em" class="astro-4yphtoen"> <span class="sr-only astro-4yphtoen">Select theme</span> <svg aria-hidden="true" class="icon label-icon astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg> <select autocomplete="off" class="astro-4yphtoen"> <option value="dark" class="astro-4yphtoen">Dark</option><option value="light" class="astro-4yphtoen">Light</option><option value="auto" selected class="astro-4yphtoen">Auto</option> </select> <svg aria-hidden="true" class="icon caret astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg> </label>  </starlight-theme-select>  <script>
+	StarlightThemeProvider.updatePickers();
+</script>   </div>  </div> </div> </div> </nav> <div class="main-frame astro-vrdttmbt">  <script type="module">const a=document.getElementById("starlight__sidebar"),n=a?.querySelector("sl-sidebar-state-persist"),o="sl-sidebar-state",i=()=>{let t=[];const e=n?.dataset.hash||"";try{const s=sessionStorage.getItem(o),r=JSON.parse(s||"{}");Array.isArray(r.open)&&r.hash===e&&(t=r.open)}catch{}return{hash:e,open:t,scroll:a?.scrollTop||0}},c=t=>{try{sessionStorage.setItem(o,JSON.stringify(t))}catch{}},d=()=>c(i()),l=(t,e)=>{const s=i();s.open[e]=t,c(s)};n?.addEventListener("click",t=>{if(!(t.target instanceof Element))return;const e=t.target.closest("summary")?.closest("details");if(!e)return;const s=e.querySelector("sl-sidebar-restore"),r=parseInt(s?.dataset.index||"");isNaN(r)||l(!e.open,r)});addEventListener("visibilitychange",()=>{document.visibilityState==="hidden"&&d()});addEventListener("pageHide",d);</script> <div class="lg:sl-flex astro-67yu43on"> <aside class="right-sidebar-container print:hidden astro-67yu43on"> <div class="right-sidebar astro-67yu43on"> <script type="module" src="/ns-docs/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.hwBsy0Mo.js"></script><script type="module" src="/ns-docs/_astro/TableOfContents.astro_astro_type_script_index_0_lang.FuRcXuRY.js"></script><div class="lg:sl-hidden astro-pb3aqygn"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-doynk5tl"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-doynk5tl"><details id="starlight__mobile-toc" class="astro-doynk5tl"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-doynk5tl"><span class="toggle sl-flex astro-doynk5tl">On this page<svg aria-hidden="true" class="caret astro-doynk5tl astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-doynk5tl"></span></summary><div class="dropdown astro-doynk5tl"><ul class="isMobile astro-g2bywc46" style="--depth: 0;"> <li class="astro-g2bywc46" style="--depth: 0;"> <a href="#_top" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Overview</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#where-to-find-it" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Where to find it</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#settings" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Settings</span> </a> <ul class="isMobile astro-g2bywc46" style="--depth: 1;"> <li class="astro-g2bywc46" style="--depth: 1;"> <a href="#knowledgebase-type-knowledgebase-language-and-notes" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">KnowledgeBase Type, KnowledgeBase Language and Notes</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#neuralseek-kb-no-knowledgebase-and-virtual-kb" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">NeuralSeek KB, No KnowledgeBase and Virtual KB</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#watson-discovery-and-watson-discovery-cp4d" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Watson Discovery and Watson Discovery (CP4D)</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#elastic-appsearch" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Elastic AppSearch</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#elasticsearch-and-watsonx-discovery" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">ElasticSearch and watsonx Discovery</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#opensearch" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">OpenSearch</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#kendra" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Kendra</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#bedrock" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Bedrock</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#ibm-cas" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">IBM CAS</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#pinecone" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Pinecone</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#milvus" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Milvus</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#postgres" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Postgres</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#chromadb" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">ChromaDB</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#field-mapping" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Field mapping</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#filtering-re-sorting-and-enable-advanced-schema" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Filtering, re-sorting and Enable Advanced Schema</span> </a>  </li> </ul>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#limits-and-interactions" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Limits and interactions</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#faq" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">FAQ</span> </a> <ul class="isMobile astro-g2bywc46" style="--depth: 1;"> <li class="astro-g2bywc46" style="--depth: 1;"> <a href="#which-knowledgebase-types-need-no-connection-details" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Which KnowledgeBase Types need no connection details?</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#where-do-i-choose-lucene-vector-or-hybrid-search" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Where do I choose Lucene, vector or hybrid search?</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#does-knowledgebase-language-change-the-language-of-the-answer" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Does KnowledgeBase Language change the language of the answer?</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#why-do-my-answers-show-sources-without-titles-or-links" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Why do my answers show sources without titles or links?</span> </a>  </li> </ul>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#related" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Related</span> </a>  </li> </ul> </div></details></nav></mobile-starlight-toc></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-pb3aqygn"><div class="sl-container astro-pb3aqygn"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-g2bywc46" style="--depth: 0;"> <li class="astro-g2bywc46" style="--depth: 0;"> <a href="#_top" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Overview</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#where-to-find-it" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Where to find it</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#settings" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Settings</span> </a> <ul class="astro-g2bywc46" style="--depth: 1;"> <li class="astro-g2bywc46" style="--depth: 1;"> <a href="#knowledgebase-type-knowledgebase-language-and-notes" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">KnowledgeBase Type, KnowledgeBase Language and Notes</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#neuralseek-kb-no-knowledgebase-and-virtual-kb" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">NeuralSeek KB, No KnowledgeBase and Virtual KB</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#watson-discovery-and-watson-discovery-cp4d" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Watson Discovery and Watson Discovery (CP4D)</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#elastic-appsearch" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Elastic AppSearch</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#elasticsearch-and-watsonx-discovery" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">ElasticSearch and watsonx Discovery</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#opensearch" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">OpenSearch</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#kendra" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Kendra</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#bedrock" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Bedrock</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#ibm-cas" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">IBM CAS</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#pinecone" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Pinecone</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#milvus" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Milvus</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#postgres" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Postgres</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#chromadb" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">ChromaDB</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#field-mapping" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Field mapping</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#filtering-re-sorting-and-enable-advanced-schema" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Filtering, re-sorting and Enable Advanced Schema</span> </a>  </li> </ul>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#limits-and-interactions" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Limits and interactions</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#faq" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">FAQ</span> </a> <ul class="astro-g2bywc46" style="--depth: 1;"> <li class="astro-g2bywc46" style="--depth: 1;"> <a href="#which-knowledgebase-types-need-no-connection-details" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Which KnowledgeBase Types need no connection details?</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#where-do-i-choose-lucene-vector-or-hybrid-search" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Where do I choose Lucene, vector or hybrid search?</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#does-knowledgebase-language-change-the-language-of-the-answer" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Does KnowledgeBase Language change the language of the answer?</span> </a>  </li><li class="astro-g2bywc46" style="--depth: 1;"> <a href="#why-do-my-answers-show-sources-without-titles-or-links" class="astro-g2bywc46" style="--depth: 1;"> <span class="astro-g2bywc46" style="--depth: 1;">Why do my answers show sources without titles or links?</span> </a>  </li> </ul>  </li><li class="astro-g2bywc46" style="--depth: 0;"> <a href="#related" class="astro-g2bywc46" style="--depth: 0;"> <span class="astro-g2bywc46" style="--depth: 0;">Related</span> </a>  </li> </ul> </nav></starlight-toc></div></div> <div class="sl-hidden lg:sl-block"> <div class="ns-graph" data-ns-graph data-current="configuration/neural-config/knowledgebase-connection"> <div class="ns-graph__head"> <span class="ns-label">Graph</span> <button type="button" class="ns-graph__expand" data-ns-graph-expand aria-haspopup="dialog">
+Expand
+</button> </div> <div class="ns-graph__panel"> <canvas class="ns-graph__canvas" data-ns-graph-mini aria-hidden="true"></canvas> <p class="ns-graph__fallback" data-ns-graph-fallback>Graph unavailable.</p> </div> </div> <div class="ns-graph-overlay" data-ns-graph-overlay hidden role="dialog" aria-label="Site graph"> <div class="ns-graph-overlay__bar"> <span class="ns-label">Site graph</span> <input type="search" class="ns-graph-overlay__search" placeholder="Filter pages…" aria-label="Filter pages" data-ns-graph-search> <ul class="ns-graph-legend"> <li><i data-status="adopted"></i>Adopted</li> <li><i data-status="written"></i>Written</li> <li><i data-status="stub"></i>Draft or stub</li> <li><i data-status="unmapped"></i>Unmapped</li> <li><i data-status="group"></i>Section</li> </ul> <button type="button" class="ns-graph-overlay__close" data-ns-graph-close>Close</button> </div> <canvas class="ns-graph-overlay__canvas" data-ns-graph-full aria-hidden="true"></canvas> <nav class="ns-graph-a11y" aria-label="All documentation pages" data-ns-graph-a11y></nav> </div> <script type="module" src="/ns-docs/_astro/SiteGraph.astro_astro_type_script_index_0_lang.BUaMJ0b5.js"></script> </div> </div> </aside> <div class="main-pane astro-67yu43on">  <main data-pagefind-body class="astro-bguv2lll" lang="en" dir="ltr">   <script type="module" src="/ns-docs/_astro/ChatWidget.astro_astro_type_script_index_0_lang.q85tQSDE.js"></script><script type="module">const q="/img/_placeholder.svg";function M(n){return n.dataset.noZoom!==void 0||n.closest("a")?!1:!n.getAttribute("src")?.endsWith(q)}function w(){const n=document.querySelector("[data-ns-zoom]"),p=document.querySelector(".sl-markdown-content");if(!n||!p||n.dataset.nsInit!==void 0)return;n.dataset.nsInit="",document.body.appendChild(n);const a=n.querySelector("[data-ns-zoom-stage]"),i=n.querySelector("[data-ns-zoom-img]"),A=n.querySelector("[data-ns-zoom-caption]"),v=n.querySelector("[data-ns-zoom-reset]"),k=n.querySelector("[data-ns-zoom-in]"),z=n.querySelector("[data-ns-zoom-out]"),E=n.querySelector("[data-ns-zoom-close]");for(const t of p.querySelectorAll("img"))M(t)&&(t.classList.add("ns-zoomable"),t.tabIndex=0,t.setAttribute("role","button"),t.setAttribute("aria-haspopup","dialog"));let o=1,c=0,d=0,y=null,I=null;function W(){return{x:Math.max(0,(i.offsetWidth*o-a.clientWidth)/2),y:Math.max(0,(i.offsetHeight*o-a.clientHeight)/2)}}function f(){const t=W();c=Math.min(t.x,Math.max(-t.x,c)),d=Math.min(t.y,Math.max(-t.y,d)),i.style.transform=`translate(${c}px, ${d}px) scale(${o})`;const e=i.naturalWidth&&i.offsetWidth?i.offsetWidth/i.naturalWidth:1;v.textContent=`${Math.round(o*e*100)}%`,n.classList.toggle("is-pannable",o>1)}function u(t,e,r){const s=Math.min(8,Math.max(1,t));s!==o&&(c=e-s/o*(e-c),d=r-s/o*(r-d),o=s,o===1&&(c=0,d=0),f())}function g(t){const e=a.getBoundingClientRect();return{x:t.clientX-(e.left+e.width/2),y:t.clientY-(e.top+e.height/2)}}function x(){o=1,c=0,d=0,f()}i.addEventListener("load",f);function S(t){y=document.activeElement,I=t,i.src=t.currentSrc||t.src,i.alt=t.alt,A.textContent=t.alt,n.hidden=!1,document.documentElement.classList.add("ns-zoom-open"),x(),E.focus()}function L(){n.hidden=!0,document.documentElement.classList.remove("ns-zoom-open"),i.removeAttribute("src"),(y&&y!==document.body?y:I)?.focus()}p.addEventListener("click",t=>{const e=t.target?.closest("img");!e||!M(e)||S(e)}),p.addEventListener("keydown",t=>{if(t.key!=="Enter"&&t.key!==" ")return;const e=t.target?.closest("img");!e||!M(e)||(t.preventDefault(),S(e))}),k.addEventListener("click",()=>u(o*1.4,0,0)),z.addEventListener("click",()=>u(o/1.4,0,0)),v.addEventListener("click",x),E.addEventListener("click",L),n.addEventListener("click",t=>{(t.target===n||t.target===a)&&L()}),a.addEventListener("wheel",t=>{t.preventDefault();const e=g(t);u(o*1.0015**-t.deltaY,e.x,e.y)},{passive:!1}),a.addEventListener("dblclick",t=>{const e=g(t),r=i.offsetWidth?i.naturalWidth/i.offsetWidth:2;u(o>1?1:Math.max(2,r),e.x,e.y)});const l=new Map;let m=0;a.addEventListener("pointerdown",t=>{a.setPointerCapture(t.pointerId),l.set(t.pointerId,{x:t.clientX,y:t.clientY}),m=0}),a.addEventListener("pointermove",t=>{const e=l.get(t.pointerId);if(!e)return;if(l.set(t.pointerId,{x:t.clientX,y:t.clientY}),l.size===1){if(o===1)return;c+=t.clientX-e.x,d+=t.clientY-e.y,f();return}if(l.size!==2)return;const[r,s]=[...l.values()],h=Math.hypot(r.x-s.x,r.y-s.y);if(m){const b=g({clientX:(r.x+s.x)/2,clientY:(r.y+s.y)/2});u(o*(h/m),b.x,b.y)}m=h});for(const t of["pointerup","pointercancel","pointerleave"])a.addEventListener(t,e=>{l.delete(e.pointerId),l.size<2&&(m=0)});document.addEventListener("keydown",t=>{if(n.hidden)return;if(t.key==="Escape")return L();if(t.key==="+"||t.key==="=")return u(o*1.4,0,0);if(t.key==="-")return u(o/1.4,0,0);if(t.key==="0")return x();const e={ArrowLeft:[60,0],ArrowRight:[-60,0],ArrowUp:[0,60],ArrowDown:[0,-60]};if(e[t.key]&&o>1)return t.preventDefault(),c+=e[t.key][0],d+=e[t.key][1],f();if(t.key==="Tab"){const r=[z,v,k,E],s=r.indexOf(document.activeElement);t.preventDefault();const h=t.shiftKey?s<=0?r.length-1:s-1:(s+1)%r.length;r[h].focus()}}),window.addEventListener("resize",()=>{n.hidden||f()})}w();document.addEventListener("astro:page-load",w);</script> <div class="content-panel astro-7nkwcw3z"> <div class="sl-container astro-7nkwcw3z"> <h1 id="_top" class="astro-j6tvhyss">KnowledgeBase Connection</h1>  </div> </div>  <div class="content-panel astro-7nkwcw3z"> <div class="sl-container astro-7nkwcw3z"> <div class="sl-markdown-content"> <p><strong>KnowledgeBase Connection</strong> decides where NeuralSeek looks when it answers a question: which store it searches on every Seek, how to sign in to that store, and which fields of the returned documents hold the passage text, the link and the title. Every other retrieval setting acts on what this connection returns, so a wrong type, a bad credential or a mismatched field mapping shows up downstream as empty answers, untitled sources or broken links.</p>
+<p>The section changes shape with <strong>KnowledgeBase Type</strong>. Three controls are always there; everything below them belongs to the type you pick.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="where-to-find-it">Where to find it</h2><a class="sl-anchor-link" href="#where-to-find-it"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Where to find it”</span></a></div>
+<p>Go to <strong>Neural Config</strong>, select the <strong>Default Config</strong> node (Answer Generation) in the routing tree, then select <strong>Edit Configuration</strong>. In the <strong>Configuration: Default Config</strong> dialog, expand <strong>KnowledgeBase Connection</strong>, the first section. The other sections of the dialog are listed in the <a href="/ns-docs/configuration/neural-config/">Neural Config directory</a>.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection-panel.png" alt="The KnowledgeBase Connection section expanded, with KnowledgeBase Type set to NeuralSeek KB, KnowledgeBase Language set to English and an empty Notes box" class="ns-img-fill"></p>
+<p>Changes apply only when you select <strong>Save</strong> or <strong>Propose Changes</strong> at the bottom of the dialog; both are explained in <a href="/ns-docs/configuration/neural-config/using-this-page/">Using the Neural Config page</a>. A category with its own custom configuration has the same section, see <a href="/ns-docs/configuration/overview/">Configuration overview</a>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="settings">Settings</h2><a class="sl-anchor-link" href="#settings"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Settings”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="knowledgebase-type-knowledgebase-language-and-notes">KnowledgeBase Type, KnowledgeBase Language and Notes</h3><a class="sl-anchor-link" href="#knowledgebase-type-knowledgebase-language-and-notes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “KnowledgeBase Type, KnowledgeBase Language and Notes”</span></a></div>
+<p>These three controls appear for every type.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection--knowledgebase-type.png" alt="The top of the section: the KnowledgeBase Type dropdown, the KnowledgeBase Language dropdown and the Notes box" class="ns-img-fill"></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th><th>When to change it</th></tr></thead><tbody><tr><td><strong>KnowledgeBase Type</strong></td><td>The store NeuralSeek searches on every Seek. Picking a type replaces the rest of the section with that store’s form.</td><td>When you connect NeuralSeek to a store for the first time, or move to another one.</td></tr><tr><td><strong>KnowledgeBase Language</strong></td><td>The language your KnowledgeBase content is written in.</td><td>When your documents are not in the language currently selected.</td></tr><tr><td><strong>Notes</strong></td><td>Free text kept with this connection.</td><td>To record why the connection is set up the way it is, for the next administrator.</td></tr></tbody></table>
+<p><strong>KnowledgeBase Type</strong> offers sixteen options, in this order on screen. Pick yours to see its section below.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection--options-knowledgebase-type.png" alt="The KnowledgeBase Type dropdown open, showing Watson Discovery, Watson Discovery (CP4D), Elastic AppSearch and ElasticSearch at the top of a scrolling list" class="ns-img-fill"></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Option</th><th>What it connects to</th><th>What it asks for</th><th>Details</th></tr></thead><tbody><tr><td><code dir="auto">Watson Discovery</code></td><td>An IBM Watson Discovery project on IBM Cloud</td><td>Service URL, API key, project ID</td><td><a href="#watson-discovery-and-watson-discovery-cp4d">Watson Discovery</a></td></tr><tr><td><code dir="auto">Watson Discovery (CP4D)</code></td><td>A Watson Discovery project on Cloud Pak for Data</td><td>Service URL, user name and password, auth URL, project ID</td><td><a href="#watson-discovery-and-watson-discovery-cp4d">Watson Discovery (CP4D)</a></td></tr><tr><td><code dir="auto">Elastic AppSearch</code></td><td>An Elastic App Search engine</td><td>Endpoint, private API key, engine name</td><td><a href="#elastic-appsearch">Elastic AppSearch</a></td></tr><tr><td><code dir="auto">ElasticSearch</code></td><td>An Elasticsearch index</td><td>Endpoint, private API key, index name</td><td><a href="#elasticsearch-and-watsonx-discovery">ElasticSearch</a></td></tr><tr><td><code dir="auto">watsonx Discovery</code></td><td>An index in watsonx Discovery</td><td>Endpoint, private API key, index name</td><td><a href="#elasticsearch-and-watsonx-discovery">watsonx Discovery</a></td></tr><tr><td><code dir="auto">OpenSearch</code></td><td>An OpenSearch index</td><td>Endpoint, user name and password, index name</td><td><a href="#opensearch">OpenSearch</a></td></tr><tr><td><code dir="auto">Kendra</code></td><td>An Amazon Kendra index</td><td>Index ID, AWS region, access key pair</td><td><a href="#kendra">Kendra</a></td></tr><tr><td><code dir="auto">Bedrock</code></td><td>An Amazon Bedrock knowledge base</td><td>Knowledge base ID, AWS region, access key pair</td><td><a href="#bedrock">Bedrock</a></td></tr><tr><td><code dir="auto">IBM CAS</code></td><td>An IBM CAS vector store</td><td>API base URL, bearer token, vector store</td><td><a href="#ibm-cas">IBM CAS</a></td></tr><tr><td><code dir="auto">Pinecone</code></td><td>A Pinecone index</td><td>Index name, namespace, API key</td><td><a href="#pinecone">Pinecone</a></td></tr><tr><td><code dir="auto">Milvus</code></td><td>A Milvus collection</td><td>Host and port, collection, optional database and token</td><td><a href="#milvus">Milvus</a></td></tr><tr><td><code dir="auto">Postgres</code></td><td>A Postgres table of embeddings</td><td>Host and port, database, user, table, distance metric</td><td><a href="#postgres">Postgres</a></td></tr><tr><td><code dir="auto">Virtual KB</code></td><td>A mAIstro agent that acts as the knowledge base</td><td>The agent</td><td><a href="#neuralseek-kb-no-knowledgebase-and-virtual-kb">Virtual KB</a></td></tr><tr><td><code dir="auto">NeuralSeek KB</code></td><td>The NeuralSeek-hosted knowledge base</td><td>Nothing</td><td><a href="#neuralseek-kb-no-knowledgebase-and-virtual-kb">NeuralSeek KB</a></td></tr><tr><td><code dir="auto">No KnowledgeBase</code></td><td>No store</td><td>Nothing</td><td><a href="#neuralseek-kb-no-knowledgebase-and-virtual-kb">No KnowledgeBase</a></td></tr><tr><td><code dir="auto">ChromaDB</code></td><td>A ChromaDB collection</td><td>Database, tenant, API key, collection</td><td><a href="#chromadb">ChromaDB</a></td></tr></tbody></table>
+<p>Which store fits your content, and what each one supports, is compared in <a href="/ns-docs/knowledge/supported-knowledgebases/">Supported KnowledgeBases</a>. The end-to-end setup, including the work on the store’s side, is in <a href="/ns-docs/knowledge/connect-a-kb/">Connect a KnowledgeBase</a>.</p>
+<p><strong>KnowledgeBase Language</strong> is a full alphabetical list of 185 languages, from <code dir="auto">Abkhazian</code> to <code dir="auto">Zulu</code>. This setting describes your content; the language answers are written in is set elsewhere, see <a href="/ns-docs/configuration/language/">Language</a>.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection--options-knowledgebase-language.png" alt="The KnowledgeBase Language dropdown open, showing Abkhazian, Afar, Afrikaans and Akan at the top of a scrolling list" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="neuralseek-kb-no-knowledgebase-and-virtual-kb">NeuralSeek KB, No KnowledgeBase and Virtual KB</h3><a class="sl-anchor-link" href="#neuralseek-kb-no-knowledgebase-and-virtual-kb"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “NeuralSeek KB, No KnowledgeBase and Virtual KB”</span></a></div>
+<p>These three types need no endpoint, key or field mapping.</p>
+<ul>
+<li><strong><code dir="auto">NeuralSeek KB</code></strong> is the <a href="/ns-docs/knowledge/managed-knowledgebase/overview/">NeuralSeek-hosted knowledge base</a>. The section keeps only <strong>KnowledgeBase Type</strong>, <strong>KnowledgeBase Language</strong> and <strong>Notes</strong>, because the store is part of NeuralSeek. You load its documents from the KnowledgeBase screen.</li>
+<li><strong><code dir="auto">No KnowledgeBase</code></strong> also keeps only those three controls. Choose it for a configuration that should not search any store.</li>
+</ul>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-no-knowledgebase--knowledgebase-type.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to No KnowledgeBase: only KnowledgeBase Type, KnowledgeBase Language and Notes are shown" class="ns-img-fill"></p>
+<ul>
+<li><strong><code dir="auto">Virtual KB</code></strong> adds one dropdown, <strong>mAIstro Virtual KB agent</strong>: the mAIstro agent that acts as the knowledge base. What that agent receives and must return is covered in <a href="/ns-docs/seek/virtual-kb/">Virtual KB</a>.</li>
+</ul>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-virtual--maistro-virtual-kb-agent.png" alt="The mAIstro Virtual KB agent dropdown shown under Notes when KnowledgeBase Type is Virtual KB"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="watson-discovery-and-watson-discovery-cp4d">Watson Discovery and Watson Discovery (CP4D)</h3><a class="sl-anchor-link" href="#watson-discovery-and-watson-discovery-cp4d"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Watson Discovery and Watson Discovery (CP4D)”</span></a></div>
+<p>Both Discovery types point at a Discovery project. They differ in how NeuralSeek signs in: an API key on IBM Cloud, a user name and password on Cloud Pak for Data.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>Type</th><th>What to enter</th></tr></thead><tbody><tr><td><strong>Discovery Service Url</strong></td><td>Both</td><td>The Discovery instance URL. On IBM Cloud it has the form <code dir="auto">https://api.&#x3C;region>.discovery.watson.cloud.ibm.com/instances/&#x3C;instance id></code>; on CP4D it is your cluster’s Discovery API address.</td></tr><tr><td><strong>Discovery API Key</strong></td><td>Watson Discovery</td><td>The API key of the Discovery instance. Select <strong>Show password</strong> to check what you typed.</td></tr><tr><td><strong>Discovery User Name</strong></td><td>Watson Discovery (CP4D)</td><td>The Cloud Pak for Data user NeuralSeek signs in as.</td></tr><tr><td><strong>Discovery Password</strong></td><td>Watson Discovery (CP4D)</td><td>That user’s password.</td></tr><tr><td><strong>Discovery Auth URL</strong></td><td>Watson Discovery (CP4D)</td><td>The Cloud Pak for Data authentication endpoint of your cluster, which ends in <code dir="auto">/icp4d-api</code>.</td></tr><tr><td><strong>Discovery Project ID</strong></td><td>Both</td><td>The Discovery project to search.</td></tr></tbody></table>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-watson-discovery-cp4d-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to Watson Discovery (CP4D): Discovery Service Url, Discovery User Name, Discovery Password, Discovery Auth URL and Discovery Project ID above the field-mapping dropdowns" class="ns-img-fill"></p>
+<p>Both types continue with the full <a href="#field-mapping">field mapping</a> block, including the additional payload fields.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="elastic-appsearch">Elastic AppSearch</h3><a class="sl-anchor-link" href="#elastic-appsearch"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Elastic AppSearch”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What to enter</th></tr></thead><tbody><tr><td><strong>Elastic AppSearch Endpoint</strong></td><td>The App Search endpoint URL, for example <code dir="auto">https://myElasticAppSearchEndpoint.com</code>.</td></tr><tr><td><strong>AppSearch Private API Key</strong></td><td>The App Search private API key.</td></tr><tr><td><strong>AppSearch Engine Name</strong></td><td>The engine to search, for example <code dir="auto">kbase</code>.</td></tr></tbody></table>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-elastic-appsearch-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to Elastic AppSearch: Elastic AppSearch Endpoint, AppSearch Private API Key and AppSearch Engine Name, then the field-mapping dropdowns" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="elasticsearch-and-watsonx-discovery">ElasticSearch and watsonx Discovery</h3><a class="sl-anchor-link" href="#elasticsearch-and-watsonx-discovery"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ElasticSearch and watsonx Discovery”</span></a></div>
+<p>Both types search an Elasticsearch index; watsonx Discovery reaches it through IBM’s managed service.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>Type</th><th>What to enter</th></tr></thead><tbody><tr><td><strong>ElasticSearch Endpoint</strong></td><td>ElasticSearch</td><td>The Elasticsearch endpoint URL.</td></tr><tr><td><strong>ElasticSearch Private API Key</strong></td><td>ElasticSearch</td><td>The Elasticsearch API key.</td></tr><tr><td><strong>ElasticSearch Index Name</strong></td><td>ElasticSearch</td><td>The index to search, for example <code dir="auto">kbase</code>.</td></tr><tr><td><strong>watsonx Discovery Endpoint</strong></td><td>watsonx Discovery</td><td>The deployment’s endpoint, in the form <code dir="auto">https://&#x3C;id>.databases.appdomain.cloud:&#x3C;port></code>.</td></tr><tr><td><strong>watsonx Discovery Private API Key</strong></td><td>watsonx Discovery</td><td>The private API key. <strong>Generate Key</strong> sits beside this field.</td></tr><tr><td><strong>watsonx Discovery Index Name</strong></td><td>watsonx Discovery</td><td>The index to search, for example <code dir="auto">kbase</code>.</td></tr></tbody></table>
+<!-- UNCONFIRMED: Generate Key creates the private API key for the field beside it — inferred from its label and position; the button was never opened in a capture (backlog b73cb1cef8) -->
+<p><strong>Generate Key</strong> is a helper for filling in the private API key next to it.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-wxd--connection.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to watsonx Discovery: the watsonx Discovery Endpoint, the Private API Key with the Generate Key button below it, and the Index Name" class="ns-img-fill"></p>
+<p>Both types continue with the full <a href="#field-mapping">field mapping</a> block. They also add a separate section to the dialog, <strong>Hybrid &#x26; Vector Search Settings</strong>, right after <strong>KnowledgeBase Tuning</strong>. It sets whether NeuralSeek runs a Lucene, hybrid or vector query against the index, and it is documented in <a href="/ns-docs/knowledge/hybrid-vector-semantic-search/">Hybrid, vector and semantic search</a>. For setting up the embedding model in Elasticsearch, see <a href="/ns-docs/knowledge/elasticsearch-vector-model/">Elasticsearch vector model</a>.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-wxd--hybrid-vector--crop.png" alt="With KnowledgeBase Type set to watsonx Discovery, the Hybrid &#x26; Vector Search Settings section appears between KnowledgeBase Tuning and LLM Details, with its Elastic Query Type dropdown reading Lucene" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="opensearch">OpenSearch</h3><a class="sl-anchor-link" href="#opensearch"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “OpenSearch”</span></a></div>
+<p>OpenSearch signs in with a user name and password rather than an API key.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What to enter</th></tr></thead><tbody><tr><td><strong>OpenSearch Endpoint</strong></td><td>The OpenSearch endpoint URL, for example <code dir="auto">https://myOpenSearchEndpoint.com</code>.</td></tr><tr><td><strong>OpenSearch Username</strong></td><td>The user NeuralSeek signs in as.</td></tr><tr><td><strong>OpenSearch Password</strong></td><td>That user’s password.</td></tr><tr><td><strong>OpenSearch Index Name</strong></td><td>The index to search, for example <code dir="auto">kbase</code>.</td></tr></tbody></table>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-opensearch-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to OpenSearch: OpenSearch Endpoint, OpenSearch Username, OpenSearch Password and OpenSearch Index Name above the field-mapping dropdowns" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="kendra">Kendra</h3><a class="sl-anchor-link" href="#kendra"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Kendra”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th></tr></thead><tbody><tr><td><strong>Kendra Index ID</strong></td><td>The ID of the Kendra index to search.</td></tr><tr><td><strong>AWS Region</strong></td><td>The AWS region of the index, for example <code dir="auto">us-east-1</code>.</td></tr><tr><td><strong>AWS Role Access Key</strong></td><td>The access key of the AWS role NeuralSeek uses.</td></tr><tr><td><strong>AWS Role Secret Access Key</strong></td><td>The secret that goes with that access key.</td></tr><tr><td><strong>Preserve the separation of, or combine, document snippets received from the KB source</strong></td><td>Whether the snippets Kendra returns for a document reach the answer merged or kept apart. <code dir="auto">Combined Snippets</code> merges them. Only Kendra has this setting.</td></tr></tbody></table>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-kendra-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to Kendra: Kendra Index ID, AWS Region, AWS Role Access Key and AWS Role Secret Access Key, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and the snippet dropdown reading Combined Snippets" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="bedrock">Bedrock</h3><a class="sl-anchor-link" href="#bedrock"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Bedrock”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th></tr></thead><tbody><tr><td><strong>Bedrock Knowledgebase ID</strong></td><td>The ID of the Bedrock knowledge base to search.</td></tr><tr><td><strong>AWS Region</strong></td><td>The AWS region of the knowledge base, for example <code dir="auto">us-east-1</code>.</td></tr><tr><td><strong>AWS Access Key ID</strong></td><td>The AWS access key NeuralSeek uses.</td></tr><tr><td><strong>AWS Secret Access Key</strong></td><td>The secret that goes with that access key.</td></tr><tr><td><strong>Bedrock Search Type</strong></td><td>The kind of search NeuralSeek asks Bedrock to run, for example <code dir="auto">Default</code>.</td></tr></tbody></table>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-bedrock-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to Bedrock: Bedrock Knowledgebase ID, AWS Region, AWS Access Key ID, AWS Secret Access Key and Bedrock Search Type reading Default, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and Filter Field" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ibm-cas">IBM CAS</h3><a class="sl-anchor-link" href="#ibm-cas"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “IBM CAS”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th></tr></thead><tbody><tr><td><strong>CAS API Base URL</strong></td><td>The base URL of the CAS API, for example <code dir="auto">https://cas.example.com/cas/api/v1</code>.</td></tr><tr><td><strong>CAS Bearer Token</strong></td><td>The token NeuralSeek sends to the CAS API.</td></tr><tr><td><strong>Vector Store</strong></td><td>The CAS vector store to search.</td></tr><tr><td><strong>Enable One-way TLS Connection</strong></td><td>Turns on TLS to the CAS server, with an optional certificate upload (<strong>Choose File</strong>).</td></tr></tbody></table>
+<p>The certificate upload explains itself on screen: “(Optional) Server.pem: Provide the CA certificate used to verify the CAS server. Without it, self-signed certificates are accepted. Choose File then cancel to clear server.pem selection.” Upload the CA certificate when you want NeuralSeek to verify the server instead of accepting a self-signed certificate.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-ibm-cas-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to IBM CAS: CAS API Base URL, CAS Bearer Token, Vector Store, the Enable One-way TLS Connection checkbox with Choose File and its help text, then Link Field and Document Name Field" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="pinecone">Pinecone</h3><a class="sl-anchor-link" href="#pinecone"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Pinecone”</span></a></div>
+<p>Pinecone asks for <strong>Pinecone.io Index Name</strong>, <strong>Pinecone.io Index Namespace</strong> and <strong>Pinecone.io API Key</strong>, followed by the field mapping. The full setup, from creating the index to mapping its fields, is in <a href="/ns-docs/knowledge/pinecone/">Pinecone</a>.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-pinecone-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to Pinecone: Pinecone.io Index Name, Pinecone.io Index Namespace and Pinecone.io API Key, then Curation Data Field, Link Field, Document Name Field and Attribute sources inside LLM Context by Document Name" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="milvus">Milvus</h3><a class="sl-anchor-link" href="#milvus"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Milvus”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th></tr></thead><tbody><tr><td><strong>Milvus Host:Port</strong></td><td>The Milvus server, as <code dir="auto">Hostname:Port</code>.</td></tr><tr><td><strong>Milvus Collection name</strong></td><td>The collection to search.</td></tr><tr><td><strong>(Optional) Milvus Database name</strong></td><td>The database that holds the collection.</td></tr><tr><td>Token</td><td>Labelled “(Optional) The token used for connection. The token can be either an API key or a username and password pair combined with a colon in between.”</td></tr><tr><td><strong>Enable One-way TLS Connection</strong></td><td>Turns on TLS to the Milvus server, with an optional <code dir="auto">server.pem</code> upload (<strong>Choose File</strong>).</td></tr><tr><td>Server name</td><td>Labelled “(Optional) Server name: Please ensure the server name matches the CommonName configured in the certificate.”</td></tr></tbody></table>
+<p>When you enable TLS, the upload’s help text applies: “(Optional) Server.pem: Provide the server.pem certificate and ensure the server name matches the CommonName configured in the certificate. Choose File then cancel to clear server.pem selection.”</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-milvus-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to Milvus: Milvus Host, Milvus Collection name, the optional database name and token, Enable One-way TLS Connection with Choose File, the optional server name, then Curation Data Field and Link Field" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="postgres">Postgres</h3><a class="sl-anchor-link" href="#postgres"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Postgres”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th></tr></thead><tbody><tr><td><strong>Postgres Host:Port</strong></td><td>The database server, as <code dir="auto">Hostname:Port</code>.</td></tr><tr><td><strong>Postgres Database name</strong></td><td>The database that holds the table.</td></tr><tr><td><strong>Postgres Username</strong></td><td>The user NeuralSeek signs in as.</td></tr><tr><td><strong>Postgres Password</strong></td><td>That user’s password.</td></tr><tr><td><strong>Postgres table name or FQN e.g. schema.tablename</strong></td><td>The table of documents and embeddings, as <code dir="auto">tablename</code> or <code dir="auto">schema.tablename</code>.</td></tr><tr><td><strong>Distance Metric</strong></td><td>How similarity is measured between the question’s embedding and the stored ones. The list marks <code dir="auto">Cosine Distance (recommended)</code>.</td></tr><tr><td><strong>Embedding column name</strong></td><td>The column that holds the vectors, for example <code dir="auto">embedding</code>.</td></tr><tr><td><strong>Enable One-way TLS Connection</strong></td><td>Turns on TLS to the server, with an optional <code dir="auto">server.pem</code> upload; the help text is the same as for Milvus.</td></tr></tbody></table>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-postgres-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to Postgres: host and port, database name, user name, password, table name, Distance Metric reading Cosine Distance (recommended), Embedding column name, and Enable One-way TLS Connection with Choose File" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="chromadb">ChromaDB</h3><a class="sl-anchor-link" href="#chromadb"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ChromaDB”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th></tr></thead><tbody><tr><td><strong>ChromaDB Database</strong></td><td>The ChromaDB database.</td></tr><tr><td><strong>ChromaDB Tenant</strong></td><td>The tenant that owns the database.</td></tr><tr><td><strong>ChromaDB API Key</strong></td><td>The key NeuralSeek authenticates with.</td></tr><tr><td><strong>ChromaDB Collection</strong></td><td>The collection to search.</td></tr></tbody></table>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-chromadb-panel--crop.png" alt="KnowledgeBase Connection with KnowledgeBase Type set to ChromaDB: ChromaDB Database, ChromaDB Tenant, ChromaDB API Key and ChromaDB Collection, then Link Field, Document Name Field, Attribute sources inside LLM Context by Document Name and Filter Field" class="ns-img-fill"></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="field-mapping">Field mapping</h3><a class="sl-anchor-link" href="#field-mapping"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Field mapping”</span></a></div>
+<p>Every external store, that is every type except <code dir="auto">NeuralSeek KB</code>, <code dir="auto">No KnowledgeBase</code> and <code dir="auto">Virtual KB</code>, follows its connection fields with a mapping block. It tells NeuralSeek which field of your documents is the passage text, which is the link and which is the title. NeuralSeek cites sources with these fields, so a wrong mapping gives answers with untitled sources or no links.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-type-watson-discovery--field-mapping--crop.png" alt="The field-mapping block on Watson Discovery: Curation Data Field, Link Field, Document Name Field, Additional Payload Field, Include additional Payload Field inside LLM context, Attribute sources inside LLM Context by Document Name reading Enabled, and the full-document dropdown reading Disabled" class="ns-img-fill"></p>
+<!-- UNCONFIRMED: Curation Data Field holds the document body; Link Field is the URL shown below the title or as a link in the Virtual Agent chat bubble; Attribute sources… introduces each passage as "The document 'name' states that: …", which helps some LLMs track sources — from the old Configuration overview page; the screen shows only the labels -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th></tr></thead><tbody><tr><td><strong>Curation Data Field</strong></td><td>The field that holds the document body, the text NeuralSeek takes passages from.</td></tr><tr><td><strong>Link Field</strong></td><td>The field that holds the document’s URL, shown with the source and served as a link in Virtual Agent replies.</td></tr><tr><td><strong>Document Name Field</strong></td><td>The field that holds the document’s title.</td></tr><tr><td><strong>Additional Payload Field</strong></td><td>One more field to bring back with each result.</td></tr><tr><td><strong>Include additional Payload Field inside LLM context</strong></td><td>Whether that extra field is also put into the context the LLM answers from.</td></tr><tr><td><strong>Attribute sources inside LLM Context by Document Name</strong></td><td><code dir="auto">Enabled</code> introduces each passage to the LLM with its document name (“The document ’…’ states that: …”), which helps some LLMs keep track of which source said what. <code dir="auto">Disabled</code> passes the passages without names.</td></tr><tr><td><strong>Return the full document instead of passages (only enable this if all of your documents are short)</strong></td><td><code dir="auto">Enabled</code> returns each matching document whole instead of its passages; the on-screen guidance is to enable it only when all of your documents are short. <code dir="auto">Disabled</code> keeps passages.</td></tr></tbody></table>
+<!-- UNCONFIRMED: the mapping lists are filled from the connected store's fields, so a list that shows only "Loading data..." points at the connection fields — inferred from the Pinecone and ElasticSearch captures, where an unconnected store showed only the current value and Loading data... -->
+<p>The lists offer the fields of your store. If a list shows only <code dir="auto">Loading data...</code>, check the connection fields above it.</p>
+<p>Which mapping rows each type shows:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>KnowledgeBase Type</th><th>Curation Data Field</th><th>Additional Payload fields</th><th>Return the full document…</th></tr></thead><tbody><tr><td><code dir="auto">Watson Discovery</code></td><td>yes</td><td>yes</td><td>yes</td></tr><tr><td><code dir="auto">Watson Discovery (CP4D)</code></td><td>yes</td><td>yes</td><td>yes</td></tr><tr><td><code dir="auto">Elastic AppSearch</code></td><td>yes</td><td>—</td><td>yes</td></tr><tr><td><code dir="auto">ElasticSearch</code></td><td>yes</td><td>yes</td><td>yes</td></tr><tr><td><code dir="auto">watsonx Discovery</code></td><td>yes</td><td>yes</td><td>yes</td></tr><tr><td><code dir="auto">OpenSearch</code></td><td>yes</td><td>—</td><td>—</td></tr><tr><td><code dir="auto">Kendra</code></td><td>—</td><td>—</td><td>—</td></tr><tr><td><code dir="auto">Bedrock</code></td><td>—</td><td>—</td><td>—</td></tr><tr><td><code dir="auto">IBM CAS</code></td><td>—</td><td>—</td><td>—</td></tr><tr><td><code dir="auto">Pinecone</code></td><td>yes</td><td>—</td><td>—</td></tr><tr><td><code dir="auto">Milvus</code></td><td>yes</td><td>—</td><td>—</td></tr><tr><td><code dir="auto">Postgres</code></td><td>yes</td><td>—</td><td>—</td></tr><tr><td><code dir="auto">ChromaDB</code></td><td>—</td><td>—</td><td>—</td></tr></tbody></table>
+<p><strong>Link Field</strong>, <strong>Document Name Field</strong> and <strong>Attribute sources inside LLM Context by Document Name</strong> appear on all thirteen. Kendra adds its snippet setting, described <a href="#kendra">above</a>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="filtering-re-sorting-and-enable-advanced-schema">Filtering, re-sorting and Enable Advanced Schema</h3><a class="sl-anchor-link" href="#filtering-re-sorting-and-enable-advanced-schema"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Filtering, re-sorting and Enable Advanced Schema”</span></a></div>
+<p>The end of every external store’s form restricts which documents a Seek can return and pushes chosen documents to the top.</p>
+<p><img src="/ns-docs/img/neural-config/knowledgebase-connection@kb-wxd--filter-resort--crop.png" alt="The end of the form: Filter Field, Static Default Filter Value (when no runtime filter is passed), the Re-Sort values list. heading with its Re-Sort Field and Priority / Value or RegExp table, and the Enable Advanced Schema button" class="ns-img-fill"></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setting</th><th>What it does</th></tr></thead><tbody><tr><td><strong>Filter Field</strong></td><td>The metadata field a filter applies to, for example a field that records each document’s type.</td></tr><tr><td><strong>Static Default Filter Value (when no runtime filter is passed)</strong></td><td>The filter value NeuralSeek applies when a Seek call does not pass a filter of its own. Runtime filters are covered in <a href="/ns-docs/seek/dynamic-filters/">Dynamic filters</a>.</td></tr><tr><td><strong>Re-Sort Field</strong></td><td>The field whose values the re-sort list matches.</td></tr></tbody></table>
+<p><strong>Re-Sort values list.</strong> carries its own help text: “Enter a prioritized list of values you want to re-rank above other results, regardless of KB score.” To use it, choose the field in <strong>Re-Sort Field</strong>, then select the light-bulb button (tooltip <strong>Add a new row.</strong>) and fill in <strong>Priority</strong> and <strong>Value or RegExp</strong> for each value. Documents whose field matches a row rank above the rest, whatever their KB score. Use it to put internal content ahead of a general web crawl, for example, without excluding anything.</p>
+<!-- UNCONFIRMED: Enable Advanced Schema allows a narrower search based on the Value List inputs — from the old Configuration overview page; the button was never opened in a capture (backlog f5bd07696c) -->
+<p><strong>Enable Advanced Schema</strong> narrows the search based on the value list inputs.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="limits-and-interactions">Limits and interactions</h2><a class="sl-anchor-link" href="#limits-and-interactions"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Limits and interactions”</span></a></div>
+<ul>
+<li><strong>Changing KnowledgeBase Type replaces the form.</strong> The fields of the previous type are no longer shown, so fill in the new type’s connection and mapping before you save.</li>
+<li><strong>KnowledgeBase Tuning follows the type.</strong> With <code dir="auto">NeuralSeek KB</code>, <a href="/ns-docs/configuration/neural-config/knowledgebase-tuning/">KnowledgeBase Tuning</a> shows an Expansion Window setting; with an external store it shows Snippet size instead. How many documents a Seek takes, how they are scored and the query cache are set there as well.</li>
+<li><strong>Hybrid &#x26; Vector Search Settings exists only for ElasticSearch and watsonx Discovery.</strong> It appears as its own section of the dialog once you pick either type.</li>
+<li><strong>Vector stores and embeddings.</strong> For Pinecone, Milvus, Postgres and ChromaDB, see <a href="/ns-docs/configuration/neural-config/embedding-models/">Embedding models</a> for the embedding settings.</li>
+<li><strong>Answer language.</strong> <strong>KnowledgeBase Language</strong> describes the content; the answer language is <strong>Default Output Language</strong> in <a href="/ns-docs/configuration/neural-config/platform-preferences/">Platform Preferences</a>.</li>
+</ul>
+<div class="sl-heading-wrapper level-h2"><h2 id="faq">FAQ</h2><a class="sl-anchor-link" href="#faq"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “FAQ”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="which-knowledgebase-types-need-no-connection-details">Which KnowledgeBase Types need no connection details?</h3><a class="sl-anchor-link" href="#which-knowledgebase-types-need-no-connection-details"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Which KnowledgeBase Types need no connection details?”</span></a></div>
+<p><code dir="auto">NeuralSeek KB</code> and <code dir="auto">No KnowledgeBase</code> show only <strong>KnowledgeBase Type</strong>, <strong>KnowledgeBase Language</strong> and <strong>Notes</strong>. <code dir="auto">Virtual KB</code> adds one choice, the <strong>mAIstro Virtual KB agent</strong>. Every other type asks for its store’s address and credentials.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="where-do-i-choose-lucene-vector-or-hybrid-search">Where do I choose Lucene, vector or hybrid search?</h3><a class="sl-anchor-link" href="#where-do-i-choose-lucene-vector-or-hybrid-search"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Where do I choose Lucene, vector or hybrid search?”</span></a></div>
+<p>Only ElasticSearch and watsonx Discovery offer it, in the <strong>Hybrid &#x26; Vector Search Settings</strong> section that appears after <strong>KnowledgeBase Tuning</strong> once you pick either type. See <a href="/ns-docs/knowledge/hybrid-vector-semantic-search/">Hybrid, vector and semantic search</a>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="does-knowledgebase-language-change-the-language-of-the-answer">Does KnowledgeBase Language change the language of the answer?</h3><a class="sl-anchor-link" href="#does-knowledgebase-language-change-the-language-of-the-answer"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Does KnowledgeBase Language change the language of the answer?”</span></a></div>
+<p>No. It states the language of your content. The answer language is <strong>Default Output Language</strong> in <a href="/ns-docs/configuration/neural-config/platform-preferences/">Platform Preferences</a>; <a href="/ns-docs/configuration/language/">Language</a> explains how the language settings work together.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="why-do-my-answers-show-sources-without-titles-or-links">Why do my answers show sources without titles or links?</h3><a class="sl-anchor-link" href="#why-do-my-answers-show-sources-without-titles-or-links"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Why do my answers show sources without titles or links?”</span></a></div>
+<p>Check <strong>Document Name Field</strong> and <strong>Link Field</strong> in the field mapping. They must name the fields of your index that hold the title and the URL. A field name the list shows after you pick a type, such as <code dir="auto">title</code> or <code dir="auto">url</code>, only works if your index uses that name.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="related">Related</h2><a class="sl-anchor-link" href="#related"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Related”</span></a></div>
+<ul>
+<li><a href="/ns-docs/knowledge/connect-a-kb/">Connect a KnowledgeBase</a></li>
+<li><a href="/ns-docs/knowledge/supported-knowledgebases/">Supported KnowledgeBases</a></li>
+<li><a href="/ns-docs/configuration/neural-config/knowledgebase-tuning/">KnowledgeBase Tuning</a></li>
+<li><a href="/ns-docs/knowledge/hybrid-vector-semantic-search/">Hybrid, vector and semantic search</a></li>
+<li><a href="/ns-docs/seek/virtual-kb/">Virtual KB</a></li>
+<li><a href="/ns-docs/configuration/neural-config/using-this-page/">Using the Neural Config page</a></li>
+</ul> </div> <footer class="sl-flex astro-3yyafb3n"> <div class="meta sl-flex astro-3yyafb3n">  <p>Last updated: <time datetime="2026-10-07T15:52:36.000Z">Oct 7, 2026</time></p> </div> <div class="pagination-links print:hidden astro-u2l5gyhi" dir="ltr"> <a href="/ns-docs/configuration/neural-config/" rel="prev" class="astro-u2l5gyhi"> <svg aria-hidden="true" class="astro-u2l5gyhi astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg> <span class="astro-u2l5gyhi"> Previous <br class="astro-u2l5gyhi"> <span class="link-title astro-u2l5gyhi">Neural Config options</span> </span> </a> <a href="/ns-docs/configuration/neural-config/knowledgebase-tuning/" rel="next" class="astro-u2l5gyhi"> <svg aria-hidden="true" class="astro-u2l5gyhi astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg> <span class="astro-u2l5gyhi"> Next <br class="astro-u2l5gyhi"> <span class="link-title astro-u2l5gyhi">KnowledgeBase Tuning</span> </span> </a> </div>   </footer> <div class="ns-chat" data-ns-chat> <!-- Launcher: hides while the panel is open, and the panel takes over this
+	     exact spot. Icon-only, so the accessible name lives on aria-label and
+	     the sighted affordance is the hover/focus tooltip (::after). --> <button type="button" class="ns-chat__launcher" data-ns-toggle aria-expanded="false" aria-controls="ns-chat-panel" aria-label="NeuralSeek Assistant"> <svg class="ns-chat__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"> <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path> </svg> </button> <!-- Panel --> <div class="ns-chat__modal" id="ns-chat-panel" data-ns-modal hidden role="dialog" aria-label="Ask NeuralSeek"> <header class="ns-chat__header"> <div class="ns-chat__title"> <img src="/ns-docs/_astro/neuraldocs-icon.3uQmbAUF.png" alt="" class="ns-chat__logo">
+Ask NeuralSeek
+</div> <div class="ns-chat__header-actions"> <button type="button" class="ns-chat__restart" data-ns-restart aria-label="Restart session" title="Restart session"> <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"> <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path> </svg> </button> <button type="button" class="ns-chat__close" data-ns-close aria-label="Close chat"> <svg aria-hidden="true" class=" astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.125rem;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg> </button> </div> </header> <div class="ns-chat__log" data-ns-log> <div class="ns-chat__msg ns-chat__msg--bot">Hi! Ask me anything about the documentation.</div> </div> <form class="ns-chat__form" data-ns-form> <input type="text" class="ns-chat__input" data-ns-input placeholder="Ask a question…" autocomplete="off" aria-label="Your question"> <button type="submit" class="ns-chat__send" aria-label="Send"> <svg aria-hidden="true" class=" astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.125rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg> </button> </form> </div> </div> <div class="ns-zoom" data-ns-zoom hidden role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="ns-zoom__bar"> <span class="ns-label">Image</span> <!-- The alt text, verbatim. It is NOT a `.ns-label`: that recipe
+		     uppercases, and an alt is a full descriptive sentence. --> <span class="ns-zoom__caption" data-ns-zoom-caption></span> <div class="ns-zoom__tools"> <button type="button" class="ns-zoom__btn" data-ns-zoom-out aria-label="Zoom out">
+&minus;
+</button> <button type="button" class="ns-zoom__btn ns-zoom__level" data-ns-zoom-reset aria-label="Reset zoom">
+100%
+</button> <button type="button" class="ns-zoom__btn" data-ns-zoom-in aria-label="Zoom in">+</button> <button type="button" class="ns-zoom__btn ns-zoom__close" data-ns-zoom-close>Close</button> </div> </div> <div class="ns-zoom__stage" data-ns-zoom-stage> <img class="ns-zoom__img" data-ns-zoom-img alt="" draggable="false"> </div> </div> <footer class="ns-footer astro-sz7xmlte"> <div class="ns-footer-inner astro-sz7xmlte"> <p class="ns-copyright astro-sz7xmlte">© 2026 NeuralSeek. All rights reserved.</p> <nav class="ns-footer-links astro-sz7xmlte"> <a href="https://neuralseek.com" class="astro-sz7xmlte">NeuralSeek</a> <a href="https://github.com/CerebralBlue/ns-docs" class="astro-sz7xmlte">GitHub</a> </nav> </div> </footer>  </div> </div>   </main> </div> </div>  </div> </div>  </body></html>

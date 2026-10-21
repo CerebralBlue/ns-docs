@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img"
+     aria-label="Screenshot pending — this visual has not been captured yet">
+  <style>
+    .bg   { fill: #f4f6fb; }
+    .edge { stroke: #c8d0e0; }
+    .mark { fill: #2d5bff; }
+    .lbl  { fill: #48506a; }
+    .sub  { fill: #79839e; }
+    @media (prefers-color-scheme: dark) {
+      .bg   { fill: #12151d; }
+      .edge { stroke: #2c3242; }
+      .mark { fill: #5b82ff; }
+      .lbl  { fill: #b8c0d4; }
+      .sub  { fill: #79839e; }
+    }
+  </style>
+
+  <rect class="bg edge" x="1" y="1" width="1198" height="673" rx="4" stroke-width="2"
+        stroke-dasharray="10 8" />
+
+  <!-- Camera glyph: a screenshot that has not been taken. -->
+  <g class="mark" transform="translate(600 268)">
+    <path d="M-46-22h20l8-12h36l8 12h20a8 8 0 0 1 8 8v44a8 8 0 0 1-8 8h-92a8 8 0 0 1-8-8v-44a8 8 0 0 1 8-8z" />
+    <circle cx="0" cy="12" r="17" class="bg" />
+    <circle cx="0" cy="12" r="9" />
+  </g>
+
+  <text class="lbl" x="600" y="378" text-anchor="middle"
+        font-family="'JetBrains Mono', ui-monospace, monospace"
+        font-size="26" font-weight="500" letter-spacing="4.2">SCREENSHOT PENDING</text>
+
+  <text class="sub" x="600" y="418" text-anchor="middle"
+        font-family="'Open Sans', ui-sans-serif, system-ui, sans-serif"
+        font-size="19">This visual has not been captured from the product yet.</text>
+</svg>
