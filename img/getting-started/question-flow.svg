@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="602" viewBox="0 0 760 602" role="img" aria-labelledby="title desc">
+  <title id="title">How a question moves through NeuralSeek</title>
+  <desc id="desc">Five steps. 1, a question arrives from the Seek page, the API or a virtual agent. 2, a category catches it: the category whose description matches the question. 3, the category answers it: with Answer Generation, where guardrails check the question, the KnowledgeBase is searched, the LLM writes the answer and it is scored and checked; or mAIstro-led, where the agent chosen on the category's Default Action writes the answer. 4, the answer comes back with its sources, Semantic Match and KnowledgeBase scores. 5, you review it afterwards, by intent in Curate and across all questions in Governance. A second column names where each step is seen in the console: Seek, API and virtual agents; Neural Config; Neural Config, KnowledgeBase and mAIstro; Seek; Curate and Governance.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9aa1b2"/>
+    </marker>
+    <style>
+      .bg { fill: #ffffff; }
+      .step { fill: #f6f7fb; stroke: #dadde6; stroke-width: 1; }
+      .lane { fill: #ffffff; stroke: #dadde6; stroke-width: 1; }
+      .badge { fill: #2d5bff; }
+      .num { fill: #ffffff; font: 700 12px 'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: middle; }
+      .title { fill: #16141d; font: 600 15px 'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .sub { fill: #5a6070; font: 400 12.5px 'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .line { fill: #2e3340; font: 400 12px 'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .lane-ag { fill: #2d5bff; font: 700 13.5px 'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .lane-ml { fill: #5b2dff; font: 700 13.5px 'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .where { fill: #2e3340; font: 400 12.5px 'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .label { fill: #6b7180; font: 500 10.5px 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; letter-spacing: 1.7px; }
+      .flow { fill: none; stroke: #9aa1b2; stroke-width: 1.5; }
+      .rule { stroke: #e3e6ee; stroke-width: 1; }
+      .dot { fill: #2d5bff; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="760" height="602"/>
+
+  <!-- Column headings -->
+  <text class="label" x="24" y="30">WHAT HAPPENS</text>
+  <text class="label" x="540" y="30">WHERE YOU SEE IT</text>
+  <line class="rule" x1="526" y1="40" x2="526" y2="578"/>
+
+  <!-- 1. A question arrives -->
+  <rect class="step" x="24" y="44" width="488" height="60" rx="4"/>
+  <circle class="badge" cx="48" cy="74" r="11"/>
+  <text class="num" x="48" y="78">1</text>
+  <text class="title" x="72" y="70">A question arrives</text>
+  <text class="sub" x="72" y="90">From the Seek page, the API or a virtual agent</text>
+  <circle class="dot" cx="543" cy="74" r="3"/>
+  <text class="where" x="554" y="78">Seek, API, virtual agents</text>
+
+  <line class="flow" x1="268" y1="104" x2="268" y2="125" marker-end="url(#arrow)"/>
+
+  <!-- 2. A category catches it -->
+  <rect class="step" x="24" y="126" width="488" height="60" rx="4"/>
+  <circle class="badge" cx="48" cy="156" r="11"/>
+  <text class="num" x="48" y="160">2</text>
+  <text class="title" x="72" y="152">A category catches it</text>
+  <text class="sub" x="72" y="172">The category whose description matches the question</text>
+  <circle class="dot" cx="543" cy="156" r="3"/>
+  <text class="where" x="554" y="160">Neural Config</text>
+
+  <line class="flow" x1="268" y1="186" x2="268" y2="207" marker-end="url(#arrow)"/>
+
+  <!-- 3. The category answers it -->
+  <rect class="step" x="24" y="208" width="488" height="44" rx="4"/>
+  <circle class="badge" cx="48" cy="230" r="11"/>
+  <text class="num" x="48" y="234">3</text>
+  <text class="title" x="72" y="235">The category answers it</text>
+
+  <line class="flow" x1="142" y1="252" x2="142" y2="271" marker-end="url(#arrow)"/>
+  <line class="flow" x1="394" y1="252" x2="394" y2="271" marker-end="url(#arrow)"/>
+
+  <rect class="lane" x="24" y="272" width="236" height="128" rx="4"/>
+  <rect class="badge" x="24" y="272" width="3" height="128"/>
+  <text class="lane-ag" x="40" y="296">Answer Generation</text>
+  <text class="line" x="40" y="320">› Guardrails check the question</text>
+  <text class="line" x="40" y="341">› The KnowledgeBase is searched</text>
+  <text class="line" x="40" y="362">› The LLM writes the answer</text>
+  <text class="line" x="40" y="383">› It is scored and checked</text>
+
+  <rect class="lane" x="276" y="272" width="236" height="128" rx="4"/>
+  <rect x="276" y="272" width="3" height="128" fill="#5b2dff"/>
+  <text class="lane-ml" x="292" y="296">mAIstro-led</text>
+  <text class="line" x="292" y="320">The agent chosen on the</text>
+  <text class="line" x="292" y="341">category's Default Action</text>
+  <text class="line" x="292" y="362">writes the answer</text>
+
+  <circle class="dot" cx="543" cy="300" r="3"/>
+  <text class="where" x="554" y="304">Neural Config,</text>
+  <text class="where" x="554" y="322">KnowledgeBase, mAIstro</text>
+
+  <path class="flow" d="M142 400 V416 H268 V435" marker-end="url(#arrow)"/>
+  <path class="flow" d="M394 400 V416 H268"/>
+
+  <!-- 4. The answer comes back with its evidence -->
+  <rect class="step" x="24" y="436" width="488" height="60" rx="4"/>
+  <circle class="badge" cx="48" cy="466" r="11"/>
+  <text class="num" x="48" y="470">4</text>
+  <text class="title" x="72" y="462">The answer comes back with its evidence</text>
+  <text class="sub" x="72" y="482">Its sources, Semantic Match and KnowledgeBase scores</text>
+  <circle class="dot" cx="543" cy="466" r="3"/>
+  <text class="where" x="554" y="470">Seek</text>
+
+  <line class="flow" x1="268" y1="496" x2="268" y2="517" marker-end="url(#arrow)"/>
+
+  <!-- 5. You review it afterwards -->
+  <rect class="step" x="24" y="518" width="488" height="60" rx="4"/>
+  <circle class="badge" cx="48" cy="548" r="11"/>
+  <text class="num" x="48" y="552">5</text>
+  <text class="title" x="72" y="544">You review it afterwards</text>
+  <text class="sub" x="72" y="564">By intent in Curate, across all questions in Governance</text>
+  <circle class="dot" cx="543" cy="548" r="3"/>
+  <text class="where" x="554" y="552">Curate, Governance</text>
+</svg>
